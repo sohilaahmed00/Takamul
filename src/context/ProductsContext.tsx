@@ -2,13 +2,17 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { AUTH_API_BASE } from '@/lib/utils';
 
 export interface Product {
+  // The context uses a numeric id internally. Some APIs may not return one,
+  // so we coerce from productCode or barcode.
   id: number;
   image: string;
+  // For listing the product we treat barcode as the code field.
   code: string;
   name: string;
   brand: string;
   agent: string;
   category: string;
+  // Not all APIs have a numeric category id; it's optional.
   categoryId?: number;
   cost: string;
   price: string;
@@ -17,28 +21,51 @@ export interface Product {
   alertQuantity: string;
 }
 
+interface AddProductParams extends Omit<Product, 'id'> {
+  nameAr?: string;
+  nameEn?: string;
+  nameUr?: string;
+  description?: string;
+  productType?: string;
+}
+
 interface ProductsContextType {
   products: Product[];
-  addProduct: (product: Omit<Product, 'id'>) => void;
-  deleteProduct: (id: number) => void;
-  deleteMultipleProducts: (ids: number[]) => void;
-  updateProduct: (id: number, updates: Partial<Product>) => void;
+  addProduct: (product: AddProductParams) => Promise<void>;
+  deleteProduct: (id: number) => Promise<void>;
+  deleteMultipleProducts: (ids: number[]) => Promise<void>;
+  updateProduct: (id: number, updates: Partial<Product>) => Promise<void>;
 }
 
 const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
 
-// يحول منتج الـ API إلى شكل الواجهة الحالية
+// convert a raw API product object into the shape used by the UI
+// the API sample provided by the user looks like:
+// {
+//   "productCode": 1,
+//   "productNameAr": "",
+//   "productNameEn": "",
+//   "productNameUr": "زيت عباد الشمس 1 لتر",
+//   "categoryName": "",
+//   "barcode": "6223001234567",
+//   "sellingPrice": 55,
+//   "costPrice": 45,
+//   "isActive": true,
+//   "imageUrl": ""
+// }
 const mapApiProduct = (p: any, index: number): Product => {
-  const id = Number(p?.id ?? p?.productId ?? index + 1);
+  const id = Number(p?.productCode ?? p?.id ?? p?.productId ?? index + 1);
   return {
     id,
-    image: '', // يمكن ربطه لاحقاً إن وُجد حقل للصورة
-    code: String(p?.barcode ?? p?.code ?? id),
-    name: String(p?.productName ?? p?.name ?? ''),
+    image: String(p?.imageUrl ?? ''),
+    code: String(p?.barcode ?? p?.productCode ?? id),
+    name: String(
+      p?.productNameAr || p?.productNameEn || p?.productNameUr || ''
+    ),
     brand: String(p?.brand ?? ''),
     agent: '',
-    category: String(p?.categoryName ?? p?.category ?? ''),
-    categoryId: p?.categoryId ?? p?.id ?? id,
+    category: String(p?.categoryName ?? ''),
+    categoryId: p?.categoryId ?? undefined,
     cost: String(p?.costPrice ?? p?.cost ?? '0'),
     price: String(p?.sellingPrice ?? p?.price ?? '0'),
     quantity: String(p?.quantity ?? '0'),
@@ -50,11 +77,15 @@ const mapApiProduct = (p: any, index: number): Product => {
 export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
 
+  // some environments use a proxy (dev) resulting in AUTH_API_BASE == ''.
+  // when that's the case we fall back to the public API host supplied by the user.
+  const API_BASE = AUTH_API_BASE || 'http://takamulerp.runasp.net';
+
   // دالة موحدة لتحميل المنتجات من الـ API (GET /api/Products)
   const loadFromApi = async () => {
     try {
       const token = localStorage.getItem('takamul_token');
-      const res = await fetch(`${AUTH_API_BASE}/api/Products`, {
+      const res = await fetch(`${API_BASE}/api/Products`, {
         headers: {
           Accept: 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -78,87 +109,111 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     loadFromApi();
   }, []);
 
-  const addProduct = (product: Omit<Product, 'id'>) => {
-    // إرسال للـ API: POST /api/Products/add ثم إعادة تحميل القائمة
-    (async () => {
-      try {
-        const token = localStorage.getItem('takamul_token');
-        const payload = {
-          barcode: product.code,
-          productName: product.name,
-          description: '',
-          categoryId: product.categoryId ?? 0,
-          costPrice: Number(product.cost || '0'),
-          sellingPrice: Number(product.price || '0'),
-          minStockLevel: Number(product.alertQuantity || '0'),
-          parentProductId: 0,
-          producttype: 1,
-        };
-        const res = await fetch(`${AUTH_API_BASE}/api/Products/add`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) {
-          console.error('Failed to add product via API, status:', res.status);
-          return;
-        }
-        await loadFromApi();
-      } catch (err) {
-        console.error('Failed to add product via API', err);
+  const addProduct = async (product: AddProductParams) => {
+    // بناء payload جديد متوافق مع API الذي أرسلته
+    const token = localStorage.getItem('takamul_token');
+    const payload: any = {
+      Barcode: product.code,
+      ProductNameAr: product.nameAr ?? product.name,
+      ProductNameEn: product.nameEn ?? product.name,
+      ProductNameUr: product.nameUr ?? product.name,
+      Description: product.description ?? '',
+      CategoryName: product.category || '',
+      CostPrice: Number(product.cost || '0'),
+      SellingPrice: Number(product.price || '0'),
+      MinStockLevel: Number(product.alertQuantity || '0'),
+      ParentProductId: 0,
+      producttype: product.productType ?? '1',
+      Image: '', // TODO: support uploading image if needed
+    };
+
+    try {
+      const res = await fetch(`${API_BASE}/api/Products/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        console.error('Failed to add product via API, status:', res.status);
       }
-    })();
+      await loadFromApi();
+    } catch (err) {
+      console.error('Failed to add product via API', err);
+    }
   };
 
-  const deleteProduct = (id: number) => {
-    (async () => {
-      try {
-        const token = localStorage.getItem('takamul_token');
-        const res = await fetch(`${AUTH_API_BASE}/api/Products/${id}`, {
-          method: 'DELETE',
-          headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
-        });
-        if (!res.ok) {
-          console.error('Failed to delete product via API, status:', res.status);
-          return;
-        }
-        await loadFromApi();
-      } catch (err) {
-        console.error('Failed to delete product via API', err);
+  const deleteProduct = async (id: number) => {
+    try {
+      const token = localStorage.getItem('takamul_token');
+      const res = await fetch(`${AUTH_API_BASE}/api/Products/${id}`, {
+        method: 'DELETE',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      if (!res.ok) {
+        console.error('Failed to delete product via API, status:', res.status);
       }
-    })();
+      await loadFromApi();
+    } catch (err) {
+      console.error('Failed to delete product via API', err);
+    }
   };
 
-  const deleteMultipleProducts = (ids: number[]) => {
-    (async () => {
-      try {
-        const token = localStorage.getItem('takamul_token');
-        await Promise.all(
-          ids.map((id) =>
-            fetch(`${AUTH_API_BASE}/api/Products/${id}`, {
-              method: 'DELETE',
-              headers: {
-                ...(token ? { Authorization: `Bearer ${token}` } : {}),
-              },
-            })
-          )
-        );
-        await loadFromApi();
-      } catch (err) {
-        console.error('Failed to delete products via API', err);
-      }
-    })();
+  const deleteMultipleProducts = async (ids: number[]) => {
+    try {
+      const token = localStorage.getItem('takamul_token');
+      await Promise.all(
+        ids.map((id) =>
+          fetch(`${AUTH_API_BASE}/api/Products/${id}`, {
+            method: 'DELETE',
+            headers: {
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+          })
+        )
+      );
+      await loadFromApi();
+    } catch (err) {
+      console.error('Failed to delete products via API', err);
+    }
   };
 
-  const updateProduct = (id: number, updates: Partial<Product>) => {
-    // حالياً نحدّث في الواجهة فقط؛ يمكن لاحقاً ربطه بـ PUT /api/Products/{id}
-    const updated = products.map(p => p.id === id ? { ...p, ...updates } : p);
-    setProducts(updated);
+  const updateProduct = async (id: number, updates: Partial<Product>) => {
+    // إرسال التعديلات للـ API ثم إعادة تحميل القائمة
+    try {
+      const token = localStorage.getItem('takamul_token');
+      const payload: any = {};
+      if (updates.code !== undefined) payload.Barcode = updates.code;
+      if (updates.name !== undefined) {
+        payload.ProductNameAr = updates.name;
+        payload.ProductNameEn = updates.name;
+        payload.ProductNameUr = updates.name;
+      }
+      if (updates.category !== undefined) payload.CategoryName = updates.category;
+      if (updates.cost !== undefined) payload.CostPrice = Number(updates.cost || '0');
+      if (updates.price !== undefined) payload.SellingPrice = Number(updates.price || '0');
+      if (updates.alertQuantity !== undefined) payload.MinStockLevel = Number(updates.alertQuantity || '0');
+      // other fields as needed
+
+      const res = await fetch(`${AUTH_API_BASE}/api/Products/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        console.error('Failed to update product via API, status:', res.status);
+      }
+      await loadFromApi();
+    } catch (err) {
+      console.error('Error updating product', err);
+    }
   };
 
   return (
