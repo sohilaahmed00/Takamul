@@ -1,8 +1,9 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
-/** قاعدة موحدة لكل طلبات الـ API */
-export const AUTH_API_BASE = 'http://takamulerp.runasp.net';
+/** في التطوير يستخدم البروكسي (نفس الـ origin) لتجنب CORS، وفي الإنتاج الرابط الكامل */
+export const AUTH_API_BASE =
+  import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE || 'http://takamulerp.runasp.net');
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
