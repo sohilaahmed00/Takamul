@@ -36,6 +36,15 @@ import ReturnPOSSale from '@/pages/ReturnPOSSale';
 import GiftCards from '@/pages/GiftCards';
 import Deliveries from '@/pages/Deliveries';
 import PurchasesList from '@/pages/PurchasesList';
+import AddPurchase from '@/pages/AddPurchase';
+import EditPurchase from '@/pages/EditPurchase';
+import CustomersList from '@/pages/CustomersList';
+import SuppliersList from '@/pages/SuppliersList';
+import Expenses from '@/pages/Expenses';
+import AddTaxInvoice from '@/pages/AddTaxInvoice';
+import AddSimplifiedTaxInvoice from '@/pages/AddSimplifiedTaxInvoice';
+import ImportSales from '@/pages/ImportSales';
+import ImportPurchases from '@/pages/ImportPurchases';
 
 export default function App() {
   return (
@@ -52,6 +61,10 @@ export default function App() {
       <Route path="/products/import" element={<Layout><ImportProducts /></Layout>} />
       <Route path="/products/barcode" element={<Layout><PrintBarcode /></Layout>} />
       <Route path="/sales/a4-invoices" element={<Layout><A4Sales /></Layout>} />
+      <Route path="/sales/add-tax-invoice" element={<Layout><AddTaxInvoice /></Layout>} />
+      <Route path="/sales/add-simplified-tax-invoice" element={<Layout><AddSimplifiedTaxInvoice /></Layout>} />
+      <Route path="/sales/import-csv" element={<Layout><ImportSales /></Layout>} />
+      <Route path="/sales/create" element={<Layout><CreateSalesInvoice /></Layout>} />
       
       <Route path="/sales/all" element={<Layout><AllSales /></Layout>} />
       <Route path="/sales/pos-invoices" element={<Layout><POSInvoices /></Layout>} />
@@ -66,6 +79,12 @@ export default function App() {
       <Route path="/sales/pos" element={<Layout><POS /></Layout>} />
       <Route path="/sales/deliveries" element={<Layout><Deliveries /></Layout>} />
       <Route path="/purchases" element={<Layout><PurchasesList /></Layout>} />
+      <Route path="/purchases/create" element={<Layout><AddPurchase /></Layout>} />
+      <Route path="/purchases/edit/:id" element={<Layout><EditPurchase /></Layout>} />
+      <Route path="/purchases/import-csv" element={<Layout><ImportPurchases /></Layout>} />
+      <Route path="/customers" element={<Layout><CustomersList /></Layout>} />
+      <Route path="/suppliers" element={<Layout><SuppliersList /></Layout>} />
+      <Route path="/expenses" element={<Layout><Expenses /></Layout>} />
       <Route path="/products/groups" element={<Layout><Groups /></Layout>} />
       
       <Route path="/products/units" element={<Layout><Units /></Layout>} />

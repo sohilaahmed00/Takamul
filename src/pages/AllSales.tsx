@@ -251,7 +251,7 @@ export default function AllSales() {
                   <div className='absolute z-50 top-full end-0 mt-2 bg-white rounded-md shadow-xl border border-gray-100 min-w-[220px] overflow-hidden'>
                     <div className='flex flex-col'>
                       <button 
-                        onClick={() => { navigate('/sales/create-from-quote'); setActiveActionMenu(null); }}
+                        onClick={() => { navigate('/sales/create'); setActiveActionMenu(null); }}
                         className='w-full text-right p-3 hover:bg-gray-50 flex items-center justify-end gap-3 border-b border-gray-50 transition-colors'
                       >
                         <span className="font-bold text-gray-800">{t('add_sale_operation')}</span>

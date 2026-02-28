@@ -108,12 +108,20 @@ const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarO
 
 const SubmenuItem = ({ label, icon: Icon, path }: { label: string, icon: React.ElementType, path?: string }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isActive = path ? location.pathname === path || location.pathname.startsWith(path + '/') : false;
+
   return (
     <button 
       onClick={() => path && navigate(path)}
-      className="w-full text-right p-2 text-sm text-[var(--text-main)] hover:text-[var(--primary)] rounded-md hover:bg-[var(--bg-main)] flex items-center gap-2 transition-colors group"
+      className={cn(
+        "w-full text-right p-2 text-sm rounded-md flex items-center gap-2 transition-colors group",
+        isActive 
+          ? "bg-[var(--primary)] text-white" 
+          : "text-[var(--text-main)] hover:text-[var(--primary)] hover:bg-[var(--bg-main)]"
+      )}
     >
-      <Icon size={16} className="text-[var(--text-main)] group-hover:text-[var(--primary)]" />
+      <Icon size={16} className={cn(isActive ? "text-white" : "text-[var(--text-main)] group-hover:text-[var(--primary)]")} />
       <span>{label}</span>
     </button>
   );
@@ -287,6 +295,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 exit={{ height: 0, opacity: 0 }}
                 className={cn("overflow-hidden space-y-1 pr-2", direction === 'rtl' ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}
               >
+                <SubmenuItem label={t('pos_quick')} icon={ShoppingCart} path="/sales/pos" />
                 <SubmenuItem label={t('all_sales')} icon={List} path="/sales/all" />
                 <SubmenuItem label="الشحن والتسليم" icon={Truck} path="/sales/deliveries" />
                 <SubmenuItem label={t('invoices_a4')} icon={FileText} path="/sales/a4-invoices" />
@@ -298,9 +307,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     isOpen={openNestedSubmenu === 'new_sale'}
                     onToggle={() => toggleNestedSubmenu('new_sale')}
                 >
-                    <SubmenuItem label={t('add_tax_invoice')} icon={PlusCircle} />
-                    <SubmenuItem label={t('add_simplified_tax_invoice')} icon={PlusCircle} />
-                    <SubmenuItem label={t('add_sale_csv')} icon={FileUp} />
+                    <SubmenuItem label={t('add_sale_operation')} icon={PlusCircle} path="/sales/create" />
+                    <SubmenuItem label={t('add_tax_invoice')} icon={PlusCircle} path="/sales/add-tax-invoice" />
+                    <SubmenuItem label={t('add_simplified_tax_invoice')} icon={PlusCircle} path="/sales/add-simplified-tax-invoice" />
+                    <SubmenuItem label={t('add_sale_csv')} icon={FileUp} path="/sales/import-csv" />
                 </NestedSubmenu>
 
                 <SubmenuItem label={t('gift_cards')} icon={Gift} path="/sales/gift-cards" />
@@ -347,10 +357,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 className={cn("overflow-hidden space-y-1 pr-2", direction === 'rtl' ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}
               >
                 <SubmenuItem label={t('purchases_list')} icon={List} path="/purchases" />
-                <SubmenuItem label={t('add_purchase')} icon={Plus} />
-                <SubmenuItem label={t('add_purchase_csv')} icon={FileUp} />
-                <SubmenuItem label={t('expenses_list')} icon={DollarSign} />
-                <SubmenuItem label={t('add_expense')} icon={PlusCircle} />
+                <SubmenuItem label={t('add_purchase')} icon={Plus} path="/purchases/create" />
+                <SubmenuItem label={t('add_purchase_csv')} icon={FileUp} path="/purchases/import-csv" />
+                <SubmenuItem label={t('expenses_list')} icon={DollarSign} path="/expenses" />
+                <SubmenuItem label={t('add_expense')} icon={PlusCircle} path="/expenses" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -418,8 +428,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 exit={{ height: 0, opacity: 0 }}
                 className={cn("overflow-hidden space-y-1 pr-2", direction === 'rtl' ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}
               >
-                <SubmenuItem label={t('customers_list')} icon={List} />
-                <SubmenuItem label={t('add_customer')} icon={PlusCircle} />
+                <SubmenuItem label={t('customers_list')} icon={List} path="/customers" />
+                <SubmenuItem label={t('add_customer')} icon={PlusCircle} path="/customers" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -440,8 +450,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 exit={{ height: 0, opacity: 0 }}
                 className={cn("overflow-hidden space-y-1 pr-2", direction === 'rtl' ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}
               >
-                <SubmenuItem label={t('suppliers_list')} icon={LayoutGrid} />
-                <SubmenuItem label={t('add_supplier')} icon={PlusCircle} />
+                <SubmenuItem label={t('suppliers_list')} icon={LayoutGrid} path="/suppliers" />
+                <SubmenuItem label={t('add_supplier')} icon={PlusCircle} path="/suppliers" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -578,7 +588,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
              <div className="hidden md:flex items-center gap-1">
                 <button 
-                    onClick={() => navigate('/sales/create-from-quote')}
+                    onClick={() => navigate('/sales/create')}
                     className="flex items-center gap-0.5 px-1.5 py-0.5 text-white bg-red-700 hover:bg-red-800 rounded-md transition-colors text-[9px] font-medium shadow-sm"
                 >
                     <span>{t('sales_a4_quick')}</span>

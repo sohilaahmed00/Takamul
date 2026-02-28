@@ -255,7 +255,7 @@ export default function QuotesList() {
                                                 {t('edit_quote_action')}
                                             </button>
                                             <button 
-                                              onClick={() => navigate('/sales/create-from-quote')}
+                                              onClick={() => navigate('/sales/create')}
                                               className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-start gap-2"
                                             >
                                                 <Heart size={16} />

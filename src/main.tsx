@@ -8,6 +8,9 @@ import { LanguageProvider } from '@/context/LanguageContext';
 import { GroupsProvider } from '@/context/GroupsContext';
 import { ProductsProvider } from '@/context/ProductsContext';
 import { AdjustmentsProvider } from '@/context/AdjustmentsContext';
+import { SuppliersProvider } from '@/context/SuppliersContext';
+import { CustomersProvider } from '@/context/CustomersContext';
+import { ExpensesProvider } from '@/context/ExpensesContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -17,7 +20,13 @@ createRoot(document.getElementById('root')!).render(
           <GroupsProvider>
             <ProductsProvider>
               <AdjustmentsProvider>
-                <App />
+                <SuppliersProvider>
+                  <CustomersProvider>
+                    <ExpensesProvider>
+                      <App />
+                    </ExpensesProvider>
+                  </CustomersProvider>
+                </SuppliersProvider>
               </AdjustmentsProvider>
             </ProductsProvider>
           </GroupsProvider>

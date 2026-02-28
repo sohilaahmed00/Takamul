@@ -203,7 +203,7 @@ export default function ViewQuote() {
           </button>
           <button 
             className="flex-[1.5] bg-[#8b0000] hover:bg-[#a52a2a] py-3 px-4 flex items-center justify-center gap-2 border-r border-[#a52a2a]"
-            onClick={() => navigate('/sales/create-from-quote')}
+            onClick={() => navigate('/sales/create')}
           >
             <PlusCircle size={18} />
             {t('create_sales_invoice')}
