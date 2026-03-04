@@ -32,8 +32,9 @@ export const GroupsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const loadFromApi = async () => {
     try {
       const token = localStorage.getItem('takamul_token');
+      // GET should hit the base collection endpoint, not the CREATE action
       const url = `${API_BASE}/api/ProductCategories`;
-      console.debug('GroupsContext.loadFromApi calling', url);
+      console.debug('GroupsContext.loadFromApi calling GET', url);
       const res = await fetch(url, {
         headers: {
           Accept: 'application/json',
@@ -101,7 +102,12 @@ export const GroupsProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     // Remove trailing slash or ensure exact URL
     const url = `${API_BASE}/api/ProductCategories/CREATE`.replace(/\/+$/, '');
 
-    console.debug('GroupsContext.addGroup submitting form', { name, nameSecondary, nameUr, description, imageFile });
+    // log each entry in case the server rejects unexpected/missing fields
+    console.debug('GroupsContext.addGroup submitting form data:');
+    for (const pair of form.entries()) {
+      console.debug(' -', pair[0], '=', pair[1]);
+    }
+    console.debug('GroupsContext.addGroup additional params', { name, nameSecondary, nameUr, description, imageFile });
     const res = await fetch(url, {
       method: 'POST',
       headers: {
