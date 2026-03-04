@@ -163,28 +163,26 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  const deleteCustomer = async (id: number): Promise<ApiResult> => {
-    try {
-      const res = await fetch(`${API_BASE}/api/Customer/${id}`, {
-        method: 'DELETE',
-        headers: authHeaders(),
-      });
-
-      if (!res.ok) return { ok: false, message: await parseApiError(res) };
-
-      // ✅ confirm deletion (server may lie / wrong id)
-      await reload();
-      const stillExists = customers.some((c) => c.id === id);
-      // ⚠️ customers state updates async, so check with a fresh fetch quickly:
-      if (stillExists) {
-        return { ok: false, message: 'لم يتم الحذف على السيرفر (تأكد من id الصحيح)' };
-      }
-
-      return { ok: true };
-    } catch (e) {
-      return { ok: false, message: String(e) };
+ const deleteCustomer = async (id: number): Promise<ApiResult> => {
+  try {
+    const cid = Number(id);
+    if (!Number.isFinite(cid) || cid <= 0) {
+      return { ok: false, message: 'id غير صحيح' };
     }
-  };
+
+    const res = await fetch(`${API_BASE}/api/Customer/${cid}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+
+    if (!res.ok) return { ok: false, message: await parseApiError(res) };
+
+    await reload();
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, message: String(e) };
+  }
+};
 
   const updateCustomer = async (id: number, updates: Partial<Customer>): Promise<ApiResult> => {
     try {

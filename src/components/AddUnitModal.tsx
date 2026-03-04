@@ -1,79 +1,111 @@
-import React, { useState } from 'react';
-import { PlusCircle, X } from 'lucide-react';
-import { useLanguage } from '@/context/LanguageContext';
-import { motion } from 'framer-motion';
+import React, { useEffect, useState } from "react";
+import { X, PlusCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useLanguage } from "@/context/LanguageContext";
+
+type UnitOfMeasure = {
+  id: number;
+  name: string;
+  description?: string;
+};
 
 interface AddUnitModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAddUnit: (unitName: string) => void;
+
+  // ✅ هنستخدم نفس المودال للإضافة والتعديل
+  unit?: UnitOfMeasure | null;
+
+  // ✅ بدل onAddUnit: اسم موحد
+  onSubmit: (name: string) => void;
 }
 
-const AddUnitModal: React.FC<AddUnitModalProps> = ({ isOpen, onClose, onAddUnit }) => {
+export default function AddUnitModal({ isOpen, onClose, unit, onSubmit }: AddUnitModalProps) {
   const { t, direction } = useLanguage();
-  const [unitName, setUnitName] = useState('');
+  const [unitName, setUnitName] = useState("");
+
+  useEffect(() => {
+    if (unit) setUnitName(unit.name || "");
+    else setUnitName("");
+  }, [unit, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!unitName.trim()) {
-      alert(direction === 'rtl' ? 'يرجى إدخال اسم الوحدة' : 'Please enter unit name');
-      return;
-    }
-    onAddUnit(unitName);
-    setUnitName('');
-    onClose();
+    if (!unitName.trim()) return;
+    onSubmit(unitName.trim());
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden relative"
-        dir={direction}
-      >
-        <div className="p-4 flex justify-between items-center border-b border-gray-100">
-          <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-            <PlusCircle size={20} className="text-primary" />
-            {t('add_new_unit')}
-          </h1>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400"
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onMouseDown={onClose}
+        >
+          <motion.div
+            className={`w-full max-w-xl bg-white rounded-2xl shadow-xl overflow-hidden ${
+              direction === "rtl" ? "text-right" : "text-left"
+            }`}
+            initial={{ scale: 0.95, opacity: 0, y: 10 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 10 }}
+            onMouseDown={(e) => e.stopPropagation()}
           >
-            <X size={24} />
-          </button>
-        </div>
-        <div className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {t('unit_name')} <span className="text-red-500">*</span>
-              </label>
-              <input 
-                type="text" 
-                value={unitName}
-                onChange={(e) => setUnitName(e.target.value)}
-                className="w-full border border-primary rounded-md px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary" 
-                required
-              />
-            </div>
-            <div className="flex justify-end pt-4">
-              <button 
-                type="submit"
-                className="bg-primary text-white px-8 py-2 rounded-md font-medium hover:bg-primary-hover transition-colors shadow-sm"
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b">
+              <div className="flex items-center gap-2">
+                <PlusCircle className="text-primary" size={20} />
+                <h2 className="text-lg font-bold text-gray-800">
+                  {unit ? (t("edit_unit") || "تعديل وحدة") : (t("add_new_unit") || "إضافة وحدة جديدة")}
+                </h2>
+              </div>
+
+              <button
+                onClick={onClose}
+                className="p-2 rounded-lg hover:bg-gray-100 transition"
+                aria-label="Close"
               >
-                  {t('add_new_unit')}
+                <X size={18} />
               </button>
             </div>
-          </form>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
 
-export default AddUnitModal;
+            {/* Body */}
+            <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t("unit_name") || "اسم الوحدة"} <span className="text-red-500">*</span>
+                </label>
+                <input
+                  value={unitName}
+                  onChange={(e) => setUnitName(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder={t("unit_name") || "اسم الوحدة"}
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  {t("cancel") || "إلغاء"}
+                </button>
+
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-primary text-white hover:bg-primary-hover"
+                >
+                  {unit ? (t("save_changes") || "حفظ التعديلات") : (t("add_new_unit") || "إضافة وحدة جديدة")}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

@@ -429,7 +429,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 className={cn("overflow-hidden space-y-1 pr-2", direction === 'rtl' ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}
               >
                 <SubmenuItem label={t('customers_list')} icon={List} path="/customers" />
-                <SubmenuItem label={t('add_customer')} icon={PlusCircle} path="/customers" />
+                {/* <SubmenuItem  label={t('add_customer')} icon={PlusCircle} path="/customers" /> */}
               </motion.div>
             )}
           </AnimatePresence>
