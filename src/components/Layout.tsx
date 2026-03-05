@@ -72,15 +72,17 @@
   import Logo from '@/components/Logo';
   import WelcomeBanner from '@/components/WelcomeBanner';
 
-  interface SidebarItemProps {
-    icon: React.ElementType;
-    label: string;
-    active?: boolean;
-    hasSubmenu?: boolean;
-    isOpen?: boolean;
-    isSidebarOpen?: boolean;
-    onClick?: () => void;
-  }
+ import type { LucideIcon } from 'lucide-react';
+
+interface SidebarItemProps {
+  icon: LucideIcon;
+  label: string;
+  active?: boolean;
+  hasSubmenu?: boolean;
+  isOpen?: boolean;
+  isSidebarOpen?: boolean;
+  onClick?: () => void;
+}
 
   const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarOpen = true, onClick }: SidebarItemProps) => {
     return (
@@ -106,7 +108,7 @@
     );
   };
 
-  const SubmenuItem = ({ label, icon: Icon, path }: { label: string, icon: React.ElementType, path?: string }) => {
+  const SubmenuItem = ({ label, icon: Icon, path, size }: { label: string, icon: LucideIcon, path?: string, size?: number }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const isActive = path ? location.pathname === path || location.pathname.startsWith(path + '/') : false;
@@ -424,7 +426,7 @@ const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
                   className={cn("overflow-hidden space-y-1 pr-2", direction === 'rtl' ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}
                 >
                   <SubmenuItem label={t('customers_list')} icon={List} path="/customers" />
-                  <SubmenuItem label={t('add_customer')} icon={PlusCircle} path="/customers" />
+                  {/* <SubmenuItem  label={t('add_customer')} icon={PlusCircle} path="/customers" /> */}
                 </motion.div>
               )}
             </AnimatePresence>
