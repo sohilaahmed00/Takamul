@@ -97,7 +97,7 @@ const translations: Record<Language, Record<string, string>> = {
     'transfers_list': 'قائمة تحويل المخزون',
     'add_transfer': 'إضافة تحويل مخزون',
     'add_transfer_csv': 'إضافة نقل من ملف CSV',
-    'users': 'المستخدمين والأجهزة',
+    'users': 'المستخدمين',
     'users_list': 'قائمة المستخدمين',
     'add_user': 'إضافة مستخدم',
     'pos_devices': 'أجهزة اصدار الفواتير',
