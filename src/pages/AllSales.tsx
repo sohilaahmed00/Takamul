@@ -32,6 +32,7 @@ import {
 import { useLanguage } from '@/context/LanguageContext';
 import { AUTH_API_BASE, cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import InvoiceDetailsModal from '@/components/sales/InvoiceDetailsModal';
 
 type SalesOrderStatus = string;
 
@@ -991,8 +992,19 @@ export default function AllSales() {
             </motion.div>
           </motion.div>
         )}
-        {/* باقي مودالاتك موجودة عندك — سيبها زي ما هي (لو حابب أبعتها كاملة مع باقي الملف قولّي) */}
-      </AnimatePresence>
+          <InvoiceDetailsModal
+            open={!!showInvoiceDetails}
+            sale={showInvoiceDetails}
+            onClose={() => setShowInvoiceDetails(null)}
+            t={t}
+            direction={direction}
+            apiBase={API_BASE}
+            onAddPayment={(sale) => {
+              setShowInvoiceDetails(null);
+              setShowPayments(sale);
+            }}
+          />  
+     </AnimatePresence>
     </div>
   );
 }
