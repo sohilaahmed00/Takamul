@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
@@ -13,10 +13,9 @@ interface EditProductModalProps {
 
 export default function EditProductModal({ isOpen, onClose, product }: EditProductModalProps) {
   const { t, direction } = useLanguage();
+  const { updateProduct } = useProducts();
 
-  // ✅ لازم تكون موجودة في ProductsContext
-  // لو مش موجودة عندك، هقولك تحت تعملها ازاي
-  const { updateProduct } = useProducts() as any;
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -27,8 +26,24 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
     quantity: 0,
     unit: "",
     alertQuantity: 0,
-    image: "",
+    productType: "1",
+    description: "",
+    imageUrl: "",
   });
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  const previewUrl = useMemo(() => {
+    if (imageFile) return URL.createObjectURL(imageFile);
+    return formData.imageUrl || "";
+  }, [imageFile, formData.imageUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (imageFile) URL.revokeObjectURL(previewUrl);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageFile]);
 
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
@@ -44,63 +59,85 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
   useEffect(() => {
     if (!product || !isOpen) return;
 
+    setImageFile(null);
+
     setFormData({
       name: product.name ?? "",
       code: product.code ?? "",
-      category: (product as any).category ?? "",
+      category: product.category ?? "",
       cost: Number(product.cost ?? 0),
       price: Number(product.price ?? 0),
       quantity: Number(product.quantity ?? 0),
       unit: product.unit ?? "",
-      alertQuantity: Number((product as any).alertQuantity ?? 0),
-      image: (product as any).image ?? "",
+      alertQuantity: Number(product.alertQuantity ?? 0),
+      productType: (product.productType ?? "1").toString(),
+      description: (product.description ?? "").toString(),
+      imageUrl: product.image ?? "",
     });
   }, [product, isOpen]);
+
+  const onPickImage = () => {
+    fileInputRef.current?.click();
+  };
+
+  const onImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] || null;
+    if (!f) return;
+
+    // optional: تحقق بسيط
+    if (!f.type.startsWith("image/")) {
+      showToast("error", "من فضلك اختر ملف صورة صحيح");
+      return;
+    }
+
+    setImageFile(f);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!product || submitting) return;
 
-    if (!updateProduct) {
-      showToast("error", "updateProduct غير موجودة في ProductsContext");
+    // validation بسيط للمستخدم
+    if (!formData.name.trim()) {
+      showToast("error", "من فضلك اكتب اسم المنتج");
       return;
     }
-
-    // ✅ validation بسيط من غير تغيير لوجيك
-    if (!formData.name.trim() || !formData.code.trim()) {
-      showToast("error", "اسم الصنف + كود الصنف حقول إجبارية");
+    if (!formData.category.trim()) {
+      showToast("error", "من فضلك اكتب/اختر التصنيف الرئيسي");
+      return;
+    }
+    if (!Number.isFinite(Number(formData.price))) {
+      showToast("error", "سعر البيع غير صحيح");
       return;
     }
 
     setSubmitting(true);
 
-    // ✅ payload للتعديل (عدّل أسماء المفاتيح لو API عندك مختلف)
-    const updates = {
+    const updates: any = {
       name: formData.name.trim(),
       code: formData.code.trim(),
-      category: formData.category,
+      category: formData.category.trim(),
       cost: Number(formData.cost),
       price: Number(formData.price),
       quantity: Number(formData.quantity),
       unit: formData.unit,
       alertQuantity: Number(formData.alertQuantity),
-      image: formData.image,
+      productType: formData.productType,
+      description: formData.description,
+      // ✅ نرسل الملف (لو اتغير)
+      imageFile: imageFile ?? null,
     };
 
-    try {
-      const res = await updateProduct(product.id, updates);
+    const res = await updateProduct(product.id, updates);
 
-      if (res?.ok || res === true) {
-        showToast("success", t("operation_completed_successfully") || "تم التعديل بنجاح");
-        setTimeout(() => onClose(), 400);
-      } else {
-        showToast("error", res?.message || "فشل التعديل");
-      }
-    } catch (err) {
-      showToast("error", "فشل التعديل");
-    } finally {
-      setSubmitting(false);
+    if (res.ok) {
+      showToast("success", res.message || (t("operation_completed_successfully") as string) || "تم الحفظ بنجاح");
+      setTimeout(() => onClose(), 400);
+    } else {
+      showToast("error", res.message || "فشل حفظ التعديلات");
     }
+
+    setSubmitting(false);
   };
 
   if (!isOpen) return null;
@@ -129,10 +166,11 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
 
           <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
             <p className="text-center text-gray-500 text-sm">
-              برجاء ادخال المعلومات أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية .
+              برجاء إدخال المعلومات أدناه. الحقول التي تحمل علامة * هي حقول إجبارية.
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Left */}
               <div className="space-y-4 border border-gray-100 p-4 rounded-xl">
                 <Field label="اسم الصنف *">
                   <input
@@ -144,19 +182,19 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                   />
                 </Field>
 
-                <Field label="كود الصنف *">
+                <Field label="كود الصنف">
                   <input
                     type="text"
-                    required
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[#2ecc71]"
                     value={formData.code}
                     onChange={(e) => setFormData({ ...formData, code: e.target.value })}
                   />
                 </Field>
 
-                <Field label="التصنيف الرئيسي">
+                <Field label="التصنيف الرئيسي *">
                   <input
                     type="text"
+                    required
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[#2ecc71]"
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
@@ -171,8 +209,18 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                     onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
                   />
                 </Field>
+
+                <Field label="Product Type *">
+                  <input
+                    type="text"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[#2ecc71]"
+                    value={formData.productType}
+                    onChange={(e) => setFormData({ ...formData, productType: e.target.value })}
+                  />
+                </Field>
               </div>
 
+              {/* Right */}
               <div className="space-y-4 border border-gray-100 p-4 rounded-xl">
                 <Field label="التكلفة">
                   <input
@@ -183,9 +231,10 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                   />
                 </Field>
 
-                <Field label="سعر البيع">
+                <Field label="سعر البيع *">
                   <input
                     type="number"
+                    required
                     className="w-full border border-gray-200 rounded-lg px-3 py-2 outline-none focus:border-[#2ecc71] text-center"
                     value={formData.price}
                     onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
@@ -209,6 +258,41 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                     onChange={(e) => setFormData({ ...formData, alertQuantity: Number(e.target.value) })}
                   />
                 </Field>
+
+                {/* ✅ صورة المنتج + تغيير من الملفات */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-bold text-[#2ecc71] text-right">
+                    صورة المنتج *
+                  </label>
+
+                  <div className="border border-gray-200 rounded-xl p-3 bg-gray-50">
+                    <div className="w-full h-44 rounded-lg bg-white border border-gray-200 flex items-center justify-center overflow-hidden">
+                      {previewUrl ? (
+                        <img src={previewUrl} alt="preview" className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-gray-400 text-sm">لا يوجد صورة</span>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end mt-3">
+                      <button
+                        type="button"
+                        onClick={onPickImage}
+                        className="bg-[#00a65a] text-white px-4 py-2 rounded-lg font-bold hover:bg-[#008d4c] transition-colors"
+                      >
+                        تغيير الصورة
+                      </button>
+                    </div>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={onImageChange}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
