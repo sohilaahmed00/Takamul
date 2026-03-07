@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AUTH_API_BASE } from '@/lib/utils';
 
 type ApiResult<T = any> = {
@@ -21,12 +21,24 @@ export interface Product {
   price: string;
   quantity: string;
   unit: string;
+  unitId?: number;
   alertQuantity: string;
-
-  // optional fields (لو موجودة من API)
   description?: string;
   productType?: string;
   parentProductId?: number;
+  nameAr?: string;
+  nameEn?: string;
+  nameUr?: string;
+}
+
+export interface ProductCategoryOption {
+  id: number;
+  name: string;
+}
+
+export interface UnitOption {
+  id: number;
+  name: string;
 }
 
 interface AddProductParams extends Omit<Product, 'id'> {
@@ -35,6 +47,26 @@ interface AddProductParams extends Omit<Product, 'id'> {
   nameUr?: string;
   description?: string;
   productType?: string;
+}
+
+interface UpdateProductParams {
+  name?: string;
+  nameAr?: string;
+  nameEn?: string;
+  nameUr?: string;
+  code?: string;
+  category?: string;
+  categoryId?: number;
+  unit?: string;
+  unitId?: number;
+  cost?: string | number;
+  price?: string | number;
+  quantity?: string | number;
+  alertQuantity?: string | number;
+  productType?: string;
+  description?: string;
+  parentProductId?: number;
+  imageFile?: File | null;
 }
 
 const extractApiErrorMessage = (data: any) => {
@@ -48,23 +80,27 @@ const extractApiErrorMessage = (data: any) => {
     }
     if (lines.length) return lines.join(' | ');
   }
+
   if (typeof data?.title === 'string') return data.title;
   if (typeof data?.message === 'string') return data.message;
   if (typeof data === 'string') return data;
+
   return 'فشل العملية';
 };
 
 const toUserMessage = (raw?: string) => {
   if (!raw) return 'حدث خطأ، حاول مرة أخرى';
 
-  // تحويل رسائل الـ API لرسائل مناسبة للمستخدم
-  if (raw.includes('ImageUrl')) return 'من فضلك اختر صورة للمنتج';
-  if (raw.includes('CategoryName')) return 'من فضلك اختر/اكتب التصنيف الرئيسي';
+  if (raw.includes('ImageUrl') || raw.includes('Image')) return 'من فضلك اختر صورة صحيحة للصنف';
+  if (raw.includes('CategoryName') || raw.includes('Category')) return 'من فضلك اختر التصنيف الرئيسي';
   if (raw.includes('ProductNameAr') || raw.includes('ProductNameEn') || raw.includes('ProductNameUr'))
-    return 'من فضلك اكتب اسم المنتج';
+    return 'من فضلك اكتب اسم الصنف';
+  if (raw.includes('Description')) return 'من فضلك اكتب وصف الصنف';
+  if (raw.includes('SellingPrice')) return 'من فضلك اكتب سعر البيع بشكل صحيح';
+  if (raw.includes('ProductType')) return 'من فضلك اختر نوع الصنف';
+  if (raw.includes('Id')) return 'تعذر تحديد الصنف المطلوب تعديله';
 
-  // fallback
-  return 'من فضلك اكمّل البيانات المطلوبة';
+  return 'من فضلك راجع البيانات المطلوبة';
 };
 
 interface ProductsContextType {
@@ -72,34 +108,47 @@ interface ProductsContextType {
   addProduct: (product: AddProductParams) => Promise<void>;
   deleteProduct: (id: number) => Promise<void>;
   deleteMultipleProducts: (ids: number[]) => Promise<void>;
-  updateProduct: (
-    id: number,
-    updates: Partial<Product> & { imageFile?: File | null }
-  ) => Promise<ApiResult>;
+  updateProduct: (id: number, updates: UpdateProductParams) => Promise<ApiResult>;
+  fetchCategories: () => Promise<ProductCategoryOption[]>;
+  fetchUnits: () => Promise<UnitOption[]>;
+  reloadProducts: () => Promise<void>;
 }
 
 const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
 
-const mapApiProduct = (p: any, index: number): Product => {
-  const id = Number(p?.productCode ?? p?.id ?? p?.productId ?? index + 1);
+const normalizeProductType = (value: any): string => {
+  const v = String(value ?? '').trim().toLowerCase();
+
+  if (v === 'prepared' || v === '1') return 'prepared';
+  if (v === 'branched' || v === '2') return 'branched';
+
+  return 'prepared';
+};
+
+const mapApiProduct = (p: any): Product => {
+  const realId = Number(p?.id ?? p?.productId ?? 0);
 
   return {
-    id,
-    image: String(p?.imageUrl ?? ''),
-    code: String(p?.barcode ?? p?.productCode ?? id),
+    id: realId,
+    image: String(p?.imageUrl ?? p?.image ?? ''),
+    code: String(p?.barcode ?? p?.productCode ?? ''),
     name: String(p?.productNameAr || p?.productNameEn || p?.productNameUr || ''),
+    nameAr: String(p?.productNameAr ?? ''),
+    nameEn: String(p?.productNameEn ?? ''),
+    nameUr: String(p?.productNameUr ?? ''),
     brand: String(p?.brand ?? ''),
-    agent: '',
+    agent: String(p?.agent ?? ''),
     category: String(p?.categoryName ?? ''),
     categoryId: p?.categoryId ?? undefined,
-    cost: String(p?.costPrice ?? p?.cost ?? '0'),
-    price: String(p?.sellingPrice ?? p?.price ?? '0'),
-    quantity: String(p?.quantity ?? '0'),
-    unit: String(p?.unit ?? 'وحدة'),
-    alertQuantity: String(p?.minStockLevel ?? p?.alertQuantity ?? '0'),
-    description: p?.description ?? '',
-    productType: String(p?.productType ?? '1'),
-    parentProductId: p?.parentProductId ?? 0,
+    cost: String(p?.costPrice ?? p?.cost ?? ''),
+    price: String(p?.sellingPrice ?? p?.price ?? ''),
+    quantity: String(p?.quantity ?? ''),
+    unit: String(p?.unitName ?? p?.unit ?? ''),
+    unitId: p?.unitId ?? undefined,
+    alertQuantity: String(p?.minStockLevel ?? p?.alertQuantity ?? ''),
+    description: String(p?.description ?? ''),
+    productType: normalizeProductType(p?.productType),
+    parentProductId: Number(p?.parentProductId ?? 0),
   };
 };
 
@@ -108,21 +157,28 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const API_BASE = AUTH_API_BASE || 'http://takamulerp.runasp.net';
 
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem('takamul_token');
+    return {
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
+
   const loadFromApi = async () => {
     try {
-      const token = localStorage.getItem('takamul_token');
       const res = await fetch(`${API_BASE}/api/Products`, {
-        headers: {
-          Accept: 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: getAuthHeaders(),
       });
 
       if (!res.ok) return;
 
       const data = await res.json();
+
       if (Array.isArray(data)) {
-        setProducts(data.map((p: any, idx: number) => mapApiProduct(p, idx)));
+        setProducts(data.map((p: any) => mapApiProduct(p)).filter((p) => p.id > 0));
+      } else if (Array.isArray(data?.items)) {
+        setProducts(data.items.map((p: any) => mapApiProduct(p)).filter((p: Product) => p.id > 0));
       }
     } catch (err) {
       console.error('Error loading products from API', err);
@@ -133,9 +189,51 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     loadFromApi();
   }, []);
 
-  const addProduct = async (product: AddProductParams) => {
-    const token = localStorage.getItem('takamul_token');
+  const fetchCategories = async (): Promise<ProductCategoryOption[]> => {
+    try {
+      const res = await fetch(`${API_BASE}/api/ProductCategories`, {
+        headers: getAuthHeaders(),
+      });
 
+      if (!res.ok) return [];
+
+      const data = await res.json();
+              console.log(data,"sfa");
+
+      const arr = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
+
+      return arr.map((item: any, index: number) => ({
+        id: Number(item?.id ?? item?? index + 1),
+        name: String(item?.categoryNameAr ?? item?.name ?? item?.productCategoryName ?? '').trim(),
+      })).filter((item: ProductCategoryOption) => item.name);
+    } catch (err) {
+      console.error('Error loading categories', err);
+      return [];
+    }
+  };
+
+  const fetchUnits = async (): Promise<UnitOption[]> => {
+    try {
+      const res = await fetch(`${API_BASE}/api/UnitOfMeasure`, {
+        headers: getAuthHeaders(),
+      });
+
+      if (!res.ok) return [];
+
+      const data = await res.json();
+      const arr = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
+
+      return arr.map((item: any, index: number) => ({
+        id: Number(item?.id ?? item?.unitId ?? index + 1),
+        name: String(item?.unitName ?? item?.name ?? '').trim(),
+      })).filter((item: UnitOption) => item.name);
+    } catch (err) {
+      console.error('Error loading units', err);
+      return [];
+    }
+  };
+
+  const addProduct = async (product: AddProductParams) => {
     const payload: any = {
       Barcode: product.code,
       ProductNameAr: product.nameAr ?? product.name,
@@ -147,11 +245,12 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       SellingPrice: Number(product.price || '0'),
       MinStockLevel: Number(product.alertQuantity || '0'),
       ParentProductId: 0,
-      producttype: product.productType ?? '1',
+      ProductType: normalizeProductType(product.productType),
       Image: '',
     };
 
     try {
+      const token = localStorage.getItem('takamul_token');
       const res = await fetch(`${API_BASE}/api/Products/add`, {
         method: 'POST',
         headers: {
@@ -161,7 +260,10 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) console.error('Failed to add product via API, status:', res.status);
+      if (!res.ok) {
+        console.error('Failed to add product via API, status:', res.status);
+      }
+
       await loadFromApi();
     } catch (err) {
       console.error('Failed to add product via API', err);
@@ -177,6 +279,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       });
 
       if (!res.ok) console.error('Failed to delete product via API, status:', res.status);
+
       await loadFromApi();
     } catch (err) {
       console.error('Failed to delete product via API', err);
@@ -200,101 +303,160 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
-  // ✅ Helper: نحول رابط الصورة الحالية لملف File (عشان API بيطلب File دايمًا)
-  const urlToFile = async (url: string, fallbackName = 'image.jpg'): Promise<File | null> => {
+  const urlToFile = async (url: string, fallbackName = 'current-image.jpg'): Promise<File | null> => {
     if (!url) return null;
+
     try {
       const res = await fetch(url);
       if (!res.ok) return null;
+
       const blob = await res.blob();
-      const nameFromUrl = url.split('/').pop() || fallbackName;
       const type = blob.type || 'image/jpeg';
-      return new File([blob], nameFromUrl, { type });
-    } catch {
+
+      return new File([blob], fallbackName, { type });
+    } catch (error) {
+      console.error('Failed converting image url to file', error);
       return null;
     }
   };
 
-  // ✅ updateProduct: multipart/form-data + ImageUrl كـ File
-  const updateProduct = async (
-    id: number,
-    updates: Partial<Product> & { imageFile?: File | null }
-  ): Promise<ApiResult> => {
+  const updateProduct = async (id: number, updates: UpdateProductParams): Promise<ApiResult> => {
     try {
       const token = localStorage.getItem('takamul_token');
       const currentProduct = products.find((p) => p.id === id);
 
       if (!currentProduct) {
-        return { ok: false, status: 404, message: 'المنتج غير موجود' };
+        return { ok: false, status: 404, message: 'الصنف غير موجود' };
       }
 
-      // ✅ القيم المطلوبة لازم تبقى موجودة في الـ FormData (حتى لو المستخدم ما عدّلهاش)
-      const name = (updates.name ?? currentProduct.name ?? '').toString().trim();
-      const category = (updates.category ?? currentProduct.category ?? '').toString().trim();
+      const nameAr = String(updates.nameAr ?? currentProduct.nameAr ?? updates.name ?? currentProduct.name ?? '').trim();
+      const nameEn = String(updates.nameEn ?? currentProduct.nameEn ?? updates.name ?? currentProduct.name ?? '').trim();
+      const nameUr = String(updates.nameUr ?? currentProduct.nameUr ?? updates.name ?? currentProduct.name ?? '').trim();
+      const categoryName = String(updates.category ?? currentProduct.category ?? '').trim();
+      const unitName = String(updates.unit ?? currentProduct.unit ?? '').trim();
+      const barcode = String(updates.code ?? currentProduct.code ?? '').trim();
+      const description = String(updates.description ?? currentProduct.description ?? '').trim();
+      const productType = normalizeProductType(updates.productType ?? currentProduct.productType ?? 'prepared');
 
-      const price = Number(updates.price ?? currentProduct.price ?? 0);
-      const cost = Number(updates.cost ?? currentProduct.cost ?? 0);
-      const minStock = Number(updates.alertQuantity ?? currentProduct.alertQuantity ?? 0);
+      const sellingPrice = Number(updates.price ?? currentProduct.price ?? 0);
+      const costPrice = Number(updates.cost ?? currentProduct.cost ?? 0);
+      const minStockLevel = Number(updates.alertQuantity ?? currentProduct.alertQuantity ?? 0);
+      const quantity = Number(updates.quantity ?? currentProduct.quantity ?? 0);
+      const parentProductId = Number(updates.parentProductId ?? currentProduct.parentProductId ?? 0);
 
-      const barcode = (updates.code ?? currentProduct.code ?? '').toString();
-      const productType = (updates.productType ?? currentProduct.productType ?? '1').toString();
-      const description = (updates.description ?? currentProduct.description ?? '').toString();
-      const parentProductId = updates.parentProductId ?? currentProduct.parentProductId ?? 0;
+      if (!nameAr || !nameEn || !nameUr) {
+        return { ok: false, status: 400, message: 'من فضلك اكتب اسم الصنف' };
+      }
 
-      // ✅ الصورة: يا File جديد، يا نحاول نجيب الصورة الحالية ونبعتها كـ File
+      if (!categoryName) {
+        return { ok: false, status: 400, message: 'من فضلك اختر التصنيف الرئيسي' };
+      }
+
+      if (!unitName) {
+        return { ok: false, status: 400, message: 'من فضلك اختر الوحدة' };
+      }
+
+      if (!description) {
+        return { ok: false, status: 400, message: 'من فضلك اكتب وصف الصنف' };
+      }
+
+      if (!Number.isFinite(sellingPrice) || sellingPrice < 0) {
+        return { ok: false, status: 400, message: 'من فضلك اكتب سعر بيع صحيح' };
+      }
+
+      if (!Number.isFinite(costPrice) || costPrice < 0) {
+        return { ok: false, status: 400, message: 'من فضلك اكتب تكلفة صحيحة' };
+      }
+
+      if (!Number.isFinite(minStockLevel) || minStockLevel < 0) {
+        return { ok: false, status: 400, message: 'من فضلك اكتب حد تنبيه صحيح' };
+      }
+
+      if (!Number.isFinite(quantity) || quantity < 0) {
+        return { ok: false, status: 400, message: 'من فضلك اكتب كمية صحيحة' };
+      }
+
       let imageFile: File | null = updates.imageFile ?? null;
-      if (!imageFile) {
-        imageFile = await urlToFile(currentProduct.image, 'current-image.jpg');
+
+      if (!imageFile && currentProduct.image) {
+        imageFile = await urlToFile(currentProduct.image);
       }
 
-      // لو ماقدرناش نجيب الصورة كملف (CORS مثلاً) نطلب من المستخدم يختار صورة
       if (!imageFile) {
-        return { ok: false, status: 400, message: 'من فضلك اختر صورة للمنتج' };
+        return {
+          ok: false,
+          status: 400,
+          message: 'الصورة الحالية لا يمكن إرسالها تلقائيًا، من فضلك اختر الصورة مرة أخرى',
+        };
       }
 
-      // ✅ FormData (مهم: اسم الحقل لازم يبقى ImageUrl بالظبط)
       const form = new FormData();
-      form.append('Id', String(id));
-      form.append('ProductNameAr', name);
-      form.append('ProductNameEn', name);
-      form.append('ProductNameUr', name);
-      form.append('CategoryName', category);
-      form.append('SellingPrice', String(price));
-      form.append('Barcode', barcode);
-      form.append('CostPrice', String(cost));
-      form.append('MinStockLevel', String(minStock));
-      form.append('ProductType', productType);
-      form.append('Description', description);
-      form.append('ParentProductId', String(parentProductId));
 
-      // ✅ الصورة كملف
+      form.append('Id', String(id));
+      form.append('ProductNameAr', nameAr);
+      form.append('ProductNameEn', nameEn);
+      form.append('ProductNameUr', nameUr);
+      form.append('Description', description);
+      form.append('CategoryName', categoryName);
+      form.append('UnitName', unitName);
+      form.append('Barcode', barcode);
+      form.append('CostPrice', String(costPrice));
+      form.append('SellingPrice', String(sellingPrice));
+      form.append('Quantity', String(quantity));
+      form.append('MinStockLevel', String(minStockLevel));
+      form.append('ProductType', productType);
+      form.append('ParentProductId', String(parentProductId));
       form.append('ImageUrl', imageFile);
 
       const res = await fetch(`${API_BASE}/api/Products/${id}`, {
         method: 'PUT',
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          // ❌ متحطش Content-Type هنا عشان المتصفح يحط boundary
         },
         body: form,
       });
 
       let data: any = null;
+
       try {
         data = await res.json();
+        console.log(data);
+        
       } catch {
-        data = await res.text().catch(() => null);
+        try {
+          data = await res.text();
+        console.log(data);
+
+        } catch {
+          data = null;
+        }
       }
 
       if (!res.ok) {
         const raw = extractApiErrorMessage(data);
-        return { ok: false, status: res.status, data, message: toUserMessage(raw) };
+        return {
+          ok: false,
+          status: res.status,
+          data,
+          message: toUserMessage(raw),
+        };
       }
 
       await loadFromApi();
-      return { ok: true, status: res.status, data, message: 'تم حفظ التعديلات بنجاح' };
-    } catch (err: any) {
-      return { ok: false, status: 0, message: 'حدث خطأ، حاول مرة أخرى' };
+
+      return {
+        ok: true,
+        status: res.status,
+        data,
+        message: 'تم حفظ تعديلات الصنف بنجاح',
+      };
+    } catch (err) {
+      console.error('updateProduct error', err);
+      return {
+        ok: false,
+        status: 0,
+        message: 'حدث خطأ أثناء حفظ التعديلات',
+      };
     }
   };
 
@@ -306,6 +468,9 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         deleteProduct,
         deleteMultipleProducts,
         updateProduct,
+        fetchCategories,
+        fetchUnits,
+        reloadProducts: loadFromApi,
       }}
     >
       {children}
@@ -315,6 +480,6 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
 export const useProducts = () => {
   const context = useContext(ProductsContext);
-  if (context === undefined) throw new Error('useProducts must be used within a ProductsProvider');
+  if (!context) throw new Error('useProducts must be used within a ProductsProvider');
   return context;
 };
