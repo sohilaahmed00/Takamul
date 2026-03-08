@@ -5,7 +5,6 @@ export default function Logo({ className = "", showText = true }: { className?: 
   const { direction } = useLanguage();
   const { theme } = useTheme();
 
-  // choose correct file based on language direction and theme
   const lang = direction === 'rtl' ? 'ar' : 'en';
   const shade = theme === 'dark' ? 'dark' : 'light';
   const logoSrc = `/logo_${lang}_${shade}.png`;
