@@ -1,10 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Printer,
-  ChevronDown,
   Plus,
   FileSpreadsheet,
-  Download,
   Menu,
   X,
   PackagePlus,
@@ -36,7 +34,17 @@ type PagedResponse = {
   pageSize: number;
 };
 
-type ModalType = 'details' | 'create' | 'add' | 'remove' | 'confirm' | null;
+type ModalType = 'details' | 'create' | 'add' | 'remove' | null;
+
+type ProductOption = {
+  id: number;
+  name: string;
+};
+
+type WarehouseOption = {
+  id: number;
+  name: string;
+};
 
 const QuantityAdjustments = () => {
   const { t, direction } = useLanguage();
@@ -44,10 +52,14 @@ const QuantityAdjustments = () => {
   const [items, setItems] = useState<InventoryItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [lookupsLoading, setLookupsLoading] = useState(false);
 
   const [pageNumber, setPageNumber] = useState(1);
   const [pageSize] = useState(10);
   const [totalCount, setTotalCount] = useState(0);
+
+  const [products, setProducts] = useState<ProductOption[]>([]);
+  const [warehouses, setWarehouses] = useState<WarehouseOption[]>([]);
 
   const [modalType, setModalType] = useState<ModalType>(null);
   const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
@@ -82,11 +94,110 @@ const QuantityAdjustments = () => {
     return Math.max(1, Math.ceil(totalCount / pageSize));
   }, [totalCount, pageSize]);
 
+  const productMap = useMemo(() => {
+    return new Map(products.map((item) => [item.id, item.name]));
+  }, [products]);
+
+  const warehouseMap = useMemo(() => {
+    return new Map(warehouses.map((item) => [item.id, item.name]));
+  }, [warehouses]);
+
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setToast({ open: true, type, message });
     setTimeout(() => {
       setToast((prev) => ({ ...prev, open: false }));
     }, 3000);
+  };
+
+  const normalizeProduct = (item: any): ProductOption | null => {
+    const id = Number(item?.id ?? item?.productId ?? item?.value);
+    const name =
+      item?.productNameAr ||
+      item?.name ||
+      item?.productNameEn ||
+      item?.productNameUr ||
+      item?.title ||
+      item?.code;
+
+    if (!id || !name) return null;
+    return { id, name: String(name) };
+  };
+
+  const normalizeWarehouse = (item: any): WarehouseOption | null => {
+    const id = Number(item?.id ?? item?.warehouseId ?? item?.value);
+    const name = item?.nameAr || item?.name || item?.warehouseName || item?.title || item?.code;
+
+    if (!id || !name) return null;
+    return { id, name: String(name) };
+  };
+
+  const extractArrayFromResponse = (data: any): any[] => {
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.items)) return data.items;
+    if (Array.isArray(data?.data)) return data.data;
+    if (Array.isArray(data?.result)) return data.result;
+    return [];
+  };
+
+  const fetchProducts = async () => {
+    const response = await fetch(`${AUTH_API_BASE}/api/Products`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(direction === 'rtl' ? 'فشل في تحميل المنتجات' : 'Failed to load products');
+    }
+
+    const data = await response.json();
+    console.log(data,"product");
+    
+    const rawItems = extractArrayFromResponse(data);
+    const normalized = rawItems
+      .map(normalizeProduct)
+      .filter(Boolean) as ProductOption[];
+
+    setProducts(normalized);
+  };
+
+  const fetchWarehouses = async () => {
+    const response = await fetch(`${AUTH_API_BASE}/api/Warehouse`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(direction === 'rtl' ? 'فشل في تحميل المخازن' : 'Failed to load warehouses');
+    }
+
+    const data = await response.json();
+    const rawItems = extractArrayFromResponse(data);
+    const normalized = rawItems
+      .map(normalizeWarehouse)
+      .filter(Boolean) as WarehouseOption[];
+
+    setWarehouses(normalized);
+  };
+
+  const fetchLookups = async () => {
+    try {
+      setLookupsLoading(true);
+      await Promise.all([fetchProducts(), fetchWarehouses()]);
+    } catch (error) {
+      console.error(error);
+      showToast(
+        direction === 'rtl'
+          ? 'تعذر تحميل المنتجات أو المخازن'
+          : 'Failed to load products or warehouses',
+        'error'
+      );
+    } finally {
+      setLookupsLoading(false);
+    }
   };
 
   const fetchStockInventory = async () => {
@@ -104,7 +215,7 @@ const QuantityAdjustments = () => {
       );
 
       if (!response.ok) {
-        throw new Error('فشل في تحميل بيانات المخزون');
+        throw new Error(direction === 'rtl' ? 'فشل في تحميل بيانات المخزون' : 'Failed to load stock inventory');
       }
 
       const data: PagedResponse = await response.json();
@@ -120,6 +231,10 @@ const QuantityAdjustments = () => {
   };
 
   useEffect(() => {
+    fetchLookups();
+  }, []);
+
+  useEffect(() => {
     fetchStockInventory();
   }, [pageNumber]);
 
@@ -133,6 +248,16 @@ const QuantityAdjustments = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const getProductName = (item: InventoryItem | null) => {
+    if (!item) return '-';
+    return item.productName || productMap.get(item.productId) || `#${item.productId}`;
+  };
+
+  const getWarehouseName = (item: InventoryItem | null) => {
+    if (!item) return '-';
+    return item.warehouseName || warehouseMap.get(item.warehouseId) || `#${item.warehouseId}`;
+  };
 
   const openDetailsModal = (item: InventoryItem) => {
     setSelectedItem(item);
@@ -190,12 +315,15 @@ const QuantityAdjustments = () => {
     };
 
     if (!payload.productId || !payload.warehouseId) {
-      showToast(direction === 'rtl' ? 'يرجى إدخال المنتج والمخزن' : 'Please enter product and warehouse', 'error');
+      showToast(direction === 'rtl' ? 'يرجى اختيار المنتج والمخزن' : 'Please select product and warehouse', 'error');
       return;
     }
 
     try {
       setSubmitting(true);
+      console.log(payload,"send data");
+      
+console.log('AUTH_API_BASE =>', AUTH_API_BASE);
 
       const response = await fetch(`${AUTH_API_BASE}/api/StockInventory`, {
         method: 'POST',
@@ -207,10 +335,11 @@ const QuantityAdjustments = () => {
 
       if (!response.ok) {
         let errorMessage = direction === 'rtl' ? 'فشل في إنشاء سجل المخزون' : 'Failed to create stock inventory';
-
+        console.log(response,"res");
+        
         try {
           const errorData = await response.json();
-          errorMessage = errorData?.message || errorData?.title || errorMessage;
+          errorMessage = errorData?.error || errorData?.title || errorMessage;
         } catch {
           //
         }
@@ -241,8 +370,8 @@ const QuantityAdjustments = () => {
     if (!payload.productId || !payload.warehouseId || !payload.quantity) {
       showToast(
         direction === 'rtl'
-          ? 'يرجى إدخال المنتج والمخزن والكمية'
-          : 'Please enter product, warehouse and quantity',
+          ? 'يرجى اختيار المنتج والمخزن وإدخال الكمية'
+          : 'Please select product, warehouse and quantity',
         'error'
       );
       return;
@@ -257,7 +386,7 @@ const QuantityAdjustments = () => {
       setSubmitting(true);
 
       const response = await fetch(endpoint, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -442,12 +571,14 @@ const QuantityAdjustments = () => {
                     key={`${item.productId}-${item.warehouseId}-${index}`}
                     className="hover:bg-gray-50 transition-colors border-b border-gray-200"
                   >
-                    <td className="p-3 border-x border-gray-200 text-center">{index + 1}</td>
-                    <td className="p-3 border-x border-gray-200">
-                      {item.productName || `#${item.productId}`}
+                   <td className="p-3 border-x border-gray-200 text-center">
+                      {(pageNumber - 1) * pageSize + index + 1}
                     </td>
                     <td className="p-3 border-x border-gray-200">
-                      {item.warehouseName || `#${item.warehouseId}`}
+                      {item.productName || productMap.get(item.productId) || `#${item.productId}`}
+                    </td>
+                    <td className="p-3 border-x border-gray-200">
+                      {item.warehouseName || warehouseMap.get(item.warehouseId) || `#${item.warehouseId}`}
                     </td>
                     <td className="p-3 border-x border-gray-200 text-center font-semibold">
                       {item.quantityAvailable}
@@ -494,9 +625,7 @@ const QuantityAdjustments = () => {
 
         <div className="flex items-center justify-between mt-4">
           <p className="text-sm text-gray-500">
-            {direction === 'rtl'
-              ? `إجمالي العناصر: ${totalCount}`
-              : `Total items: ${totalCount}`}
+            {direction === 'rtl' ? `إجمالي العناصر: ${totalCount}` : `Total items: ${totalCount}`}
           </p>
 
           <div className="flex items-center gap-2">
@@ -561,12 +690,12 @@ const QuantityAdjustments = () => {
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gray-50 rounded-lg p-4 border">
                   <p className="text-sm text-gray-500 mb-1">{direction === 'rtl' ? 'المنتج' : 'Product'}</p>
-                  <p className="font-semibold">{selectedItem.productName || `#${selectedItem.productId}`}</p>
+                  <p className="font-semibold">{getProductName(selectedItem)}</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4 border">
                   <p className="text-sm text-gray-500 mb-1">{direction === 'rtl' ? 'المخزن' : 'Warehouse'}</p>
-                  <p className="font-semibold">{selectedItem.warehouseName || `#${selectedItem.warehouseId}`}</p>
+                  <p className="font-semibold">{getWarehouseName(selectedItem)}</p>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-4 border">
@@ -617,28 +746,56 @@ const QuantityAdjustments = () => {
               <form onSubmit={handleCreateInventory} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block mb-1 text-sm font-medium">
-                    {direction === 'rtl' ? 'رقم المنتج' : 'Product ID'}
+                    {direction === 'rtl' ? 'المنتج' : 'Product'}
                   </label>
-                  <input
-                    type="number"
+                  <select
                     value={createForm.productId}
                     onChange={(e) => setCreateForm((prev) => ({ ...prev, productId: e.target.value }))}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30 bg-white"
                     required
-                  />
+                  >
+                    <option value="">
+                      {lookupsLoading
+                        ? direction === 'rtl'
+                          ? 'جاري تحميل المنتجات...'
+                          : 'Loading products...'
+                        : direction === 'rtl'
+                        ? 'اختر المنتج'
+                        : 'Select product'}
+                    </option>
+                    {products.map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label className="block mb-1 text-sm font-medium">
-                    {direction === 'rtl' ? 'رقم المخزن' : 'Warehouse ID'}
+                    {direction === 'rtl' ? 'المخزن' : 'Warehouse'}
                   </label>
-                  <input
-                    type="number"
+                  <select
                     value={createForm.warehouseId}
                     onChange={(e) => setCreateForm((prev) => ({ ...prev, warehouseId: e.target.value }))}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30 bg-white"
                     required
-                  />
+                  >
+                    <option value="">
+                      {lookupsLoading
+                        ? direction === 'rtl'
+                          ? 'جاري تحميل المخازن...'
+                          : 'Loading warehouses...'
+                        : direction === 'rtl'
+                        ? 'اختر المخزن'
+                        : 'Select warehouse'}
+                    </option>
+                    {warehouses.map((warehouse) => (
+                      <option key={warehouse.id} value={warehouse.id}>
+                        {warehouse.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -647,6 +804,7 @@ const QuantityAdjustments = () => {
                   </label>
                   <input
                     type="number"
+                    min="0"
                     value={createForm.quantityAvailable}
                     onChange={(e) => setCreateForm((prev) => ({ ...prev, quantityAvailable: e.target.value }))}
                     className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
@@ -660,6 +818,7 @@ const QuantityAdjustments = () => {
                   </label>
                   <input
                     type="number"
+                    min="0"
                     value={createForm.quantityReserved}
                     onChange={(e) => setCreateForm((prev) => ({ ...prev, quantityReserved: e.target.value }))}
                     className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
@@ -673,6 +832,7 @@ const QuantityAdjustments = () => {
                   </label>
                   <input
                     type="number"
+                    min="0"
                     value={createForm.quantityInTransit}
                     onChange={(e) => setCreateForm((prev) => ({ ...prev, quantityInTransit: e.target.value }))}
                     className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
@@ -691,7 +851,7 @@ const QuantityAdjustments = () => {
 
                   <button
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || lookupsLoading}
                     className="px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 disabled:opacity-60"
                   >
                     {submitting
@@ -743,28 +903,56 @@ const QuantityAdjustments = () => {
               <form onSubmit={handleStockAction} className="p-6 space-y-4">
                 <div>
                   <label className="block mb-1 text-sm font-medium">
-                    {direction === 'rtl' ? 'رقم المنتج' : 'Product ID'}
+                    {direction === 'rtl' ? 'المنتج' : 'Product'}
                   </label>
-                  <input
-                    type="number"
+                  <select
                     value={stockForm.productId}
                     onChange={(e) => setStockForm((prev) => ({ ...prev, productId: e.target.value }))}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30 bg-white"
                     required
-                  />
+                  >
+                    <option value="">
+                      {lookupsLoading
+                        ? direction === 'rtl'
+                          ? 'جاري تحميل المنتجات...'
+                          : 'Loading products...'
+                        : direction === 'rtl'
+                        ? 'اختر المنتج'
+                        : 'Select product'}
+                    </option>
+                    {products.map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
                   <label className="block mb-1 text-sm font-medium">
-                    {direction === 'rtl' ? 'رقم المخزن' : 'Warehouse ID'}
+                    {direction === 'rtl' ? 'المخزن' : 'Warehouse'}
                   </label>
-                  <input
-                    type="number"
+                  <select
                     value={stockForm.warehouseId}
                     onChange={(e) => setStockForm((prev) => ({ ...prev, warehouseId: e.target.value }))}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
+                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30 bg-white"
                     required
-                  />
+                  >
+                    <option value="">
+                      {lookupsLoading
+                        ? direction === 'rtl'
+                          ? 'جاري تحميل المخازن...'
+                          : 'Loading warehouses...'
+                        : direction === 'rtl'
+                        ? 'اختر المخزن'
+                        : 'Select warehouse'}
+                    </option>
+                    {warehouses.map((warehouse) => (
+                      <option key={warehouse.id} value={warehouse.id}>
+                        {warehouse.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -773,6 +961,7 @@ const QuantityAdjustments = () => {
                   </label>
                   <input
                     type="number"
+                    min="1"
                     value={stockForm.quantity}
                     onChange={(e) => setStockForm((prev) => ({ ...prev, quantity: e.target.value }))}
                     className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
@@ -791,7 +980,7 @@ const QuantityAdjustments = () => {
 
                   <button
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || lookupsLoading}
                     className={`px-4 py-2 rounded-lg text-white disabled:opacity-60 ${
                       modalType === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
                     }`}
@@ -821,9 +1010,7 @@ const QuantityAdjustments = () => {
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 40 }}
-            className={`fixed bottom-4 z-[100] ${
-              direction === 'rtl' ? 'left-4' : 'right-4'
-            }`}
+            className={`fixed bottom-4 z-[100] ${direction === 'rtl' ? 'left-4' : 'right-4'}`}
           >
             <div
               className={`px-4 py-3 rounded-lg shadow-lg text-white ${

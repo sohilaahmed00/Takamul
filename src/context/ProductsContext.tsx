@@ -70,20 +70,32 @@ interface UpdateProductParams {
 }
 
 const extractApiErrorMessage = (data: any) => {
+  console.log('updateProduct API error response:', data);
+
+  if (typeof data?.message === 'string' && data.message.trim()) {
+    return data.message.trim();
+  }
+
+  if (typeof data?.title === 'string' && data.title.trim()) {
+    return data.title.trim();
+  }
+
+  if (typeof data === 'string' && data.trim()) {
+    return data.trim();
+  }
+
   if (data?.errors && typeof data.errors === 'object') {
     const lines: string[] = [];
     for (const key of Object.keys(data.errors)) {
       const arr = data.errors[key];
       if (Array.isArray(arr)) {
-        for (const msg of arr) lines.push(`${key}: ${msg}`);
+        for (const msg of arr) {
+          if (typeof msg === 'string' && msg.trim()) lines.push(msg.trim());
+        }
       }
     }
     if (lines.length) return lines.join(' | ');
   }
-
-  if (typeof data?.title === 'string') return data.title;
-  if (typeof data?.message === 'string') return data.message;
-  if (typeof data === 'string') return data;
 
   return 'فشل العملية';
 };
@@ -91,16 +103,10 @@ const extractApiErrorMessage = (data: any) => {
 const toUserMessage = (raw?: string) => {
   if (!raw) return 'حدث خطأ، حاول مرة أخرى';
 
-  if (raw.includes('ImageUrl') || raw.includes('Image')) return 'من فضلك اختر صورة صحيحة للصنف';
-  if (raw.includes('CategoryName') || raw.includes('Category')) return 'من فضلك اختر التصنيف الرئيسي';
-  if (raw.includes('ProductNameAr') || raw.includes('ProductNameEn') || raw.includes('ProductNameUr'))
-    return 'من فضلك اكتب اسم الصنف';
-  if (raw.includes('Description')) return 'من فضلك اكتب وصف الصنف';
-  if (raw.includes('SellingPrice')) return 'من فضلك اكتب سعر البيع بشكل صحيح';
-  if (raw.includes('ProductType')) return 'من فضلك اختر نوع الصنف';
-  if (raw.includes('Id')) return 'تعذر تحديد الصنف المطلوب تعديله';
+  const clean = raw.trim();
+  if (clean) return clean;
 
-  return 'من فضلك راجع البيانات المطلوبة';
+  return 'حدث خطأ، حاول مرة أخرى';
 };
 
 interface ProductsContextType {
@@ -121,6 +127,7 @@ const normalizeProductType = (value: any): string => {
 
   if (v === 'prepared' || v === '1') return 'prepared';
   if (v === 'branched' || v === '2') return 'branched';
+  if (v === 'direct' || v === '3') return 'direct';
 
   return 'prepared';
 };
@@ -198,14 +205,14 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       if (!res.ok) return [];
 
       const data = await res.json();
-              console.log(data,"sfa");
-
       const arr = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
 
-      return arr.map((item: any, index: number) => ({
-        id: Number(item?.id ?? item?? index + 1),
-        name: String(item?.categoryNameAr ?? item?.name ?? item?.productCategoryName ?? '').trim(),
-      })).filter((item: ProductCategoryOption) => item.name);
+      return arr
+        .map((item: any, index: number) => ({
+          id: Number(item?.id ?? item ?? index + 1),
+          name: String(item?.categoryNameAr ?? item?.name ?? item?.productCategoryName ?? '').trim(),
+        }))
+        .filter((item: ProductCategoryOption) => item.name);
     } catch (err) {
       console.error('Error loading categories', err);
       return [];
@@ -223,10 +230,12 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const data = await res.json();
       const arr = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
 
-      return arr.map((item: any, index: number) => ({
-        id: Number(item?.id ?? item?.unitId ?? index + 1),
-        name: String(item?.unitName ?? item?.name ?? '').trim(),
-      })).filter((item: UnitOption) => item.name);
+      return arr
+        .map((item: any, index: number) => ({
+          id: Number(item?.id ?? item?.unitId ?? index + 1),
+          name: String(item?.unitName ?? item?.name ?? '').trim(),
+        }))
+        .filter((item: UnitOption) => item.name);
     } catch (err) {
       console.error('Error loading units', err);
       return [];
@@ -333,15 +342,12 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const nameEn = String(updates.nameEn ?? currentProduct.nameEn ?? updates.name ?? currentProduct.name ?? '').trim();
       const nameUr = String(updates.nameUr ?? currentProduct.nameUr ?? updates.name ?? currentProduct.name ?? '').trim();
       const categoryName = String(updates.category ?? currentProduct.category ?? '').trim();
-      const unitName = String(updates.unit ?? currentProduct.unit ?? '').trim();
       const barcode = String(updates.code ?? currentProduct.code ?? '').trim();
-      const description = String(updates.description ?? currentProduct.description ?? '').trim();
       const productType = normalizeProductType(updates.productType ?? currentProduct.productType ?? 'prepared');
 
       const sellingPrice = Number(updates.price ?? currentProduct.price ?? 0);
       const costPrice = Number(updates.cost ?? currentProduct.cost ?? 0);
       const minStockLevel = Number(updates.alertQuantity ?? currentProduct.alertQuantity ?? 0);
-      const quantity = Number(updates.quantity ?? currentProduct.quantity ?? 0);
       const parentProductId = Number(updates.parentProductId ?? currentProduct.parentProductId ?? 0);
 
       if (!nameAr || !nameEn || !nameUr) {
@@ -350,14 +356,6 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (!categoryName) {
         return { ok: false, status: 400, message: 'من فضلك اختر التصنيف الرئيسي' };
-      }
-
-      if (!unitName) {
-        return { ok: false, status: 400, message: 'من فضلك اختر الوحدة' };
-      }
-
-      if (!description) {
-        return { ok: false, status: 400, message: 'من فضلك اكتب وصف الصنف' };
       }
 
       if (!Number.isFinite(sellingPrice) || sellingPrice < 0) {
@@ -370,10 +368,6 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (!Number.isFinite(minStockLevel) || minStockLevel < 0) {
         return { ok: false, status: 400, message: 'من فضلك اكتب حد تنبيه صحيح' };
-      }
-
-      if (!Number.isFinite(quantity) || quantity < 0) {
-        return { ok: false, status: 400, message: 'من فضلك اكتب كمية صحيحة' };
       }
 
       let imageFile: File | null = updates.imageFile ?? null;
@@ -396,13 +390,10 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       form.append('ProductNameAr', nameAr);
       form.append('ProductNameEn', nameEn);
       form.append('ProductNameUr', nameUr);
-      form.append('Description', description);
       form.append('CategoryName', categoryName);
-      form.append('UnitName', unitName);
       form.append('Barcode', barcode);
       form.append('CostPrice', String(costPrice));
       form.append('SellingPrice', String(sellingPrice));
-      form.append('Quantity', String(quantity));
       form.append('MinStockLevel', String(minStockLevel));
       form.append('ProductType', productType);
       form.append('ParentProductId', String(parentProductId));
@@ -420,13 +411,11 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       try {
         data = await res.json();
-        console.log(data);
-        
+        console.log('updateProduct success/error json:', data);
       } catch {
         try {
           data = await res.text();
-        console.log(data);
-
+          console.log('updateProduct success/error text:', data);
         } catch {
           data = null;
         }
@@ -434,6 +423,7 @@ export const ProductsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
       if (!res.ok) {
         const raw = extractApiErrorMessage(data);
+
         return {
           ok: false,
           status: res.status,
