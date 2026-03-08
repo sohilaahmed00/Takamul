@@ -491,7 +491,7 @@ const API_BASE =
   (import.meta as any)?.env?.VITE_API_BASE_URL ||
   // CRA
   (process as any)?.env?.REACT_APP_API_BASE_URL ||
-  // ✅ fallback for your case (localhost frontend + remote API)
+  // fallback for your case (localhost frontend + remote API)
   'http://takamulerp.runasp.net';
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
