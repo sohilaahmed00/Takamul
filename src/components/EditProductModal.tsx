@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/context/LanguageContext';
-import { Product, ProductCategoryOption, UnitOption, useProducts } from '@/context/ProductsContext';
+import { Product, ProductCategoryOption, useProducts } from '@/context/ProductsContext';
 import Toast from './Toast';
 
 interface EditProductModalProps {
@@ -17,13 +17,10 @@ type FormErrors = Partial<Record<
   | 'nameUr'
   | 'code'
   | 'category'
-  | 'unit'
   | 'cost'
   | 'price'
-  | 'quantity'
   | 'alertQuantity'
   | 'productType'
-  | 'description'
   | 'image',
   string
 >>;
@@ -34,24 +31,22 @@ type FormState = {
   nameUr: string;
   code: string;
   category: string;
-  unit: string;
   cost: string;
   price: string;
-  quantity: string;
   alertQuantity: string;
-  productType: 'prepared' | 'branched';
-  description: string;
+  productType: 'prepared' | 'branched' | 'direct';
   imageUrl: string;
 };
 
 const PRODUCT_TYPE_OPTIONS = [
-  { value: 'prepared', label: 'prepared' },
+  { value: 'prepared', label: 'Prepared' },
   { value: 'branched', label: 'Branched' },
+  { value: 'direct', label: 'Direct' },
 ];
 
 export default function EditProductModal({ isOpen, onClose, product }: EditProductModalProps) {
   const { direction } = useLanguage();
-  const { updateProduct, fetchCategories, fetchUnits } = useProducts();
+  const { updateProduct, fetchCategories } = useProducts();
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -61,13 +56,10 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
     nameUr: '',
     code: '',
     category: '',
-    unit: '',
     cost: '',
     price: '',
-    quantity: '',
     alertQuantity: '',
     productType: 'prepared',
-    description: '',
     imageUrl: '',
   });
 
@@ -79,7 +71,6 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
   const [submitting, setSubmitting] = useState(false);
 
   const [categories, setCategories] = useState<ProductCategoryOption[]>([]);
-  const [units, setUnits] = useState<UnitOption[]>([]);
   const [loadingLookups, setLoadingLookups] = useState(false);
 
   const previewUrl = useMemo(() => {
@@ -109,13 +100,10 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
     const loadLookups = async () => {
       try {
         setLoadingLookups(true);
-        const [cats, unitList] = await Promise.all([fetchCategories(), fetchUnits()]);
+        const cats = await fetchCategories();
 
         if (!mounted) return;
         setCategories(cats);
-        console.log(cats);
-        
-        setUnits(unitList);
       } finally {
         if (mounted) setLoadingLookups(false);
       }
@@ -126,7 +114,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
     return () => {
       mounted = false;
     };
-  }, [isOpen, fetchCategories, fetchUnits]);
+  }, [isOpen, fetchCategories]);
 
   useEffect(() => {
     if (!product || !isOpen) return;
@@ -140,13 +128,15 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
       nameUr: product.nameUr ?? product.name ?? '',
       code: product.code ?? '',
       category: product.category ?? '',
-      unit: product.unit ?? '',
       cost: product.cost ?? '',
       price: product.price ?? '',
-      quantity: product.quantity ?? '',
       alertQuantity: product.alertQuantity ?? '',
-      productType: (product.productType === 'branched' ? 'branched' : 'prepared'),
-      description: product.description ?? '',
+      productType:
+        product.productType === 'branched'
+          ? 'branched'
+          : product.productType === 'direct'
+          ? 'direct'
+          : 'prepared',
       imageUrl: product.image ?? '',
     });
   }, [product, isOpen]);
@@ -184,8 +174,6 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
     if (!formData.nameUr.trim()) nextErrors.nameUr = 'الاسم الثالث مطلوب';
 
     if (!formData.category.trim()) nextErrors.category = 'التصنيف الرئيسي مطلوب';
-    if (!formData.unit.trim()) nextErrors.unit = 'الوحدة مطلوبة';
-    if (!formData.description.trim()) nextErrors.description = 'الوصف مطلوب';
 
     if (!formData.productType.trim()) nextErrors.productType = 'نوع الصنف مطلوب';
 
@@ -195,10 +183,6 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
 
     if (!isValidNumberString(formData.price) || Number(formData.price) < 0) {
       nextErrors.price = 'سعر البيع يجب أن يكون رقمًا صحيحًا أو صفر';
-    }
-
-    if (!isValidNumberString(formData.quantity) || Number(formData.quantity) < 0) {
-      nextErrors.quantity = 'الكمية يجب أن تكون رقمًا صحيحًا أو صفر';
     }
 
     if (!isValidNumberString(formData.alertQuantity) || Number(formData.alertQuantity) < 0) {
@@ -230,13 +214,10 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
       nameUr: formData.nameUr.trim(),
       code: formData.code.trim(),
       category: formData.category.trim(),
-      unit: formData.unit.trim(),
       cost: formData.cost.trim(),
       price: formData.price.trim(),
-      quantity: formData.quantity.trim(),
       alertQuantity: formData.alertQuantity.trim(),
       productType: formData.productType,
-      description: formData.description.trim(),
       imageFile: imageFile ?? null,
       parentProductId: product.parentProductId ?? 0,
     });
@@ -333,26 +314,13 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                   </select>
                 </Field>
 
-                <Field label="الوحدة *" error={errors.unit}>
-                  <select
-                    className={inputClass(errors.unit)}
-                    value={formData.unit}
-                    onChange={(e) => setField('unit', e.target.value)}
-                  >
-                    <option value="">اختر الوحدة</option>
-                    {units.map((item) => (
-                      <option key={item.id} value={item.name}>
-                        {item.name}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
                 <Field label="نوع الصنف *" error={errors.productType}>
                   <select
                     className={inputClass(errors.productType)}
                     value={formData.productType}
-                    onChange={(e) => setField('productType', e.target.value as 'prepared' | 'branched')}
+                    onChange={(e) =>
+                      setField('productType', e.target.value as 'prepared' | 'branched' | 'direct')
+                    }
                   >
                     {PRODUCT_TYPE_OPTIONS.map((item) => (
                       <option key={item.value} value={item.value}>
@@ -384,16 +352,6 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                   />
                 </Field>
 
-                <Field label="الكمية *" error={errors.quantity}>
-                  <input
-                    type="number"
-                    className={inputClass(errors.quantity)}
-                    value={formData.quantity}
-                    onChange={(e) => setField('quantity', e.target.value)}
-                    placeholder="أدخل الكمية"
-                  />
-                </Field>
-
                 <Field label="حد تنبيه المخزون *" error={errors.alertQuantity}>
                   <input
                     type="number"
@@ -404,22 +362,17 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
                   />
                 </Field>
 
-                <Field label="الوصف *" error={errors.description}>
-                  <textarea
-                    className={`${inputClass(errors.description)} min-h-[120px] resize-none`}
-                    value={formData.description}
-                    onChange={(e) => setField('description', e.target.value)}
-                    placeholder="اكتب وصف الصنف"
-                  />
-                </Field>
-
                 <div className="space-y-2">
                   <label className="block text-sm font-bold text-[#2ecc71] text-right">
                     صورة الصنف *
                   </label>
 
                   <div className="border border-gray-200 rounded-xl p-3 bg-gray-50">
-                    <div className={`w-full h-44 rounded-lg bg-white border flex items-center justify-center overflow-hidden ${errors.image ? 'border-red-400' : 'border-gray-200'}`}>
+                    <div
+                      className={`w-full h-44 rounded-lg bg-white border flex items-center justify-center overflow-hidden ${
+                        errors.image ? 'border-red-400' : 'border-gray-200'
+                      }`}
+                    >
                       {previewUrl ? (
                         <img src={previewUrl} alt="preview" className="w-full h-full object-contain" />
                       ) : (
@@ -456,9 +409,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
             </div>
 
             {loadingLookups && (
-              <div className="text-center text-sm text-gray-500">
-                جارٍ تحميل التصنيفات والوحدات...
-              </div>
+              <div className="text-center text-sm text-gray-500">جارٍ تحميل التصنيفات...</div>
             )}
 
             <div className="flex justify-end pt-4">
