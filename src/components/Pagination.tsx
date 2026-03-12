@@ -68,15 +68,15 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalItems, itemsP
   }
 
   return (
-    <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
-      <div>
+    <div className="flex items-center justify-between mt-4 text-sm pagination-container">
+      <div className="text-[var(--text-muted)]">
         {t('showing_records')} {startItem} {t('to')} {endItem} {t('of')} {totalItems} {t('records')}
       </div>
       <div className="flex items-center gap-2">
         <button
           onClick={handlePrevious}
           disabled={currentPage === 1}
-          className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 flex items-center gap-1"
+          className="px-3 py-1 border border-[var(--border)] rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--bg-main)] flex items-center gap-1 text-[var(--text-main)] transition-colors"
         >
           {direction === 'rtl' ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           <span>{t('previous')}</span>
@@ -85,14 +85,14 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalItems, itemsP
           {getPageNumbers().map((page, index) => (
             <React.Fragment key={index}>
               {page === '...' ? (
-                <span className="px-3 py-1">...</span>
+                <span className="px-3 py-1 text-[var(--text-muted)]">...</span>
               ) : (
                 <button
                   onClick={() => onPageChange(page as number)}
-                  className={`px-3 py-1 border border-gray-300 rounded-md ${
+                  className={`px-3 py-1 border rounded-md transition-colors ${
                     currentPage === page
-                      ? 'bg-primary text-white border-primary'
-                      : 'hover:bg-gray-50'
+                      ? 'bg-[var(--primary)] text-white border-[var(--primary)] font-bold'
+                      : 'border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--bg-main)]'
                   }`}
                 >
                   {page}
@@ -104,7 +104,7 @@ const Pagination: React.FC<PaginationProps> = ({ currentPage, totalItems, itemsP
         <button
           onClick={handleNext}
           disabled={currentPage === totalPages}
-          className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 flex items-center gap-1"
+          className="px-3 py-1 border border-[var(--border)] rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--bg-main)] flex items-center gap-1 text-[var(--text-main)] transition-colors"
         >
           <span>{t('next')}</span>
           {direction === 'rtl' ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}

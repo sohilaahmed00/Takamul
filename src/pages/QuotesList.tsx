@@ -26,32 +26,25 @@ import { useNavigate } from 'react-router-dom';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import EmailQuoteModal from '../components/EmailQuoteModal';
+import MobileDataCard from '@/components/MobileDataCard';
+import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
-interface QuoteRecord {
-  id: string;
-  quoteNo: string;
-  date: string;
-  refNo: string;
-  cashier: string;
-  customer: string;
-  total: number;
-  status: 'pending' | 'completed';
-}
+import Pagination from '../components/Pagination';
+import AddQuoteModal from '../components/AddQuoteModal';
 
-const mockQuotes: QuoteRecord[] = [
-  { id: '1', quoteNo: '3', date: '22/09/2025 20:21:00', refNo: 'QUOTE2025/09/0003', cashier: 'شركة فن الفيصلية التجارية', customer: 'التوفيق', total: 24.25, status: 'pending' },
-  { id: '2', quoteNo: '2', date: '14/09/2025 19:58:00', refNo: 'QUOTE2025/09/0002', cashier: 'شركة فن الفيصلية التجارية', customer: 'شخص عام', total: 2500.00, status: 'pending' },
-];
+import { useQuotes, QuoteRecord } from '../context/QuotesContext';
 
 export default function QuotesList() {
   const { t, direction } = useLanguage();
+  const { quotes, deleteQuote } = useQuotes();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [showCount, setShowCount] = useState(10);
   const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
-  const [quotes, setQuotes] = useState<QuoteRecord[]>(mockQuotes);
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   // Close menu on click outside
   React.useEffect(() => {
@@ -66,7 +59,7 @@ export default function QuotesList() {
   }, []);
 
   const handleDeleteQuote = (id: string) => {
-    setQuotes(quotes.filter(q => q.id !== id));
+    deleteQuote(id);
     setShowDeleteModal(null);
     setActiveActionMenu(null);
   };
@@ -105,220 +98,233 @@ export default function QuotesList() {
     }
   };
 
+  const paginatedQuotes = filteredQuotes.slice(
+    (currentPage - 1) * showCount,
+    currentPage * showCount
+  );
+
   return (
-    <div className="space-y-4">
-
-      {/* Breadcrumb */}
-      <div className="text-sm text-gray-500 flex items-center gap-1 px-2" dir={direction}>
-        <span>{t('home')}</span>
-        <span>/</span>
-        <span className="text-gray-800 font-medium">{t('quotes')}</span>
-      </div>
-
-      {/* Page Header */}
-      <div className="bg-white p-4 rounded-t-xl border-b border-gray-200 flex justify-between items-center" dir={direction}>
-          <div className="flex items-center gap-2">
-              <button className="p-1 hover:bg-gray-100 rounded" onClick={() => setQuotes(mockQuotes)}>
-                  <RefreshCw size={20} className="text-gray-600" />
-              </button>
-              <h1 className="text-lg font-bold text-[#8b0000]">
-                  {t('quotes')} ({t('all_branches')})
-              </h1>
-          </div>
-          <div className="flex items-center gap-2">
-              <button 
-                onClick={() => navigate('/quotes/create')}
-                className="p-1.5 text-gray-600 hover:bg-gray-100 rounded border border-gray-200"
+    <div className="p-4 space-y-4" dir={direction}>
+      {/* Header Section */}
+          {/* Page Header الموحد */}
+          <div className="takamol-page-header">
+              <div className={direction === 'rtl' ? "text-right" : "text-left"}>
+                  <h1 className="takamol-page-title">
+                      عروض الأسعار (جميع الفروع)
+                  </h1>
+                  <p className="takamol-page-subtitle">
+                      البيانات الظاهرة في آخر 30 يوم. برجاء استخدام النموذج لإظهار مزيد من النتائج
+                  </p>
+              </div>
+              <button
+                  onClick={() => setShowAddModal(true)}
+                  className="btn-primary"
               >
-                  <PlusCircle size={18} />
-              </button>
-              <button className="p-1.5 text-gray-600 hover:bg-gray-100 rounded border border-gray-200">
-                  <ListIcon size={18} />
-              </button>
-              <button className="p-1.5 text-gray-600 hover:bg-gray-100 rounded border border-gray-200">
-                  <LayoutGrid size={18} />
+                  <PlusCircle size={20} />
+                  إضافة عرض سعر
               </button>
           </div>
-      </div>
 
-      {/* Content Container */}
-      <div className="bg-white rounded-b-xl shadow-sm border border-gray-200 p-6">
-          
-          <p className="text-sm text-[#8b0000] mb-6 text-right font-medium">
-              {t('sales_table_desc')}
-          </p>
-
+      {/* Table Container */}
+      <div className="bg-white dark:bg-neutral-900 rounded-lg shadow-sm border border-gray-100 dark:border-neutral-800 overflow-hidden">
+        <div className="p-4 space-y-4">
           {/* Table Controls */}
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6" dir={direction}>
-              <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">{t('show')}</span>
-                  <select 
-                    value={showCount}
-                    onChange={(e) => setShowCount(Number(e.target.value))}
-                    className="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary bg-white"
-                  >
-                      <option value={10}>10</option>
-                      <option value={25}>25</option>
-                      <option value={50}>50</option>
-                  </select>
-              </div>
-              <div className="relative w-full md:w-80 flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <input 
-                        type="text" 
-                        placeholder={t('search_placeholder')}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm outline-none focus:border-primary text-right" 
-                    />
-                  </div>
-                  <span className="text-sm text-gray-600 whitespace-nowrap">{t('search')}</span>
-              </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* Search */}
+            <div className="relative w-full md:w-64 order-2 md:order-1">
+              <input
+                type="text"
+                placeholder={t('search_placeholder') || "اكتب ما تريد ان تبحث عنه"}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className={cn(
+                  "w-full border border-gray-200 dark:border-neutral-800 rounded-lg px-3 py-2 bg-white dark:bg-neutral-950 outline-none focus:border-primary text-sm",
+                  direction === 'rtl' ? "pr-10" : "pl-10"
+                )}
+              />
+              <Search className={cn(
+                "absolute top-1/2 -translate-y-1/2 text-gray-400",
+                direction === 'rtl' ? "right-3" : "left-3"
+              )} size={18} />
+            </div>
+
+            {/* Show Records */}
+            <div className="flex items-center gap-2 order-1 md:order-2">
+              <span className="text-sm text-gray-500">{t('show')}</span>
+              <select
+                value={showCount}
+                onChange={(e) => setShowCount(Number(e.target.value))}
+                className="border border-gray-200 dark:border-neutral-800 rounded-lg px-2 py-1.5 bg-white dark:bg-neutral-950 outline-none focus:border-primary text-sm font-bold"
+              >
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span className="text-sm text-gray-500">{t('records')}</span>
+            </div>
           </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto pb-64">
-              <table className="w-full min-w-[1000px] text-sm text-right border-collapse">
-                  <thead>
-                      <tr className="bg-[#8b0000] text-white">
-                          <th className="p-3 border border-[#a52a2a] w-10 text-center">
-                              <input type="checkbox" className="rounded border-gray-300" />
-                          </th>
-                          <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('quote_no')}</th>
-                          <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('date')}</th>
-                          <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('ref_no')}</th>
-                          <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('cashier')}</th>
-                          <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('customer')}</th>
-                          <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('total')}</th>
-                          <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('status')}</th>
-                          <th className="p-3 border border-[#a52a2a] whitespace-nowrap w-10 text-center">
-                              <LinkIcon size={14} />
-                          </th>
-                          <th className="p-3 border border-[#a52a2a] whitespace-nowrap w-24 text-center">{t('actions')}</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                      {filteredQuotes.map((quote) => (
-                          <tr key={quote.id} className="hover:bg-gray-50 transition-colors border-b border-gray-200">
-                              <td className="p-3 text-center border-x border-gray-200">
-                                  <input type="checkbox" className="rounded border-gray-300" />
-                              </td>
-                              <td className="p-3 border-x border-gray-200 font-medium">{quote.quoteNo}</td>
-                              <td className="p-3 border-x border-gray-200 text-gray-600">{quote.date}</td>
-                              <td className="p-3 border-x border-gray-200 text-gray-600">{quote.refNo}</td>
-                              <td className="p-3 border-x border-gray-200">{quote.cashier}</td>
-                              <td className="p-3 border-x border-gray-200">{quote.customer}</td>
-                              <td className="p-3 border-x border-gray-200 font-bold">{quote.total.toFixed(2)}</td>
-                              <td className="p-3 border-x border-gray-200">
-                                  <span className={cn(
-                                      "px-2 py-1 rounded text-xs font-medium",
-                                      quote.status === 'pending' ? "bg-orange-100 text-orange-600" : "bg-green-100 text-green-600"
-                                  )}>
-                                      {t(quote.status)}
-                                  </span>
-                              </td>
-                              <td className="p-3 border-x border-gray-200 text-center">
-                                  <LinkIcon size={14} className="text-gray-400 mx-auto" />
-                              </td>
-                              <td className={cn("p-3 border-x border-gray-200 text-center relative action-menu-container", activeActionMenu === quote.id && "z-[60]")}>
-                                  <button 
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        setActiveActionMenu(activeActionMenu === quote.id ? null : quote.id);
-                                    }}
-                                    className="bg-[#8b0000] text-white px-3 py-1 rounded text-xs flex items-center gap-1 mx-auto hover:bg-[#a52a2a] transition-colors"
-                                  >
-                                      {t('actions')}
-                                      <ChevronDown size={14} />
-                                  </button>
-                                  
-                                  <AnimatePresence>
-                                    {activeActionMenu === quote.id && (
-                                        <motion.div 
-                                          initial={{ opacity: 0, y: -10 }}
-                                          animate={{ opacity: 1, y: 0 }}
-                                          exit={{ opacity: 0, y: -10 }}
-                                          className="absolute left-0 top-full mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-xl z-50 py-1 text-right"
-                                        >
-                                            <button 
-                                              onClick={() => navigate(`/quotes/view/${quote.id}`)}
-                                              className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-start gap-2"
-                                            >
-                                                <FileText size={16} />
-                                                {t('view_quote')}
-                                            </button>
-                                            <button 
-                                              onClick={() => navigate('/quotes/create')}
-                                              className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-start gap-2"
-                                            >
-                                                <Edit2 size={16} />
-                                                {t('edit_quote_action')}
-                                            </button>
-                                            <button 
-                                              onClick={() => navigate('/sales/create')}
-                                              className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-start gap-2"
-                                            >
-                                                <Heart size={16} />
-                                                {t('create_sales_invoice')}
-                                            </button>
-                                            <button 
-                                              onClick={() => alert(t('create_purchase_invoice'))}
-                                              className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-start gap-2"
-                                            >
-                                                <Star size={16} />
-                                                {t('create_purchase_invoice')}
-                                            </button>
-                                            <button 
-                                              onClick={() => downloadPDF(quote)}
-                                              className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-start gap-2"
-                                            >
-                                                <FileText size={16} />
-                                                {t('download_pdf_quote')}
-                                            </button>
-                                            <button 
-                                              onClick={() => { setShowEmailModal(true); setActiveActionMenu(null); }}
-                                              className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-start gap-2"
-                                            >
-                                                <Mail size={16} />
-                                                {t('send_email_quote')}
-                                            </button>
-                                            <button 
-                                              onClick={() => { setShowDeleteModal(quote.id); setActiveActionMenu(null); }}
-                                              className="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center justify-start gap-2"
-                                            >
-                                                <Trash2 size={16} />
-                                                {t('delete_quote_action')}
-                                            </button>
-                                        </motion.div>
-                                    )}
-                                  </AnimatePresence>
-                              </td>
-                          </tr>
-                      ))}
-                  </tbody>
-              </table>
+          {/* Table - Desktop */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className={cn(
+              "w-full border-collapse",
+              direction === 'rtl' ? "text-right" : "text-left"
+            )}>
+              <thead>
+                <tr className="bg-[var(--table-header)] text-white">
+                  <th className="p-3 font-bold text-sm border-r border-white/10">{t('date')}</th>
+                  <th className="p-3 font-bold text-sm border-r border-white/10">{t('quote_no')}</th>
+                  <th className="p-3 font-bold text-sm border-r border-white/10">{t('ref_no')}</th>
+                  <th className="p-3 font-bold text-sm border-r border-white/10">{t('cashier')}</th>
+                  <th className="p-3 font-bold text-sm border-r border-white/10">{t('customer')}</th>
+                  <th className="p-3 font-bold text-sm border-r border-white/10">{t('total')}</th>
+                  <th className="p-3 font-bold text-sm border-r border-white/10">{t('status')}</th>
+                  <th className="p-3 font-bold text-sm border-r border-white/10 text-center">{t('actions')}</th>
+                  <th className="p-3 w-10 text-center">
+                    <div className="flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-white rounded-sm"></div>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="text-sm">
+                {paginatedQuotes?.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="p-8 text-center text-gray-400 italic">
+                      {t('no_data_in_table')}
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedQuotes?.map((quote) => (
+                    <tr key={`desktop-${quote.id}`} className="hover:bg-primary/5 transition-colors border-b border-gray-100 dark:border-neutral-800">
+                      <td className="p-3 text-gray-500 border-r border-gray-100 dark:border-neutral-800">{quote.date}</td>
+                      <td className="p-3 font-bold border-r border-gray-100 dark:border-neutral-800">{quote.quoteNo}</td>
+                      <td className="p-3 text-gray-500 border-r border-gray-100 dark:border-neutral-800">{quote.refNo}</td>
+                      <td className="p-3 border-r border-gray-100 dark:border-neutral-800">{quote.cashier}</td>
+                      <td className="p-3 border-r border-gray-100 dark:border-neutral-800">{quote.customer}</td>
+                      <td className="p-3 font-bold border-r border-gray-100 dark:border-neutral-800">{(quote.total || 0).toFixed(2)}</td>
+                      <td className="p-3 border-r border-gray-100 dark:border-neutral-800">
+                        <span className={cn(
+                          "px-2 py-0.5 rounded text-[10px] font-bold uppercase",
+                          quote.status === 'pending' ? "bg-orange-100 text-orange-600" : "bg-green-100 text-green-600"
+                        )}>
+                          {t(quote.status)}
+                        </span>
+                      </td>
+                      <td className={cn("p-3 border-r border-gray-100 dark:border-neutral-800 text-center relative action-menu-container", activeActionMenu === quote.id && "z-[60]")}>
+                        <div className="flex items-center justify-center gap-2">
+                          <button 
+                            onClick={() => navigate(`/quotes/create`)}
+                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button 
+                            onClick={() => setShowDeleteModal(quote.id)}
+                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded transition-colors"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                      <td className="p-3 text-center">
+                        <input type="checkbox" className="accent-primary" />
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
 
-          {/* Pagination */}
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4 mt-6" dir={direction}>
-              <div className="text-sm text-red-700 font-bold">
-                  {t('showing_records')} 1 {t('to')} {filteredQuotes.length} {t('of')} {filteredQuotes.length} {t('records')}
+          {/* Mobile View */}
+          <div className="md:hidden space-y-4">
+            {paginatedQuotes?.length === 0 ? (
+              <div className="p-8 text-center text-gray-400 italic bg-gray-50 dark:bg-neutral-900/50 rounded-lg border border-dashed border-gray-200 dark:border-neutral-800">
+                {t('no_data_in_table')}
               </div>
+            ) : (
+              paginatedQuotes?.map((quote) => (
+                <MobileDataCard
+                  key={`mobile-${quote.id}`}
+                  title={quote.quoteNo}
+                  subtitle={quote.refNo}
+                  status={quote.status}
+                  fields={[
+                    { label: t('date'), value: quote.date },
+                    { label: t('customer'), value: quote.customer },
+                    { label: t('total'), value: (quote.total || 0).toFixed(2), isBold: true },
+                  ]}
+                  actions={
+                    <div className="flex flex-wrap justify-end gap-2 pt-2 border-t border-gray-100 dark:border-neutral-800">
+                      <button 
+                        onClick={() => navigate(`/quotes/view/${quote.id}`)}
+                        className="p-2 text-primary hover:bg-primary/5 rounded-lg border border-primary/10 transition-colors flex items-center gap-1 text-xs font-bold"
+                      >
+                        <FileText size={16} />
+                        {t('view')}
+                      </button>
+                      <button 
+                        onClick={() => navigate('/quotes/create')}
+                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-100 transition-colors flex items-center gap-1 text-xs font-bold"
+                      >
+                        <Edit2 size={16} />
+                        {t('edit')}
+                      </button>
+                      <button 
+                        onClick={() => { setShowDeleteModal(quote.id); }}
+                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-100 transition-colors flex items-center gap-1 text-xs font-bold"
+                      >
+                        <Trash2 size={16} />
+                        {t('delete')}
+                      </button>
+                    </div>
+                  }
+                />
+              ))
+            )}
+          </div>
+
+          {/* Pagination Section */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">
+            <div className="flex items-center gap-1 text-sm text-gray-500">
+              <span>{t('showing')}</span>
+              <span className="font-bold text-gray-900 dark:text-white">{(currentPage - 1) * showCount + 1}</span>
+              <span>{t('to')}</span>
+              <span className="font-bold text-gray-900 dark:text-white">{Math.min(currentPage * showCount, filteredQuotes.length)}</span>
+              <span>{t('of')}</span>
+              <span className="font-bold text-gray-900 dark:text-white">{filteredQuotes.length}</span>
+              <span>{t('records')}</span>
+            </div>
+
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 disabled:opacity-50 text-sm font-medium transition-colors"
+              >
+                {t('previous')}
+              </button>
               <div className="flex items-center gap-1">
-                  <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-gray-600 text-sm">
-                      {t('previous')}
-                  </button>
-                  <button className="px-3 py-1 border border-[#8b0000] bg-[#8b0000] text-white rounded text-sm">1</button>
-                  <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-gray-600 text-sm">
-                      {t('next')}
-                  </button>
+                <button className="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white font-bold text-sm">
+                  {currentPage}
+                </button>
               </div>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredQuotes.length / showCount), prev + 1))}
+                disabled={currentPage >= Math.ceil(filteredQuotes.length / showCount)}
+                className="px-3 py-1.5 rounded-lg border border-gray-200 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 disabled:opacity-50 text-sm font-medium transition-colors"
+              >
+                {t('next')}
+              </button>
+            </div>
           </div>
-
+        </div>
       </div>
       {/* Hidden PDF Templates */}
       <div className="hidden">
-        {quotes.map(quote => (
+        {quotes?.map(quote => (
           <div 
             key={quote.id} 
             id={`quote-template-${quote.id}`} 
@@ -447,34 +453,17 @@ export default function QuotesList() {
       </div>
       <EmailQuoteModal isOpen={showEmailModal} onClose={() => setShowEmailModal(false)} />
 
-      <AnimatePresence>
-        {showDeleteModal && (
-          <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-white rounded-lg w-full max-w-sm shadow-xl p-6 text-center"
-            >
-              <h3 className="text-lg font-bold mb-4">هل انت متأكد من حذف عرض السعر</h3>
-              <div className="flex justify-center gap-4">
-                <button 
-                  onClick={() => handleDeleteQuote(showDeleteModal)}
-                  className="bg-red-600 text-white px-6 py-2 rounded font-bold hover:bg-red-700 transition-colors"
-                >
-                  نعم
-                </button>
-                <button 
-                  onClick={() => setShowDeleteModal(null)}
-                  className="bg-gray-200 text-gray-800 px-6 py-2 rounded font-bold hover:bg-gray-300 transition-colors"
-                >
-                  لا
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <DeleteConfirmationModal
+        isOpen={showDeleteModal !== null}
+        onClose={() => setShowDeleteModal(null)}
+        onConfirm={() => {
+          if (showDeleteModal) {
+            handleDeleteQuote(showDeleteModal);
+          }
+        }}
+        itemName={quotes.find(q => q.id === showDeleteModal)?.quoteNo}
+      />
+      <AddQuoteModal isOpen={showAddModal} onClose={() => setShowAddModal(false)} />
     </div>
   );
 }

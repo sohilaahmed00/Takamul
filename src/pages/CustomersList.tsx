@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   User,
+  Search,
   Edit2,
   Trash2,
   UserPlus,
@@ -16,6 +17,7 @@ import { cn } from '@/lib/utils';
 import Pagination from '@/components/Pagination';
 import Toast from '@/components/Toast';
 import Confirm from '@/components/Confirm';
+import MobileDataCard from '@/components/MobileDataCard';
 
 import { useLanguage } from '@/context/LanguageContext';
 import { useCustomers } from '@/context/CustomersContext';
@@ -26,7 +28,7 @@ import AddDepositModal from '@/components/modals/AddDepositModal';
 import AddDiscountModal from '@/components/modals/AddDiscountModal';
 import ViewPaymentsModal from '@/components/modals/ViewPaymentsModal';
 
-// ✅ Professional dropdown positioning (no design/logic changes)
+// Professional dropdown positioning
 import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/react';
 
 export default function CustomersList() {
@@ -51,7 +53,6 @@ export default function CustomersList() {
   const [paymentType, setPaymentType] = useState<'deposit' | 'discount'>('deposit');
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
-  // ✅ delete like suppliers (Confirm + Toast)
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const [toastOpen, setToastOpen] = useState(false);
@@ -64,7 +65,7 @@ export default function CustomersList() {
     setToastOpen(true);
   };
 
-  // ✅ helpers to unify API fields
+  // helpers to unify API fields
   const getName = (c: any) => String(c?.customerName ?? c?.name ?? '');
   const getCode = (c: any) => String(c?.customerCode ?? c?.code ?? '');
   const getEmail = (c: any) => String(c?.email ?? '');
@@ -74,6 +75,7 @@ export default function CustomersList() {
   const filteredCustomers = useMemo(() => {
     const s = searchTerm.trim().toLowerCase();
     if (!s) return customers;
+
     return customers.filter((c: any) => {
       const hay = `${getName(c)} ${getEmail(c)} ${getPhone(c)} ${getCode(c)} ${getTax(c)}`.toLowerCase();
       return hay.includes(s);
@@ -93,8 +95,11 @@ export default function CustomersList() {
   const endIndex = Math.min(currentPage * entriesPerPage, filteredCustomers.length);
 
   const toggleSelectAll = () => {
-    if (selectedCustomers.length === paginatedCustomers.length) setSelectedCustomers([]);
-    else setSelectedCustomers(paginatedCustomers.map((c: any) => c.id));
+    if (selectedCustomers.length === paginatedCustomers.length) {
+      setSelectedCustomers([]);
+    } else {
+      setSelectedCustomers(paginatedCustomers.map((c: any) => c.id));
+    }
   };
 
   const toggleSelectCustomer = (id: number) => {
@@ -126,9 +131,7 @@ export default function CustomersList() {
     setIsDiscountModalOpen(true);
   };
 
-  // =============================
-  // ✅ Dropdown positioning (Professional / Safe)
-  // =============================
+  // Dropdown positioning
   const actionButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
 
   const { x, y, strategy, refs, update } = useFloating({
@@ -145,9 +148,20 @@ export default function CustomersList() {
     }
   }, [activeActionMenu, refs, update]);
 
-  // =============================
-  // ✅ Delete flow (like suppliers)
-  // =============================
+  // Close menu on scroll or resize
+  useEffect(() => {
+    const handleCloseMenu = () => setActiveActionMenu(null);
+
+    window.addEventListener('scroll', handleCloseMenu, true);
+    window.addEventListener('resize', handleCloseMenu);
+
+    return () => {
+      window.removeEventListener('scroll', handleCloseMenu, true);
+      window.removeEventListener('resize', handleCloseMenu);
+    };
+  }, []);
+
+  // Delete flow
   const handleDelete = (id: number) => {
     setConfirmDeleteId(id);
   };
@@ -178,26 +192,46 @@ export default function CustomersList() {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4" dir={direction}>
-      {/* Header */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100 flex justify-between items-center">
-        <div className="flex items-center gap-2 text-[#007e4a]">
-          <User size={20} />
-          <h1 className="text-lg font-bold">{t('customers') || (isRTL ? 'العملاء' : 'Customers')}</h1>
-        </div>
-
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="px-4 py-2 bg-[#2ecc71] text-white rounded-md hover:bg-[#27ae60] transition-colors flex items-center gap-2 text-sm font-bold shadow-sm"
-        >
-          <UserPlus size={18} />
-          <span>{t('add_customer') || (isRTL ? 'إضافة عميل' : 'Add Customer')}</span>
-        </button>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-4"
+      dir={direction}
+    >
+      {/* Breadcrumb */}
+      <div className="text-sm text-gray-500 flex items-center gap-1">
+        <span>{t('home') || (isRTL ? 'الرئيسية' : 'Home')}</span>
+        <span>/</span>
+        <span className="text-gray-800 font-medium">
+          {t('customers') || (isRTL ? 'العملاء' : 'Customers')}
+        </span>
       </div>
 
-      <div className="text-sm text-gray-500 mb-2">
-        {t('customers_table_desc') ||
-          (isRTL ? 'الرجاء استخدام الجدول أدناه للتنقل أو تصفية النتائج.' : 'Use the table below to navigate or filter results.')}
+      {/* Header */}
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2 text-[#007e4a]">
+            <UserPlus size={20} />
+            <h1 className="text-lg font-bold">
+              {t('customers') || (isRTL ? 'العملاء' : 'Customers')}
+            </h1>
+          </div>
+
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="px-4 py-2 bg-[#2ecc71] text-white rounded-md hover:bg-[#27ae60] transition-colors flex items-center gap-2 text-sm font-bold shadow-sm"
+          >
+            <UserPlus size={18} />
+            <span>{t('add_customer') || (isRTL ? 'إضافة عميل' : 'Add Customer')}</span>
+          </button>
+        </div>
+
+        <div className="text-sm text-gray-500 mt-2">
+          {t('customers_table_desc') ||
+            (isRTL
+              ? 'الرجاء استخدام الجدول أدناه للتنقل أو تصفية النتائج.'
+              : 'Use the table below to navigate or filter results.')}
+        </div>
       </div>
 
       {/* Table Container */}
@@ -220,20 +254,34 @@ export default function CustomersList() {
           </div>
 
           <div className="flex items-center gap-2 order-1 md:order-2 w-full md:w-auto">
-            <span className="text-sm text-gray-600 whitespace-nowrap">{t('search') || (isRTL ? 'بحث' : 'Search')}</span>
-            <div className="relative flex-1 md:w-64">
+            <span className="text-sm text-gray-600 whitespace-nowrap">
+              {t('search') || (isRTL ? 'بحث' : 'Search')}
+            </span>
+
+            <div className="relative flex-1 md:w-72">
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm outline-none focus:border-[#2ecc71] text-right"
+                placeholder={t('search_placeholder') || (isRTL ? 'ابحث هنا...' : 'Search here...')}
+                className={cn(
+                  'w-full border border-gray-300 rounded-xl py-2 text-sm outline-none focus:border-[#2ecc71]',
+                  isRTL ? 'pr-10 pl-3 text-right' : 'pl-10 pr-3 text-left'
+                )}
+              />
+              <Search
+                size={18}
+                className={cn(
+                  'absolute top-1/2 -translate-y-1/2 text-gray-400',
+                  isRTL ? 'right-3' : 'left-3'
+                )}
               />
             </div>
           </div>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full text-sm text-right border-collapse">
             <thead>
               <tr className="bg-green-500 text-white">
@@ -246,12 +294,18 @@ export default function CustomersList() {
                   />
                 </th>
 
-                <th className="p-3 border-l border-white/10 font-bold">{t('code') || (isRTL ? 'كود' : 'Code')}</th>
-                <th className="p-3 border-l border-white/10 font-bold">{t('name') || (isRTL ? 'اسم' : 'Name')}</th>
+                <th className="p-3 border-l border-white/10 font-bold">
+                  {t('code') || (isRTL ? 'كود' : 'Code')}
+                </th>
+                <th className="p-3 border-l border-white/10 font-bold">
+                  {t('name') || (isRTL ? 'اسم' : 'Name')}
+                </th>
                 <th className="p-3 border-l border-white/10 font-bold">
                   {t('email_address') || (isRTL ? 'عنوان البريد الإلكتروني' : 'Email')}
                 </th>
-                <th className="p-3 border-l border-white/10 font-bold">{t('phone') || (isRTL ? 'هاتف' : 'Phone')}</th>
+                <th className="p-3 border-l border-white/10 font-bold">
+                  {t('phone') || (isRTL ? 'هاتف' : 'Phone')}
+                </th>
 
                 <th className="p-3 border-l border-white/10 font-bold">
                   {t('pricing_group') || (isRTL ? 'مجموعة التسعيرة' : 'Pricing Group')}
@@ -270,7 +324,9 @@ export default function CustomersList() {
                   {t('total_points') || (isRTL ? 'إجمالي النقاط المكتسبة' : 'Total Points')}
                 </th>
 
-                <th className="p-3 font-bold text-center">{t('actions') || (isRTL ? 'الإجراءات' : 'Actions')}</th>
+                <th className="p-3 font-bold text-center">
+                  {t('actions') || (isRTL ? 'الإجراءات' : 'Actions')}
+                </th>
               </tr>
             </thead>
 
@@ -304,12 +360,20 @@ export default function CustomersList() {
                     <td className="p-3 border-l border-gray-100 text-blue-600">{getEmail(customer) || '-'}</td>
                     <td className="p-3 border-l border-gray-100">{getPhone(customer) || '-'}</td>
 
-                    <td className="p-3 border-l border-gray-100">{customer.pricingGroup ?? (isRTL ? 'عام' : 'General')}</td>
-                    <td className="p-3 border-l border-gray-100">{customer.customerGroup ?? (isRTL ? 'عام' : 'General')}</td>
+                    <td className="p-3 border-l border-gray-100">
+                      {customer.pricingGroup ?? (isRTL ? 'عام' : 'General')}
+                    </td>
+                    <td className="p-3 border-l border-gray-100">
+                      {customer.customerGroup ?? (isRTL ? 'عام' : 'General')}
+                    </td>
 
                     <td className="p-3 border-l border-gray-100">{getTax(customer) || '-'}</td>
-                    <td className="p-3 border-l border-gray-100 font-bold">{Number(customer.actualBalance ?? 0).toFixed(2)}</td>
-                    <td className="p-3 border-l border-gray-100 font-bold">{Number(customer.totalPoints ?? 0).toFixed(2)}</td>
+                    <td className="p-3 border-l border-gray-100 font-bold">
+                      {Number(customer.actualBalance ?? 0).toFixed(2)}
+                    </td>
+                    <td className="p-3 border-l border-gray-100 font-bold">
+                      {Number(customer.totalPoints ?? 0).toFixed(2)}
+                    </td>
 
                     <td className="p-3 text-center">
                       <button
@@ -332,7 +396,10 @@ export default function CustomersList() {
                       >
                         <ChevronDown
                           size={14}
-                          className={cn('transition-transform', activeActionMenu === customer.id && 'rotate-180')}
+                          className={cn(
+                            'transition-transform',
+                            activeActionMenu === customer.id && 'rotate-180'
+                          )}
                         />
                         <span>{t('actions') || (isRTL ? 'الإجراءات' : 'Actions')}</span>
                       </button>
@@ -344,11 +411,89 @@ export default function CustomersList() {
           </table>
         </div>
 
+        {/* Mobile View */}
+        <div className="md:hidden space-y-4 p-4">
+          {loading ? (
+            <div className="p-8 text-center text-gray-400 italic bg-gray-50 rounded-lg border border-dashed border-gray-200">
+              {isRTL ? 'جاري تحميل البيانات...' : 'Loading...'}
+            </div>
+          ) : paginatedCustomers.length === 0 ? (
+            <div className="p-8 text-center text-gray-400 italic bg-gray-50 rounded-lg border border-dashed border-gray-200">
+              {t('no_data_in_table') || (isRTL ? 'لا توجد بيانات في الجدول' : 'No data')}
+            </div>
+          ) : (
+            paginatedCustomers.map((customer: any) => (
+              <MobileDataCard
+                key={`mobile-${customer.id}`}
+                title={getName(customer)}
+                subtitle={getCode(customer)}
+                fields={[
+                  {
+                    label: t('email_address') || (isRTL ? 'البريد الإلكتروني' : 'Email'),
+                    value: getEmail(customer) || '-',
+                  },
+                  {
+                    label: t('phone') || (isRTL ? 'الهاتف' : 'Phone'),
+                    value: getPhone(customer) || '-',
+                  },
+                  {
+                    label: t('customer_group') || (isRTL ? 'مجموعة العملاء' : 'Customer Group'),
+                    value: customer.customerGroup ?? (isRTL ? 'عام' : 'General'),
+                  },
+                  {
+                    label: t('actual_balance') || (isRTL ? 'الرصيد الفعلي' : 'Balance'),
+                    value: Number(customer.actualBalance ?? 0).toFixed(2),
+                    isBold: true,
+                  },
+                  {
+                    label: t('total_points') || (isRTL ? 'إجمالي النقاط' : 'Total Points'),
+                    value: Number(customer.totalPoints ?? 0).toFixed(2),
+                  },
+                ]}
+                actions={
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setSelectedCustomer(customer);
+                        setIsEditModalOpen(true);
+                      }}
+                      className="px-3 py-1.5 rounded-md border border-gray-300 text-xs flex items-center gap-1 hover:bg-gray-50"
+                    >
+                      <Edit2 size={14} />
+                      {t('edit') || (isRTL ? 'تعديل' : 'Edit')}
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedCustomer(customer);
+                        setIsDepositModalOpen(true);
+                      }}
+                      className="px-3 py-1.5 rounded-md bg-[#2ecc71] text-white text-xs flex items-center gap-1 hover:bg-[#27ae60]"
+                    >
+                      <PlusCircle size={14} />
+                      {t('add_deposit') || (isRTL ? 'إضافة إيداع' : 'Add Deposit')}
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(customer.id)}
+                      className="px-3 py-1.5 rounded-md bg-red-50 text-red-600 text-xs flex items-center gap-1 hover:bg-red-100"
+                    >
+                      <Trash2 size={14} />
+                      {t('delete') || (isRTL ? 'حذف' : 'Delete')}
+                    </button>
+                  </div>
+                }
+              />
+            ))
+          )}
+        </div>
+
         {/* Pagination */}
         <div className="p-4 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-gray-50 bg-gray-50/50">
           <div className="text-sm text-gray-500">
-            {t('showing_records') || (isRTL ? 'عرض' : 'Showing')} {startIndex} {t('to') || (isRTL ? 'إلى' : 'to')}{' '}
-            {endIndex} {t('of') || (isRTL ? 'من' : 'of')} {filteredCustomers.length} {t('records') || (isRTL ? 'سجلات' : 'records')}
+            {t('showing_records') || (isRTL ? 'عرض' : 'Showing')} {startIndex}{' '}
+            {t('to') || (isRTL ? 'إلى' : 'to')} {endIndex} {t('of') || (isRTL ? 'من' : 'of')}{' '}
+            {filteredCustomers.length} {t('records') || (isRTL ? 'سجلات' : 'records')}
           </div>
 
           <Pagination
@@ -363,13 +508,32 @@ export default function CustomersList() {
       {/* Modals */}
       <AddCustomerModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
 
-      <EditCustomerModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} customer={selectedCustomer} />
+      <EditCustomerModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        customer={selectedCustomer}
+      />
 
-      <AddDepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} customer={selectedCustomer} />
-      <AddDiscountModal isOpen={isDiscountModalOpen} onClose={() => setIsDiscountModalOpen(false)} customer={selectedCustomer} />
-      <ViewPaymentsModal isOpen={isPaymentsModalOpen} onClose={() => setIsPaymentsModalOpen(false)} customer={selectedCustomer} type={paymentType} />
+      <AddDepositModal
+        isOpen={isDepositModalOpen}
+        onClose={() => setIsDepositModalOpen(false)}
+        customer={selectedCustomer}
+      />
 
-      {/* Confirm delete (like suppliers) */}
+      <AddDiscountModal
+        isOpen={isDiscountModalOpen}
+        onClose={() => setIsDiscountModalOpen(false)}
+        customer={selectedCustomer}
+      />
+
+      <ViewPaymentsModal
+        isOpen={isPaymentsModalOpen}
+        onClose={() => setIsPaymentsModalOpen(false)}
+        customer={selectedCustomer}
+        type={paymentType}
+      />
+
+      {/* Confirm delete */}
       <Confirm
         isOpen={confirmDeleteId !== null}
         title={t('confirm_delete') || (isRTL ? 'تأكيد الحذف' : 'Confirm Delete')}
@@ -380,7 +544,14 @@ export default function CustomersList() {
         onClose={() => setConfirmDeleteId(null)}
       />
 
-      {toastOpen && <Toast isOpen={toastOpen} message={toastMsg} type={toastType} onClose={() => setToastOpen(false)} />}
+      {toastOpen && (
+        <Toast
+          isOpen={toastOpen}
+          message={toastMsg}
+          type={toastType}
+          onClose={() => setToastOpen(false)}
+        />
+      )}
 
       {/* Action Menu Portal */}
       {createPortal(
@@ -412,7 +583,9 @@ export default function CustomersList() {
                   className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                 >
                   <History size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">{t('deposits_list') || (isRTL ? 'قائمة الإيداعات' : 'Deposits')}</span>
+                  <span className="flex-1 text-right">
+                    {t('deposits_list') || (isRTL ? 'قائمة الإيداعات' : 'Deposits')}
+                  </span>
                 </button>
 
                 <button
@@ -423,7 +596,9 @@ export default function CustomersList() {
                   className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                 >
                   <PlusCircle size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">{t('add_deposit') || (isRTL ? 'إضافة إيداع' : 'Add Deposit')}</span>
+                  <span className="flex-1 text-right">
+                    {t('add_deposit') || (isRTL ? 'إضافة إيداع' : 'Add Deposit')}
+                  </span>
                 </button>
 
                 <button
@@ -434,7 +609,9 @@ export default function CustomersList() {
                   className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                 >
                   <FileText size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">{t('discounts_list') || (isRTL ? 'قائمة الخصومات' : 'Discounts')}</span>
+                  <span className="flex-1 text-right">
+                    {t('discounts_list') || (isRTL ? 'قائمة الخصومات' : 'Discounts')}
+                  </span>
                 </button>
 
                 <button
@@ -445,7 +622,9 @@ export default function CustomersList() {
                   className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                 >
                   <Minus size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">{t('add_discount') || (isRTL ? 'إضافة خصم' : 'Add Discount')}</span>
+                  <span className="flex-1 text-right">
+                    {t('add_discount') || (isRTL ? 'إضافة خصم' : 'Add Discount')}
+                  </span>
                 </button>
 
                 <div className="h-px bg-gray-100 my-1 mx-2" />
@@ -458,7 +637,9 @@ export default function CustomersList() {
                   className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                 >
                   <Edit2 size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">{t('edit_customer') || (isRTL ? 'تعديل العميل' : 'Edit Customer')}</span>
+                  <span className="flex-1 text-right">
+                    {t('edit_customer') || (isRTL ? 'تعديل العميل' : 'Edit Customer')}
+                  </span>
                 </button>
 
                 <button
@@ -469,7 +650,9 @@ export default function CustomersList() {
                   className="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors font-medium"
                 >
                   <Trash2 size={18} />
-                  <span className="flex-1 text-right">{t('delete') || (isRTL ? 'حذف' : 'Delete')}</span>
+                  <span className="flex-1 text-right">
+                    {t('delete') || (isRTL ? 'حذف' : 'Delete')}
+                  </span>
                 </button>
               </motion.div>
             </>

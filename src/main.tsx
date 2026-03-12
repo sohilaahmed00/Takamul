@@ -9,21 +9,86 @@ import { GroupsProvider } from '@/context/GroupsContext';
 import { ProductsProvider } from '@/context/ProductsContext';
 import { AdjustmentsProvider } from '@/context/AdjustmentsContext';
 import { SuppliersProvider } from '@/context/SuppliersContext';
-import { CustomersProvider } from '@/context/CustomersContext';
 import { ExpensesProvider } from '@/context/ExpensesContext';
+import { SalesProvider } from '@/context/SalesContext';
+import { PurchasesProvider } from '@/context/PurchasesContext';
+import { CustomersProvider } from '@/context/CustomersContext';
+import { QuotesProvider } from '@/context/QuotesContext';
+import { UsersProvider } from '@/context/UsersContext';
+import { BanksProvider } from '@/context/BanksContext';
+import { TransfersProvider } from '@/context/TransfersContext';
+import { PromotionsProvider } from '@/context/PromotionsContext';
+import { PaymentCompaniesProvider } from '@/context/PaymentCompaniesContext';
+import { PaymentMethodsProvider } from '@/context/PaymentMethodsContext';
+import { LogoProvider } from '@/context/LogoContext';
+import { CurrenciesProvider } from '@/context/CurrenciesContext';
+import { CustomerGroupsProvider } from '@/context/CustomerGroupsContext';
+import { PriceGroupsProvider } from '@/context/PriceGroupsContext';
+import { CategoriesProvider } from '@/context/CategoriesContext';
+import { ExpenseCategoriesProvider } from '@/context/ExpenseCategoriesContext';
+import { SettingsProvider } from '@/context/SettingsContext';
+import { UserGroupsProvider } from '@/context/UserGroupsContext';
+import { DeliveryCompaniesProvider } from '@/context/DeliveryCompaniesContext';
+import { DelegatesProvider } from '@/context/DelegatesContext';
+import { TablesProvider } from '@/context/TablesContext';
+import { AdditionsProvider } from '@/context/AdditionsContext';
+import { WarehousesProvider } from '@/context/WarehousesContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeProvider>
-        <LanguageProvider>
+        <SettingsProvider>
+          <LanguageProvider>
           <GroupsProvider>
             <ProductsProvider>
               <AdjustmentsProvider>
                 <SuppliersProvider>
                   <CustomersProvider>
                     <ExpensesProvider>
-                      <App />
+                      <SalesProvider>
+                        <PurchasesProvider>
+                          <ExpenseCategoriesProvider>
+                        <QuotesProvider>
+                          <UsersProvider>
+                            <BanksProvider>
+                              <TransfersProvider>
+                                <PromotionsProvider>
+                                  <PaymentCompaniesProvider>
+                                    <PaymentMethodsProvider>
+                                      <LogoProvider>
+                                        <CurrenciesProvider>
+                                          <CustomerGroupsProvider>
+                                            <UserGroupsProvider>
+                                              <CategoriesProvider>
+                                                <DeliveryCompaniesProvider>
+                                                  <DelegatesProvider>
+                                                    <TablesProvider>
+                                                      <AdditionsProvider>
+                                                        <WarehousesProvider>
+                                                          <PriceGroupsProvider>
+                                                            <App />
+                                                          </PriceGroupsProvider>
+                                                        </WarehousesProvider>
+                                                      </AdditionsProvider>
+                                                    </TablesProvider>
+                                                  </DelegatesProvider>
+                                                </DeliveryCompaniesProvider>
+                                              </CategoriesProvider>
+                                            </UserGroupsProvider>
+                                          </CustomerGroupsProvider>
+                                        </CurrenciesProvider>
+                                      </LogoProvider>
+                                    </PaymentMethodsProvider>
+                                  </PaymentCompaniesProvider>
+                                </PromotionsProvider>
+                              </TransfersProvider>
+                            </BanksProvider>
+                          </UsersProvider>
+                        </QuotesProvider>
+                      </ExpenseCategoriesProvider>
+                        </PurchasesProvider>
+                      </SalesProvider>
                     </ExpensesProvider>
                   </CustomersProvider>
                 </SuppliersProvider>
@@ -31,6 +96,7 @@ createRoot(document.getElementById('root')!).render(
             </ProductsProvider>
           </GroupsProvider>
         </LanguageProvider>
+        </SettingsProvider>
       </ThemeProvider>
     </BrowserRouter>
   </StrictMode>,

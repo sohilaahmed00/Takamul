@@ -1,657 +1,706 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+// src/pages/ProductsList.tsx
+import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Printer,
-  FileText,
-  Search,
-  ChevronDown,
-  Edit,
-  Upload,
-  Trash2,
-  X,
-  Copy,
-  DollarSign,
-  Menu,
-  PlusCircle,
-  FileSpreadsheet,
-  Download
+    Search, Edit2, Trash2, ChevronDown, Plus, Box, Package, Layers, X, Link2, FolderPlus, RefreshCw
 } from 'lucide-react';
-import Layout from '../components/Layout';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useLanguage } from '../context/LanguageContext';
-import { useProducts, Product } from '../context/ProductsContext';
-import ProductDetailsModal from '../components/ProductDetailsModal';
+import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
 
-// ✅ استيراد المودال اللي انت بعته
-import EditProductModal from '@/components/EditProductModal';
-// عدّل الباث حسب مكانه الحقيقي عندك
+// ===================== TYPES =====================
+interface Product {
+    id: number;
+    productCode?: number | string;
+    productNameAr?: string;
+    productNameEn?: string;
+    productNameUr?: string;
+    barcode?: string;
+    description?: string;
+    categoryName?: string;
+    costPrice?: number;
+    sellingPrice?: number;
+    minStockLevel?: number;
+    imageUrl?: string;
+    taxName?: string | null;
+    isActive?: boolean;
+    // For branched products
+    parentProductId?: number | null;
+    parentProductName?: string | null;
+    // Legacy support
+    name?: string;
+    code?: string;
+    price?: number;
+    quantity?: number;
+    category?: string;
+    productNature?: string;
+}
 
-export default function ProductsList() {
-  const navigate = useNavigate();
-  const { t, direction } = useLanguage();
-  const { products, addProduct, deleteProduct, deleteMultipleProducts } = useProducts();
+// ===================== API CONFIG =====================
+const BASE_URL = 'http://takamulerp.runasp.net/api/Products';
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showPriceUpdate, setShowPriceUpdate] = useState(false);
-  const [showBranchPrices, setShowBranchPrices] = useState<Product | null>(null);
-
-  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
-  const [openActionId, setOpenActionId] = useState<number | null>(null);
-  const [menuPosition, setMenuPosition] = useState<{ top: number, left: number } | null>(null);
-  const actionMenuRef = useRef<HTMLDivElement>(null);
-
-  const [selectedProductDetails, setSelectedProductDetails] = useState<Product | null>(null);
-
-  const [showBulkActions, setShowBulkActions] = useState(false);
-  const bulkActionsRef = useRef<HTMLDivElement>(null);
-
-  // ✅ دول موجودين عندك (سيبتهم زي ما هم)
-const [editProductOpen, setEditProductOpen] = useState(false);
-const [selectedProductForEdit, setSelectedProductForEdit] = useState<Product | null>(null);
-  const productsList = products;
-
-  // Close menus when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
-        setOpenActionId(null);
-        setMenuPosition(null);
-      }
-      if (bulkActionsRef.current && !bulkActionsRef.current.contains(event.target as Node)) {
-        setShowBulkActions(false);
-      }
-    };
-
-    const handleScroll = () => {
-      if (openActionId !== null) {
-        setOpenActionId(null);
-        setMenuPosition(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    window.addEventListener('scroll', handleScroll, { capture: true });
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScroll, { capture: true });
-    };
-  }, [openActionId]);
-
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      setSelectedProducts(productsList.map(p => p.id));
-    } else {
-      setSelectedProducts([]);
-    }
-  };
-
-  const handleSelectProduct = (id: number) => {
-    if (selectedProducts.includes(id)) {
-      setSelectedProducts(selectedProducts.filter(pId => pId !== id));
-    } else {
-      setSelectedProducts([...selectedProducts, id]);
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    if (selectedProducts.length === 0) {
-      alert(direction === 'rtl' ? 'يرجى اختيار أصناف أولاً' : 'Please select items first');
-      return;
-    }
-
-    const confirmMsg = direction === 'rtl'
-      ? `هل أنت متأكد من حذف ${selectedProducts.length} صنف؟`
-      : `Are you sure you want to delete ${selectedProducts.length} items?`;
-
-    if (window.confirm(confirmMsg)) {
-      await deleteMultipleProducts(selectedProducts);
-      setSelectedProducts([]);
-      setShowBulkActions(false);
-    }
-  };
-
-  const handleDeleteProduct = async (id: number) => {
-    const confirmMsg = direction === 'rtl'
-      ? 'هل أنت متأكد من حذف هذا الصنف؟'
-      : 'Are you sure you want to delete this product?';
-
-    if (window.confirm(confirmMsg)) {
-      await deleteProduct(id);
-      setOpenActionId(null);
-      setMenuPosition(null);
-    }
-  };
-
-  const handleDuplicateProduct = async (product: Product) => {
-    const { id, ...productData } = product;
-    try {
-      await addProduct({
-        ...productData,
-        name: `${product.name} ${t('copy_suffix')}`,
-        code: `${product.code}-copy`
-      });
-    } catch (err) {
-      console.error(err);
-      alert(direction === 'rtl' ? 'فشل نسخ الصنف' : 'Failed to duplicate product');
-    }
-    setOpenActionId(null);
-    setMenuPosition(null);
-  };
-
-  const toggleActionMenu = (id: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    if (openActionId === id) {
-      setOpenActionId(null);
-      setMenuPosition(null);
-      return;
-    }
-
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-
-    const menuWidth = 192;  // w-48
-    const menuHeight = 220; // تقدير
-    const padding = 10;
-    const gap = 6;
-
-    const rawLeft = direction === "rtl"
-      ? rect.right - menuWidth
-      : rect.left;
-
-    const maxLeft = window.innerWidth - menuWidth - padding;
-    const left = Math.min(Math.max(padding, rawLeft), maxLeft);
-
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const spaceAbove = rect.top;
-
-    const openUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
-
-    const top = openUp
-      ? Math.max(padding, rect.top - menuHeight - gap)
-      : Math.min(window.innerHeight - menuHeight - padding, rect.bottom + gap);
-
-    setOpenActionId(id);
-    setMenuPosition({ top, left });
-  };
-
-  // ✅✅✅ ده المهم: فتح مودال التعديل بدل navigate
- const openEditProduct = (product: Product) => {
-  setSelectedProductForEdit(product);
-  setEditProductOpen(true);
-  setOpenActionId(null);
-  setMenuPosition(null);
+const API_ENDPOINTS = {
+    direct: `${BASE_URL}/direct`,
+    sub: `${BASE_URL}/branched`,
+    prepared: `${BASE_URL}/prepared`,
+    materials: `${BASE_URL}/raw-material`,
+    getById: (id: number) => `${BASE_URL}/${id}`,
+    update: (id: number) => `${BASE_URL}/${id}`,
+    delete: (id: number) => `${BASE_URL}/${id}`,
 };
 
-  return (
-   
-      <div className="space-y-4" onClick={() => { setOpenActionId(null); setMenuPosition(null); }}>
-        {/* Price Update Notification */}
-        <AnimatePresence>
-          {showPriceUpdate && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="bg-blue-50 border border-blue-200 rounded-lg p-4 relative"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={() => setShowPriceUpdate(false)}
-                className={`absolute top-2 text-blue-400 hover:text-blue-600 ${direction === 'rtl' ? 'left-2' : 'right-2'}`}
-              >
-                <X size={18} />
-              </button>
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <div className="bg-blue-100 p-2 rounded-full text-blue-600">
-                  <Upload size={24} />
-                </div>
-                <div className={`flex-1 text-center ${direction === 'rtl' ? 'sm:text-right' : 'sm:text-left'}`}>
-                  <h3 className="font-bold text-blue-800">{t('update_prices_title')}</h3>
-                  <p className="text-sm text-blue-600">{t('update_prices_desc')}</p>
-                </div>
-                <div className="flex gap-2 w-full sm:w-auto">
-                  <label className="flex-1 sm:flex-none cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center justify-center gap-2">
-                    <Upload size={16} />
-                    {t('choose_file')}
-                    <input type="file" className="hidden" accept=".xlsx,.xls,.csv" />
-                  </label>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+// ===================== HELPERS =====================
+const getName = (p: Product) => p.productNameAr || p.name || '-';
+const getCode = (p: Product) => p.productCode?.toString() || p.code || '-';
+const getPrice = (p: Product) => Number(p.sellingPrice ?? p.price ?? 0).toFixed(2);
+const getCategory = (p: Product) => p.categoryName || p.category || '-';
 
-        {/* Breadcrumb */}
-        <div className="text-sm text-gray-500 flex items-center gap-1">
-          <span>{t('home')}</span>
-          <span>/</span>
-          <span className="text-gray-800 dark:text-black font-medium">{t('products')}</span>
-        </div>
+// ===================== COMPONENT =====================
+export default function ProductsList() {
+    const { direction } = useLanguage();
+    const navigate = useNavigate();
+    const location = useLocation();
 
-        {/* Page Header */}
-        <div className="bg-white p-4 rounded-t-xl border-b border-gray-200">
-          <div className="flex justify-between items-center">
-            <h1 className="text-xl font-bold text-gray-800 dark:text-black flex items-center gap-2">
-              {t('products_all_branches')}
-              <PlusCircle size={20} className="text-primary" />
-            </h1>
-            <div className="relative" ref={bulkActionsRef}>
-              <button
-                onClick={() => setShowBulkActions(!showBulkActions)}
-                className="p-2 bg-white border border-gray-300 rounded-lg text-gray-800 hover:bg-gray-50 transition-colors shadow-sm"
-              >
-                <Menu size={20} />
-              </button>
+    const [activeTab, setActiveTab] = useState<'basic' | 'sub' | 'prepared' | 'materials'>('basic');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [extraSearchTerm, setExtraSearchTerm] = useState('');
+    const [activeActionMenu, setActiveActionMenu] = useState<number | null>(null);
+    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showLinkModal, setShowLinkModal] = useState(false);
+    const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+    const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
 
-              <AnimatePresence>
-                {showBulkActions && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className={`absolute top-full mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 z-[60] overflow-hidden ${direction === 'rtl' ? 'left-0' : 'right-0'}`}
-                  >
-                    <div className="py-1">
-                      <button
-                        onClick={() => { navigate('/products/create'); setShowBulkActions(false); }}
-                        className={`w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 ${direction === 'rtl' ? 'flex-row-reverse text-right' : 'text-left'}`}
-                      >
-                        <PlusCircle size={18} className="text-gray-500" />
-                        <span className="flex-1">إضافة الصنف</span>
-                      </button>
+    // API State
+    const [directProducts, setDirectProducts] = useState<Product[]>([]);
+    const [subProducts, setSubProducts] = useState<Product[]>([]);
+    const [preparedProducts, setPreparedProducts] = useState<Product[]>([]);
+    const [materialsProducts, setMaterialsProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-                      <button
-                        onClick={() => { setShowPriceUpdate(true); setShowBulkActions(false); }}
-                        className={`w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 ${direction === 'rtl' ? 'flex-row-reverse text-right' : 'text-left'}`}
-                      >
-                        <FileSpreadsheet size={18} className="text-gray-500" />
-                        <span className="flex-1">تحديث الأسعار</span>
-                      </button>
+    // ===================== FETCH =====================
+    const fetchProducts = useCallback(async (tab: typeof activeTab) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const url = tab === 'basic' ? API_ENDPOINTS.direct
+                : tab === 'sub' ? API_ENDPOINTS.sub
+                    : tab === 'prepared' ? API_ENDPOINTS.prepared
+                        : API_ENDPOINTS.materials;
 
-                      <button
-                        onClick={() => { navigate('/products/barcode'); setShowBulkActions(false); }}
-                        className={`w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 ${direction === 'rtl' ? 'flex-row-reverse text-right' : 'text-left'}`}
-                      >
-                        <Printer size={18} className="text-gray-500" />
-                        <span className="flex-1">طباعة باركود - الملصقات</span>
-                      </button>
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data: Product[] = await res.json();
 
-                      <button
-                        onClick={() => { alert('Exporting to Excel...'); setShowBulkActions(false); }}
-                        className={`w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 ${direction === 'rtl' ? 'flex-row-reverse text-right' : 'text-left'}`}
-                      >
-                        <Download size={18} className="text-gray-500" />
-                        <span className="flex-1">تصدير إلى ملف Excel</span>
-                      </button>
+            if (tab === 'basic') setDirectProducts(data);
+            else if (tab === 'sub') setSubProducts(data);
+            else if (tab === 'prepared') setPreparedProducts(data);
+            else setMaterialsProducts(data);
+        } catch (err: any) {
+            setError('فشل تحميل البيانات: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-                      <button
-                        onClick={() => { handleBulkDelete(); setShowBulkActions(false); }}
-                        disabled={selectedProducts.length === 0}
-                        className={`w-full px-4 py-2.5 text-sm flex items-center gap-3 transition-colors ${selectedProducts.length === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-red-600 hover:bg-red-50'} ${direction === 'rtl' ? 'flex-row-reverse text-right' : 'text-left'}`}
-                      >
-                        <Trash2 size={18} className={selectedProducts.length === 0 ? 'text-gray-300' : 'text-red-500'} />
-                        <span className="flex-1">حذف الأصناف {selectedProducts.length > 0 && `(${selectedProducts.length})`}</span>
-                      </button>
+    // Fetch all tabs on mount
+    useEffect(() => {
+        fetchProducts('basic');
+        fetchProducts('sub');
+        fetchProducts('prepared');
+        fetchProducts('materials');
+    }, [fetchProducts]);
+
+    useEffect(() => {
+        if (location.state?.refreshed) {
+            fetchProducts(activeTab);
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (!target.closest('.action-menu-container') && !target.closest('.action-menu-dropdown')) {
+                setActiveActionMenu(null);
+            }
+        };
+        window.addEventListener('click', handleClickOutside);
+        return () => window.removeEventListener('click', handleClickOutside);
+    }, []);
+
+    // ===================== DERIVED DATA =====================
+    const activeData = activeTab === 'basic' ? directProducts
+        : activeTab === 'sub' ? subProducts
+            : activeTab === 'prepared' ? preparedProducts
+                : materialsProducts;
+
+    const currentTableData = activeData.filter((item: Product) => {
+        const nameMatch = getName(item).toLowerCase().includes(searchTerm.toLowerCase());
+        const codeMatch = getCode(item).toLowerCase().includes(searchTerm.toLowerCase());
+        return nameMatch || codeMatch;
+    });
+
+    const availableDirectProducts = directProducts.filter((item: Product) =>
+        getName(item).toLowerCase().includes(extraSearchTerm.toLowerCase()) ||
+        getCategory(item).toLowerCase().includes(extraSearchTerm.toLowerCase())
+    );
+
+    const availableSubAsCategories = subProducts.filter((item: Product) =>
+        getName(item).toLowerCase().includes(extraSearchTerm.toLowerCase())
+    );
+
+    // ===================== HANDLERS =====================
+    const openDeleteModal = (id: number) => {
+        setSelectedProductId(id);
+        setShowDeleteModal(true);
+        setActiveActionMenu(null);
+    };
+
+    const confirmDelete = async () => {
+        if (!selectedProductId) return;
+        try {
+            const res = await fetch(API_ENDPOINTS.delete(selectedProductId), { method: 'DELETE' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            // Refresh current tab
+            fetchProducts(activeTab);
+        } catch (err: any) {
+            setError('فشل الحذف: ' + err.message);
+        }
+        setShowDeleteModal(false);
+    };
+
+    const handleEditProduct = (product: Product) => {
+        navigate(`/products/edit/${product.id}`, {
+            state: { productNature: activeTab, productData: product }
+        });
+    };
+
+    const openLinkModal = (id: number) => {
+        setSelectedProductId(id);
+        setExtraSearchTerm('');
+        setShowLinkModal(true);
+        setActiveActionMenu(null);
+    };
+
+    const handleLinkSubProduct = async (directProduct: Product) => {
+        if (!selectedProductId) return;
+        const subProduct = subProducts.find((p: Product) => p.id === selectedProductId);
+        if (!subProduct) return;
+
+        try {
+            const updated = {
+                ...subProduct,
+                parentProductId: directProduct.id,
+                parentProductName: getName(directProduct),
+            };
+            const res = await fetch(API_ENDPOINTS.update(selectedProductId), {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updated),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            fetchProducts('sub');
+        } catch (err: any) {
+            setError('فشل الربط: ' + err.message);
+        }
+        setShowLinkModal(false);
+    };
+
+    const openAddCategoryModal = (id: number) => {
+        setSelectedProductId(id);
+        setExtraSearchTerm('');
+        setShowAddCategoryModal(true);
+        setActiveActionMenu(null);
+    };
+
+    const handleAddCategory = async (subProduct: Product) => {
+        if (!selectedProductId) return;
+        const directProduct = directProducts.find((p: Product) => p.id === selectedProductId);
+        if (!directProduct) return;
+
+        const currentCats = directProduct.categoryName
+            ? directProduct.categoryName.split(',').map((c: string) => c.trim())
+            : [];
+
+        if (!currentCats.includes(getName(subProduct))) {
+            const updatedCats = [...currentCats, getName(subProduct)].join(', ');
+            try {
+                const updated = { ...directProduct, categoryName: updatedCats };
+                const res = await fetch(API_ENDPOINTS.update(selectedProductId), {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updated),
+                });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                fetchProducts('basic');
+            } catch (err: any) {
+                setError('فشل إضافة القسم: ' + err.message);
+            }
+        }
+        setShowAddCategoryModal(false);
+    };
+
+    // ===================== UI HELPERS =====================
+    if (loading && activeData.length === 0) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50" dir={direction || 'rtl'}>
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-[var(--primary)] border-t-transparent"></div>
+            </div>
+        );
+    }
+
+    const getTabTitle = () => {
+        switch (activeTab) {
+            case 'basic': return 'الأصناف المباشرة';
+            case 'sub': return 'الأصناف المتفرعة';
+            case 'prepared': return 'الأصناف المجهزة';
+            case 'materials': return 'الخامات';
+        }
+    };
+
+    const getTabIcon = () => {
+        switch (activeTab) {
+            case 'basic': return <Box size={22} className="text-[var(--primary)]" />;
+            case 'sub': return <Layers size={22} className="text-[var(--primary)]" />;
+            case 'prepared': return <Package size={22} className="text-[var(--primary)]" />;
+            case 'materials': return <FolderPlus size={22} className="text-[var(--primary)]" />;
+        }
+    };
+
+    return (
+        <div className="space-y-6 pb-12" dir={direction || 'rtl'}>
+            {/* الهيدر */}
+            <div className="takamol-page-header">
+                <div className="flex items-center gap-3">
+                    <div className="bg-[#e6f4ea] border border-[#00a651]/20 p-2.5 rounded-xl text-[var(--primary)]">
+                        <Box size={24} />
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                    <div>
+                        <h1 className="takamol-page-title">إدارة الأصناف</h1>
+                        <p className="takamol-page-subtitle">إدارة الأصناف المباشرة والمتفرعة والمجهزة والخامات</p>
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => fetchProducts(activeTab)}
+                        className="btn-secondary flex items-center gap-2"
+                        title="تحديث البيانات"
+                    >
+                        <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                    </button>
+                    <button
+                        onClick={() => navigate('/products/create', { state: { productNature: activeTab } })}
+                        className="btn-primary"
+                    >
+                        <Plus size={18} /> إضافة صنف
+                    </button>
+                </div>
             </div>
-          </div>
-          <p className="text-sm text-gray-500 dark:text-black mt-1">{t('products_table_desc')}</p>
-        </div>
 
-        {/* Table Container */}
-        <div className="bg-white rounded-b-xl shadow-sm border border-gray-200 p-4 min-h-[400px]">
-          {/* Controls */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-black">
-              <span>{t('show')}</span>
-              <select className="border border-gray-300 rounded px-2 py-1 outline-none focus:border-primary text-black">
-                <option>10</option>
-                <option>25</option>
-                <option>50</option>
-              </select>
-            </div>
+            {/* Error Banner */}
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 flex justify-between items-center">
+                    <span>{error}</span>
+                    <button onClick={() => setError(null)}><X size={16} /></button>
+                </div>
+            )}
 
-            <div className="relative w-full sm:w-64">
-              <input
-                type="text"
-                placeholder={t('search_placeholder')}
-                className={`w-full border border-gray-300 rounded px-3 py-1.5 text-sm outline-none focus:border-primary text-black ${direction === 'rtl' ? 'pr-8' : 'pl-8'}`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <Search className={`absolute top-1/2 -translate-y-1/2 text-gray-400 ${direction === 'rtl' ? 'right-2' : 'left-2'}`} size={16} />
-            </div>
-          </div>
+            <div className="flex flex-col md:flex-row gap-6">
+                {/* السايدبار */}
+                <div className="w-full md:w-1/4 space-y-3">
+                    {([
+                        { tab: 'basic', icon: <Box size={20} />, label: 'الأصناف المباشرة', count: directProducts.length },
+                        { tab: 'sub', icon: <Layers size={20} />, label: 'الأصناف المتفرعة', count: subProducts.length },
+                        { tab: 'prepared', icon: <Package size={20} />, label: 'الأصناف المجهزة', count: preparedProducts.length },
+                        { tab: 'materials', icon: <FolderPlus size={20} />, label: 'الخامات', count: materialsProducts.length },
+                    ] as const).map(({ tab, icon, label, count }) => (
+                        <button
+                            key={tab}
+                            onClick={() => { setActiveTab(tab); setSearchTerm(''); }}
+                            className={cn("w-full flex items-center justify-between gap-3 p-4 rounded-xl font-bold transition-all border",
+                                activeTab === tab
+                                    ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-md"
+                                    : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50")}
+                        >
+                            <div className="flex items-center gap-2">{icon} {label}</div>
+                            <span className={cn("text-xs px-2 py-0.5 rounded-full font-bold",
+                                activeTab === tab ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500")}>{count}</span>
+                        </button>
+                    ))}
+                </div>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className={`w-full min-w-[1200px] text-sm ${direction === 'rtl' ? 'text-right' : 'text-left'} border-collapse`}>
-              <thead>
-                <tr className="bg-primary text-white">
-                  <th className="p-3 border border-primary-hover w-10 text-center whitespace-nowrap">
-                    <input
-                      type="checkbox"
-                      className="rounded w-4 h-4 accent-white"
-                      checked={selectedProducts.length === productsList.length && productsList.length > 0}
-                      onChange={handleSelectAll}
-                    />
-                  </th>
-                  <th className="p-3 border border-primary-hover whitespace-nowrap">{t('image')}</th>
-                  <th className="p-3 border border-primary-hover whitespace-nowrap">{t('product_code')}</th>
-                  <th className="p-3 border border-primary-hover whitespace-nowrap">{t('name')}</th>
-                  <th className="p-3 border border-primary-hover whitespace-nowrap">{t('main_categories')}</th>
-                  <th className="p-3 border border-primary-hover whitespace-nowrap">{t('cost')}</th>
-                  <th className="p-3 border border-primary-hover whitespace-nowrap">{t('selling_price')}</th>
-                  <th className="p-3 border border-primary-hover whitespace-nowrap">{t('quantity')}</th>
-                  <th className="p-3 border border-primary-hover whitespace-nowrap">{t('unit')}</th>
-                  <th className="p-3 border border-primary-hover whitespace-nowrap">{t('stock_alerts')}</th>
-                  <th className="p-3 border border-primary-hover w-24 whitespace-nowrap">{t('actions')}</th>
-                </tr>
-              </thead>
-
-              <tbody className="dark:text-black">
-                {productsList.map((product) => (
-                  <tr
-                    key={product.id}
-                    className="hover:bg-gray-50 text-gray-700 dark:text-black cursor-pointer"
-                    onClick={() => setSelectedProductDetails(product)}
-                  >
-                    <td className="p-2 border border-gray-200 text-center whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        className="rounded w-4 h-4 accent-primary"
-                        checked={selectedProducts.includes(product.id)}
-                        onChange={() => handleSelectProduct(product.id)}
-                      />
-                    </td>
-
-                    <td className="p-2 border border-gray-200 text-center whitespace-nowrap">
-                      {product.image ? (
-                        <img src={product.image} alt={product.name} className="w-8 h-8 object-cover mx-auto rounded" />
-                      ) : (
-                        <div className="w-8 h-8 bg-gray-100 mx-auto rounded flex items-center justify-center text-gray-400">
-                          <FileText size={16} />
+                {/* المحتوى الرئيسي */}
+                <div className="w-full md:w-3/4 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            {getTabIcon()}
+                            {getTabTitle()}
+                            <span className="mr-2 text-sm text-gray-500">({currentTableData.length})</span>
+                        </h2>
+                        <div className="relative w-72">
+                            <input
+                                type="text"
+                                placeholder="ابحث بالاسم أو الكود..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="takamol-input pr-10"
+                            />
+                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         </div>
-                      )}
-                    </td>
+                    </div>
 
-                    <td className="p-2 border border-gray-200 whitespace-nowrap">{product.code}</td>
-                    <td className="p-2 border border-gray-200 font-medium whitespace-nowrap">{product.name}</td>
-                    <td className="p-2 border border-gray-200 whitespace-nowrap">{product.category}</td>
-                    <td className="p-2 border border-gray-200 font-bold whitespace-nowrap">{product.cost}</td>
-                    <td className="p-2 border border-gray-200 font-bold whitespace-nowrap">{product.price}</td>
-                    <td className="p-2 border border-gray-200 whitespace-nowrap" dir="ltr">{product.quantity}</td>
-                    <td className="p-2 border border-gray-200 whitespace-nowrap">{product.unit}</td>
-                    <td className="p-2 border border-gray-200 whitespace-nowrap">{product.alertQuantity}</td>
+                    {loading && (
+                        <div className="flex justify-center py-4">
+                            <div className="animate-spin rounded-full h-8 w-8 border-4 border-[var(--primary)] border-t-transparent"></div>
+                        </div>
+                    )}
 
-                    <td className="p-2 border border-gray-200 text-center whitespace-nowrap">
-                      <button
-                        onClick={(e) => toggleActionMenu(product.id, e)}
-                        className="bg-primary text-white px-2 py-1 rounded text-xs flex items-center gap-1 mx-auto hover:bg-primary-hover transition-colors"
-                      >
-                        {t('actions')}
-                        <ChevronDown size={12} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4 text-sm text-gray-600">
-            <div>
-              {t('showing_records')} 1 {t('to')} {productsList.length} {t('of')} {productsList.length} {t('records')}
+                    {/* الجدول */}
+                    <div className="overflow-x-auto">
+                        <table className="takamol-table min-w-[700px]">
+                            <thead>
+                                <tr>
+                                    {activeTab === 'basic' && (
+                                        <>
+                                            <th>الكود</th>
+                                            <th>الاسم</th>
+                                            <th>القسم</th>
+                                            <th>سعر التكلفة</th>
+                                            <th>سعر البيع</th>
+                                            <th>الباركود</th>
+                                            <th className="w-32">إجراءات</th>
+                                        </>
+                                    )}
+                                    {activeTab === 'sub' && (
+                                        <>
+                                            <th>الكود</th>
+                                            <th>الاسم</th>
+                                            <th>الصنف المرتبط</th>
+                                            <th className="w-32">إجراءات</th>
+                                        </>
+                                    )}
+                                    {activeTab === 'prepared' && (
+                                        <>
+                                            <th>الكود</th>
+                                            <th>الاسم</th>
+                                            <th>القسم</th>
+                                            <th>سعر البيع</th>
+                                            <th className="w-32">إجراءات</th>
+                                        </>
+                                    )}
+                                    {activeTab === 'materials' && (
+                                        <>
+                                            <th>الكود</th>
+                                            <th>الاسم</th>
+                                            <th>الباركود</th>
+                                            <th>سعر التكلفة</th>
+                                            <th className="w-32">إجراءات</th>
+                                        </>
+                                    )}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {currentTableData.map((item: Product) => (
+                                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                                        {activeTab === 'basic' && (
+                                            <>
+                                                <td className="font-bold">{getCode(item)}</td>
+                                                <td className="font-bold">{getName(item)}</td>
+                                                <td>
+                                                    {item.categoryName ? (
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {item.categoryName.split(',').map((cat: string, i: number) => (
+                                                                <span key={i} className="px-2 py-0.5 text-xs bg-blue-50 text-blue-700 rounded">{cat.trim()}</span>
+                                                            ))}
+                                                        </div>
+                                                    ) : <span className="text-gray-400">-</span>}
+                                                </td>
+                                                <td className="font-bold">{Number(item.costPrice || 0).toFixed(2)}</td>
+                                                <td className="font-bold text-[var(--primary)]">{Number(item.sellingPrice || 0).toFixed(2)}</td>
+                                                <td className="text-gray-500 text-sm">{item.barcode || '-'}</td>
+                                                <td className="relative action-menu-container">
+                                                    <ActionButton
+                                                        id={item.id}
+                                                        activeActionMenu={activeActionMenu}
+                                                        setActiveActionMenu={setActiveActionMenu}
+                                                        setMenuPosition={setMenuPosition}
+                                                        setSelectedProductId={setSelectedProductId}
+                                                    />
+                                                </td>
+                                            </>
+                                        )}
+                                        {activeTab === 'sub' && (
+                                            <>
+                                                <td className="font-bold">{getCode(item)}</td>
+                                                <td className="font-bold">{getName(item)}</td>
+                                                <td>
+                                                    {item.parentProductName
+                                                        ? <span className="px-2 py-0.5 text-xs bg-orange-50 text-orange-700 rounded">{item.parentProductName}</span>
+                                                        : <span className="text-gray-400 text-xs">غير مرتبط</span>}
+                                                </td>
+                                                <td className="relative action-menu-container">
+                                                    <ActionButton
+                                                        id={item.id}
+                                                        activeActionMenu={activeActionMenu}
+                                                        setActiveActionMenu={setActiveActionMenu}
+                                                        setMenuPosition={setMenuPosition}
+                                                        setSelectedProductId={setSelectedProductId}
+                                                    />
+                                                </td>
+                                            </>
+                                        )}
+                                        {activeTab === 'prepared' && (
+                                            <>
+                                                <td className="font-bold">{getCode(item)}</td>
+                                                <td className="font-bold">{getName(item)}</td>
+                                                <td>{item.categoryName || <span className="text-gray-400">-</span>}</td>
+                                                <td className="font-bold text-[var(--primary)]">{Number(item.sellingPrice || 0).toFixed(2)}</td>
+                                                <td className="relative action-menu-container">
+                                                    <ActionButton
+                                                        id={item.id}
+                                                        activeActionMenu={activeActionMenu}
+                                                        setActiveActionMenu={setActiveActionMenu}
+                                                        setMenuPosition={setMenuPosition}
+                                                        setSelectedProductId={setSelectedProductId}
+                                                    />
+                                                </td>
+                                            </>
+                                        )}
+                                        {activeTab === 'materials' && (
+                                            <>
+                                                <td className="font-bold">{getCode(item)}</td>
+                                                <td className="font-bold">{getName(item)}</td>
+                                                <td className="text-gray-500 text-sm">{item.barcode || '-'}</td>
+                                                <td className="font-bold">{Number(item.costPrice || 0).toFixed(2)}</td>
+                                                <td className="relative action-menu-container">
+                                                    <ActionButton
+                                                        id={item.id}
+                                                        activeActionMenu={activeActionMenu}
+                                                        setActiveActionMenu={setActiveActionMenu}
+                                                        setMenuPosition={setMenuPosition}
+                                                        setSelectedProductId={setSelectedProductId}
+                                                    />
+                                                </td>
+                                            </>
+                                        )}
+                                    </tr>
+                                ))}
+                                {currentTableData.length === 0 && !loading && (
+                                    <tr>
+                                        <td colSpan={7} className="p-8 text-center text-gray-500">لا توجد بيانات</td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <div className="flex items-center gap-1">
-              <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50" disabled>{t('previous')}</button>
-              <button className="px-3 py-1 bg-primary text-white rounded border border-primary">1</button>
-              <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50" disabled>{t('next')}</button>
-            </div>
-          </div>
+
+            {/* القائمة المنسدلة */}
+            {activeActionMenu && menuPosition && createPortal(
+                <div
+                    style={{ position: 'absolute', top: menuPosition.top, left: menuPosition.left, transform: 'translateX(-50%)', zIndex: 99999 }}
+                    className="w-44 bg-white border border-gray-200 rounded-xl shadow-xl py-1 action-menu-dropdown"
+                    dir="rtl"
+                >
+                    <button
+                        onClick={() => {
+                            const allProducts = [...directProducts, ...subProducts, ...preparedProducts, ...materialsProducts];
+                            const product = allProducts.find((p: Product) => p.id === selectedProductId);
+                            if (product) handleEditProduct(product);
+                            setActiveActionMenu(null);
+                        }}
+                        className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                    >
+                        <Edit2 size={16} className="text-green-600" /> تعديل
+                    </button>
+
+                    {activeTab === 'sub' && (
+                        <>
+                            <div className="h-px bg-gray-100 my-1" />
+                            <button
+                                onClick={() => openLinkModal(selectedProductId!)}
+                                className="w-full px-4 py-2.5 text-sm text-orange-700 hover:bg-orange-50 flex items-center gap-2"
+                            >
+                                <Link2 size={16} /> ربط بصنف مباشر
+                            </button>
+                        </>
+                    )}
+
+                    {activeTab === 'basic' && (
+                        <>
+                            <div className="h-px bg-gray-100 my-1" />
+                            <button
+                                onClick={() => openAddCategoryModal(selectedProductId!)}
+                                className="w-full px-4 py-2.5 text-sm text-purple-700 hover:bg-purple-50 flex items-center gap-2"
+                            >
+                                <FolderPlus size={16} /> إضافة قسم
+                            </button>
+                        </>
+                    )}
+
+                    <div className="h-px bg-gray-100 my-1" />
+                    <button
+                        onClick={() => { openDeleteModal(selectedProductId!); setActiveActionMenu(null); }}
+                        className="w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    >
+                        <Trash2 size={16} /> حذف
+                    </button>
+                </div>,
+                document.body
+            )}
+
+            {/* نافذة الربط */}
+            <AnimatePresence>
+                {showLinkModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"
+                        onClick={() => setShowLinkModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+                            className="bg-white rounded-xl w-full max-w-md overflow-hidden shadow-2xl"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-orange-50">
+                                <h2 className="text-lg font-bold text-orange-800 flex items-center gap-2">
+                                    <Layers size={20} /> اختر الصنف المباشر للربط
+                                </h2>
+                                <button onClick={() => setShowLinkModal(false)} className="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-gray-100"><X size={20} /></button>
+                            </div>
+                            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+                                <div className="relative flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2.5 focus-within:border-orange-400 transition-colors shadow-sm">
+                                    <Search className="text-gray-400 shrink-0 ml-2" size={16} />
+                                    <input type="text" placeholder="ابحث عن صنف مباشر..." value={extraSearchTerm} onChange={(e) => setExtraSearchTerm(e.target.value)} autoFocus className="flex-1 bg-transparent border-none outline-none text-sm text-gray-700" />
+                                </div>
+                            </div>
+                            <div className="p-4 overflow-y-auto max-h-80 space-y-2">
+                                {availableDirectProducts.map((dp: Product) => (
+                                    <div key={dp.id} className="flex items-center justify-between p-3 border rounded-xl bg-white hover:border-orange-300 hover:shadow-sm transition-all cursor-pointer" onClick={() => handleLinkSubProduct(dp)}>
+                                        <div className="text-right">
+                                            <p className="font-bold text-gray-800">{getName(dp)}</p>
+                                            <p className="text-xs text-gray-500 mt-1">كود: {getCode(dp)} | قسم: {getCategory(dp)}</p>
+                                        </div>
+                                        <button className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg text-sm font-bold hover:bg-orange-200 transition-colors flex items-center gap-1"><Link2 size={14} /> ربط</button>
+                                    </div>
+                                ))}
+                                {availableDirectProducts.length === 0 && <p className="text-center text-sm text-gray-500 py-6">لا توجد أصناف مباشرة مطابقة</p>}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* نافذة إضافة قسم */}
+            <AnimatePresence>
+                {showAddCategoryModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"
+                        onClick={() => setShowAddCategoryModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+                            className="bg-white rounded-xl w-full max-w-md overflow-hidden shadow-2xl"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-purple-50">
+                                <h2 className="text-lg font-bold text-purple-800 flex items-center gap-2">
+                                    <FolderPlus size={20} /> اختر قسماً لإضافته
+                                </h2>
+                                <button onClick={() => setShowAddCategoryModal(false)} className="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-gray-100"><X size={20} /></button>
+                            </div>
+                            <div className="p-4 border-b border-gray-100 bg-gray-50/50">
+                                <div className="relative flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2.5 focus-within:border-purple-400 transition-colors shadow-sm">
+                                    <Search className="text-gray-400 shrink-0 ml-2" size={16} />
+                                    <input type="text" placeholder="ابحث عن قسم..." value={extraSearchTerm} onChange={(e) => setExtraSearchTerm(e.target.value)} autoFocus className="flex-1 bg-transparent border-none outline-none text-sm text-gray-700" />
+                                </div>
+                            </div>
+                            <div className="p-4 overflow-y-auto max-h-80 space-y-2">
+                                {availableSubAsCategories.map((sp: Product) => {
+                                    const directProduct = directProducts.find((p: Product) => p.id === selectedProductId);
+                                    const isAlreadyAdded = directProduct?.categoryName?.split(',').map((c: string) => c.trim()).includes(getName(sp));
+                                    return (
+                                        <div key={sp.id} className={cn("flex items-center justify-between p-3 border rounded-xl bg-white transition-all cursor-pointer", isAlreadyAdded ? "border-gray-200 bg-gray-50 opacity-60" : "hover:border-purple-300 hover:shadow-sm")}>
+                                            <div className="text-right">
+                                                <p className="font-bold text-gray-800">{getName(sp)}</p>
+                                                <p className="text-xs text-gray-500 mt-1">الصنف المتفرع</p>
+                                            </div>
+                                            <button
+                                                onClick={() => !isAlreadyAdded && handleAddCategory(sp)}
+                                                disabled={isAlreadyAdded}
+                                                className={cn("px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1 transition-colors", isAlreadyAdded ? "bg-gray-100 text-gray-400 cursor-not-allowed" : "bg-purple-100 text-purple-700 hover:bg-purple-200")}
+                                            >
+                                                <FolderPlus size={14} /> {isAlreadyAdded ? 'مضاف' : 'إضافة'}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                                {availableSubAsCategories.length === 0 && <p className="text-center text-sm text-gray-500 py-6">لا توجد أقسام متاحة</p>}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* نافذة تأكيد الحذف */}
+            <AnimatePresence>
+                {showDeleteModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4"
+                        onClick={() => setShowDeleteModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
+                            className="bg-white rounded-2xl w-full max-w-sm p-6 text-center"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4"><Trash2 size={30} /></div>
+                            <h2 className="text-xl font-bold mb-2">هل أنت متأكد من الحذف؟</h2>
+                            <p className="text-gray-500 mb-6 text-sm">هذا الإجراء لا يمكن التراجع عنه</p>
+                            <div className="flex gap-3">
+                                <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-2.5 bg-gray-100 rounded-xl font-bold hover:bg-gray-200">إلغاء</button>
+                                <button onClick={confirmDelete} className="flex-1 py-2.5 bg-red-500 text-white rounded-xl font-bold hover:bg-red-600">حذف</button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
+    );
+}
 
-        {/* Floating Action Menu */}
-        <AnimatePresence>
-          {openActionId !== null && menuPosition && (
-            <motion.div
-              ref={actionMenuRef}
-              initial={{ opacity: 0, scale: 0.95, y: -10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              className={`fixed bg-white rounded-md shadow-lg border border-gray-200 z-50 overflow-hidden w-48 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}
-              style={{ top: menuPosition.top, left: menuPosition.left }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {(() => {
-                const product = productsList.find(p => p.id === openActionId);
-                if (!product) return null;
-
-                return (
-                  <>
-                    <button
-                      onClick={() => handleDuplicateProduct(product)}
-                      className={`w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 ${direction === 'rtl' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      {direction === 'rtl' ? (
-                        <>
-                          <span>{t('duplicate_product')}</span>
-                          <Copy size={14} className="text-gray-500" />
-                        </>
-                      ) : (
-                        <>
-                          <Copy size={14} className="text-gray-500" />
-                          <span>{t('duplicate_product')}</span>
-                        </>
-                      )}
-                    </button>
-
-                    {/* ✅✅✅ تعديل هنا: بدل navigate */}
-                    <button
-                      onClick={() => openEditProduct(product)}
-                      className={`w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 ${direction === 'rtl' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      {direction === 'rtl' ? (
-                        <>
-                          <span>{t('edit_product')}</span>
-                          <Edit size={14} className="text-gray-500" />
-                        </>
-                      ) : (
-                        <>
-                          <Edit size={14} className="text-gray-500" />
-                          <span>{t('edit_product')}</span>
-                        </>
-                      )}
-                    </button>
-
-                    <button
-                      onClick={() => navigate('/products/barcode')}
-                      className={`w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 ${direction === 'rtl' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      {direction === 'rtl' ? (
-                        <>
-                          <span>{t('print_barcode_labels')}</span>
-                          <Printer size={14} className="text-gray-500" />
-                        </>
-                      ) : (
-                        <>
-                          <Printer size={14} className="text-gray-500" />
-                          <span>{t('print_barcode_labels')}</span>
-                        </>
-                      )}
-                    </button>
-
-                    <button
-                      onClick={() => { setShowBranchPrices(product); setOpenActionId(null); }}
-                      className={`w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 ${direction === 'rtl' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      {direction === 'rtl' ? (
-                        <>
-                          <span>{t('branch_prices')}</span>
-                          <DollarSign size={14} className="text-gray-500" />
-                        </>
-                      ) : (
-                        <>
-                          <DollarSign size={14} className="text-gray-500" />
-                          <span>{t('branch_prices')}</span>
-                        </>
-                      )}
-                    </button>
-
-                    <button
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className={`w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 ${direction === 'rtl' ? 'justify-end' : 'justify-start'}`}
-                    >
-                      {direction === 'rtl' ? (
-                        <>
-                          <span>{t('delete_product')}</span>
-                          <Trash2 size={14} className="text-red-500" />
-                        </>
-                      ) : (
-                        <>
-                          <Trash2 size={14} className="text-red-500" />
-                          <span>{t('delete_product')}</span>
-                        </>
-                      )}
-                    </button>
-                  </>
-                );
-              })()}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Branch Prices Modal (زي ما هو) */}
-        <AnimatePresence>
-          {showBranchPrices && (
-            <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="bg-white rounded-2xl shadow-xl w-full max-w-4xl overflow-hidden"
-                dir={direction}
-              >
-                <div className="p-4 border-b border-gray-200 flex items-center justify-between bg-white">
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setShowBranchPrices(null)} className="text-gray-400 hover:text-gray-600">
-                      <X size={24} />
-                    </button>
-                    <h2 className="text-lg font-bold text-red-700">
-                      {showBranchPrices.name} - {t('branch_prices')}
-                    </h2>
-                  </div>
-                  <button className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-                    <Printer size={16} />
-                    {t('print')}
-                  </button>
-                </div>
-
-                <div className="p-6 space-y-6">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div className="w-full md:w-64">
-                      <select className="w-full border border-gray-300 rounded-lg px-3 py-2 outline-none focus:border-primary text-sm">
-                        <option>شركة دقة الحلول</option>
-                      </select>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <input type="checkbox" id="available" className="w-4 h-4 accent-blue-600" defaultChecked />
-                      <label htmlFor="available" className="text-sm font-bold text-red-700 cursor-pointer">
-                        {t('product_available_in_branch')}
-                      </label>
-                    </div>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm border-collapse">
-                      <thead>
-                        <tr className="bg-red-800 text-white">
-                          <th className="p-3 border border-red-900">{t('branch')}</th>
-                          <th className="p-3 border border-red-900">{t('unit')}</th>
-                          <th className="p-3 border border-red-900">{t('internal_units_count')}</th>
-                          <th className="p-3 border border-red-900">{t('barcode')}</th>
-                          <th className="p-3 border border-red-900">{t('selling_price')}</th>
-                          <th className="p-3 border border-red-900">{t('wholesale_price')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr className="text-center">
-                          <td className="p-3 border border-gray-200 text-red-700 font-medium">شركة دقة الحلول</td>
-                          <td className="p-3 border border-gray-200 text-red-700 font-medium">{showBranchPrices.unit}</td>
-                          <td className="p-3 border border-gray-200 text-red-700 font-medium">1</td>
-                          <td className="p-3 border border-gray-200 text-red-700 font-medium">{showBranchPrices.code}</td>
-                          <td className="p-3 border border-gray-200">
-                            <input
-                              type="text"
-                              defaultValue={showBranchPrices.price}
-                              className="w-24 border border-gray-300 rounded px-2 py-1 text-center outline-none focus:border-primary"
-                            />
-                          </td>
-                          <td className="p-3 border border-gray-200">
-                            <input
-                              type="text"
-                              defaultValue="0.00"
-                              className="w-24 border border-gray-300 rounded px-2 py-1 text-center outline-none focus:border-primary"
-                            />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-
-                  <div className={`flex ${direction === 'rtl' ? 'justify-start' : 'justify-end'}`}>
-                    <button
-                      onClick={() => {
-                        navigate('/products/create');
-                        setShowBranchPrices(null);
-                      }}
-                      className="bg-red-800 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-900 transition-colors"
-                    >
-                      {t('edit_product_btn')}
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-
-        {/* ✅ ProductDetailsModal: تعديل onEdit */}
-        <ProductDetailsModal
-          isOpen={!!selectedProductDetails}
-          onClose={() => setSelectedProductDetails(null)}
-          product={selectedProductDetails}
-          onDelete={(id) => {
-            handleDeleteProduct(id);
-            setSelectedProductDetails(null);
-          }}
-          onEdit={(id) => {
-            const prod = productsList.find(p => p.id === id);
-            if (prod) openEditProduct(prod);
-            setSelectedProductDetails(null);
-          }}
-
-          onPrintPDF={() => alert('Printing PDF...')}
-          onPrintBarcode={() => {
-            navigate('/products/barcode');
-            setSelectedProductDetails(null);
-          }}
-        />
-
-        {/* ✅✅✅ استدعاء مودال التعديل (كان ناقص) */}
-       <EditProductModal
-        isOpen={editProductOpen}
-        onClose={() => {
-          setEditProductOpen(false);
-          setSelectedProductForEdit(null);
-        }}
-        product={selectedProductForEdit}
-      />
-      </div>
-    
-  );
+// ===================== ACTION BUTTON =====================
+function ActionButton({
+    id,
+    activeActionMenu,
+    setActiveActionMenu,
+    setMenuPosition,
+    setSelectedProductId,
+}: {
+    id: number;
+    activeActionMenu: number | null;
+    setActiveActionMenu: (id: number | null) => void;
+    setMenuPosition: (pos: { top: number; left: number }) => void;
+    setSelectedProductId: (id: number) => void;
+}) {
+    return (
+        <button
+            onClick={(e) => {
+                e.stopPropagation();
+                const rect = e.currentTarget.getBoundingClientRect();
+                setMenuPosition({ top: rect.bottom + window.scrollY + 5, left: rect.left + rect.width / 2 });
+                setActiveActionMenu(activeActionMenu === id ? null : id);
+                setSelectedProductId(id);
+            }}
+            className="bg-[var(--primary)] text-white px-3 py-1.5 rounded text-sm font-bold"
+        >
+            خيارات
+        </button>
+    );
 }

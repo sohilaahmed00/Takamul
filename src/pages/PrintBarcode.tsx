@@ -1,475 +1,309 @@
-import { useState, useRef, useEffect } from 'react';
-import { 
-  FileText, 
-  Printer, 
-  Trash2, 
-  RefreshCw, 
-  RotateCcw,
-  Plus,
-  Minus,
-  Palette,
-  Type,
-  Calendar,
-  DollarSign,
-  Search
+import React, { useState, useRef, useEffect } from 'react';
+import {
+    FileText, Printer, Trash2, Plus, Minus, Palette,
+    Type, Calendar, DollarSign, Search, Barcode
 } from 'lucide-react';
-import Layout from '../components/Layout';
 import { useLanguage } from '../context/LanguageContext';
 import { useProducts } from '../context/ProductsContext';
+import MobileDataCard from '@/components/MobileDataCard';
+
+// 1. استيراد مدير الطباعة المركزي
+import { usePrint } from '@/context/PrintContext';
 
 const FormatBox = ({ title, icon: Icon, colorClass, borderColorClass, direction }: any) => {
-  const { t } = useLanguage();
-  const [fontSize, setFontSize] = useState(11);
-  const [spacing, setSpacing] = useState(0);
+    const [fontSize, setFontSize] = useState(11);
+    const [spacing, setSpacing] = useState(0);
 
-  const handleFontSizeChange = (val: string) => {
-    if (val === '') {
-      setFontSize(0);
-      return;
-    }
-    const num = parseInt(val);
-    if (!isNaN(num)) setFontSize(num);
-  };
+    const handleFontSizeChange = (val: string) => {
+        if (val === '') { setFontSize(0); return; }
+        const num = parseInt(val);
+        if (!isNaN(num)) setFontSize(num);
+    };
 
-  const handleSpacingChange = (val: string) => {
-    if (val === '') {
-      setSpacing(0);
-      return;
-    }
-    const num = parseInt(val);
-    if (!isNaN(num)) setSpacing(num);
-  };
+    const handleSpacingChange = (val: string) => {
+        if (val === '') { setSpacing(0); return; }
+        const num = parseInt(val);
+        if (!isNaN(num)) setSpacing(num);
+    };
 
-  return (
-  <div className={`border ${borderColorClass} rounded-md p-4 bg-white`} dir={direction}>
-    <div className={`flex items-center gap-2 mb-4 ${colorClass} font-medium`}>
-      <Icon size={18} />
-      <span>{title}</span>
-    </div>
-    
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="flex flex-col items-start gap-1">
-        <label className="text-xs text-gray-600">{t('font_size')}</label>
-        <div className="flex items-center border border-gray-300 rounded-md">
-           <button 
-             onClick={() => setFontSize(prev => Math.max(1, prev - 1))}
-             className="px-2 py-1 hover:bg-gray-100 text-gray-600"
-           >
-             <Minus size={12} />
-           </button>
-           <input 
-             type="text" 
-             value={fontSize} 
-             onChange={(e) => handleFontSizeChange(e.target.value)}
-             className="w-10 text-center text-sm outline-none border-x border-gray-300 py-1" 
-           />
-           <button 
-             onClick={() => setFontSize(prev => prev + 1)}
-             className="px-2 py-1 hover:bg-gray-100 text-gray-600"
-           >
-             <Plus size={12} />
-           </button>
+    return (
+        <div className={`border ${borderColorClass} rounded-xl p-5 bg-white shadow-sm relative`} dir={direction}>
+            <div className={`flex items-center gap-2 mb-6 ${colorClass} font-bold justify-end`} dir="rtl">
+                <span>{title}</span>
+                <Icon size={20} />
+            </div>
+
+            <div className="flex flex-row-reverse items-center justify-between gap-2 overflow-x-auto pb-2" dir="ltr">
+                <div className="flex flex-col items-center gap-2">
+                    <label className="text-xs text-gray-500 font-bold whitespace-nowrap">حجم الخط</label>
+                    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden h-[40px] bg-white">
+                        <button onClick={() => setFontSize(prev => prev + 1)} className="w-8 h-full flex items-center justify-center hover:bg-gray-100 border-r border-gray-300 text-gray-600 transition-colors cursor-pointer"><Plus size={14} /></button>
+                        <input type="text" value={fontSize} onChange={(e) => handleFontSizeChange(e.target.value)} className="w-10 h-full text-center text-sm font-bold outline-none !border-none !rounded-none !p-0 !m-0 !bg-transparent" style={{ minHeight: 'unset', height: '100%' }} />
+                        <button onClick={() => setFontSize(prev => Math.max(1, prev - 1))} className="w-8 h-full flex items-center justify-center hover:bg-gray-100 border-l border-gray-300 text-gray-600 transition-colors cursor-pointer"><Minus size={14} /></button>
+                    </div>
+                </div>
+
+                <div className="flex flex-col items-center gap-2">
+                    <label className="text-xs text-gray-500 font-bold whitespace-nowrap">التباعد</label>
+                    <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden h-[40px] bg-white">
+                        <button onClick={() => setSpacing(prev => prev + 1)} className="w-8 h-full flex items-center justify-center hover:bg-gray-100 border-r border-gray-300 text-gray-600 transition-colors cursor-pointer"><Plus size={14} /></button>
+                        <input type="text" value={spacing} onChange={(e) => handleSpacingChange(e.target.value)} className="w-10 h-full text-center text-sm font-bold outline-none !border-none !rounded-none !p-0 !m-0 !bg-transparent" style={{ minHeight: 'unset', height: '100%' }} />
+                        <button onClick={() => setSpacing(prev => Math.max(0, prev - 1))} className="w-8 h-full flex items-center justify-center hover:bg-gray-100 border-l border-gray-300 text-gray-600 transition-colors cursor-pointer"><Minus size={14} /></button>
+                    </div>
+                </div>
+
+                <div className="flex flex-col items-center gap-2">
+                    <label className="text-xs text-gray-500 font-bold whitespace-nowrap">لون الخط</label>
+                    <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-3 h-[40px] bg-white min-w-[100px] justify-center">
+                        <div className="w-4 h-4 bg-black border border-gray-200 rounded-sm"></div>
+                        <span className="text-xs font-mono text-gray-700">#000000</span>
+                    </div>
+                </div>
+
+                <div className="flex flex-col items-center gap-2">
+                    <label className="text-xs text-gray-500 font-bold whitespace-nowrap">لون الخلفية</label>
+                    <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-3 h-[40px] bg-white min-w-[100px] justify-center">
+                        <div className="w-4 h-4 bg-white border border-gray-300 rounded-sm"></div>
+                        <span className="text-[11px] font-mono text-gray-400">#ffffff</span>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
+    );
+};
 
-      <div className="flex flex-col items-start gap-1">
-        <label className="text-xs text-gray-600">{t('spacing')}</label>
-        <div className="flex items-center border border-gray-300 rounded-md">
-           <button 
-             onClick={() => setSpacing(prev => prev - 1)}
-             className="px-2 py-1 hover:bg-gray-100 text-gray-600"
-           >
-             <Minus size={12} />
-           </button>
-           <input 
-             type="text" 
-             value={spacing} 
-             onChange={(e) => handleSpacingChange(e.target.value)}
-             className="w-10 text-center text-sm outline-none border-x border-gray-300 py-1" 
-           />
-           <button 
-             onClick={() => setSpacing(prev => prev + 1)}
-             className="px-2 py-1 hover:bg-gray-100 text-gray-600"
-           >
-             <Plus size={12} />
-           </button>
-        </div>
-      </div>
-
-      <div className="flex flex-col items-start gap-1">
-        <label className="text-xs text-gray-600">{t('font_color')}</label>
-        <div className="flex items-center gap-2 border border-gray-300 rounded-md px-2 py-1 w-full">
-           <div className="w-4 h-4 bg-black rounded-sm border border-gray-200"></div>
-           <span className="text-xs text-gray-500">#000000</span>
-        </div>
-      </div>
-
-      <div className="flex flex-col items-start gap-1">
-        <label className="text-xs text-gray-600">{t('bg_color')}</label>
-        <div className="flex items-center gap-2 border border-gray-300 rounded-md px-2 py-1 w-full">
-           <div className="w-4 h-4 bg-white rounded-sm border border-gray-200"></div>
-           <span className="text-xs text-gray-500">#ffffff</span>
-        </div>
-      </div>
-    </div>
-  </div>
-)};
-
-const BarcodeRow = ({ item, onRemove, onUpdateQty }: { key?: any, item: any, onRemove: () => void, onUpdateQty: (qty: number) => void }) => {
-  const { t } = useLanguage();
-
-  const handleQtyChange = (val: string) => {
-    if (val === '') {
-      onUpdateQty(0);
-      return;
-    }
-    const num = parseInt(val);
-    if (!isNaN(num)) onUpdateQty(num);
-  };
-
-  return (
-    <tr className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
-      <td className="p-3 border border-gray-200 text-center">
-        <button onClick={onRemove} className="text-red-500 hover:text-red-700">
-          <Trash2 size={16} />
-        </button>
-      </td>
-      <td className="p-3 border border-gray-200">{item.supplier || 'مؤسسة تكامل'}</td>
-      <td className="p-3 border border-gray-200">-</td>
-      <td className="p-3 border border-gray-200">-</td>
-      <td className="p-3 border border-gray-200">
-        <div className="flex items-center justify-center border border-gray-300 rounded-md w-32 mx-auto">
-          <button 
-            onClick={() => onUpdateQty(Math.max(0, item.qty - 1))}
-            className="px-3 py-1 hover:bg-gray-100 text-gray-600 border-l border-gray-300"
-          >
-            <Minus size={14} />
-          </button>
-          <input 
-            type="text" 
-            value={item.qty} 
-            onChange={(e) => handleQtyChange(e.target.value)}
-            className="w-12 text-center text-sm outline-none py-1" 
-          />
-          <button 
-            onClick={() => onUpdateQty(item.qty + 1)}
-            className="px-3 py-1 hover:bg-gray-100 text-gray-600 border-r border-gray-300"
-          >
-            <Plus size={14} />
-          </button>
-        </div>
-      </td>
-      <td className="p-3 border border-gray-200">{item.code} - {item.name}</td>
-    </tr>
-  );
+const BarcodeRow = ({ item, onRemove, onUpdateQty }: any) => {
+    const handleQtyChange = (val: string) => {
+        if (val === '') { onUpdateQty(0); return; }
+        const num = parseInt(val);
+        if (!isNaN(num)) onUpdateQty(num);
+    };
+    return (
+        <tr className="border-b border-gray-200 bg-gray-50/30 hover:bg-gray-100/50 transition-colors">
+            <td className="p-3 border border-gray-200 text-center"><button onClick={onRemove} className="text-red-500 hover:text-red-700"><Trash2 size={16} className="mx-auto" /></button></td>
+            <td className="p-3 border border-gray-200 text-center">{item.supplier || 'مؤسسة تكامل'}</td>
+            <td className="p-3 border border-gray-200 text-center">-</td>
+            <td className="p-3 border border-gray-200 text-center">-</td>
+            <td className="p-3 border border-gray-200">
+                <div className="flex items-center justify-center border border-gray-300 rounded-lg overflow-hidden h-[40px] w-32 mx-auto bg-white">
+                    <button onClick={() => onUpdateQty(Math.max(0, item.qty - 1))} className="w-10 h-full flex items-center justify-center hover:bg-gray-100 text-gray-600 border-l border-gray-300"><Minus size={14} /></button>
+                    <input type="text" value={item.qty} onChange={(e) => handleQtyChange(e.target.value)} className="flex-1 h-full text-center text-sm font-bold outline-none !border-none !rounded-none !p-0 !m-0 !bg-transparent" style={{ minHeight: 'unset' }} />
+                    <button onClick={() => onUpdateQty(item.qty + 1)} className="w-10 h-full flex items-center justify-center hover:bg-gray-100 text-gray-600 border-r border-gray-300"><Plus size={14} /></button>
+                </div>
+            </td>
+            <td className="p-3 border border-gray-200 font-bold">{item.code} - {item.name}</td>
+        </tr>
+    );
 };
 
 export default function PrintBarcode() {
-  const { t, direction } = useLanguage();
-  const { products } = useProducts();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<any[]>([
-    { id: '1', name: 'عبايه كريب مع اكمام مموجه', code: '60990980', qty: 1 }
-  ]);
-  const searchRef = useRef<HTMLDivElement>(null);
+    const { t, direction } = useLanguage();
+    const { products } = useProducts();
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
-      }
+    // 2. استدعاء دالة الطباعة السحرية
+    const { printInvoice } = usePrint();
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showDropdown, setShowDropdown] = useState(false);
+
+    // الداتا المبدئية في الجدول
+    const [selectedItems, setSelectedItems] = useState<any[]>([
+        { id: '1', name: 'عبايه كريب مع اكمام مموجه', code: '60990980', qty: 1, price: 250 }
+    ]);
+    const searchRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) { setShowDropdown(false); }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const filteredProducts = products.filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase()) || p.code?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const handleSelectProduct = (product: any) => {
+        const existingItem = selectedItems.find(item => item.id === product.id);
+        if (existingItem) { setSelectedItems(selectedItems.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item)); }
+        else { setSelectedItems([...selectedItems, { ...product, qty: 1 }]); }
+        setSearchTerm(''); setShowDropdown(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.code.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    const handleRemoveItem = (id: string) => setSelectedItems(selectedItems.filter(item => item.id !== id));
+    const handleUpdateQty = (id: string, qty: number) => setSelectedItems(selectedItems.map(item => item.id === id ? { ...item, qty } : item));
 
-  const handleSelectProduct = (product: any) => {
-    const existingItem = selectedItems.find(item => item.id === product.id);
-    if (existingItem) {
-      setSelectedItems(selectedItems.map(item => 
-        item.id === product.id ? { ...item, qty: item.qty + 1 } : item
-      ));
-    } else {
-      setSelectedItems([...selectedItems, { ...product, qty: 1 }]);
-    }
-    setSearchTerm('');
-    setShowDropdown(false);
-  };
+    const handleReset = () => {
+        setSelectedItems([]);
+        setSearchTerm('');
+    };
 
-  const handleRemoveItem = (id: string) => {
-    setSelectedItems(selectedItems.filter(item => item.id !== id));
-  };
+    // ==========================================
+    // 3. الدالة التي تجهز البيانات وتطبع الفاتورة الديناميكية
+    // ==========================================
+    const handlePrintDynamicReceipt = () => {
+        if (selectedItems.length === 0) {
+            alert('الرجاء إضافة أصناف أولاً للطباعة');
+            return;
+        }
 
-  const handleUpdateQty = (id: string, qty: number) => {
-    setSelectedItems(selectedItems.map(item => 
-      item.id === id ? { ...item, qty } : item
-    ));
-  };
+        // حساب الإجمالي بناءً على الأصناف المختارة
+        const totalAmount = selectedItems.reduce((acc, item) => acc + (parseFloat(item.price || 0) * item.qty), 0);
 
-  const handleUpdate = () => {
-    setShowPreview(true);
-  };
+        // تجهيز شكل البيانات اللي الفاتورة الحرارية بتفهمه
+        const dynamicInvoiceData = {
+            companyName: 'مؤسسة تكامل',
+            invoiceNo: 'PRT-' + Math.floor(Math.random() * 100000),
+            date: new Date().toLocaleString('en-GB'),
+            customer: 'طباعة أصناف',
+            grandTotal: totalAmount,
+            paid: totalAmount,
+            remaining: 0,
+            paymentType: 'cash',
+            items: selectedItems.map(item => ({
+                name: item.name,
+                qty: item.qty,
+                price: item.price || 0,
+                total: (parseFloat(item.price || 0) * item.qty)
+            }))
+        };
 
-  return (
-    <div className="space-y-4" dir={direction}>
+        // إرسال البيانات للمدير المركزي عشان يخفي الموقع ويطبع الفاتورة بس
+        printInvoice(dynamicInvoiceData);
+    };
 
-      {/* Breadcrumb */}
-      <div className="text-sm text-gray-500 flex items-center gap-1">
-        <span>{t('home')}</span>
-        <span>/</span>
-        <span>{t('products')}</span>
-        <span>/</span>
-        <span className="text-gray-800 font-medium">{t('print_barcode')}</span>
-      </div>
+    return (
+        <div className="space-y-4" dir={direction}>
 
-      {/* Page Header */}
-      <div className="bg-white p-4 rounded-t-xl border-b border-gray-200 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-[#8b0000] flex items-center gap-2">
-              {t('print_barcode_labels_title')}
-          </h1>
-          <button className="p-2 text-gray-500 hover:text-[#8b0000] border border-gray-200 rounded-md hover:bg-gray-50">
-              <Printer size={20} />
-          </button>
-      </div>
+            <div className="takamol-page-header">
+                <div className={direction === 'rtl' ? "text-right" : "text-left"}>
+                    <h1 className="takamol-page-title">{t('print_barcode_labels_title') || 'طباعة باركود - الملصقات'}</h1>
+                    <p className="takamol-page-subtitle">{t('print_barcode_desc') || 'يمكنك زيارة التصنيفات الأساسية، التصنيفات الفرعية، مشتريات وتحويل المخزون لإضافة الأصناف لقائمة الطباعة'}</p>
+                </div>
+                {/* تم ربط هذا الزر بدالة الطباعة الديناميكية */}
+                <button onClick={handlePrintDynamicReceipt} className="btn-secondary hidden md:flex">
+                    <Printer size={20} /><span>{t('print') || 'طباعة'}</span>
+                </button>
+            </div>
 
-      {/* Content Container */}
-      <div className="bg-white rounded-b-xl shadow-sm border border-gray-200 p-6">
-          
-          <p className="text-sm text-gray-600 mb-6 text-right">
-              {t('print_barcode_desc')}
-          </p>
-
-          {/* Add Product Section */}
-          <div className="bg-white border border-gray-200 rounded-md p-4 mb-6">
-              <div className="mb-4 relative" ref={searchRef}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 text-right">{t('add_product_label')}</label>
-                  <div className="relative">
-                    <input 
-                        type="text" 
-                        placeholder={t('add_product_label')} 
-                        value={searchTerm}
-                        onChange={(e) => {
-                          setSearchTerm(e.target.value);
-                          setShowDropdown(true);
-                        }}
-                        onFocus={() => setShowDropdown(true)}
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-[#8b0000] text-right pr-10" 
-                    />
-                    <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                  </div>
-                  
-                  {showDropdown && searchTerm && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                      {filteredProducts.length > 0 ? (
-                        filteredProducts.map(product => (
-                          <div 
-                            key={product.id}
-                            onClick={() => handleSelectProduct(product)}
-                            className="px-4 py-2 hover:bg-gray-50 cursor-pointer text-right border-b border-gray-100 last:border-0"
-                          >
-                            <div className="font-medium">{product.name}</div>
-                            <div className="text-xs text-gray-500">{product.code}</div>
-                          </div>
-                        ))
-                      ) : (
-                        <div className="px-4 py-3 text-sm text-gray-500 text-center">
-                          لا توجد نتائج
-                        </div>
-                      )}
+            <div className="bg-white rounded-b-xl shadow-sm border border-gray-200 p-4 md:p-6">
+                <div className="bg-white border border-gray-200 rounded-xl p-4 mb-6">
+                    <div className="mb-4 relative" ref={searchRef}>
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 gap-2"><Barcode size={24} className="text-gray-400" /></div>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-3"><button type="button" className="p-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-hover)]"><Plus size={18} /></button></div>
+                        <input type="text" placeholder={t('please_add_items') || 'الرجاء إضافة الأصناف'} value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setShowDropdown(true); }} onFocus={() => setShowDropdown(true)} className="takamol-input !pr-14 !pl-12 text-right" />
+                        {showDropdown && searchTerm && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {filteredProducts.length > 0 ? filteredProducts.map(product => (
+                                    <div key={product.id} onClick={() => handleSelectProduct(product)} className="px-4 py-3 hover:bg-gray-50 cursor-pointer text-right border-b border-gray-100 last:border-0"><div className="font-bold text-gray-800">{product.name}</div><div className="text-xs text-gray-500">{product.code}</div></div>
+                                )) : <div className="px-4 py-3 text-sm text-gray-500 text-center">لا توجد نتائج</div>}
+                            </div>
+                        )}
                     </div>
-                  )}
-              </div>
 
-              {/* Table */}
-              <div className="overflow-x-auto">
-                  <table className="w-full min-w-[800px] text-sm text-right border-collapse">
-                      <thead>
-                          <tr className="bg-primary text-white">
-                              <th className="p-3 border border-primary/20 w-10 text-center whitespace-nowrap">
-                                  <Trash2 size={16} />
-                              </th>
-                              <th className="p-3 border border-primary/20 whitespace-nowrap">{t('activity_name')}</th>
-                              <th className="p-3 border border-primary/20 whitespace-nowrap">{t('expiry')}</th>
-                              <th className="p-3 border border-primary/20 whitespace-nowrap">{t('production')}</th>
-                              <th className="p-3 border border-primary/20 whitespace-nowrap">{t('quantity')}</th>
-                              <th className="p-3 border border-primary/20 whitespace-nowrap">{t('product_name_code')}</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-                          {selectedItems.map(item => (
-                            <BarcodeRow 
-                              key={item.id}
-                              item={item}
-                              onRemove={() => handleRemoveItem(item.id)}
-                              onUpdateQty={(qty) => handleUpdateQty(item.id, qty)}
+                    {/* عرض الموبايل (كروت) */}
+                    <div className="md:hidden space-y-3">
+                        {selectedItems.map(item => (
+                            <MobileDataCard
+                                key={item.id}
+                                title={`${item.code} - ${item.name}`}
+                                subtitle={item.supplier || 'مؤسسة تكامل'}
+                                fields={[
+                                    {
+                                        label: 'كمية', value: (
+                                            <div className="flex items-center justify-center border border-gray-300 rounded-lg overflow-hidden h-[32px] w-24 bg-white mt-1">
+                                                <button onClick={() => handleUpdateQty(item.id, Math.max(0, item.qty - 1))} className="w-8 h-full flex items-center justify-center hover:bg-gray-100 text-gray-600 border-l border-gray-300"><Minus size={12} /></button>
+                                                <input type="text" value={item.qty} onChange={(e) => handleUpdateQty(item.id, parseInt(e.target.value) || 0)} className="flex-1 h-full text-center text-xs font-bold outline-none !border-none !rounded-none !p-0 !m-0 !bg-transparent" style={{ minHeight: 'unset' }} />
+                                                <button onClick={() => handleUpdateQty(item.id, item.qty + 1)} className="w-8 h-full flex items-center justify-center hover:bg-gray-100 text-gray-600 border-r border-gray-300"><Plus size={12} /></button>
+                                            </div>
+                                        )
+                                    },
+                                    { label: 'انتاج', value: '-' },
+                                    { label: 'انتهاء', value: '-' },
+                                ]}
+                                actions={
+                                    <div className="flex justify-end w-full">
+                                        <button onClick={() => handleRemoveItem(item.id)} className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                }
                             />
-                          ))}
-                          {selectedItems.length === 0 && (
-                            <tr>
-                              <td colSpan={6} className="p-4 text-center text-gray-500 border border-gray-200">
-                                لم يتم اختيار أي أصناف
-                              </td>
-                            </tr>
-                          )}
-                      </tbody>
-                  </table>
-              </div>
-          </div>
+                        ))}
+                        {selectedItems.length === 0 && (
+                            <div className="text-center p-6 text-gray-500 font-bold bg-gray-50 rounded-xl border border-dashed border-gray-300">لم يتم اختيار أي أصناف</div>
+                        )}
+                    </div>
 
-          {/* Print Settings */}
-          <div className="space-y-6">
-              <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1 text-right">{t('print_method')} *</label>
-                  <select className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-[#8b0000] bg-white text-right" dir="rtl">
-                      <option>{t('continuous_print')}</option>
-                      <option>{t('a4_paper')}</option>
-                  </select>
-              </div>
+                    {/* عرض الكمبيوتر (الجدول الموحد) */}
+                    <div className="hidden md:block overflow-x-auto">
+                        <table className="takamol-table">
+                            <thead><tr><th className="w-10"><Trash2 size={16} className="mx-auto" /></th><th>{t('activity_name') || 'اسم النشاط'}</th><th>{t('expiry') || 'انتهاء'}</th><th>{t('production') || 'انتاج'}</th><th>{t('quantity') || 'كمية'}</th><th>{t('product_name_code') || 'اسم الصنف (كود الصنف)'}</th></tr></thead>
+                            <tbody>
+                                {selectedItems.map(item => <BarcodeRow key={item.id} item={item} onRemove={() => handleRemoveItem(item.id)} onUpdateQty={(qty: any) => handleUpdateQty(item.id, qty)} />)}
+                                {selectedItems.length === 0 && <tr><td colSpan={6} className="p-8 text-center text-gray-500">لم يتم اختيار أي أصناف</td></tr>}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4" dir="rtl">
-                  <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('width')}</label>
-                      <div className="flex gap-2">
-                          <input type="text" defaultValue="50" className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-[#8b0000]" />
-                          <span className="bg-gray-100 border border-gray-300 px-3 py-2 rounded-md text-sm text-gray-600">{t('mm')}</span>
-                      </div>
-                  </div>
-                  <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('height')}</label>
-                      <div className="flex gap-2">
-                          <input type="text" defaultValue="25" className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-[#8b0000]" />
-                          <span className="bg-gray-100 border border-gray-300 px-3 py-2 rounded-md text-sm text-gray-600">{t('mm')}</span>
-                      </div>
-                  </div>
-                  <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('barcode_height')}</label>
-                      <div className="flex gap-2">
-                          <input type="text" defaultValue="28" className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-[#8b0000]" />
-                          <span className="bg-gray-100 border border-gray-300 px-3 py-2 rounded-md text-sm text-gray-600">{t('px')}</span>
-                      </div>
-                  </div>
-                  <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">{t('barcode_orientation')}</label>
-                      <div className="flex gap-2 items-center">
-                          <select className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-[#8b0000] bg-white">
-                              <option>{t('vertical')}</option>
-                              <option>{t('horizontal')}</option>
-                          </select>
-                          <div className="flex items-center gap-1 mr-2">
-                              <input type="checkbox" id="promo" className="rounded border-gray-300 text-[#8b0000] focus:ring-[#8b0000]" />
-                              <label htmlFor="promo" className="text-xs text-gray-700 whitespace-nowrap">{t('check_promo_price')}</label>
-                          </div>
-                      </div>
-                  </div>
-              </div>
+                <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-200 mb-8">
+                    <div className="mb-5">
+                        <label className="block text-sm font-bold text-gray-700 mb-2">طريقة الطباعة **</label>
+                        <select className="takamol-input md:w-1/3">
+                            <option>طباعة مستمرة (طابعة باركود)</option>
+                            <option>ورق A4</option>
+                        </select>
+                    </div>
 
-              {/* Print Options */}
-              <div className="flex flex-wrap gap-4 border-t border-gray-200 pt-4" dir="rtl">
-                  {[
-                      'print', 
-                      'company_name', 
-                      'product_name', 
-                      'selling_price', 
-                      'currencies', 
-                      'tax_inclusive', 
-                      'production', 
-                      'expiry'
-                  ].map((key) => (
-                      <div key={key} className="flex items-center gap-2">
-                          <label className="text-sm text-gray-700">{t(key)}</label>
-                          <input type="checkbox" defaultChecked className="rounded border-gray-300 text-[#8b0000] focus:ring-[#8b0000]" />
-                      </div>
-                  ))}
-              </div>
+                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+                        <div><label className="block text-sm font-bold text-gray-700 mb-2">العرض</label><input type="text" defaultValue="50" className="takamol-input text-center font-bold" /></div>
+                        <div><label className="block text-sm font-bold text-gray-700 mb-2">الارتفاع</label><div className="flex"><input type="text" defaultValue="25" className="takamol-input !rounded-l-none text-center font-bold" /><span className="bg-gray-100 border border-gray-300 border-r-0 px-4 py-2.5 rounded-l-lg text-sm text-gray-600 font-bold whitespace-nowrap">مللي</span></div></div>
+                        <div><label className="block text-sm font-bold text-gray-700 mb-2 whitespace-nowrap">ارتفاع أعمدة الباركود</label><div className="flex"><input type="text" defaultValue="28" className="takamol-input !rounded-l-none text-center font-bold" /><span className="bg-gray-100 border border-gray-300 border-r-0 px-4 py-2.5 rounded-l-lg text-sm text-gray-600 font-bold whitespace-nowrap">مللي</span></div></div>
+                        <div><label className="block text-sm font-bold text-gray-700 mb-2 whitespace-nowrap">اتجاه أعمدة الباركود</label><div className="flex"><select className="takamol-input !rounded-l-none text-center font-bold"><option>عمودي</option><option>أفقي</option></select><span className="bg-gray-100 border border-gray-300 border-r-0 px-4 py-2.5 rounded-l-lg text-sm text-gray-600 font-bold whitespace-nowrap">px</span></div></div>
+                        <div className="flex items-center justify-start md:justify-center pt-2 md:pt-6">
+                            <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" className="w-5 h-5 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]" /><span className="text-sm font-bold text-gray-700">فحص سعر الترويج</span></label>
+                        </div>
+                    </div>
 
-              <h3 className="text-lg font-bold text-gray-800 text-right mt-6 border-b border-gray-200 pb-2">{t('font_formatting')}</h3>
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-4 pt-4 border-t border-gray-200">
+                        <span className="font-bold text-gray-800 text-sm">طباعة:</span>
+                        {[
+                            { id: 'printCompany', label: 'اسم الشركة', defaultChecked: true },
+                            { id: 'printProduct', label: 'اسم الصنف *', defaultChecked: true },
+                            { id: 'printPrice', label: 'سعر البيع', defaultChecked: true },
+                            { id: 'printCurrency', label: 'العملات', defaultChecked: true },
+                            { id: 'printTax', label: 'شامل ضريبة', defaultChecked: true },
+                            { id: 'printProdDate', label: 'انتاج', defaultChecked: true },
+                            { id: 'printExpDate', label: 'انتهاء', defaultChecked: true },
+                        ].map(cb => (
+                            <label key={cb.id} className="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" defaultChecked={cb.defaultChecked} className="w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]" />
+                                <span className="text-sm font-bold text-gray-700">{cb.label}</span>
+                            </label>
+                        ))}
+                    </div>
+                </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <FormatBox 
-                      title={t('format_product_name')} 
-                      icon={Palette} 
-                      colorClass="text-green-500" 
-                      borderColorClass="border-green-500" 
-                  />
-                  <FormatBox 
-                      title={t('format_activity_name')} 
-                      icon={Type} 
-                      colorClass="text-blue-500" 
-                      borderColorClass="border-blue-500" 
-                  />
-                  <FormatBox 
-                      title={t('format_dates')} 
-                      icon={Calendar} 
-                      colorClass="text-purple-500" 
-                      borderColorClass="border-purple-500" 
-                  />
-                  <FormatBox 
-                      title={t('format_price')} 
-                      icon={DollarSign} 
-                      colorClass="text-red-500" 
-                      borderColorClass="border-red-500" 
-                  />
-              </div>
+                <div className="space-y-6">
+                    <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <span className="w-1.5 h-6 bg-[var(--primary)] rounded-full inline-block"></span>
+                        تنسيق الخطوط
+                    </h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <FormatBox title={t('format_product_name') || 'تنسيق اسم الصنف'} icon={Palette} colorClass="text-green-600" borderColorClass="border-green-500" />
+                        <FormatBox title={t('format_activity_name') || 'تنسيق اسم النشاط'} icon={Type} colorClass="text-blue-600" borderColorClass="border-blue-500" />
+                        <FormatBox title={t('format_dates') || 'تنسيق تاريخ الانتاج والانتهاء'} icon={Calendar} colorClass="text-purple-600" borderColorClass="border-purple-500" />
+                        <FormatBox title={t('format_price') || 'تنسيق السعر'} icon={DollarSign} colorClass="text-emerald-600" borderColorClass="border-emerald-500" />
+                    </div>
 
-              <div className="flex justify-start gap-3 pt-6 flex-row-reverse">
-                  <button 
-                    onClick={handleUpdate}
-                    className="bg-[#8b0000] text-white px-6 py-2 rounded-md font-medium hover:bg-[#a52a2a] transition-colors shadow-sm flex items-center gap-2"
-                  >
-                      {t('update')}
-                  </button>
-                  <button 
-                    onClick={() => {
-                        setSelectedItems([]);
-                        setShowPreview(false);
-                    }}
-                    className="bg-red-500 text-white px-6 py-2 rounded-md font-medium hover:bg-red-600 transition-colors shadow-sm flex items-center gap-2"
-                  >
-                      {t('reset')}
-                  </button>
-              </div>
+                    <div className="flex justify-start gap-3 pt-6 flex-row-reverse border-t border-gray-100 mt-6">
+                        {/* تم ربط هذا الزر بدالة الطباعة الديناميكية أيضاً */}
+                        <button onClick={handlePrintDynamicReceipt} className="bg-[#8b0000] text-white px-10 py-2.5 rounded-lg font-bold hover:bg-red-900 transition-all shadow-sm">تحديث (وطباعة)</button>
+                        <button onClick={handleReset} className="bg-[var(--primary)] text-white px-10 py-2.5 rounded-lg font-bold hover:bg-[var(--primary-hover)] transition-all shadow-sm">reset</button>
+                    </div>
+                </div>
 
-              {showPreview && (
-                  <div className="mt-8 border border-gray-200 rounded-md overflow-hidden">
-                      <div className="bg-[#8b0000] text-white py-2 px-4 flex justify-center items-center gap-2">
-                          <Printer size={20} />
-                          <span className="font-bold">{t('print')}</span>
-                      </div>
-                      <div className="p-8 bg-white flex justify-center items-center min-h-[200px]">
-                          {selectedItems.length > 0 ? (
-                              <div className="flex flex-wrap gap-4 justify-center">
-                                  {selectedItems.map((item, index) => (
-                                      <div key={index} className="border border-dashed border-gray-400 p-4 text-center w-[200px] flex flex-col items-center justify-center bg-white">
-                                          <div className="font-bold text-sm mb-1">{item.supplier || 'مؤسسة تكامل'}</div>
-                                          <div className="text-xs font-bold mb-1">{item.name}</div>
-                                          <div className="font-bold text-sm mb-1">{item.price} - شامل ضريبة</div>
-                                          <div className="text-[10px] font-bold mb-1">انتاج: انتهاء:</div>
-                                          <div className="mt-2">
-                                              {/* Placeholder for actual barcode */}
-                                              <div className="h-10 w-32 bg-black flex flex-col justify-between">
-                                                  <div className="h-full w-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IndoaXRlIi8+PHBhdGggZD0iTTAgMGgxMHYxMDBIMHptMjAgMGg1djEwMGgtNXptMTAgMGgxMHYxMDBIMTB6bTIwIDBoNXYxMDBoLTV6bTEwIDBoMTB2MTAwSDEwem0yMCAwaDV2MTAwaC01em0xMCAwaDEwdjEwMEgxMHoiIGZpbGw9ImJsYWNrIi8+PC9zdmc+')] bg-repeat-x bg-contain"></div>
-                                              </div>
-                                              <div className="text-[10px] font-bold mt-1 tracking-widest">{item.code || '60990980'}</div>
-                                          </div>
-                                      </div>
-                                  ))}
-                              </div>
-                          ) : (
-                              <div className="text-gray-500">لا توجد أصناف للطباعة</div>
-                          )}
-                      </div>
-                  </div>
-              )}
-          </div>
-
-      </div>
-    </div>
-  );
+            </div>
+        </div>
+    );
 }

@@ -1,22 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
-import { 
+import { useProducts, Product } from '@/context/ProductsContext';
+import { useSettings } from '@/context/SettingsContext';
+import { useSales } from '@/context/SalesContext';
+import { Sale } from '@/types';
+import {
   Trash2,
-  Pencil,
   Eye,
+  EyeOff,
   Plus,
   UserPlus,
-  X
+  X,
+  Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import MobileDataCard from '@/components/MobileDataCard';
 
 export default function CreateSalesInvoice() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
+  const { products: allProducts } = useProducts();
+  const { systemSettings } = useSettings();
+  const { addSale } = useSales();
+  const searchRef = useRef<HTMLDivElement>(null);
 
   const [date, setDate] = useState('16:39:21 23/02/2026');
-  const [refNo, setRefNo] = useState('');
+  const [refNo, setRefNo] = useState(
+    `${systemSettings?.prefixes?.sale || 'SAL-'}${Math.floor(Math.random() * 1000000).toString()}`
+  );
   const [cashier, setCashier] = useState('شركة اختبار');
   const [branch, setBranch] = useState('شركة تكامل');
   const [customer, setCustomer] = useState('التوفيق(التوفيق)');
@@ -30,9 +42,51 @@ export default function CreateSalesInvoice() {
   const [isCustomerDisabled, setIsCustomerDisabled] = useState(false);
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
 
-  const [payments, setPayments] = useState([
-    { amount: '0', method: 'شبكة' }
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showResults, setShowResults] = useState(false);
+
+  const [payments, setPayments] = useState([{ amount: '0', method: 'شبكة' }]);
+
+  const [products, setProducts] = useState([
+    {
+      id: 1,
+      name: '78574318 - غراء امريكي 1/8 نيبيرو',
+      priceNoVat: 6.5,
+      priceWithVat: 6.5,
+      qty: 10,
+      totalNoVat: 65,
+      total: 74.75
+    },
+    {
+      id: 2,
+      name: '125 - كوع 3/4 حار نامات',
+      priceNoVat: 1.85,
+      priceWithVat: 1.85,
+      qty: 5,
+      totalNoVat: 9.25,
+      total: 10.64
+    }
   ]);
+
+  const filteredProducts = allProducts.filter(
+    (p) =>
+      String(p.name || '')
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      String(p.code || '')
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const addPayment = () => {
     setPayments([...payments, { amount: '0', method: 'شبكة' }]);
@@ -50,36 +104,110 @@ export default function CreateSalesInvoice() {
     setPayments(newPayments);
   };
 
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: '78574318 - غراء امريكي 1/8 نيبيرو',
-      priceNoVat: 6.50,
-      priceWithVat: 6.50,
-      qty: 10,
-      totalNoVat: 65,
-      total: 0
-    },
-    {
-      id: 2,
-      name: '125 - كوع 3/4 حار نامات',
-      priceNoVat: 1.85,
-      priceWithVat: 1.85,
-      qty: 5,
-      totalNoVat: 9.25,
-      total: 0
+  const handleSelectProduct = (product: Product) => {
+    const existingProduct = products.find((p) => p.id === product.id);
+    const price = parseFloat(String(product.price || 0)) || 0;
+    const priceNoVat = Number((price / 1.15).toFixed(2));
+    const priceWithVat = Number(price.toFixed(2));
+
+    if (existingProduct) {
+      setProducts(
+        products.map((p) =>
+          p.id === product.id
+            ? {
+                ...p,
+                qty: p.qty + 1,
+                totalNoVat: Number(((p.qty + 1) * p.priceNoVat).toFixed(2)),
+                total: Number((((p.qty + 1) * p.priceWithVat)).toFixed(2))
+              }
+            : p
+        )
+      );
+    } else {
+      setProducts([
+        ...products,
+        {
+          id: product.id,
+          name: `${product.code} - ${product.name}`,
+          priceNoVat,
+          priceWithVat,
+          qty: 1,
+          totalNoVat: priceNoVat,
+          total: priceWithVat
+        }
+      ]);
     }
-  ]);
+
+    setSearchQuery('');
+    setShowResults(false);
+  };
 
   const handleDeleteProduct = (id: number) => {
-    setProducts(products.filter(p => p.id !== id));
+    setProducts(products.filter((p) => p.id !== id));
+  };
+
+  const handleUpdateQuantity = (id: number, newQty: number) => {
+    if (newQty < 1) return;
+
+    setProducts(
+      products.map((p) =>
+        p.id === id
+          ? {
+              ...p,
+              qty: newQty,
+              totalNoVat: Number((newQty * p.priceNoVat).toFixed(2)),
+              total: Number((newQty * p.priceWithVat).toFixed(2))
+            }
+          : p
+      )
+    );
+  };
+
+  const handleComplete = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const total = grandTotal;
+    const paid = payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+    const remaining = total - paid;
+
+    const newSale: Omit<Sale, 'id'> = {
+      invoiceNo: refNo,
+      date,
+      refNo,
+      cashier,
+      customer,
+      saleStatus: status as any,
+      grandTotal: total,
+      paid,
+      remaining,
+      paymentStatus: paid >= total ? 'paid' : paid > 0 ? 'partial' : 'unpaid',
+      paymentType:
+        payments[0]?.method === 'شبكة'
+          ? 'mada'
+          : payments[0]?.method === 'نقدي'
+            ? 'cash'
+            : 'bank_transfer',
+      items: products.map((p) => ({
+        id: p.id.toString(),
+        name: p.name,
+        qty: p.qty,
+        price: p.priceWithVat,
+        total: p.total
+      }))
+    };
+
+    addSale(newSale);
+    alert(t('operation_completed_successfully'));
+    navigate('/sales/all');
   };
 
   const totalQty = products.reduce((sum, p) => sum + p.qty, 0);
+  const subtotal = products.reduce((sum, p) => sum + p.totalNoVat, 0);
+  const totalVat = subtotal * 0.15;
+  const grandTotal = subtotal + totalVat;
 
   return (
     <div className="space-y-4" dir={direction}>
-      {/* Breadcrumb */}
       <div className="text-sm text-gray-500 flex items-center gap-1 px-2">
         <span>{t('home')}</span>
         <span>/</span>
@@ -88,52 +216,54 @@ export default function CreateSalesInvoice() {
         <span className="text-gray-800 font-medium">اضافة عمليه بيع</span>
       </div>
 
-      {/* Page Header */}
       <div className="bg-white p-4 rounded-t-xl border-b border-gray-200 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Plus size={20} className="text-[#8b0000]" />
-          <h1 className="text-lg font-bold text-[#8b0000]">
-            اضافة عمليه بيع
-          </h1>
+          <Plus size={20} className="text-[var(--primary)]" />
+          <h1 className="text-lg font-bold text-[var(--primary)]">اضافة عمليه بيع</h1>
         </div>
       </div>
 
-      {/* Form Container */}
       <div className="bg-white rounded-b-xl shadow-sm border border-gray-200 p-8">
-        <form className="space-y-8">
-          
-          {/* Top Section */}
-          <div className="bg-red-50/30 p-4 rounded-lg border border-red-100 mb-6">
-            <p className="text-sm text-[#8b0000] font-bold text-right mb-4">
-              برجاء ادخال المعلومات أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية .
+        <form className="space-y-8" onSubmit={handleComplete}>
+          <div className="bg-[var(--primary)]/5 p-6 rounded-lg border border-[var(--primary)]/10 mb-6 shadow-sm">
+            <p className="text-sm text-[var(--primary)] font-bold text-right mb-6">
+              {t('please_enter_info_below')}
             </p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2 text-right">
-                <label className="text-sm font-bold text-[#8b0000] block">التاريخ</label>
-                <input 
-                  type="text" 
+                <label className="text-sm font-bold text-[var(--primary)] block">
+                  {t('date')}
+                </label>
+                <input
+                  type="text"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 text-right bg-gray-50" 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] text-right bg-gray-50 shadow-sm transition-all"
                   readOnly
                 />
               </div>
+
               <div className="space-y-2 text-right">
-                <label className="text-sm font-bold text-[#8b0000] block">الرقم المرجعي</label>
-                <input 
-                  type="text" 
+                <label className="text-sm font-bold text-[var(--primary)] block">
+                  {t('ref_no')}
+                </label>
+                <input
+                  type="text"
                   value={refNo}
                   onChange={(e) => setRefNo(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 text-right" 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] text-right shadow-sm transition-all"
                 />
               </div>
+
               <div className="space-y-2 text-right">
-                <label className="text-sm font-bold text-[#8b0000] block">كاشير *</label>
-                <select 
+                <label className="text-sm font-bold text-[var(--primary)] block">
+                  {t('cashier')} *
+                </label>
+                <select
                   value={cashier}
                   onChange={(e) => setCashier(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 bg-white text-right"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] bg-white text-right shadow-sm transition-all"
                 >
                   <option value="شركة اختبار">شركة اختبار</option>
                 </select>
@@ -141,47 +271,72 @@ export default function CreateSalesInvoice() {
             </div>
           </div>
 
-          {/* Middle Section */}
-          <div className="bg-[#fff9e6] p-4 rounded-lg border border-[#ffeeba] mb-6">
-            <p className="text-sm text-[#856404] font-bold text-right mb-4">
-              برجاء تحديث هذه الخيارات قبل إضافة أي منتج
+          <div className="bg-[#fff9e6] p-6 rounded-lg border border-[#ffeeba] mb-6 shadow-sm">
+            <p className="text-sm text-[#856404] font-bold text-right mb-6">
+              {t('update_options_before_adding')}
             </p>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="space-y-2 text-right">
-                <label className="text-sm font-bold text-[#8b0000] block">الفرع *</label>
-                <select 
+                <label className="text-sm font-bold text-[var(--primary)] block">
+                  {t('branch')} *
+                </label>
+                <select
                   value={branch}
                   onChange={(e) => setBranch(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 bg-white text-right"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] bg-white text-right shadow-sm transition-all"
                 >
                   <option value="شركة تكامل">شركة دقة الحلول</option>
                 </select>
               </div>
+
               <div className="space-y-2 text-right">
-                <label className="text-sm font-bold text-[#8b0000] block">عميل *</label>
-                <div className="flex gap-1">
-                  <select 
+                <label className="text-sm font-bold text-[var(--primary)] block">
+                  {t('customer_label')} *
+                </label>
+                <div className="flex shadow-sm rounded-lg overflow-hidden border border-gray-300 focus-within:border-[var(--primary)] transition-all bg-white">
+                  <select
                     value={customer}
                     onChange={(e) => setCustomer(e.target.value)}
                     disabled={isCustomerDisabled}
-                    className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 bg-white text-right disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    className="flex-1 px-4 py-2.5 text-sm outline-none bg-transparent text-right border-none disabled:bg-gray-100 disabled:cursor-not-allowed appearance-none"
                   >
                     <option value="التوفيق(التوفيق)">التوفيق(التوفيق)</option>
                   </select>
-                  <div className="flex items-center gap-1 border border-gray-300 rounded px-1 bg-white">
-                    <button type="button" onClick={() => setShowAddCustomerModal(true)} className="text-[#8b0000] hover:text-red-700 p-1 border-l border-gray-200" title="إضافة عميل"><Plus size={16} /></button>
-                    <button type="button" onClick={() => setIsCustomerDisabled(true)} className={`p-1 border-l border-gray-200 ${isCustomerDisabled ? 'text-gray-400' : 'text-[#8b0000] hover:text-red-700'}`} title="تعطيل"><Eye size={16} /></button>
-                    <button type="button" onClick={() => setIsCustomerDisabled(false)} className={`p-1 ${!isCustomerDisabled ? 'text-gray-400' : 'text-[#8b0000] hover:text-red-700'}`} title="تفعيل"><Pencil size={16} /></button>
+
+                  <div className="flex items-stretch bg-gray-50 border-r border-gray-200 flex-shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddCustomerModal(true)}
+                      className="text-[var(--primary)] hover:bg-[var(--primary)]/10 w-10 flex items-center justify-center transition-colors border-l border-gray-200"
+                      title={t('add_customer')}
+                    >
+                      <Plus size={18} strokeWidth={2.5} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsCustomerDisabled(!isCustomerDisabled)}
+                      className="w-10 flex items-center justify-center transition-colors text-[var(--primary)] hover:bg-[var(--primary)]/10"
+                      title={isCustomerDisabled ? t('enable') : t('disable')}
+                    >
+                      {isCustomerDisabled ? (
+                        <EyeOff size={18} strokeWidth={2.5} />
+                      ) : (
+                        <Eye size={18} strokeWidth={2.5} />
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
+
               <div className="space-y-2 text-right">
-                <label className="text-sm font-bold text-[#8b0000] block">المندوب / الموظف *</label>
-                <select 
+                <label className="text-sm font-bold text-[var(--primary)] block">
+                  {t('delegate_employee')} *
+                </label>
+                <select
                   value={delegate}
                   onChange={(e) => setDelegate(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 bg-white text-right"
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] bg-white text-right shadow-sm transition-all"
                 >
                   <option value="عام">عام</option>
                 </select>
@@ -190,71 +345,133 @@ export default function CreateSalesInvoice() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2 text-right">
-                <label className="text-sm font-bold text-[#8b0000] block">اسم المشروع</label>
-                <input 
-                  type="text" 
+                <label className="text-sm font-bold text-[var(--primary)] block">
+                  {t('project_name')}
+                </label>
+                <input
+                  type="text"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 text-right" 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] text-right shadow-sm transition-all"
                 />
               </div>
+
               <div className="space-y-2 text-right">
-                <label className="text-sm font-bold text-[#8b0000] block">رقم أمر الشراء</label>
-                <input 
-                  type="text" 
+                <label className="text-sm font-bold text-[var(--primary)] block">
+                  {t('po_number')}
+                </label>
+                <input
+                  type="text"
                   value={poNumber}
                   onChange={(e) => setPoNumber(e.target.value)}
-                  className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 text-right" 
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] text-right shadow-sm transition-all"
                 />
               </div>
             </div>
           </div>
 
-          {/* Product Search */}
-          <div className="mb-6">
+          <div className="mb-6" ref={searchRef}>
             <div className="relative">
-              <input 
-                type="text" 
-                placeholder="الرجاء إضافة الأصناف" 
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-right outline-none focus:border-red-600 pr-12"
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setShowResults(true);
+                }}
+                onFocus={() => setShowResults(true)}
+                placeholder={t('please_add_items')}
+                className="w-full border border-gray-300 rounded-lg px-4 py-3 text-right outline-none focus:border-[var(--primary)] pr-12 shadow-sm transition-all"
               />
               <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3 4H21V6H3V4ZM3 10H21V12H3V10ZM3 16H21V18H3V16ZM3 20H21V22H3V20Z" fill="currentColor"/>
-                </svg>
+                <Search size={20} />
               </div>
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 border-r border-gray-200 pl-2">
-                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2z"></path><path d="M7 7h1v10H7z"></path><path d="M10 7h2v10h-2z"></path><path d="M13 7h1v10h-1z"></path><path d="M16 7h1v10h-1z"></path></svg>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 5v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2z"></path>
+                  <path d="M7 7h1v10H7z"></path>
+                  <path d="M10 7h2v10h-2z"></path>
+                  <path d="M13 7h1v10h-1z"></path>
+                  <path d="M16 7h1v10h-1z"></path>
+                </svg>
               </div>
+
+              <AnimatePresence>
+                {showResults && searchQuery.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto"
+                  >
+                    {filteredProducts.length > 0 ? (
+                      filteredProducts.map((product) => (
+                        <button
+                          key={product.id}
+                          type="button"
+                          onClick={() => handleSelectProduct(product)}
+                          className="w-full px-4 py-3 hover:bg-gray-50 flex items-center justify-between border-b border-gray-100 last:border-0 transition-colors"
+                        >
+                          <span className="text-[var(--primary)] font-bold">
+                            {product.price} ر.س
+                          </span>
+                          <div className="text-right">
+                            <p className="text-sm font-bold text-gray-800">{product.name}</p>
+                            <p className="text-xs text-gray-500">{product.code}</p>
+                          </div>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                        {t('no_results_found') || 'لا توجد نتائج'}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
-          {/* Products Table */}
           <div className="space-y-2">
-            <label className="text-sm font-bold text-[#8b0000] text-right block">الأصناف *</label>
-            <div className="overflow-x-auto">
+            <label className="text-sm font-bold text-[var(--primary)] text-right block">
+              {t('products')} *
+            </label>
+
+            <div className="hidden md:block overflow-x-auto rounded-lg border border-gray-200 shadow-sm">
               <table className="w-full text-sm text-right border-collapse">
                 <thead>
-                  <tr className="bg-primary text-white">
+                  <tr className="bg-[var(--table-header)] text-white">
                     <th className="p-3 border border-primary/20 w-10 text-center">
                       <Trash2 size={16} className="mx-auto" />
                     </th>
-                    <th className="p-3 border border-primary/20">صنف (كود - اسم)</th>
-                    <th className="p-3 border border-primary/20">سعر الوحدة بدون ضريبة</th>
-                    <th className="p-3 border border-primary/20">سعر الوحدة بالضريبة</th>
-                    <th className="p-3 border border-primary/20">الكمية المباعة</th>
-                    <th className="p-3 border border-primary/20">الاجمالي بدون ضريبة</th>
-                    <th className="p-3 border border-primary/20">اجمالي الصنف (SR)</th>
+                    <th className="p-3 border border-primary/20">{t('product_code_name')}</th>
+                    <th className="p-3 border border-primary/20">{t('unit_price_no_tax')}</th>
+                    <th className="p-3 border border-primary/20">{t('unit_price_with_tax')}</th>
+                    <th className="p-3 border border-primary/20">{t('sold_quantity')}</th>
+                    <th className="p-3 border border-primary/20">{t('total_no_tax')}</th>
+                    <th className="p-3 border border-primary/20">{t('total_product_sr')}</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="bg-[var(--primary)]/5">
                   {products.map((product) => (
-                    <tr key={product.id} className="bg-red-50/30">
+                    <tr
+                      key={product.id}
+                      className="bg-[var(--primary)]/5 hover:bg-[var(--primary)]/10 transition-colors"
+                    >
                       <td className="p-3 border border-gray-200 text-center">
-                        <button 
-                          type="button" 
+                        <button
+                          type="button"
                           onClick={() => handleDeleteProduct(product.id)}
-                          className="text-gray-800 hover:text-red-600 font-bold text-lg"
+                          className="text-gray-800 hover:text-[var(--primary)] font-bold text-lg transition-colors"
                         >
                           ×
                         </button>
@@ -263,255 +480,426 @@ export default function CreateSalesInvoice() {
                         <span>{product.name}</span>
                       </td>
                       <td className="p-3 border border-gray-200">
-                        <input 
-                          type="number" 
-                          value={product.priceNoVat} 
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-center outline-none focus:border-red-600 bg-white"
+                        <input
+                          type="number"
+                          value={product.priceNoVat}
+                          className="w-full border border-gray-300 rounded px-2 py-1 text-center outline-none focus:border-[var(--primary)] bg-white"
                           readOnly
                         />
                       </td>
                       <td className="p-3 border border-gray-200">
-                        <input 
-                          type="number" 
-                          value={product.priceWithVat} 
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-center outline-none focus:border-red-600 bg-white"
+                        <input
+                          type="number"
+                          value={product.priceWithVat}
+                          className="w-full border border-gray-300 rounded px-2 py-1 text-center outline-none focus:border-[var(--primary)] bg-white"
                           readOnly
                         />
                       </td>
                       <td className="p-3 border border-gray-200">
-                        <input 
-                          type="number" 
-                          value={product.qty} 
-                          className="w-full border border-gray-300 rounded px-2 py-1 text-center outline-none focus:border-red-600 bg-white"
-                          readOnly
+                        <input
+                          type="number"
+                          value={product.qty}
+                          onChange={(e) =>
+                            handleUpdateQuantity(product.id, parseInt(e.target.value) || 1)
+                          }
+                          className="w-full border border-gray-300 rounded px-2 py-1 text-center outline-none focus:border-[var(--primary)] bg-white"
                         />
                       </td>
-                      <td className="p-3 border border-gray-200 text-center">{product.totalNoVat}</td>
-                      <td className="p-3 border border-gray-200 text-center">{product.total}</td>
+                      <td className="p-3 border border-gray-200 text-center">
+                        {product.totalNoVat.toFixed(2)}
+                      </td>
+                      <td className="p-3 border border-gray-200 text-center">
+                        {(product.totalNoVat * 1.15).toFixed(2)}
+                      </td>
                     </tr>
                   ))}
                   <tr className="bg-white font-bold">
                     <td className="p-3 border border-gray-200 text-center">
                       <Trash2 size={16} className="mx-auto text-gray-400" />
                     </td>
-                    <td className="p-3 border border-gray-200 text-center">Total</td>
-                    <td className="p-3 border border-gray-200 text-center">0</td>
-                    <td className="p-3 border border-gray-200 text-center">0</td>
-                    <td className="p-3 border border-gray-200 text-center">{totalQty.toFixed(2)}</td>
-                    <td className="p-3 border border-gray-200 text-center">0</td>
-                    <td className="p-3 border border-gray-200 text-center">0</td>
+                    <td className="p-3 border border-gray-200 text-center">{t('total')}</td>
+                    <td className="p-3 border border-gray-200 text-center">0.00</td>
+                    <td className="p-3 border border-gray-200 text-center">0.00</td>
+                    <td className="p-3 border border-gray-200 text-center">
+                      {totalQty.toFixed(2)}
+                    </td>
+                    <td className="p-3 border border-gray-200 text-center">
+                      {subtotal.toFixed(2)}
+                    </td>
+                    <td className="p-3 border border-gray-200 text-center">
+                      {grandTotal.toFixed(2)}
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
+
+            <div className="md:hidden space-y-4">
+              {products.map((product) => (
+                <MobileDataCard
+                  key={product.id}
+                  title={product.name}
+                  subtitle={`${t('unit_price_no_tax')}: ${product.priceNoVat.toFixed(2)}`}
+                  fields={[
+                    {
+                      label: t('sold_quantity'),
+                      value: (
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateQuantity(product.id, product.qty + 1)}
+                            className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200 text-primary font-bold"
+                          >
+                            +
+                          </button>
+                          <input
+                            type="number"
+                            className="w-12 text-center border-b border-gray-300 outline-none focus:border-primary font-bold"
+                            value={product.qty}
+                            onChange={(e) =>
+                              handleUpdateQuantity(product.id, parseInt(e.target.value) || 1)
+                            }
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleUpdateQuantity(product.id, Math.max(1, product.qty - 1))
+                            }
+                            className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg border border-gray-200 text-primary font-bold"
+                          >
+                            -
+                          </button>
+                        </div>
+                      )
+                    },
+                    { label: t('total_no_tax'), value: product.totalNoVat.toFixed(2) },
+                    {
+                      label: t('total_product_sr'),
+                      value: (product.totalNoVat * 1.15).toFixed(2),
+                      isBold: true
+                    }
+                  ]}
+                  actions={
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteProduct(product.id)}
+                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-100 transition-colors flex items-center gap-1 text-xs font-bold"
+                      >
+                        <Trash2 size={16} />
+                        {t('delete')}
+                      </button>
+                    </div>
+                  }
+                />
+              ))}
+              {products.length > 0 && (
+                <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">{t('total_quantity')}:</span>
+                    <span className="font-bold text-primary">{totalQty.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">{t('total_no_tax')}:</span>
+                    <span className="font-bold text-primary">{subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-base">
+                    <span className="text-gray-800 font-bold">{t('grand_total')}:</span>
+                    <span className="font-bold text-primary text-lg">
+                      {grandTotal.toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+              {products.length === 0 && (
+                <div className="p-8 text-center text-gray-400 italic bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                  {t('no_products_added')}
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Form Fields */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-2 text-right">
-              <label className="text-sm font-bold text-[#8b0000]">الخصم</label>
-              <input 
-                type="text" 
+              <label className="text-sm font-bold text-[var(--primary)]">
+                {t('discount')}
+              </label>
+              <input
+                type="text"
                 value={discount}
                 onChange={(e) => setDiscount(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 text-right" 
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] text-right shadow-sm transition-all"
               />
             </div>
             <div className="space-y-2 text-right">
-              <label className="text-sm font-bold text-[#8b0000]">حالة فاتورة المبيعات *</label>
-              <select 
+              <label className="text-sm font-bold text-[var(--primary)]">
+                {t('sale_status')}
+              </label>
+              <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 bg-white text-right"
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] bg-white text-right shadow-sm transition-all"
               >
-                <option value="completed">مكتملة</option>
-                <option value="pending">معلقة</option>
+                <option value="completed">{t('completed')}</option>
+                <option value="pending">{direction === 'rtl' ? 'معلقة' : 'Pending'}</option>
               </select>
             </div>
             <div className="space-y-2 text-right">
-              <label className="text-sm font-bold text-[#8b0000]">أجل الاستحقاق</label>
-              <input 
-                type="text" 
+              <label className="text-sm font-bold text-[var(--primary)]">
+                {t('due_date')}
+              </label>
+              <input
+                type="text"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 text-right" 
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] text-right shadow-sm transition-all"
               />
             </div>
           </div>
 
-          <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-200">
+          <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-200 shadow-inner">
             {payments.map((payment, index) => (
-              <div key={index} className="relative grid grid-cols-1 md:grid-cols-2 gap-8 p-4 border border-gray-200 rounded-lg bg-white shadow-sm">
+              <div
+                key={index}
+                className="relative grid grid-cols-1 md:grid-cols-2 gap-8 p-6 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow"
+              >
                 {index > 0 && (
-                  <button 
+                  <button
                     type="button"
                     onClick={() => removePayment(index)}
-                    className="absolute -top-2 -left-2 bg-red-600 text-white rounded-full p-1 hover:bg-red-700 transition-colors shadow-md"
+                    className="absolute -top-2 -left-2 bg-[var(--primary)] text-white rounded-full p-1.5 hover:bg-[var(--primary-hover)] transition-colors shadow-lg z-10"
                   >
                     <X size={14} />
                   </button>
                 )}
                 <div className="space-y-2 text-right">
-                  <label className="text-sm font-bold text-[#8b0000]">المدفوع</label>
-                  <input 
-                    type="text" 
+                  <label className="text-sm font-bold text-[var(--primary)]">
+                    {t('paid_amount')}
+                  </label>
+                  <input
+                    type="text"
                     value={payment.amount}
                     onChange={(e) => updatePayment(index, 'amount', e.target.value)}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 text-right" 
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] text-right shadow-sm transition-all"
                   />
                 </div>
                 <div className="space-y-2 text-right">
-                  <label className="text-sm font-bold text-[#8b0000]">الدفع بواسطة *</label>
-                  <select 
+                  <label className="text-sm font-bold text-[var(--primary)]">
+                    {t('payment_by')}
+                  </label>
+                  <select
                     value={payment.method}
                     onChange={(e) => updatePayment(index, 'method', e.target.value)}
-                    className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 bg-white text-right"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[var(--primary)] bg-white text-right shadow-sm transition-all"
                   >
-                    <option value="شبكة">شبكة</option>
-                    <option value="نقدي">نقدي</option>
+                    <option value="شبكة">{t('network')}</option>
+                    <option value="نقدي">{t('cash')}</option>
+                    <option value="تحويل بنكي">{t('bank_transfer')}</option>
                   </select>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Add More Payments Button */}
           <div className="flex justify-center">
-            <button 
+            <button
               type="button"
               onClick={addPayment}
-              className="w-full bg-[#8b0000] text-white py-2 rounded font-bold hover:bg-[#a52a2a] transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-[var(--primary)] text-white py-3 rounded-lg font-bold hover:bg-[var(--primary-hover)] transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
             >
               <Plus size={20} />
-              إضافة المزيد من المدفوعات
+              {t('add_more_payments')}
             </button>
           </div>
 
-          {/* Notes */}
           <div className="space-y-2 text-right">
-            <label className="text-sm font-bold text-[#8b0000]">ملاحظات فاتورة المبيعات</label>
-            <textarea 
+            <label className="text-sm font-bold text-[var(--primary)]">
+              {t('sale_notes')}
+            </label>
+            <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg p-4 h-32 outline-none focus:border-red-600 text-right text-sm"
+              className="w-full border border-gray-300 rounded-xl p-4 h-32 outline-none focus:border-[var(--primary)] text-right text-sm shadow-sm transition-all"
             />
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex justify-end gap-2 pt-8">
-            <button 
+          <div className="flex justify-end gap-3 pt-8 border-t border-gray-100">
+            <button
               type="submit"
-              className="bg-[#8b0000] text-white px-6 py-2 rounded font-bold hover:bg-[#a52a2a] transition-colors"
+              className="bg-[var(--primary)] text-white px-8 py-2.5 rounded-lg font-bold hover:bg-[var(--primary-hover)] transition-all shadow-md hover:shadow-lg active:scale-95"
             >
-              اتمام العملية
+              {t('complete_operation')}
             </button>
-            <button 
+            <button
               type="button"
-              className="bg-[#5cb85c] text-white px-6 py-2 rounded font-bold hover:bg-[#4cae4c] transition-colors"
+              className="bg-[#5cb85c] text-white px-8 py-2.5 rounded-lg font-bold hover:bg-[#4cae4c] transition-all shadow-md hover:shadow-lg active:scale-95"
             >
-              معاينة الفاتورة
+              {t('preview_invoice')}
             </button>
-            <button 
+            <button
               type="button"
               onClick={() => navigate('/quotes')}
-              className="bg-[#d9534f] text-white px-6 py-2 rounded font-bold hover:bg-[#c9302c] transition-colors"
+              className="bg-[#d9534f] text-white px-8 py-2.5 rounded-lg font-bold hover:bg-[#c9302c] transition-all shadow-md hover:shadow-lg active:scale-95"
             >
-              إعادة تعيين
+              {t('reset_form')}
             </button>
           </div>
         </form>
       </div>
-      {/* Add Customer Modal */}
+
       <AnimatePresence>
         {showAddCustomerModal && (
           <div className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4 overflow-y-auto">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl relative overflow-hidden my-8"
-              onClick={e => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
             >
               <div className="bg-white border-b border-gray-100 p-4 flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <UserPlus size={20} className="text-[#8b0000]" />
-                  <h2 className="text-lg font-bold text-[#8b0000]">{t('add_customer')}</h2>
+                  <UserPlus size={20} className="text-[var(--primary)]" />
+                  <h2 className="text-lg font-bold text-[var(--primary)]">
+                    {t('add_customer')}
+                  </h2>
                 </div>
-                <button onClick={() => setShowAddCustomerModal(false)} className="text-gray-400 hover:text-gray-600">
+                <button
+                  onClick={() => setShowAddCustomerModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
                   <X size={24} />
                 </button>
               </div>
 
               <div className="p-8 space-y-8" dir="rtl">
-                <p className="text-sm text-[#8b0000] text-center font-medium">
+                <p className="text-sm text-[var(--primary)] text-center font-medium">
                   برجاء ادخال المعلومات أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية .
                 </p>
 
                 <div className="bg-[#fff9e6] p-6 rounded-lg border border-[#ffeeba] space-y-4">
-                  <p className="text-sm text-[#856404] font-bold text-center">برجاء تحديد نوع العميل</p>
+                  <p className="text-sm text-[#856404] font-bold text-center">
+                    برجاء تحديد نوع العميل
+                  </p>
                   <div className="flex justify-center gap-12">
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="radio" name="customerType" className="w-4 h-4 accent-[#8b0000]" defaultChecked />
-                      <span className="text-sm font-bold text-[#8b0000]">غير مسجل بالضريبة</span>
+                      <input
+                        type="radio"
+                        name="customerType"
+                        className="w-4 h-4 accent-[var(--primary)]"
+                        defaultChecked
+                      />
+                      <span className="text-sm font-bold text-[var(--primary)]">
+                        غير مسجل بالضريبة
+                      </span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="radio" name="customerType" className="w-4 h-4 accent-[#8b0000]" />
-                      <span className="text-sm font-bold text-[#8b0000]">مسجل بالضريبة</span>
+                      <input
+                        type="radio"
+                        name="customerType"
+                        className="w-4 h-4 accent-[var(--primary)]"
+                      />
+                      <span className="text-sm font-bold text-[var(--primary)]">
+                        مسجل بالضريبة
+                      </span>
                     </label>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="space-y-2 text-right">
-                    <label className="text-sm font-bold text-[#8b0000]">مجموعة العملاء *</label>
-                    <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 bg-white">
+                    <label className="text-sm font-bold text-[var(--primary)]">
+                      مجموعة العملاء *
+                    </label>
+                    <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[var(--primary)] bg-white">
                       <option>عام</option>
                     </select>
                   </div>
                   <div className="space-y-2 text-right">
-                    <label className="text-sm font-bold text-[#8b0000]">مجموعة التسعيرة</label>
-                    <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600 bg-white">
+                    <label className="text-sm font-bold text-[var(--primary)]">
+                      مجموعة التسعيرة
+                    </label>
+                    <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[var(--primary)] bg-white">
                       <option>عام</option>
                     </select>
                   </div>
                   <div className="space-y-2 text-right">
-                    <label className="text-sm font-bold text-[#8b0000]">اسم العميل *</label>
-                    <input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
+                    <label className="text-sm font-bold text-[var(--primary)]">
+                      اسم العميل *
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
+                    />
                   </div>
 
                   <div className="space-y-2 text-right">
-                    <label className="text-sm font-bold text-[#8b0000]">هاتف</label>
-                    <input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
+                    <label className="text-sm font-bold text-[var(--primary)]">هاتف</label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
+                    />
                   </div>
                   <div className="space-y-2 text-right">
-                    <label className="text-sm font-bold text-[#8b0000]">عنوان البريد الإلكتروني</label>
-                    <input type="email" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
+                    <label className="text-sm font-bold text-[var(--primary)]">
+                      عنوان البريد الإلكتروني
+                    </label>
+                    <input
+                      type="email"
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
+                    />
                   </div>
                   <div className="space-y-2 text-right">
-                    <label className="text-sm font-bold text-[#8b0000]">السجل التجاري</label>
-                    <input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
+                    <label className="text-sm font-bold text-[var(--primary)]">
+                      السجل التجاري
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
+                    />
                   </div>
 
                   <div className="space-y-2 text-right">
-                    <label className="text-sm font-bold text-[#8b0000]">رصيد افتتاحي *( المديونية بالسالب)</label>
-                    <input type="number" defaultValue="0" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
+                    <label className="text-sm font-bold text-[var(--primary)]">
+                      رصيد افتتاحي *( المديونية بالسالب)
+                    </label>
+                    <input
+                      type="number"
+                      defaultValue="0"
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
+                    />
                   </div>
                   <div className="space-y-2 text-right">
-                    <label className="text-sm font-bold text-[#8b0000]">الحد الائتماني *</label>
-                    <input type="number" defaultValue="0" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
+                    <label className="text-sm font-bold text-[var(--primary)]">
+                      الحد الائتماني *
+                    </label>
+                    <input
+                      type="number"
+                      defaultValue="0"
+                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-[var(--primary)]"
+                    />
                   </div>
                 </div>
 
                 <div className="flex items-center justify-end gap-2">
-                  <label className="text-sm font-bold text-[#8b0000] cursor-pointer" htmlFor="stop-sale">ايقاف البيع في حالة وجود مبالغ مستحقة</label>
-                  <input type="checkbox" id="stop-sale" className="w-4 h-4 accent-[#8b0000]" />
+                  <label
+                    className="text-sm font-bold text-[var(--primary)] cursor-pointer"
+                    htmlFor="stop-sale"
+                  >
+                    ايقاف البيع في حالة وجود مبالغ مستحقة
+                  </label>
+                  <input
+                    type="checkbox"
+                    id="stop-sale"
+                    className="w-4 h-4 accent-[var(--primary)]"
+                  />
                 </div>
 
                 <div className="flex justify-start pt-4">
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setShowAddCustomerModal(false)}
-                    className="bg-[#8b0000] text-white px-8 py-2 rounded-lg font-bold hover:bg-[#a52a2a] transition-colors"
+                    className="bg-[var(--primary)] text-white px-8 py-2 rounded-lg font-bold hover:bg-[var(--primary-hover)] transition-colors"
                   >
                     اضافة عميل
                   </button>

@@ -1,842 +1,502 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import {
-  Printer,
-  ChevronDown,
-  Plus,
-  FileSpreadsheet,
-  Download,
-  Menu,
-  X,
-  PackagePlus,
-  PackageMinus,
-  Eye,
-  Loader2,
+    Search, Plus, Edit, Trash2, Eye,
+    ChevronDown, FileText, Upload, ArrowRight, ArrowLeft,
+    RefreshCw, X, TrendingUp, TrendingDown
 } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
-import { motion, AnimatePresence } from 'framer-motion';
-import { AUTH_API_BASE } from '../lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
+import { cn } from '@/lib/utils';
+import MobileDataCard from '@/components/MobileDataCard';
 
-type InventoryItem = {
-  id?: number;
-  productId: number;
-  warehouseId: number;
-  quantityAvailable: number;
-  quantityReserved: number;
-  quantityInTransit: number;
-  productName?: string;
-  warehouseName?: string;
-  createdAt?: string;
-  updatedAt?: string;
+// ===================== TYPES =====================
+interface StockInventory {
+    id: number;
+    refNo?: string;
+    referenceNumber?: string;
+    branch?: string;
+    branchName?: string;
+    date?: string;
+    createdAt?: string;
+    entry?: string;
+    entryBy?: string;
+    note?: string;
+    notes?: string;
+    type?: 'add' | 'remove' | string;
+    quantity?: number;
+    productName?: string;
+    productId?: number;
+}
+
+// ===================== API CONFIG =====================
+const BASE_URL = 'http://takamulerp.runasp.net/api/StockInventory';
+
+const API = {
+    getAll: BASE_URL,
+    create: BASE_URL,
+    addStock: `${BASE_URL}/add-stock`,
+    removeStock: `${BASE_URL}/remove-stock`,
 };
 
-type PagedResponse = {
-  items: InventoryItem[];
-  totalCount: number;
-  pageNumber: number;
-  pageSize: number;
+// ===================== HELPERS =====================
+const getRefNo = (s: StockInventory) => s.refNo || s.referenceNumber || `#${s.id}`;
+const getBranch = (s: StockInventory) => s.branch || s.branchName || '-';
+const getDate = (s: StockInventory) => {
+    const d = s.date || s.createdAt;
+    if (!d) return '-';
+    try { return new Date(d).toLocaleDateString('ar-EG'); } catch { return d; }
 };
+const getEntry = (s: StockInventory) => s.entry || s.entryBy || '-';
+const getNote = (s: StockInventory) => s.note || s.notes || '-';
 
-type ModalType = 'details' | 'create' | 'add' | 'remove' | 'confirm' | null;
+// ===================== COMPONENT =====================
+export default function QuantityAdjustments() {
+    const { direction } = useLanguage();
+    const navigate = useNavigate();
 
-const QuantityAdjustments = () => {
-  const { t, direction } = useLanguage();
+    const [adjustments, setAdjustments] = useState<StockInventory[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [activeActionMenu, setActiveActionMenu] = useState<number | null>(null);
+    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
 
-  const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize] = useState(10);
-  const [totalCount, setTotalCount] = useState(0);
+    // Stock adjustment modal state
+    const [showStockModal, setShowStockModal] = useState(false);
+    const [stockModalType, setStockModalType] = useState<'add' | 'remove'>('add');
+    const [stockForm, setStockForm] = useState({ productId: '', quantity: '', note: '' });
+    const [stockLoading, setStockLoading] = useState(false);
 
-  const [modalType, setModalType] = useState<ModalType>(null);
-  const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
-  const [showActionsMenu, setShowActionsMenu] = useState(false);
-  const actionsMenuRef = useRef<HTMLDivElement>(null);
-
-  const [toast, setToast] = useState<{
-    open: boolean;
-    type: 'success' | 'error';
-    message: string;
-  }>({
-    open: false,
-    type: 'success',
-    message: '',
-  });
-
-  const [createForm, setCreateForm] = useState({
-    productId: '',
-    warehouseId: '',
-    quantityAvailable: '',
-    quantityReserved: '',
-    quantityInTransit: '',
-  });
-
-  const [stockForm, setStockForm] = useState({
-    productId: '',
-    warehouseId: '',
-    quantity: '',
-  });
-
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(totalCount / pageSize));
-  }, [totalCount, pageSize]);
-
-  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
-    setToast({ open: true, type, message });
-    setTimeout(() => {
-      setToast((prev) => ({ ...prev, open: false }));
-    }, 3000);
-  };
-
-  const fetchStockInventory = async () => {
-    try {
-      setLoading(true);
-
-      const response = await fetch(
-        `${AUTH_API_BASE}/api/StockInventory?pageNumber=${pageNumber}&pageSize=${pageSize}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('فشل في تحميل بيانات المخزون');
-      }
-
-      const data: PagedResponse = await response.json();
-
-      setItems(Array.isArray(data.items) ? data.items : []);
-      setTotalCount(data.totalCount || 0);
-    } catch (error) {
-      console.error(error);
-      showToast(direction === 'rtl' ? 'تعذر تحميل بيانات المخزون' : 'Failed to load stock inventory', 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStockInventory();
-  }, [pageNumber]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (actionsMenuRef.current && !actionsMenuRef.current.contains(event.target as Node)) {
-        setShowActionsMenu(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const openDetailsModal = (item: InventoryItem) => {
-    setSelectedItem(item);
-    setModalType('details');
-  };
-
-  const openCreateModal = () => {
-    setCreateForm({
-      productId: '',
-      warehouseId: '',
-      quantityAvailable: '',
-      quantityReserved: '',
-      quantityInTransit: '',
-    });
-    setModalType('create');
-    setShowActionsMenu(false);
-  };
-
-  const openAddStockModal = (item?: InventoryItem) => {
-    setSelectedItem(item || null);
-    setStockForm({
-      productId: item?.productId?.toString() || '',
-      warehouseId: item?.warehouseId?.toString() || '',
-      quantity: '',
-    });
-    setModalType('add');
-    setShowActionsMenu(false);
-  };
-
-  const openRemoveStockModal = (item?: InventoryItem) => {
-    setSelectedItem(item || null);
-    setStockForm({
-      productId: item?.productId?.toString() || '',
-      warehouseId: item?.warehouseId?.toString() || '',
-      quantity: '',
-    });
-    setModalType('remove');
-    setShowActionsMenu(false);
-  };
-
-  const closeModal = () => {
-    setModalType(null);
-    setSelectedItem(null);
-  };
-
-  const handleCreateInventory = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const payload = {
-      productId: Number(createForm.productId),
-      warehouseId: Number(createForm.warehouseId),
-      quantityAvailable: Number(createForm.quantityAvailable || 0),
-      quantityReserved: Number(createForm.quantityReserved || 0),
-      quantityInTransit: Number(createForm.quantityInTransit || 0),
-    };
-
-    if (!payload.productId || !payload.warehouseId) {
-      showToast(direction === 'rtl' ? 'يرجى إدخال المنتج والمخزن' : 'Please enter product and warehouse', 'error');
-      return;
-    }
-
-    try {
-      setSubmitting(true);
-
-      const response = await fetch(`${AUTH_API_BASE}/api/StockInventory`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        let errorMessage = direction === 'rtl' ? 'فشل في إنشاء سجل المخزون' : 'Failed to create stock inventory';
-
+    // ===================== FETCH =====================
+    const fetchAdjustments = useCallback(async () => {
+        setLoading(true);
+        setError(null);
         try {
-          const errorData = await response.json();
-          errorMessage = errorData?.message || errorData?.title || errorMessage;
-        } catch {
-          //
+            const res = await fetch(API.getAll);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const raw = await res.json();
+            // Handle array, wrapped object {data: []}, {items: []}, {result: []}, or single object
+            const data: StockInventory[] = Array.isArray(raw)
+                ? raw
+                : Array.isArray(raw?.data) ? raw.data
+                : Array.isArray(raw?.items) ? raw.items
+                : Array.isArray(raw?.result) ? raw.result
+                : raw && typeof raw === 'object' && !Array.isArray(raw) && raw.id
+                    ? [raw]
+                    : [];
+            setAdjustments(data);
+        } catch (err: any) {
+            setError('فشل تحميل البيانات: ' + err.message);
+        } finally {
+            setLoading(false);
         }
+    }, []);
 
-        throw new Error(errorMessage);
-      }
+    useEffect(() => { fetchAdjustments(); }, [fetchAdjustments]);
 
-      showToast(direction === 'rtl' ? 'تم إنشاء سجل المخزون بنجاح' : 'Stock inventory created successfully', 'success');
-      closeModal();
-      fetchStockInventory();
-    } catch (error: any) {
-      console.error(error);
-      showToast(error.message || (direction === 'rtl' ? 'حدث خطأ أثناء الإنشاء' : 'An error occurred while creating'), 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (!(e.target as HTMLElement).closest('.action-menu-container') &&
+                !(e.target as HTMLElement).closest('.action-menu-dropdown')) {
+                setActiveActionMenu(null);
+            }
+        };
+        window.addEventListener('click', handleClickOutside);
+        return () => window.removeEventListener('click', handleClickOutside);
+    }, []);
 
-  const handleStockAction = async (e: React.FormEvent) => {
-    e.preventDefault();
+    // ===================== FILTERING & PAGINATION =====================
+    const filteredAdjustments = adjustments.filter(adj =>
+        getBranch(adj).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        getEntry(adj).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        getRefNo(adj).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (adj.productName || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-    const payload = {
-      productId: Number(stockForm.productId),
-      warehouseId: Number(stockForm.warehouseId),
-      quantity: Number(stockForm.quantity),
+    const totalPages = Math.max(1, Math.ceil(filteredAdjustments.length / itemsPerPage));
+    const paginatedData = filteredAdjustments.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage
+    );
+
+    // ===================== HANDLERS =====================
+    const handleDelete = async (id: number) => {
+        if (!window.confirm('هل أنت متأكد من حذف هذا السجل؟')) return;
+        try {
+            // No delete endpoint shown in API — remove from local state
+            setAdjustments(prev => prev.filter(a => a.id !== id));
+        } catch (err: any) {
+            setError('فشل الحذف: ' + err.message);
+        }
+        setActiveActionMenu(null);
     };
 
-    if (!payload.productId || !payload.warehouseId || !payload.quantity) {
-      showToast(
-        direction === 'rtl'
-          ? 'يرجى إدخال المنتج والمخزن والكمية'
-          : 'Please enter product, warehouse and quantity',
-        'error'
-      );
-      return;
-    }
+    const openStockModal = (type: 'add' | 'remove') => {
+        setStockModalType(type);
+        setStockForm({ productId: '', quantity: '', note: '' });
+        setShowStockModal(true);
+        setActiveActionMenu(null);
+    };
 
-    const endpoint =
-      modalType === 'add'
-        ? `${AUTH_API_BASE}/api/StockInventory/add-stock`
-        : `${AUTH_API_BASE}/api/StockInventory/remove-stock`;
-
-    try {
-      setSubmitting(true);
-
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        let errorMessage =
-          modalType === 'add'
-            ? direction === 'rtl'
-              ? 'فشل في إضافة الكمية'
-              : 'Failed to add stock'
-            : direction === 'rtl'
-            ? 'فشل في سحب الكمية'
-            : 'Failed to remove stock';
-
+    const handleStockSubmit = async () => {
+        if (!stockForm.productId || !stockForm.quantity) return;
+        setStockLoading(true);
         try {
-          const errorData = await response.json();
-          errorMessage = errorData?.message || errorData?.title || errorMessage;
-        } catch {
-          //
+            const endpoint = stockModalType === 'add' ? API.addStock : API.removeStock;
+            const res = await fetch(endpoint, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    productId: Number(stockForm.productId),
+                    quantity: Number(stockForm.quantity),
+                    note: stockForm.note,
+                }),
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            setShowStockModal(false);
+            fetchAdjustments(); // Refresh
+        } catch (err: any) {
+            setError((stockModalType === 'add' ? 'فشل إضافة المخزون: ' : 'فشل سحب المخزون: ') + err.message);
+        } finally {
+            setStockLoading(false);
         }
+    };
 
-        throw new Error(errorMessage);
-      }
+    // ===================== RENDER =====================
+    return (
+        <div className="space-y-4" dir={direction}>
 
-      showToast(
-        modalType === 'add'
-          ? direction === 'rtl'
-            ? 'تمت إضافة الكمية بنجاح'
-            : 'Stock added successfully'
-          : direction === 'rtl'
-          ? 'تم سحب الكمية بنجاح'
-          : 'Stock removed successfully',
-        'success'
-      );
-
-      closeModal();
-      fetchStockInventory();
-    } catch (error: any) {
-      console.error(error);
-      showToast(error.message || (direction === 'rtl' ? 'حدث خطأ غير متوقع' : 'Unexpected error occurred'), 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div className="space-y-4 dark:text-black">
-      <div className="text-sm text-gray-500 dark:text-black/60 flex items-center gap-1">
-        <span>{t('home')}</span>
-        <span>/</span>
-        <span>{t('products')}</span>
-        <span>/</span>
-        <span className="text-gray-800 dark:text-black font-medium">
-          {direction === 'rtl' ? 'ربط الكميات' : 'Stock Inventory'}
-        </span>
-      </div>
-
-      <div className="bg-white p-4 rounded-t-xl border-b border-gray-200 flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-bold text-gray-800 dark:text-black">
-            {direction === 'rtl' ? 'ربط الكميات' : 'Stock Inventory'}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-black/70 mt-1">
-            {direction === 'rtl'
-              ? 'عرض وربط كميات المنتجات داخل المخازن'
-              : 'Manage and sync product quantities with warehouses'}
-          </p>
-        </div>
-
-        <div className="relative" ref={actionsMenuRef}>
-          <button
-            onClick={() => setShowActionsMenu(!showActionsMenu)}
-            className="p-2 bg-white border border-gray-300 rounded-lg text-gray-800 hover:bg-gray-50 transition-colors shadow-sm"
-          >
-            <Menu size={20} />
-          </button>
-
-          <AnimatePresence>
-            {showActionsMenu && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className={`absolute top-full mt-2 w-64 bg-white rounded-md shadow-lg border border-gray-200 z-50 overflow-hidden ${
-                  direction === 'rtl' ? 'left-0' : 'right-0'
-                }`}
-              >
-                <div className="py-1">
-                  <button
-                    onClick={openCreateModal}
-                    className={`w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 ${
-                      direction === 'rtl' ? 'flex-row-reverse text-right' : 'text-left'
-                    }`}
-                  >
-                    <Plus size={16} className="text-gray-500" />
-                    <span>{direction === 'rtl' ? 'إنشاء سجل مخزون' : 'Create stock record'}</span>
-                  </button>
-
-                  <button
-                    onClick={() => openAddStockModal()}
-                    className={`w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 ${
-                      direction === 'rtl' ? 'flex-row-reverse text-right' : 'text-left'
-                    }`}
-                  >
-                    <PackagePlus size={16} className="text-gray-500" />
-                    <span>{direction === 'rtl' ? 'إضافة كمية' : 'Add stock'}</span>
-                  </button>
-
-                  <button
-                    onClick={() => openRemoveStockModal()}
-                    className={`w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 border-b border-gray-100 ${
-                      direction === 'rtl' ? 'flex-row-reverse text-right' : 'text-left'
-                    }`}
-                  >
-                    <PackageMinus size={16} className="text-gray-500" />
-                    <span>{direction === 'rtl' ? 'سحب كمية' : 'Remove stock'}</span>
-                  </button>
-
-                  <button
-                    className={`w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 ${
-                      direction === 'rtl' ? 'flex-row-reverse text-right' : 'text-left'
-                    }`}
-                  >
-                    <FileSpreadsheet size={16} className="text-gray-500" />
-                    <span>{direction === 'rtl' ? 'تصدير إلى Excel' : 'Export to Excel'}</span>
-                  </button>
+            {/* الهيدر */}
+            <div className="takamol-page-header">
+                <div className={direction === 'rtl' ? "text-right" : "text-left"}>
+                    <h1 className="takamol-page-title flex items-center gap-2">
+                        <FileText size={24} className="text-[var(--primary)]" />
+                        <span>تعديلات الكمية</span>
+                    </h1>
+                    <p className="takamol-page-subtitle">إدارة وتتبع مذكرات تسوية المخزون</p>
                 </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-b-xl shadow-sm border border-gray-200 p-4 text-black">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-right border-collapse">
-            <thead>
-              <tr className="bg-primary text-white">
-                <th className="p-3 border border-primary/20 whitespace-nowrap text-center">#</th>
-                <th className="p-3 border border-primary/20 whitespace-nowrap">
-                  {direction === 'rtl' ? 'المنتج' : 'Product'}
-                </th>
-                <th className="p-3 border border-primary/20 whitespace-nowrap">
-                  {direction === 'rtl' ? 'المخزن' : 'Warehouse'}
-                </th>
-                <th className="p-3 border border-primary/20 whitespace-nowrap text-center">
-                  {direction === 'rtl' ? 'المتاح' : 'Available'}
-                </th>
-                <th className="p-3 border border-primary/20 whitespace-nowrap text-center">
-                  {direction === 'rtl' ? 'المحجوز' : 'Reserved'}
-                </th>
-                <th className="p-3 border border-primary/20 whitespace-nowrap text-center">
-                  {direction === 'rtl' ? 'قيد النقل' : 'In Transit'}
-                </th>
-                <th className="p-3 border border-primary/20 whitespace-nowrap text-center">
-                  {t('actions')}
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {loading ? (
-                <tr>
-                  <td colSpan={7} className="p-6 text-center text-gray-500">
-                    <div className="flex items-center justify-center gap-2">
-                      <Loader2 size={18} className="animate-spin" />
-                      <span>{direction === 'rtl' ? 'جاري التحميل...' : 'Loading...'}</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : items.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="p-6 text-center text-gray-500">
-                    {direction === 'rtl' ? 'لا توجد بيانات مخزون' : 'No stock inventory found'}
-                  </td>
-                </tr>
-              ) : (
-                items.map((item, index) => (
-                  <tr
-                    key={`${item.productId}-${item.warehouseId}-${index}`}
-                    className="hover:bg-gray-50 transition-colors border-b border-gray-200"
-                  >
-                    <td className="p-3 border-x border-gray-200 text-center">{index + 1}</td>
-                    <td className="p-3 border-x border-gray-200">
-                      {item.productName || `#${item.productId}`}
-                    </td>
-                    <td className="p-3 border-x border-gray-200">
-                      {item.warehouseName || `#${item.warehouseId}`}
-                    </td>
-                    <td className="p-3 border-x border-gray-200 text-center font-semibold">
-                      {item.quantityAvailable}
-                    </td>
-                    <td className="p-3 border-x border-gray-200 text-center">
-                      {item.quantityReserved}
-                    </td>
-                    <td className="p-3 border-x border-gray-200 text-center">
-                      {item.quantityInTransit}
-                    </td>
-                    <td className="p-3 border-x border-gray-200">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => openDetailsModal(item)}
-                          className="p-1.5 bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors"
-                          title={direction === 'rtl' ? 'عرض التفاصيل' : 'View details'}
-                        >
-                          <Eye size={16} />
-                        </button>
-
-                        <button
-                          onClick={() => openAddStockModal(item)}
-                          className="p-1.5 bg-green-500/10 text-green-600 rounded-md hover:bg-green-500/20 transition-colors"
-                          title={direction === 'rtl' ? 'إضافة كمية' : 'Add stock'}
-                        >
-                          <PackagePlus size={16} />
-                        </button>
-
-                        <button
-                          onClick={() => openRemoveStockModal(item)}
-                          className="p-1.5 bg-red-500/10 text-red-500 rounded-md hover:bg-red-500/20 transition-colors"
-                          title={direction === 'rtl' ? 'سحب كمية' : 'Remove stock'}
-                        >
-                          <PackageMinus size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-gray-500">
-            {direction === 'rtl'
-              ? `إجمالي العناصر: ${totalCount}`
-              : `Total items: ${totalCount}`}
-          </p>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setPageNumber((prev) => Math.max(1, prev - 1))}
-              disabled={pageNumber === 1}
-              className="px-3 py-1.5 rounded-md border border-gray-300 disabled:opacity-50"
-            >
-              {direction === 'rtl' ? 'السابق' : 'Prev'}
-            </button>
-
-            <span className="text-sm text-gray-700">
-              {direction === 'rtl'
-                ? `صفحة ${pageNumber} من ${totalPages}`
-                : `Page ${pageNumber} of ${totalPages}`}
-            </span>
-
-            <button
-              onClick={() => setPageNumber((prev) => Math.min(totalPages, prev + 1))}
-              disabled={pageNumber >= totalPages}
-              className="px-3 py-1.5 rounded-md border border-gray-300 disabled:opacity-50"
-            >
-              {direction === 'rtl' ? 'التالي' : 'Next'}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {modalType === 'details' && selectedItem && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={closeModal}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 text-black"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-4 border-b flex justify-between items-center bg-primary text-white rounded-t-xl">
-                <h2 className="text-lg font-semibold">
-                  {direction === 'rtl' ? 'تفاصيل المخزون' : 'Stock Inventory Details'}
-                </h2>
-
-                <div className="flex items-center gap-3">
-                  <button className="flex items-center gap-1 text-sm bg-white text-primary px-3 py-1 rounded-md hover:bg-gray-100 transition-colors">
-                    <Printer size={14} />
-                    {t('print')}
-                  </button>
-
-                  <button onClick={closeModal} className="text-white hover:text-gray-200 transition-colors">
-                    <X size={18} />
-                  </button>
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        onClick={() => openStockModal('remove')}
+                        className="btn-secondary flex items-center gap-2 !border-red-300 !text-red-600 hover:!bg-red-50"
+                    >
+                        <TrendingDown size={18} /> سحب مخزون
+                    </button>
+                    <button
+                        onClick={() => openStockModal('add')}
+                        className="btn-secondary flex items-center gap-2 !border-green-300 !text-green-700 hover:!bg-green-50"
+                    >
+                        <TrendingUp size={18} /> إضافة مخزون
+                    </button>
+                    <button
+                        onClick={() => navigate('/products/quantity-adjustments/import')}
+                        className="btn-secondary hidden md:flex"
+                    >
+                        <Upload size={20} /> استيراد المهام
+                    </button>
+                    <button
+                        onClick={() => navigate('/products/quantity-adjustments/create')}
+                        className="btn-primary"
+                    >
+                        <Plus size={20} /> إضافة تعديل كمية
+                    </button>
                 </div>
-              </div>
-
-              <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-gray-50 rounded-lg p-4 border">
-                  <p className="text-sm text-gray-500 mb-1">{direction === 'rtl' ? 'المنتج' : 'Product'}</p>
-                  <p className="font-semibold">{selectedItem.productName || `#${selectedItem.productId}`}</p>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4 border">
-                  <p className="text-sm text-gray-500 mb-1">{direction === 'rtl' ? 'المخزن' : 'Warehouse'}</p>
-                  <p className="font-semibold">{selectedItem.warehouseName || `#${selectedItem.warehouseId}`}</p>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4 border">
-                  <p className="text-sm text-gray-500 mb-1">{direction === 'rtl' ? 'الكمية المتاحة' : 'Available Quantity'}</p>
-                  <p className="font-semibold">{selectedItem.quantityAvailable}</p>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4 border">
-                  <p className="text-sm text-gray-500 mb-1">{direction === 'rtl' ? 'الكمية المحجوزة' : 'Reserved Quantity'}</p>
-                  <p className="font-semibold">{selectedItem.quantityReserved}</p>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4 border md:col-span-2">
-                  <p className="text-sm text-gray-500 mb-1">{direction === 'rtl' ? 'الكمية قيد النقل' : 'In Transit Quantity'}</p>
-                  <p className="font-semibold">{selectedItem.quantityInTransit}</p>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {modalType === 'create' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={closeModal}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-xl shadow-xl w-full max-w-2xl mx-4 text-black"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-4 border-b flex justify-between items-center bg-primary text-white rounded-t-xl">
-                <h2 className="text-lg font-semibold">
-                  {direction === 'rtl' ? 'إنشاء سجل مخزون' : 'Create Stock Record'}
-                </h2>
-                <button onClick={closeModal} className="text-white hover:text-gray-200 transition-colors">
-                  <X size={18} />
-                </button>
-              </div>
-
-              <form onSubmit={handleCreateInventory} className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block mb-1 text-sm font-medium">
-                    {direction === 'rtl' ? 'رقم المنتج' : 'Product ID'}
-                  </label>
-                  <input
-                    type="number"
-                    value={createForm.productId}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, productId: e.target.value }))}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-1 text-sm font-medium">
-                    {direction === 'rtl' ? 'رقم المخزن' : 'Warehouse ID'}
-                  </label>
-                  <input
-                    type="number"
-                    value={createForm.warehouseId}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, warehouseId: e.target.value }))}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-1 text-sm font-medium">
-                    {direction === 'rtl' ? 'الكمية المتاحة' : 'Available Quantity'}
-                  </label>
-                  <input
-                    type="number"
-                    value={createForm.quantityAvailable}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, quantityAvailable: e.target.value }))}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-1 text-sm font-medium">
-                    {direction === 'rtl' ? 'الكمية المحجوزة' : 'Reserved Quantity'}
-                  </label>
-                  <input
-                    type="number"
-                    value={createForm.quantityReserved}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, quantityReserved: e.target.value }))}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
-                    required
-                  />
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block mb-1 text-sm font-medium">
-                    {direction === 'rtl' ? 'الكمية قيد النقل' : 'In Transit Quantity'}
-                  </label>
-                  <input
-                    type="number"
-                    value={createForm.quantityInTransit}
-                    onChange={(e) => setCreateForm((prev) => ({ ...prev, quantityInTransit: e.target.value }))}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
-                    required
-                  />
-                </div>
-
-                <div className="md:col-span-2 flex justify-end gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
-                  >
-                    {direction === 'rtl' ? 'إلغاء' : 'Cancel'}
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="px-4 py-2 rounded-lg bg-primary text-white hover:opacity-90 disabled:opacity-60"
-                  >
-                    {submitting
-                      ? direction === 'rtl'
-                        ? 'جاري الحفظ...'
-                        : 'Saving...'
-                      : direction === 'rtl'
-                      ? 'حفظ'
-                      : 'Save'}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {(modalType === 'add' || modalType === 'remove') && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={closeModal}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-xl shadow-xl w-full max-w-xl mx-4 text-black"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-4 border-b flex justify-between items-center bg-primary text-white rounded-t-xl">
-                <h2 className="text-lg font-semibold">
-                  {modalType === 'add'
-                    ? direction === 'rtl'
-                      ? 'إضافة كمية'
-                      : 'Add Stock'
-                    : direction === 'rtl'
-                    ? 'سحب كمية'
-                    : 'Remove Stock'}
-                </h2>
-                <button onClick={closeModal} className="text-white hover:text-gray-200 transition-colors">
-                  <X size={18} />
-                </button>
-              </div>
-
-              <form onSubmit={handleStockAction} className="p-6 space-y-4">
-                <div>
-                  <label className="block mb-1 text-sm font-medium">
-                    {direction === 'rtl' ? 'رقم المنتج' : 'Product ID'}
-                  </label>
-                  <input
-                    type="number"
-                    value={stockForm.productId}
-                    onChange={(e) => setStockForm((prev) => ({ ...prev, productId: e.target.value }))}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-1 text-sm font-medium">
-                    {direction === 'rtl' ? 'رقم المخزن' : 'Warehouse ID'}
-                  </label>
-                  <input
-                    type="number"
-                    value={stockForm.warehouseId}
-                    onChange={(e) => setStockForm((prev) => ({ ...prev, warehouseId: e.target.value }))}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-1 text-sm font-medium">
-                    {direction === 'rtl' ? 'الكمية' : 'Quantity'}
-                  </label>
-                  <input
-                    type="number"
-                    value={stockForm.quantity}
-                    onChange={(e) => setStockForm((prev) => ({ ...prev, quantity: e.target.value }))}
-                    className="w-full border rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-primary/30"
-                    required
-                  />
-                </div>
-
-                <div className="flex justify-end gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-50"
-                  >
-                    {direction === 'rtl' ? 'إلغاء' : 'Cancel'}
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className={`px-4 py-2 rounded-lg text-white disabled:opacity-60 ${
-                      modalType === 'add' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
-                    }`}
-                  >
-                    {submitting
-                      ? direction === 'rtl'
-                        ? 'جاري التنفيذ...'
-                        : 'Submitting...'
-                      : modalType === 'add'
-                      ? direction === 'rtl'
-                        ? 'إضافة'
-                        : 'Add'
-                      : direction === 'rtl'
-                      ? 'سحب'
-                      : 'Remove'}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {toast.open && (
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-            className={`fixed bottom-4 z-[100] ${
-              direction === 'rtl' ? 'left-4' : 'right-4'
-            }`}
-          >
-            <div
-              className={`px-4 py-3 rounded-lg shadow-lg text-white ${
-                toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'
-              }`}
-            >
-              {toast.message}
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
 
-export default QuantityAdjustments;
+            {/* Error Banner */}
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 flex justify-between items-center">
+                    <span>{error}</span>
+                    <button onClick={() => setError(null)}><X size={16} /></button>
+                </div>
+            )}
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 min-w-0">
+
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pb-4 border-b border-gray-100">
+                    <div className="relative w-full md:w-72">
+                        <input
+                            type="text"
+                            placeholder="بحث برقم المرجع، الفرع، المنتج..."
+                            value={searchTerm}
+                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                            className="takamol-input !py-2"
+                        />
+                        <Search className={cn("absolute top-1/2 -translate-y-1/2 text-gray-400", direction === 'rtl' ? "left-3" : "right-3")} size={18} />
+                    </div>
+                    <div className="flex items-center gap-3 w-full md:w-auto justify-end">
+                        <button
+                            onClick={fetchAdjustments}
+                            className="p-2 text-gray-500 hover:text-[var(--primary)] hover:bg-gray-50 rounded-lg border border-gray-200 transition-colors"
+                            title="تحديث البيانات"
+                        >
+                            <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                        </button>
+                        <div className="flex items-center gap-2 text-sm font-bold text-gray-700">
+                            <span>اظهر</span>
+                            <select
+                                className="bg-gray-50 border border-gray-200 text-gray-800 rounded-lg focus:ring-[var(--primary)] focus:border-[var(--primary)] px-3 py-1.5 outline-none cursor-pointer"
+                                value={itemsPerPage}
+                                onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                            >
+                                <option value={10}>10</option>
+                                <option value={25}>25</option>
+                                <option value={50}>50</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Loading */}
+                {loading && (
+                    <div className="flex justify-center py-8">
+                        <div className="animate-spin rounded-full h-10 w-10 border-4 border-[var(--primary)] border-t-transparent" />
+                    </div>
+                )}
+
+                {/* Mobile */}
+                {!loading && (
+                    <div className="md:hidden space-y-4">
+                        {paginatedData.map((adj) => (
+                            <MobileDataCard
+                                key={adj.id}
+                                title={getBranch(adj)}
+                                subtitle={getDate(adj)}
+                                fields={[
+                                    { label: 'المرجع', value: getRefNo(adj) },
+                                    { label: 'مدخل البيانات', value: getEntry(adj) },
+                                    { label: 'المنتج', value: adj.productName || '-' },
+                                    { label: 'الكمية', value: adj.quantity?.toString() || '-' },
+                                    { label: 'مذكرة', value: getNote(adj) }
+                                ]}
+                                actions={
+                                    <div className="flex gap-2 w-full justify-end">
+                                        <button onClick={() => navigate(`/products/quantity-adjustments/edit/${adj.id}`)} className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"><Edit size={18} /></button>
+                                        <button onClick={() => handleDelete(adj.id)} className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100"><Trash2 size={18} /></button>
+                                    </div>
+                                }
+                            />
+                        ))}
+                        {paginatedData.length === 0 && <div className="text-center p-6 text-gray-500 font-bold bg-gray-50 rounded-xl">لا توجد سجلات</div>}
+                    </div>
+                )}
+
+                {/* Desktop Table */}
+                {!loading && (
+                    <div className="hidden md:block overflow-visible pb-32">
+                        <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                            <table className="takamol-table mb-0">
+                                <thead>
+                                    <tr>
+                                        <th className="w-10"><input type="checkbox" className="rounded border-white/30" /></th>
+                                        <th>التاريخ</th>
+                                        <th>الرقم المرجعي</th>
+                                        <th>الفرع</th>
+                                        <th>المنتج</th>
+                                        <th>الكمية</th>
+                                        <th>مدخل البيانات</th>
+                                        <th>مذكرة</th>
+                                        <th className="w-32 text-center">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {paginatedData.length > 0 ? paginatedData.map(adj => (
+                                        <tr key={adj.id}>
+                                            <td><input type="checkbox" className="rounded border-gray-300" /></td>
+                                            <td className="text-gray-800 font-bold whitespace-nowrap">{getDate(adj)}</td>
+                                            <td className="font-bold text-[var(--primary)]">{getRefNo(adj)}</td>
+                                            <td className="font-bold text-gray-700">{getBranch(adj)}</td>
+                                            <td className="text-gray-700 font-medium">{adj.productName || '-'}</td>
+                                            <td>
+                                                {adj.quantity !== undefined ? (
+                                                    <span className={cn(
+                                                        "px-2 py-0.5 rounded text-xs font-bold",
+                                                        adj.type === 'remove'
+                                                            ? "bg-red-50 text-red-600"
+                                                            : "bg-green-50 text-green-700"
+                                                    )}>
+                                                        {adj.type === 'remove' ? '-' : '+'}{adj.quantity}
+                                                    </span>
+                                                ) : '-'}
+                                            </td>
+                                            <td className="text-gray-600 font-medium">{getEntry(adj)}</td>
+                                            <td className="text-gray-600 max-w-[150px] truncate" title={getNote(adj)}>{getNote(adj)}</td>
+
+                                            <td className="text-center relative action-menu-container">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const rect = e.currentTarget.getBoundingClientRect();
+                                                        setMenuPosition({
+                                                            top: rect.bottom + window.scrollY,
+                                                            left: rect.left + window.scrollX + (rect.width / 2)
+                                                        });
+                                                        setActiveActionMenu(activeActionMenu === adj.id ? null : adj.id);
+                                                    }}
+                                                    className="bg-[#2ecc71] hover:bg-[#27ae60] text-white px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-1 mx-auto transition-colors shadow-sm"
+                                                >
+                                                    خيارات <ChevronDown size={14} />
+                                                </button>
+
+                                                {activeActionMenu === adj.id && menuPosition && createPortal(
+                                                    <div
+                                                        style={{ position: 'absolute', top: `${menuPosition.top}px`, left: `${menuPosition.left}px`, transform: 'translateX(-50%)' }}
+                                                        className="w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-[9999] py-2 overflow-hidden action-menu-dropdown"
+                                                        dir={direction}
+                                                    >
+                                                        <button onClick={() => setActiveActionMenu(null)} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors text-start">
+                                                            <Eye size={18} className="text-gray-400 shrink-0" /><span className="flex-1 font-medium">عرض التفاصيل</span>
+                                                        </button>
+                                                        <button onClick={() => { navigate(`/products/quantity-adjustments/edit/${adj.id}`); setActiveActionMenu(null); }} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors text-start">
+                                                            <Edit size={18} className="text-gray-400 shrink-0" /><span className="flex-1 font-medium">تعديل</span>
+                                                        </button>
+                                                        <div className="h-px bg-gray-100 my-1 mx-4" />
+                                                        <button onClick={() => handleDelete(adj.id)} className="w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors text-start">
+                                                            <Trash2 size={18} className="shrink-0" /><span className="flex-1 font-medium">حذف</span>
+                                                        </button>
+                                                    </div>,
+                                                    document.body
+                                                )}
+                                            </td>
+                                        </tr>
+                                    )) : (
+                                        <tr><td colSpan={9} className="text-center py-8 text-gray-500 font-bold">لا توجد سجلات، قم بإضافة تعديل جديد.</td></tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {/* Pagination */}
+                <div className="flex flex-col md:flex-row justify-between items-center mt-4 gap-4 pt-4">
+                    <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                        <button
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            disabled={currentPage >= totalPages}
+                            className="px-4 py-2 hover:bg-gray-50 border-l border-gray-200 text-gray-600 flex items-center gap-1 font-bold text-sm transition-colors disabled:opacity-40"
+                        >
+                            <ArrowRight className="w-4 h-4" /> التالي
+                        </button>
+                        {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(page => (
+                            <button
+                                key={page}
+                                onClick={() => setCurrentPage(page)}
+                                className={cn(
+                                    "px-4 py-2 font-bold text-sm border-l border-gray-200",
+                                    currentPage === page ? "bg-[#2ecc71] text-white" : "hover:bg-gray-50 text-gray-600"
+                                )}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                        <button
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={currentPage <= 1}
+                            className="px-4 py-2 hover:bg-gray-50 text-gray-600 flex items-center gap-1 font-bold text-sm transition-colors disabled:opacity-40"
+                        >
+                            سابق <ArrowLeft className="w-4 h-4" />
+                        </button>
+                    </div>
+                    <div className="text-sm font-bold text-gray-500">
+                        إجمالي السجلات: {filteredAdjustments.length} | صفحة {currentPage} من {totalPages}
+                    </div>
+                </div>
+
+            </div>
+
+            {/* ===================== STOCK MODAL ===================== */}
+            {showStockModal && (
+                <div
+                    className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4"
+                    onClick={() => setShowStockModal(false)}
+                >
+                    <div
+                        className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
+                        onClick={e => e.stopPropagation()}
+                        dir="rtl"
+                    >
+                        {/* Header */}
+                        <div className={cn(
+                            "p-5 flex justify-between items-center",
+                            stockModalType === 'add' ? "bg-green-50 border-b border-green-100" : "bg-red-50 border-b border-red-100"
+                        )}>
+                            <h2 className={cn(
+                                "text-lg font-bold flex items-center gap-2",
+                                stockModalType === 'add' ? "text-green-800" : "text-red-700"
+                            )}>
+                                {stockModalType === 'add' ? <TrendingUp size={20} /> : <TrendingDown size={20} />}
+                                {stockModalType === 'add' ? 'إضافة مخزون' : 'سحب مخزون'}
+                            </h2>
+                            <button onClick={() => setShowStockModal(false)} className="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-gray-100">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Form */}
+                        <div className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1.5">معرّف المنتج <span className="text-red-500">*</span></label>
+                                <input
+                                    type="number"
+                                    placeholder="أدخل ID المنتج"
+                                    value={stockForm.productId}
+                                    onChange={e => setStockForm(f => ({ ...f, productId: e.target.value }))}
+                                    className="takamol-input"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1.5">الكمية <span className="text-red-500">*</span></label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    placeholder="أدخل الكمية"
+                                    value={stockForm.quantity}
+                                    onChange={e => setStockForm(f => ({ ...f, quantity: e.target.value }))}
+                                    className="takamol-input"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1.5">ملاحظة</label>
+                                <textarea
+                                    rows={3}
+                                    placeholder="ملاحظة اختيارية..."
+                                    value={stockForm.note}
+                                    onChange={e => setStockForm(f => ({ ...f, note: e.target.value }))}
+                                    className="takamol-input resize-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="px-6 pb-6 flex gap-3">
+                            <button
+                                onClick={() => setShowStockModal(false)}
+                                className="flex-1 py-2.5 bg-gray-100 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={handleStockSubmit}
+                                disabled={stockLoading || !stockForm.productId || !stockForm.quantity}
+                                className={cn(
+                                    "flex-1 py-2.5 text-white rounded-xl font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2",
+                                    stockModalType === 'add' ? "bg-green-600 hover:bg-green-700" : "bg-red-500 hover:bg-red-600"
+                                )}
+                            >
+                                {stockLoading
+                                    ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
+                                    : stockModalType === 'add' ? 'إضافة' : 'سحب'
+                                }
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

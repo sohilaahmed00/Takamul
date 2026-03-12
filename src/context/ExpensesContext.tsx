@@ -11,28 +11,35 @@ interface ExpensesContextType {
 const ExpensesContext = createContext<ExpensesContextType | undefined>(undefined);
 
 export const ExpensesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [expenses, setExpenses] = useState<Expense[]>([
-    {
-      id: '1',
-      date: '2026-02-25',
-      reference: 'EXP-001',
-      category: 'إيجار',
-      amount: 5000.00,
-      description: 'إيجار المكتب لشهر فبراير',
-      createdBy: 'أدمن',
-      hasAttachment: true
-    },
-    {
-      id: '2',
-      date: '2026-02-24',
-      reference: 'EXP-002',
-      category: 'كهرباء',
-      amount: 450.50,
-      description: 'فاتورة الكهرباء',
-      createdBy: 'أدمن',
-      hasAttachment: false
-    }
-  ]);
+  const [expenses, setExpenses] = useState<Expense[]>(() => {
+    const saved = localStorage.getItem('takamul_expenses');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: '1',
+        date: '2026-02-25',
+        reference: 'EXP-001',
+        category: 'إيجار',
+        amount: 5000.00,
+        description: 'إيجار المكتب لشهر فبراير',
+        createdBy: 'أدمن',
+        hasAttachment: true
+      },
+      {
+        id: '2',
+        date: '2026-02-24',
+        reference: 'EXP-002',
+        category: 'كهرباء',
+        amount: 450.50,
+        description: 'فاتورة الكهرباء',
+        createdBy: 'أدمن',
+        hasAttachment: false
+      }
+    ];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('takamul_expenses', JSON.stringify(expenses));
+  }, [expenses]);
 
   const addExpense = (newExpense: Omit<Expense, 'id' | 'createdBy' | 'reference'>) => {
     const id = (expenses.length + 1).toString();
