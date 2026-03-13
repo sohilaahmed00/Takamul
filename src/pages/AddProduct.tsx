@@ -28,14 +28,18 @@ const API_BASE =
 type ProductNature = 'basic' | 'prepared' | 'sub' | 'materials';
 
 type ApiCategory = {
-  id: number | string;
+  id?: number | string;
+  Id?: number | string;
+  categoryId?: number | string;
+  CategoryId?: number | string;
   categoryNameAr?: string;
+  CategoryNameAr?: string;
   categoryNameEn?: string;
+  CategoryNameEn?: string;
   categoryNameUr?: string;
-  description?: string;
-  parentCategoryId?: number | null;
-  isActive?: number;
-  imageUrl?: string | null;
+  CategoryNameUr?: string;
+  name?: string;
+  Name?: string;
 };
 
 type NormalizedCategory = {
@@ -118,15 +122,13 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 
 function normalizeCategory(item: any): NormalizedCategory {
   const id = item?.id ?? item?.Id ?? item?.categoryId ?? item?.CategoryId ?? '';
-
   const nameAr =
     (item?.categoryNameAr ?? item?.CategoryNameAr ?? item?.nameAr ?? item?.NameAr ?? '').toString();
-
   const nameEn =
     (item?.categoryNameEn ?? item?.CategoryNameEn ?? item?.nameEn ?? item?.NameEn ?? '').toString();
-
   const nameUr =
     (item?.categoryNameUr ?? item?.CategoryNameUr ?? item?.nameUr ?? item?.NameUr ?? '').toString();
+  const genericName = (item?.name ?? item?.Name ?? '').toString();
 
   const genericName =
     (item?.name ?? item?.Name ?? item?.categoryName ?? item?.CategoryName ?? item?.title ?? '').toString();
@@ -219,8 +221,18 @@ export default function AddProduct() {
 
   const [mainCategories, setMainCategories] = useState<NormalizedCategory[]>([]);
   const [subCategories, setSubCategories] = useState<NormalizedCategory[]>([]);
+  const [units, setUnits] = useState<NormalizedUnit[]>([]);
+
   const [isLoadingMainCategories, setIsLoadingMainCategories] = useState(false);
   const [isLoadingSubCategories, setIsLoadingSubCategories] = useState(false);
+  const [isLoadingUnits, setIsLoadingUnits] = useState(false);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [fileName, setFileName] = useState('');
 
   const [allProducts, setAllProducts] = useState<ProductLite[]>([]);
   const [directProductsList, setDirectProductsList] = useState<ProductLite[]>([]);
@@ -692,10 +704,13 @@ export default function AddProduct() {
     return fd;
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const validateForm = () => {
+    const newErrors: FormErrors = {};
 
-    const newErrors: typeof errors = {};
+    if (!formData.productType.trim()) {
+      newErrors.productType =
+        direction === 'rtl' ? 'نوع الصنف مطلوب' : 'Product type is required';
+    }
 
     if (!formData.name.trim()) {
       newErrors.name = direction === 'rtl' ? 'يرجى إدخال الاسم' : 'Please enter name';
@@ -748,12 +763,32 @@ export default function AddProduct() {
       return;
     }
 
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
+    if (!formData.defaultSaleUnitId) {
+      newErrors.defaultSaleUnitId =
+        direction === 'rtl'
+          ? 'وحدة البيع الافتراضية مطلوبة'
+          : 'Default sale unit is required';
     }
 
-    setErrors({});
+    if (imageFile) {
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+      if (!allowedTypes.includes(imageFile.type)) {
+        newErrors.image =
+          direction === 'rtl'
+            ? 'نوع الصورة غير مدعوم'
+            : 'Unsupported image format';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    setSubmitError('');
+    setSuccessMessage('');
 
     try {
       if (isEditMode && id) {
@@ -1421,6 +1456,7 @@ export default function AddProduct() {
               </div>
             </div>
           </div>
+        </div>
 
           <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
             <button

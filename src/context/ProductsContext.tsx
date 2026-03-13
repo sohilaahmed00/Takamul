@@ -118,20 +118,32 @@ interface ProductsContextType {
 const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
 
 const extractApiErrorMessage = (data: any) => {
+  console.log('updateProduct API error response:', data);
+
+  if (typeof data?.message === 'string' && data.message.trim()) {
+    return data.message.trim();
+  }
+
+  if (typeof data?.title === 'string' && data.title.trim()) {
+    return data.title.trim();
+  }
+
+  if (typeof data === 'string' && data.trim()) {
+    return data.trim();
+  }
+
   if (data?.errors && typeof data.errors === 'object') {
     const lines: string[] = [];
     for (const key of Object.keys(data.errors)) {
       const arr = data.errors[key];
       if (Array.isArray(arr)) {
-        for (const msg of arr) lines.push(`${key}: ${msg}`);
+        for (const msg of arr) {
+          if (typeof msg === 'string' && msg.trim()) lines.push(msg.trim());
+        }
       }
     }
     if (lines.length) return lines.join(' | ');
   }
-
-  if (typeof data?.title === 'string') return data.title;
-  if (typeof data?.message === 'string') return data.message;
-  if (typeof data === 'string') return data;
 
   return 'فشل العملية';
 };
@@ -139,16 +151,10 @@ const extractApiErrorMessage = (data: any) => {
 const toUserMessage = (raw?: string) => {
   if (!raw) return 'حدث خطأ، حاول مرة أخرى';
 
-  if (raw.includes('ImageUrl') || raw.includes('Image')) return 'من فضلك اختر صورة صحيحة للصنف';
-  if (raw.includes('CategoryName') || raw.includes('Category')) return 'من فضلك اختر التصنيف الرئيسي';
-  if (raw.includes('ProductNameAr') || raw.includes('ProductNameEn') || raw.includes('ProductNameUr'))
-    return 'من فضلك اكتب اسم الصنف';
-  if (raw.includes('Description')) return 'من فضلك اكتب وصف الصنف';
-  if (raw.includes('SellingPrice')) return 'من فضلك اكتب سعر البيع بشكل صحيح';
-  if (raw.includes('ProductType')) return 'من فضلك اختر نوع الصنف';
-  if (raw.includes('Id')) return 'تعذر تحديد الصنف المطلوب تعديله';
+  const clean = raw.trim();
+  if (clean) return clean;
 
-  return 'من فضلك راجع البيانات المطلوبة';
+  return 'حدث خطأ، حاول مرة أخرى';
 };
 
 const normalizeProductType = (value: any): string => {
@@ -156,6 +162,7 @@ const normalizeProductType = (value: any): string => {
 
   if (v === 'prepared' || v === '1') return 'prepared';
   if (v === 'branched' || v === '2' || v === 'sub') return 'branched';
+
 
   return 'prepared';
 };
@@ -342,9 +349,11 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
       return arr
         .map((item: any, index: number) => ({
           id: Number(item?.id ?? item ?? index + 1),
+
           name: String(
             item?.categoryNameAr ?? item?.name ?? item?.productCategoryName ?? ''
           ).trim(),
+
         }))
         .filter((item: ProductCategoryOption) => item.name);
     } catch (err) {
@@ -549,14 +558,6 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
         return { ok: false, status: 400, message: 'من فضلك اختر التصنيف الرئيسي' };
       }
 
-      if (!unitName) {
-        return { ok: false, status: 400, message: 'من فضلك اختر الوحدة' };
-      }
-
-      if (!description) {
-        return { ok: false, status: 400, message: 'من فضلك اكتب وصف الصنف' };
-      }
-
       if (!Number.isFinite(sellingPrice) || sellingPrice < 0) {
         return { ok: false, status: 400, message: 'من فضلك اكتب سعر بيع صحيح' };
       }
@@ -625,13 +626,10 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
       form.append('ProductNameAr', nameAr);
       form.append('ProductNameEn', nameEn);
       form.append('ProductNameUr', nameUr);
-      form.append('Description', description);
       form.append('CategoryName', categoryName);
-      form.append('UnitName', unitName);
       form.append('Barcode', barcode);
       form.append('CostPrice', String(costPrice));
       form.append('SellingPrice', String(sellingPrice));
-      form.append('Quantity', String(quantity));
       form.append('MinStockLevel', String(minStockLevel));
       form.append('ProductType', productType);
       form.append('ParentProductId', String(parentProductId));
@@ -659,6 +657,7 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
       if (!res.ok) {
         const raw = extractApiErrorMessage(data);
+
         return {
           ok: false,
           status: res.status,
