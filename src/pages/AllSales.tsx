@@ -1,1010 +1,626 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
-  FileText,
-  Search,
-  Edit2,
-  RotateCcw,
-  Trash2,
-  ChevronRight,
-  ChevronLeft,
-  Filter,
-  Download,
-  Printer,
-  ChevronDown,
-  Menu,
-  LayoutGrid,
-  List as ListIcon,
-  ArrowUp,
-  ArrowDown,
-  PlusCircle,
-  DollarSign,
-  FileCheck,
-  Truck,
-  FileSpreadsheet,
-  Mail,
-  MessageCircle,
-  X,
-  Copy,
-  Info,
-  FileJson,
+    FileText, Search, Eye, Edit2, RotateCcw, Trash2,
+    ArrowRight, ArrowLeft, Download, Printer, ChevronDown,
+    Menu, LayoutGrid, List as ListIcon, ShoppingCart,
+    ArrowUp, ArrowDown, PlusCircle, DollarSign, FileCheck,
+    Truck, FileSpreadsheet, Mail, MessageCircle, Copy, Info,
+    UserCog, FileMinus, FileJson
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { AUTH_API_BASE, cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
-import InvoiceDetailsModal from '@/components/sales/InvoiceDetailsModal';
-
-type SalesOrderStatus = string;
-
-interface SalesOrderDTO {
-  id: number;
-  orderNumber: string;
-  customerName: string;
-  warehouseName: string;
-  orderDate: string; // ISO string
-  subTotal: number;
-  taxAmount: number;
-  discountAmount: number;
-  grandTotal: number;
-  orderStatus: SalesOrderStatus;
-}
+import { useSales } from '@/context/SalesContext';
+import { Sale } from '@/types';
+import { cn } from '@/lib/utils';
+import { AnimatePresence } from 'framer-motion';
+import { ResponsiveModal } from '@/components/ResponsiveModal';
+import Pagination from '@/components/Pagination';
+import MobileDataCard from '@/components/MobileDataCard';
+import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
 
 interface SaleRecord {
-  id: string;
-
-  // موجود في الديزاين الحالي (هنملاه بما يناسب)
-  invoiceNo: string;
-  date: string;
-  refNo: string;
-  cashier: string;
-  customer: string;
-  saleStatus: 'completed' | 'returned';
-  grandTotal: number;
-  paid: number;
-  remaining: number;
-  paymentStatus: 'paid' | 'partial' | 'unpaid';
-  paymentType: 'mada' | 'cash' | 'bank_transfer';
-
-  // حقول إضافية مفيدة للـ UI (مش بتغير الديزاين)
-  apiOrderStatus?: string;
-  subTotal?: number;
-  taxAmount?: number;
-  discountAmount?: number;
-  warehouseName?: string;
-  orderNumber?: string;
-  orderDateISO?: string;
+    id: string;
+    invoiceNo: string;
+    date: string;
+    refNo: string;
+    cashier: string;
+    customer: string;
+    saleStatus: 'completed' | 'returned';
+    grandTotal: number;
+    paid: number;
+    remaining: number;
+    paymentStatus: 'paid' | 'partial' | 'unpaid';
+    paymentType: 'mada' | 'cash' | 'bank_transfer';
 }
 
 interface Payment {
-  id: string;
-  date: string;
-  refNo: string;
-  amount: number;
-  type: string;
+    id: string;
+    date: string;
+    refNo: string;
+    amount: number;
+    type: string;
 }
 
-function formatDateTimeFromISO(iso: string) {
-  // يعرض "DD/MM/YYYY HH:mm:ss" زي الداتا اللي عندك
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const day = pad(d.getDate());
-  const month = pad(d.getMonth() + 1);
-  const year = d.getFullYear();
-  const hh = pad(d.getHours());
-  const mm = pad(d.getMinutes());
-  const ss = pad(d.getSeconds());
-  return `${day}/${month}/${year} ${hh}:${mm}:${ss}`;
-}
-
-function safeNumber(n: any) {
-  const x = Number(n);
-  return Number.isFinite(x) ? x : 0;
-}
+const mockSales: SaleRecord[] = [
+    { id: '1', invoiceNo: '506', date: '23/02/2026 02:59:57', refNo: 'SALE/POS2026/02/0611', cashier: 'شركة اختيار', customer: 'شخص عام', saleStatus: 'returned', grandTotal: -500.00, paid: -500.00, remaining: 0.00, paymentStatus: 'paid', paymentType: 'mada' },
+    { id: '2', invoiceNo: '505', date: '23/02/2026 02:58:48', refNo: 'SALE/POS2026/02/0611', cashier: 'شركة اختيار', customer: 'شخص عام', saleStatus: 'completed', grandTotal: 500.00, paid: 500.00, remaining: 0.00, paymentStatus: 'paid', paymentType: 'mada' },
+    { id: '3', invoiceNo: '504', date: '16/02/2026 20:39:44', refNo: 'SALE/POS2026/02/0610', cashier: 'شركة اختيار', customer: 'شخص عام', saleStatus: 'completed', grandTotal: 150.00, paid: 150.00, remaining: 0.00, paymentStatus: 'paid', paymentType: 'mada' },
+    { id: '4', invoiceNo: '503', date: '16/02/2026 20:39:34', refNo: 'SALE/POS2026/02/0609', cashier: 'شركة اختيار', customer: 'شخص عام', saleStatus: 'completed', grandTotal: 400.00, paid: 400.00, remaining: 0.00, paymentStatus: 'paid', paymentType: 'mada' },
+    { id: '5', invoiceNo: '502', date: '16/02/2026 20:25:58', refNo: 'SALE/POS2026/02/0608', cashier: 'شركة اختيار', customer: 'شخص عام', saleStatus: 'completed', grandTotal: 500.00, paid: 500.00, remaining: 0.00, paymentStatus: 'paid', paymentType: 'mada' },
+];
 
 export default function AllSales() {
-  const { t, direction } = useLanguage();
-  const navigate = useNavigate();
+    const { t, direction } = useLanguage();
+    const navigate = useNavigate();
 
-  // ✅ غيّرها لو عندك base url مختلف
-  // الأفضل تستخدم env: VITE_API_BASE_URL=http://takamulerp.runasp.net
-  const API_BASE = AUTH_API_BASE || 'http://takamulerp.runasp.net';
+    const salesContext = useSales() || {};
+    const safeSales = Array.isArray(salesContext.sales) && salesContext.sales.length > 0 ? salesContext.sales : mockSales;
+    const addSale = salesContext.addSale || (() => { });
+    const deleteSale = salesContext.deleteSale || (() => { });
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showCount, setShowCount] = useState(10);
-  const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showCount, setShowCount] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
 
-  const [sales, setSales] = useState<SaleRecord[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string>('');
+    const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
 
-  // Close menu on click outside
-  React.useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest('.action-menu-container')) {
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (!target.closest('.action-menu-container')) {
+                setActiveActionMenu(null);
+            }
+        };
+        window.addEventListener('click', handleClickOutside);
+        return () => window.removeEventListener('click', handleClickOutside);
+    }, []);
+
+    const [showInvoiceDetails, setShowInvoiceDetails] = useState<any | null>(null);
+    const [showFilters, setShowFilters] = useState(true);
+    const [showPayments, setShowPayments] = useState<any | null>(null);
+    const [showEditPayment, setShowEditPayment] = useState<Payment | null>(null);
+    const [showPaymentReceipt, setShowPaymentReceipt] = useState<Payment | null>(null);
+    const [salePayments, setSalePayments] = useState<Payment[]>([]);
+    const [showStoreBond, setShowStoreBond] = useState<any | null>(null);
+    const [showClaimBond, setShowClaimBond] = useState<any | null>(null);
+    const [showAddDelivery, setShowAddDelivery] = useState<any | null>(null);
+    const [bondToDelete, setBondToDelete] = useState<string | null>(null);
+    const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
+    const [filters, setFilters] = useState({
+        refNo: '', invoiceNo: '', customer: '', branch: '', fromDate: '', toDate: '', grandTotal: '', deliveryCompany: 'all',
+    });
+
+    const [appliedFilters, setAppliedFilters] = useState(filters);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, appliedFilters, showCount]);
+
+    useEffect(() => {
+        if (showPayments) {
+            setSalePayments([
+                { id: '1', date: '11/02/2026 19:31:51', refNo: 'IPAY2026/02/0609', amount: 250.00, type: 'mada' }
+            ]);
+        }
+    }, [showPayments]);
+
+    const handleFilter = () => { setAppliedFilters(filters); };
+
+    const handleReset = () => {
+        const initialFilters = { refNo: '', invoiceNo: '', customer: '', branch: '', fromDate: '', toDate: '', grandTotal: '', deliveryCompany: 'all' };
+        setFilters(initialFilters);
+        setAppliedFilters(initialFilters);
+    };
+
+    const filteredSales = safeSales.filter(sale => {
+        if (!sale) return false;
+        return (
+            (appliedFilters.refNo ? sale.refNo?.toLowerCase().includes(appliedFilters.refNo.toLowerCase()) : true) &&
+            (appliedFilters.invoiceNo ? sale.invoiceNo?.includes(appliedFilters.invoiceNo) : true) &&
+            (appliedFilters.customer ? sale.customer?.toLowerCase().includes(appliedFilters.customer.toLowerCase()) : true) &&
+            (appliedFilters.branch ? sale.cashier?.toLowerCase().includes(appliedFilters.branch.toLowerCase()) : true) &&
+            (searchTerm ? (sale.invoiceNo?.includes(searchTerm) || sale.refNo?.toLowerCase().includes(searchTerm.toLowerCase()) || sale.customer?.includes(searchTerm)) : true)
+        );
+    });
+
+    const duplicateSale = (sale: any) => {
+        const { id, ...saleData } = sale;
+        const newSale = {
+            ...saleData,
+            invoiceNo: (parseInt(safeSales[0]?.invoiceNo || '0') + 1).toString(),
+            date: new Date().toLocaleString('en-GB'),
+        };
+        addSale(newSale);
         setActiveActionMenu(null);
-      }
     };
-    window.addEventListener('click', handleClickOutside);
-    return () => window.removeEventListener('click', handleClickOutside);
-  }, []);
 
-  // Modal States
-  const [showInvoiceDetails, setShowInvoiceDetails] = useState<SaleRecord | null>(null);
-  const [showFilters, setShowFilters] = useState(true);
-  const [showPayments, setShowPayments] = useState<SaleRecord | null>(null);
-  const [showEditPayment, setShowEditPayment] = useState<Payment | null>(null);
-  const [showPaymentReceipt, setShowPaymentReceipt] = useState<Payment | null>(null);
-  const [salePayments, setSalePayments] = useState<Payment[]>([]);
-  const [showStoreBond, setShowStoreBond] = useState<SaleRecord | null>(null);
-  const [showClaimBond, setShowClaimBond] = useState<SaleRecord | null>(null);
-  const [showAddDelivery, setShowAddDelivery] = useState<SaleRecord | null>(null);
+    const paginatedSales = filteredSales.slice((currentPage - 1) * showCount, currentPage * showCount);
 
-  const [filters, setFilters] = useState({
-    refNo: '',
-    invoiceNo: '',
-    customer: '',
-    branch: '',
-    fromDate: '',
-    toDate: '',
-    grandTotal: '',
-    deliveryCompany: 'all',
-  });
-
-  const [appliedFilters, setAppliedFilters] = useState(filters);
-
-  React.useEffect(() => {
-    if (showPayments) {
-      // مافيش Payments endpoint عندك هنا، فسيبناه demo زي ما كان
-      setSalePayments([
-        { id: '1', date: '11/02/2026 19:31:51', refNo: 'IPAY2026/02/0609', amount: 250.0, type: 'mada' },
-      ]);
-    }
-  }, [showPayments]);
-
-  function mapApiToSaleRecord(o: SalesOrderDTO): SaleRecord {
-    const orderNumber = o.orderNumber ?? String(o.id);
-
-    return {
-      id: String(o.id),
-
-      // نحافظ على نفس الديزاين: invoiceNo/refNo/date/cashier/customer...
-      invoiceNo: orderNumber, // هنعتبر رقم الطلب هو رقم الفاتورة في الجدول
-      refNo: orderNumber, // نفس الفكرة
-      date: formatDateTimeFromISO(o.orderDate),
-      cashier: o.warehouseName || '--',
-      customer: o.customerName || '--',
-
-      // مش موجودين في API: نخليهم افتراضي بدون ما نغير الديزاين
-      saleStatus: 'completed',
-      grandTotal: safeNumber(o.grandTotal),
-      paid: 0,
-      remaining: safeNumber(o.grandTotal),
-      paymentStatus: 'unpaid',
-      paymentType: 'mada',
-
-      // إضافات داخلية (مش بتغير UI)
-      apiOrderStatus: o.orderStatus,
-      subTotal: safeNumber(o.subTotal),
-      taxAmount: safeNumber(o.taxAmount),
-      discountAmount: safeNumber(o.discountAmount),
-      warehouseName: o.warehouseName,
-      orderNumber: o.orderNumber,
-      orderDateISO: o.orderDate,
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) setSelectedItems(filteredSales.map(s => s.id));
+        else setSelectedItems([]);
     };
-  }
 
-  async function fetchSalesOrders() {
-    setLoading(true);
-    setLoadError('');
-    try {
-      const controller = new AbortController();
-      const res = await fetch(`${API_BASE}/api/SalesOrders`, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-        signal: controller.signal,
-      });
-
-      if (!res.ok) {
-        const text = await res.text().catch(() => '');
-        throw new Error(`API Error (${res.status}): ${text || res.statusText}`);
-      }
-
-      const data = (await res.json()) as SalesOrderDTO[];
-      const mapped = Array.isArray(data) ? data.map(mapApiToSaleRecord) : [];
-      setSales(mapped);
-    } catch (e: any) {
-      setLoadError(e?.message || 'Failed to load sales orders');
-      setSales([]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    fetchSalesOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // ✅ زر "إكمال العملية" لازم يطبّق الفلاتر مش يضيف عملية وهمية
-  const handleFilter = () => {
-    setAppliedFilters(filters);
-  };
-
-  const handleReset = () => {
-    const initialFilters = {
-      refNo: '',
-      invoiceNo: '',
-      customer: '',
-      branch: '',
-      fromDate: '',
-      toDate: '',
-      grandTotal: '',
-      deliveryCompany: 'all',
+    const handleSelectItem = (id: string) => {
+        setSelectedItems(prev => prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]);
     };
-    setFilters(initialFilters);
-    setAppliedFilters(initialFilters);
-    setSearchTerm('');
-  };
 
-  const filteredSales = sales
-    .filter((sale) => {
-      return (
-        (appliedFilters.refNo ? sale.refNo.toLowerCase().includes(appliedFilters.refNo.toLowerCase()) : true) &&
-        (appliedFilters.invoiceNo ? sale.invoiceNo.includes(appliedFilters.invoiceNo) : true) &&
-        (appliedFilters.customer ? sale.customer.toLowerCase().includes(appliedFilters.customer.toLowerCase()) : true) &&
-        (appliedFilters.branch ? sale.cashier.toLowerCase().includes(appliedFilters.branch.toLowerCase()) : true) &&
-        (appliedFilters.fromDate
-          ? new Date(sale.orderDateISO || sale.date.split(' ')[0].split('/').reverse().join('-')) >= new Date(appliedFilters.fromDate)
-          : true) &&
-        (appliedFilters.toDate
-          ? new Date(sale.orderDateISO || sale.date.split(' ')[0].split('/').reverse().join('-')) <= new Date(appliedFilters.toDate)
-          : true) &&
-        (appliedFilters.grandTotal ? sale.grandTotal >= parseFloat(appliedFilters.grandTotal) : true) &&
-        (searchTerm
-          ? sale.invoiceNo.includes(searchTerm) ||
-            sale.refNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            sale.customer.includes(searchTerm)
-          : true)
-      );
-    })
-    .slice(0, showCount);
+    return (
+        <div className="space-y-4 pb-12" dir={direction}>
 
-  const duplicateSale = (sale: SaleRecord) => {
-    // ملاحظة: مافيش POST endpoint هنا، فهتفضل duplicate للـ UI فقط (زي ما كان)
-    const newSale = {
-      ...sale,
-      id: Math.random().toString(36).substr(2, 9),
-      invoiceNo: sale.invoiceNo + '_copy',
-      refNo: sale.refNo + '_copy',
-      date: new Date().toLocaleString('en-GB'),
-    };
-    setSales((prevSales) => [newSale, ...prevSales]);
-    setActiveActionMenu(null);
-  };
+            <div className="text-sm text-gray-500 flex items-center gap-1 font-medium px-2">
+                <span className="cursor-pointer hover:text-[var(--primary)]" onClick={() => navigate('/')}>{t('home')}</span>
+                <span>/</span>
+                <span className="text-gray-800">{t('sales')}</span>
+            </div>
 
-  const totals = filteredSales.reduce(
-    (acc, sale) => ({
-      grandTotal: acc.grandTotal + sale.grandTotal,
-      paid: acc.paid + sale.paid,
-      remaining: acc.remaining + sale.remaining,
-    }),
-    { grandTotal: 0, paid: 0, remaining: 0 }
-  );
-
-  return (
-    <div className="space-y-4">
-      {/* Breadcrumb */}
-      <div className="text-sm text-gray-500 flex items-center gap-1 px-2">
-        <span>{t('home')}</span>
-        <span>/</span>
-        <span className="text-gray-800 font-medium">{t('sales')}</span>
-      </div>
-
-      {/* Page Header */}
-      <div className="bg-white p-4 rounded-t-xl border-b border-gray-200 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <button className="p-2 bg-white border border-gray-300 rounded-lg text-gray-800 hover:bg-gray-50 transition-colors shadow-sm">
-            <Menu size={20} />
-          </button>
-          <h1 className="text-lg font-bold text-primary">{t('sales_all_branches')}</h1>
-
-          {/* ✅ زر Refresh صغير بدون تغيير ديزاين كبير */}
-          <button
-            onClick={fetchSalesOrders}
-            className="ms-2 p-2 bg-white border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors shadow-sm"
-            title="Reload"
-          >
-            <RotateCcw size={18} />
-          </button>
-        </div>
-
-        <div className="flex items-center gap-1">
-          {/* Arrow Up/Down Icon - Toggle Filters */}
-          <button
-            className="p-1.5 bg-white text-primary hover:bg-primary/10 rounded border border-gray-200 w-9 h-9 flex items-center justify-center transition-colors"
-            onClick={() => setShowFilters(!showFilters)}
-            title={t('filter_results')}
-          >
-            {showFilters ? <ArrowUp size={18} /> : <ArrowDown size={18} />}
-          </button>
-
-          {/* List Icon with Dropdown */}
-          <div className="relative action-menu-container">
-            <button
-              className="p-1.5 bg-white text-gray-600 hover:bg-gray-100 rounded border border-gray-200 w-9 h-9 flex items-center justify-center transition-colors"
-              onClick={() => setActiveActionMenu(activeActionMenu === 'actions' ? null : 'actions')}
-            >
-              <ListIcon size={18} />
-            </button>
-            {activeActionMenu === 'actions' && (
-              <div className="absolute z-50 top-full end-0 mt-2 bg-white rounded-md shadow-xl border border-gray-100 min-w-[220px] overflow-hidden">
-                <div className="flex flex-col">
-                  <button
-                    onClick={() => {
-                      navigate('/sales/create');
-                      setActiveActionMenu(null);
-                    }}
-                    className="w-full text-right p-3 hover:bg-gray-50 flex items-center justify-end gap-3 border-b border-gray-50 transition-colors"
-                  >
-                    <span className="font-bold text-gray-800">{t('add_sale_operation')}</span>
-                    <PlusCircle size={18} className="text-gray-600" />
-                  </button>
-                  <button className="w-full text-right p-3 hover:bg-gray-50 flex items-center justify-end gap-3 border-b border-gray-50 transition-colors">
-                    <span className="text-gray-700">تصدير إلى ملف Excel</span>
-                    <FileSpreadsheet size={18} className="text-green-600" />
-                  </button>
-                  <button className="w-full text-right p-3 hover:bg-gray-50 flex items-center justify-end gap-3 transition-colors">
-                    <span className="text-gray-700">تصدير إلى ملف pdf</span>
-                    <FileText size={18} className="text-primary" />
-                  </button>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex items-center gap-2">
+                    <div className="p-2 bg-white border border-gray-300 rounded-lg text-[#00a651] shadow-sm">
+                        <ShoppingCart size={20} />
+                    </div>
+                    <h1 className="text-xl font-bold text-gray-800">
+                        {t('sales_all_branches')}
+                    </h1>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Content Container */}
-      <div className="bg-white rounded-b-xl shadow-sm border border-gray-200 p-6">
-        <p className="text-sm text-primary mb-6 text-right font-medium">{t('sales_table_desc')}</p>
-
-        {/* ✅ Loading / Error (خفيف جداً بدون تغيير ديزاين) */}
-        {loading && (
-          <div className="mb-4 text-sm text-gray-600 text-right">
-            {direction === 'rtl' ? 'جاري تحميل البيانات...' : 'Loading...'}
-          </div>
-        )}
-        {loadError && (
-          <div className="mb-4 text-sm text-red-600 text-right">
-            {direction === 'rtl' ? 'خطأ في تحميل البيانات: ' : 'Load error: '}
-            {loadError}
-          </div>
-        )}
-
-        {/* Table Controls */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6" dir={direction}>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">{t('show')}</span>
-            <select
-              value={showCount}
-              onChange={(e) => setShowCount(Number(e.target.value))}
-              className="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-primary bg-white"
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-          </div>
-          <div className="relative w-full md:w-80 flex items-center gap-2">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder={t('search_placeholder')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full border border-gray-300 rounded px-3 py-1.5 text-sm outline-none focus:border-primary text-right"
-              />
-            </div>
-            <span className="text-sm text-gray-600 whitespace-nowrap">{t('search')}</span>
-          </div>
-        </div>
-
-        {/* Filters */}
-        {showFilters && (
-          <div className="p-4 bg-gray-100 rounded-md my-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div>
-                <label htmlFor="ref_no" className="block text-sm font-medium text-gray-700 text-right">
-                  {t('ref_no')}
-                </label>
-                <input
-                  type="text"
-                  id="ref_no"
-                  value={filters.refNo}
-                  onChange={(e) => setFilters({ ...filters, refNo: e.target.value })}
-                  className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="invoice_no" className="block text-sm font-medium text-gray-700 text-right">
-                  {t('invoice_no')}
-                </label>
-                <input
-                  type="text"
-                  id="invoice_no"
-                  value={filters.invoiceNo}
-                  onChange={(e) => setFilters({ ...filters, invoiceNo: e.target.value })}
-                  className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="customer" className="block text-sm font-medium text-gray-700 text-right">
-                  {t('customer')}
-                </label>
-                <input
-                  type="text"
-                  id="customer"
-                  value={filters.customer}
-                  onChange={(e) => setFilters({ ...filters, customer: e.target.value })}
-                  className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder={direction === 'rtl' ? 'اسم العميل' : 'Customer name'}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="branch" className="block text-sm font-medium text-gray-700 text-right">
-                  {t('branch')}
-                </label>
-                <input
-                  type="text"
-                  id="branch"
-                  value={filters.branch}
-                  onChange={(e) => setFilters({ ...filters, branch: e.target.value })}
-                  className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder={direction === 'rtl' ? 'المستودع' : 'Warehouse'}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="from_date" className="block text-sm font-medium text-gray-700 text-right">
-                  {t('from_date')}
-                </label>
-                <input
-                  type="date"
-                  id="from_date"
-                  value={filters.fromDate}
-                  onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })}
-                  className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="to_date" className="block text-sm font-medium text-gray-700 text-right">
-                  {t('to_date')}
-                </label>
-                <input
-                  type="date"
-                  id="to_date"
-                  value={filters.toDate}
-                  onChange={(e) => setFilters({ ...filters, toDate: e.target.value })}
-                  className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="grand_total" className="block text-sm font-medium text-gray-700 text-right">
-                  {t('grand_total')}
-                </label>
-                <input
-                  type="text"
-                  id="grand_total"
-                  value={filters.grandTotal}
-                  onChange={(e) => setFilters({ ...filters, grandTotal: e.target.value })}
-                  className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="delivery_companies" className="block text-sm font-medium text-gray-700 text-right">
-                  {t('delivery_companies')}
-                </label>
-                <select
-                  id="delivery_companies"
-                  value={filters.deliveryCompany}
-                  onChange={(e) => setFilters({ ...filters, deliveryCompany: e.target.value })}
-                  className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option value="all">{t('all')}</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-end mt-4 gap-2">
-              <button className="px-4 py-2 bg-gray-500 text-white rounded-md" onClick={handleReset}>
-                {t('reset_form')}
-              </button>
-              <button className="px-4 py-2 bg-primary text-white rounded-md" onClick={handleFilter}>
-                {t('complete_process')}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Table */}
-        <div className="overflow-x-auto pb-64">
-          <table className="w-full min-w-[1200px] text-sm text-right border-collapse">
-            <thead>
-              <tr className="bg-primary text-white">
-                <th className="p-3 border border-primary-hover w-10 text-center">
-                  <input type="checkbox" className="rounded border-gray-300" />
-                </th>
-                <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('invoice_no')}</th>
-                <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('date')}</th>
-                <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('ref_no')}</th>
-                <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('cashier')}</th>
-                <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('customer')}</th>
-                <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('sale_status')}</th>
-                <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('grand_total')}</th>
-                <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('paid')}</th>
-                <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('remaining_amount')}</th>
-                <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('payment_status')}</th>
-                <th className="p-3 border border-[#a52a2a] whitespace-nowrap">{t('payment_type')}</th>
-                <th className="p-3 border border-[#a52a2a] whitespace-nowrap w-24 text-center">{t('actions')}</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {filteredSales.map((sale, index) => (
-                <tr key={`${sale.id}-${index}`} className="hover:bg-gray-50 transition-colors border-b border-gray-200">
-                  <td className="p-3 text-center border-x border-gray-200">
-                    <input type="checkbox" className="rounded border-gray-300" />
-                  </td>
-
-                  <td className="p-3 border-x border-gray-200 font-medium">{sale.invoiceNo}</td>
-                  <td className="p-3 border-x border-gray-200 text-gray-600">{sale.date}</td>
-                  <td className="p-3 border-x border-gray-200 text-gray-600">{sale.refNo}</td>
-                  <td className="p-3 border-x border-gray-200">{sale.cashier}</td>
-                  <td className="p-3 border-x border-gray-200">{sale.customer}</td>
-
-                  <td className="p-3 border-x border-gray-200">
-                    <span
-                      className={cn(
-                        'px-2 py-1 rounded text-xs font-medium text-white',
-                        sale.saleStatus === 'completed' ? 'bg-green-600' : 'bg-red-500'
-                      )}
-                      title={sale.apiOrderStatus || ''}
-                    >
-                      {t(sale.saleStatus)}
-                    </span>
-                  </td>
-
-                  <td className="p-3 border-x border-gray-200 font-bold">{sale.grandTotal.toFixed(2)}</td>
-                  <td className="p-3 border-x border-gray-200">{sale.paid.toFixed(2)}</td>
-                  <td className="p-3 border-x border-gray-200">{sale.remaining.toFixed(2)}</td>
-
-                  <td className="p-3 border-x border-gray-200">
-                    <span className={cn('text-white px-2 py-1 rounded text-xs', sale.paymentStatus === 'paid' ? 'bg-green-600' : sale.paymentStatus === 'partial' ? 'bg-yellow-600' : 'bg-gray-500')}>
-                      {t(sale.paymentStatus)}
-                    </span>
-                  </td>
-
-                  <td className="p-3 border-x border-gray-200">
-                    {sale.paymentType === 'mada' && (
-                      <div className="flex items-center gap-1">
-                        <img
-                          src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Mada_Logo.svg/1200px-Mada_Logo.svg.png"
-                          alt="mada"
-                          className="h-4"
-                        />
-                        <span className="text-xs text-gray-500">{t('mada')}</span>
-                      </div>
-                    )}
-                  </td>
-
-                  <td className={cn('p-3 border-x border-gray-200 text-center relative action-menu-container', activeActionMenu === sale.id && 'z-[60]')}>
+                <div className="flex items-center gap-2">
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveActionMenu(activeActionMenu === sale.id ? null : sale.id);
-                      }}
-                      className="bg-primary text-white px-3 py-1 rounded text-xs flex items-center gap-1 mx-auto hover:bg-primary-hover transition-colors"
+                        className="p-2 bg-white text-[#00a651] hover:bg-green-50 rounded-lg border border-gray-200 transition-colors shadow-sm"
+                        onClick={() => setShowFilters(!showFilters)}
+                        title={t('filter_results')}
                     >
-                      {t('actions')}
-                      <ChevronDown size={14} />
+                        {showFilters ? <ArrowUp size={18} /> : <ArrowDown size={18} />}
                     </button>
 
-                    {activeActionMenu === sale.id && (
-                      <div className="absolute left-0 top-full mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-xl z-50 py-1 text-right">
+                    {/* القائمة العلوية الذكية (تفتح يمين في العربي ويسار في الإنجليزي) */}
+                    <div className='relative action-menu-container'>
                         <button
-                          onClick={() => {
-                            setShowInvoiceDetails(sale);
-                            setActiveActionMenu(null);
-                          }}
-                          className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2"
+                            className="p-2 bg-white text-gray-800 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors shadow-sm"
+                            onClick={() => setActiveActionMenu(activeActionMenu === 'header-actions' ? null : 'header-actions')}
                         >
-                          {t('invoice_details')}
-                          <FileText size={16} />
+                            <Menu size={18} />
                         </button>
+                        {activeActionMenu === 'header-actions' && (
+                            <div className={cn(
+                                'absolute z-50 top-full mt-2 bg-white rounded-xl shadow-xl border border-gray-100 min-w-[220px] overflow-hidden',
+                                direction === 'rtl' ? 'left-0' : 'right-0'
+                            )}>
+                                <div className='flex flex-col' dir={direction}>
+                                    <button onClick={() => { navigate('/sales/create-from-quote'); setActiveActionMenu(null); }} className='w-full px-4 py-3 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-50 transition-colors'>
+                                        <PlusCircle size={18} className="text-[#00a651] shrink-0" />
+                                        <span className="font-bold text-gray-800 flex-1 text-start">{t('add_sale_operation')}</span>
+                                    </button>
+                                    <button className='w-full px-4 py-3 hover:bg-gray-50 flex items-center gap-3 border-b border-gray-50 transition-colors'>
+                                        <FileSpreadsheet size={18} className="text-[#00a651] shrink-0" />
+                                        <span className="text-gray-700 font-medium flex-1 text-start">تصدير إلى ملف Excel</span>
+                                    </button>
+                                    <button className='w-full px-4 py-3 hover:bg-gray-50 flex items-center gap-3 transition-colors'>
+                                        <FileText size={18} className="text-[#00a651] shrink-0" />
+                                        <span className="text-gray-700 font-medium flex-1 text-start">تصدير إلى ملف pdf</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
 
-                        <button
-                          onClick={() => duplicateSale(sale)}
-                          className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2"
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 min-w-0">
+
+                <p className="text-sm font-bold text-gray-600 mb-6 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                    البيانات الظاهرة هي لآخر 30 يوم. برجاء استخدام النموذج لإظهار مزيد من النتائج
+                </p>
+
+                <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pb-4 border-b border-gray-100">
+                    <div className="relative w-full md:w-72">
+                        <input
+                            type="text"
+                            placeholder={t('search_placeholder')}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="takamol-input !py-2"
+                        />
+                        <Search className={cn("absolute top-1/2 -translate-y-1/2 text-gray-400", direction === 'rtl' ? "left-3" : "right-3")} size={18} />
+                    </div>
+                    <div className="flex items-center gap-2 text-sm font-bold text-gray-700 w-full md:w-auto justify-end">
+                        <span>{t('show')}</span>
+                        <select
+                            value={showCount}
+                            onChange={(e) => setShowCount(Number(e.target.value))}
+                            className="bg-gray-50 border border-gray-200 text-gray-800 rounded-lg focus:ring-[#00a651] focus:border-[#00a651] px-3 py-1.5 outline-none cursor-pointer"
                         >
-                          {t('duplicate_sale')}
-                          <PlusCircle size={16} />
-                        </button>
+                            <option value={10}>10</option>
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                        </select>
+                        <span>سجلات</span>
+                    </div>
+                </div>
 
-                        <button
-                          onClick={() => {
-                            setShowPayments(sale);
-                            setActiveActionMenu(null);
-                          }}
-                          className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2"
-                        >
-                          {t('view_payments')}
-                          <DollarSign size={16} />
-                        </button>
+                {showFilters && (
+                    <div className="p-5 bg-gray-50 border border-gray-100 rounded-xl mb-6 shadow-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div><label className='block text-sm font-bold text-gray-700 mb-1'>{t('ref_no')}</label><input type='text' value={filters.refNo} onChange={(e) => setFilters({ ...filters, refNo: e.target.value })} className='takamol-input' /></div>
+                            <div><label className='block text-sm font-bold text-gray-700 mb-1'>{t('invoice_no')}</label><input type='text' value={filters.invoiceNo} onChange={(e) => setFilters({ ...filters, invoiceNo: e.target.value })} className='takamol-input' /></div>
+                            <div><label className='block text-sm font-bold text-gray-700 mb-1'>{t('customer')}</label><select value={filters.customer} onChange={(e) => setFilters({ ...filters, customer: e.target.value })} className='takamol-input'><option value="">اختر عميل</option><option value="شخص عام">شخص عام</option></select></div>
+                            <div><label className='block text-sm font-bold text-gray-700 mb-1'>{t('branch')}</label><input type='text' value={filters.branch} onChange={(e) => setFilters({ ...filters, branch: e.target.value })} className='takamol-input' /></div>
+                            <div><label className='block text-sm font-bold text-gray-700 mb-1'>{t('from_date')}</label><input type='date' value={filters.fromDate} onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })} className='takamol-input' /></div>
+                            <div><label className='block text-sm font-bold text-gray-700 mb-1'>{t('to_date')}</label><input type='date' value={filters.toDate} onChange={(e) => setFilters({ ...filters, toDate: e.target.value })} className='takamol-input' /></div>
+                            <div><label className='block text-sm font-bold text-gray-700 mb-1'>{t('grand_total')}</label><input type='text' value={filters.grandTotal} onChange={(e) => setFilters({ ...filters, grandTotal: e.target.value })} className='takamol-input' /></div>
+                            <div><label className='block text-sm font-bold text-gray-700 mb-1'>{t('delivery_companies')}</label><select value={filters.deliveryCompany} onChange={(e) => setFilters({ ...filters, deliveryCompany: e.target.value })} className='takamol-input'><option value="all">{t('all')}</option></select></div>
+                        </div>
+                        <div className='flex justify-end mt-6 gap-3 pt-4 border-t border-gray-200'>
+                            <button className='px-6 py-2.5 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-bold transition-colors' onClick={handleReset}>{t('reset_form')}</button>
+                            <button className='px-8 py-2.5 bg-[#00a651] hover:bg-[#008f45] text-white rounded-lg font-bold transition-colors' onClick={handleFilter}>تطبيق الفلتر</button>
+                        </div>
+                    </div>
+                )}
 
-                        <button className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2">
-                          {t('add_payment')}
-                          <DollarSign size={16} />
-                        </button>
+                <div className="hidden md:block overflow-visible pb-32">
+                    <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                        <table className="takamol-table mb-0 w-full text-center text-sm">
+                            <thead className="bg-[#00a651] text-white">
+                                <tr>
+                                    <th className="w-10 text-center p-3 align-middle"><input type="checkbox" className="accent-white w-4 h-4 rounded" checked={selectedItems.length === filteredSales.length && filteredSales.length > 0} onChange={handleSelectAll} /></th>
+                                    <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">{t('invoice_no')}</th>
+                                    <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">{t('date')}</th>
+                                    <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">{t('ref_no')}</th>
+                                    <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">{t('cashier')}</th>
+                                    <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">{t('customer')}</th>
+                                    <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">حالة الفاتورة</th>
+                                    <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">{t('grand_total')}</th>
+                                    <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">{t('paid')}</th>
+                                    <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">المبلغ المتبقي</th>
+                                    <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">{t('payment_status')}</th>
+                                    <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">{t('payment_type')}</th>
+                                    <th className="w-32 text-center p-3 align-middle">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white">
+                                {paginatedSales.map((sale) => (
+                                    <tr
+                                        key={`desktop-${sale.id}`}
+                                        className="hover:bg-gray-50 transition-colors border-b border-gray-100 cursor-pointer"
+                                        onClick={() => setShowInvoiceDetails(sale)}
+                                    >
+                                        <td className="p-3 text-center border-l border-gray-100 align-middle" onClick={(e) => e.stopPropagation()}>
+                                            <input type="checkbox" className="accent-[#00a651] w-4 h-4 rounded" checked={selectedItems.includes(sale.id)} onChange={() => handleSelectItem(sale.id)} />
+                                        </td>
+                                        <td className="p-3 border-l border-gray-100 font-bold text-gray-800 align-middle">{sale.invoiceNo}</td>
+                                        <td className="p-3 border-l border-gray-100 text-gray-600 font-medium whitespace-nowrap align-middle" dir="ltr">
+                                            <div className="flex flex-col items-center justify-center leading-tight">
+                                                <span>{sale.date.split(' ')[0]}</span>
+                                                <span>{sale.date.split(' ')[1]}</span>
+                                            </div>
+                                        </td>
+                                        <td className="p-3 border-l border-gray-100 text-[#00a651] font-bold align-middle">{sale.refNo}</td>
+                                        <td className="p-3 border-l border-gray-100 text-gray-600 align-middle">
+                                            <div className="flex flex-col items-center justify-center leading-tight">
+                                                <span>شركة</span>
+                                                <span>اختيار</span>
+                                            </div>
+                                        </td>
+                                        <td className="p-3 border-l border-gray-100 font-bold text-gray-800 align-middle">
+                                            <div className="flex flex-col items-center justify-center leading-tight">
+                                                <span>شخص</span>
+                                                <span>عام</span>
+                                            </div>
+                                        </td>
+                                        <td className="p-3 border-l border-gray-100 align-middle">
+                                            <span className={cn("px-3 py-1 rounded-md text-xs font-bold inline-block", sale.saleStatus === 'completed' ? "bg-[#e6f4ea] text-[#00a651]" : "bg-orange-100 text-orange-700")}>
+                                                {t(sale.saleStatus)}
+                                            </span>
+                                        </td>
+                                        <td className="p-3 border-l border-gray-100 font-bold align-middle" dir="ltr">{(sale.grandTotal || 0).toFixed(2)}</td>
+                                        <td className="p-3 border-l border-gray-100 text-gray-600 font-medium align-middle" dir="ltr">{(sale.paid || 0).toFixed(2)}</td>
+                                        <td className="p-3 border-l border-gray-100 text-gray-600 font-medium align-middle" dir="ltr">{(sale.remaining || 0).toFixed(2)}</td>
+                                        <td className="p-3 border-l border-gray-100 align-middle">
+                                            <span className="bg-[#e6f4ea] text-[#00a651] px-3 py-1 rounded-md text-xs font-bold inline-block">{t(sale.paymentStatus)}</span>
+                                        </td>
+                                        <td className="p-3 border-l border-gray-100 font-bold text-gray-500 align-middle">
+                                            {sale.paymentType === 'mada' && (
+                                                <div className="flex flex-col justify-center items-center gap-1">
+                                                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Mada_Logo.svg/1200px-Mada_Logo.svg.png" alt="mada" className="h-3" />
+                                                    <span className="text-[10px]">مدى</span>
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="p-3 border-l border-gray-100 align-middle" onClick={(e) => e.stopPropagation()}>
+                                            <div className="flex justify-center items-center relative action-menu-container">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const rect = e.currentTarget.getBoundingClientRect();
+                                                        setMenuPosition({ top: rect.bottom + window.scrollY, left: rect.left + window.scrollX + (rect.width / 2) });
+                                                        setActiveActionMenu(activeActionMenu === sale.id ? null : sale.id);
+                                                    }}
+                                                    className="bg-[#00a651] hover:bg-[#008f45] text-white px-3 py-1.5 rounded-md text-xs font-bold flex items-center justify-center gap-1 transition-colors shadow-sm w-fit"
+                                                >
+                                                    الإجراءات <ChevronDown size={14} />
+                                                </button>
 
-                        <button
-                          onClick={() => {
-                            navigate(`/sales/return/${sale.id}`);
-                            setActiveActionMenu(null);
-                          }}
-                          className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2"
-                        >
-                          {t('return_sale')}
-                          <RotateCcw size={16} />
-                        </button>
+                                                {activeActionMenu === sale.id && menuPosition && createPortal(
+                                                    <div style={{ position: 'absolute', top: `${menuPosition.top}px`, left: `${menuPosition.left}px`, transform: 'translateX(-50%)' }} className="w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-[9999] py-2 overflow-y-auto max-h-[60vh] takamol-scrollbar" dir={direction}>
+                                                        <button onClick={() => { setShowInvoiceDetails(sale); setActiveActionMenu(null); }} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <FileText size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تفاصيل فاتورة المبيعات</span>
+                                                        </button>
+                                                        <button onClick={() => { duplicateSale(sale); setActiveActionMenu(null); }} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <Copy size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تكرار فاتورة المبيعات</span>
+                                                        </button>
+                                                        <button onClick={() => { setShowPayments(sale); setActiveActionMenu(null); }} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <DollarSign size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">عرض المدفوعات</span>
+                                                        </button>
+                                                        <button onClick={() => setActiveActionMenu(null)} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <PlusCircle size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">إضافة الدفع</span>
+                                                        </button>
+                                                        <button onClick={() => { navigate(`/sales/return/${sale.id}`); setActiveActionMenu(null); }} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <RotateCcw size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">إرجاع البيع</span>
+                                                        </button>
+                                                        <button onClick={() => { setShowStoreBond(sale); setActiveActionMenu(null); }} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <FileCheck size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">سند مخزني</span>
+                                                        </button>
+                                                        <button onClick={() => { setShowClaimBond(sale); setActiveActionMenu(null); }} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <Info size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">سند مطالبة</span>
+                                                        </button>
+                                                        <button onClick={() => { setShowAddDelivery(sale); setActiveActionMenu(null); }} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <Truck size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">إضافة تسليم</span>
+                                                        </button>
+                                                        <div className="h-px bg-gray-100 my-1 mx-4" />
+                                                        <button onClick={() => setActiveActionMenu(null)} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <Download size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تحميل بصيغة PDF</span>
+                                                        </button>
+                                                        <button onClick={() => setActiveActionMenu(null)} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <FileSpreadsheet size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تحميل كملف إكسل</span>
+                                                        </button>
+                                                        <button onClick={() => setActiveActionMenu(null)} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <FileJson size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تحميل بصيغة CSV</span>
+                                                        </button>
+                                                        <button onClick={() => setActiveActionMenu(null)} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <Mail size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">إرسال الفاتورة بالبريد الالكتروني</span>
+                                                        </button>
+                                                        <button onClick={() => setActiveActionMenu(null)} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <MessageCircle size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">إرسال الفاتورة عبر الواتس</span>
+                                                        </button>
+                                                        <button onClick={() => setActiveActionMenu(null)} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <FileMinus size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">سند فسخ</span>
+                                                        </button>
+                                                        <button onClick={() => setActiveActionMenu(null)} className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium">
+                                                            <UserCog size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تعديل المندوب / الموظف</span>
+                                                        </button>
+                                                        <div className="h-px bg-gray-100 my-1 mx-4" />
+                                                        <button onClick={() => { setBondToDelete(sale.id); setActiveActionMenu(null); }} className="w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors font-bold">
+                                                            <Trash2 size={16} className="shrink-0" /> <span className="flex-1 text-start">حذف الفاتورة</span>
+                                                        </button>
+                                                    </div>, document.body
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                {paginatedSales.length === 0 && (
+                                    <tr><td colSpan={13} className="p-8 text-center text-gray-500 font-bold">لا توجد بيانات مطابقة</td></tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-                        <button
-                          onClick={() => {
-                            setShowStoreBond(sale);
-                            setActiveActionMenu(null);
-                          }}
-                          className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2"
-                        >
-                          {t('store_bond')}
-                          <FileCheck size={16} />
+                <div className="flex flex-col md:flex-row justify-between items-center mt-6 gap-4 pt-4 border-t border-gray-100">
+                    <div className="text-sm font-bold text-[var(--primary)]">
+                        عرض 1 إلى {showCount} من {filteredSales.length} سجلات
+                    </div>
+                    <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                        <button disabled={currentPage === 1} onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))} className="px-4 py-2 hover:bg-gray-50 border-l border-gray-200 text-gray-600 flex items-center gap-1 font-bold text-sm transition-colors disabled:opacity-50">
+                            <ArrowRight className="w-4 h-4" /> السابق
                         </button>
+                        <button className="px-4 py-2 bg-[#00a651] text-white font-bold text-sm border-l border-gray-200">{currentPage}</button>
+                        <button disabled={currentPage * showCount >= filteredSales.length} onClick={() => setCurrentPage(prev => prev + 1)} className="px-4 py-2 hover:bg-gray-50 text-gray-600 flex items-center gap-1 font-bold text-sm transition-colors disabled:opacity-50">
+                            التالي <ArrowLeft className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-                        <button
-                          onClick={() => {
-                            setShowClaimBond(sale);
-                            setActiveActionMenu(null);
-                          }}
-                          className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2"
-                        >
-                          {t('claim_bond')}
-                          <Info size={16} />
-                        </button>
+            <AnimatePresence>
+                <ResponsiveModal key="invoice-details-modal" isOpen={!!showInvoiceDetails} onClose={() => setShowInvoiceDetails(null)} title={`${t('invoice_details')} ${showInvoiceDetails?.invoiceNo || ''}`} maxWidth="max-w-4xl">
+                    {showInvoiceDetails && (
+                        <div className="p-8 space-y-8" dir={direction}>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                <div className="space-y-2 text-right">
+                                    <h3 className="font-bold text-[#00a651]">{t('customer_default')}</h3>
+                                    <p className="text-sm text-gray-600">{t('phone')}: 00</p>
+                                    <p className="text-sm text-gray-600">{t('email')}: info@posit.sa</p>
+                                </div>
+                                <div className="flex justify-center">
+                                    <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center">
+                                        <LayoutGrid size={48} className="text-gray-300" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2 text-right">
+                                    <h3 className="font-bold text-[#00a651]">{t('test_company')}</h3>
+                                    <p className="text-sm text-gray-600">{t('cr_no')}: 1234123123</p>
+                                    <p className="text-sm text-gray-600">{t('vat_no')}: 50608090</p>
+                                </div>
+                            </div>
 
-                        <button
-                          onClick={() => {
-                            setShowAddDelivery(sale);
-                            setActiveActionMenu(null);
-                          }}
-                          className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2"
-                        >
-                          {t('add_delivery')}
-                          <Truck size={16} />
-                        </button>
+                            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                                <div className="text-right space-y-1">
+                                    <p className="text-sm font-bold text-[#00a651]">{t('ref_no')}: {showInvoiceDetails.refNo}</p>
+                                    <p className="text-xs text-gray-500">{t('date')}: {showInvoiceDetails.date}</p>
+                                </div>
+                                <div className="text-right space-y-1">
+                                    <p className="text-sm font-bold">{t('sale_status')}: <span className="text-[#00a651]">{t(showInvoiceDetails.saleStatus)}</span></p>
+                                    <p className="text-sm font-bold">{t('payment_status')}: <span className="text-[#00a651]">{t(showInvoiceDetails.paymentStatus)}</span></p>
+                                </div>
+                            </div>
 
-                        <div className="border-t border-gray-100 my-1" />
+                            <div className="overflow-x-auto rounded-xl border border-gray-200">
+                                <table className="w-full text-sm text-right border-collapse min-w-[800px]">
+                                    <thead>
+                                        <tr className="bg-[#00a651] text-white">
+                                            <th className="p-3 border-l border-white/20">{t('item_no')}</th>
+                                            <th className="p-3 border-l border-white/20">{t('description')}</th>
+                                            <th className="p-3 border-l border-white/20">{t('quantity')}</th>
+                                            <th className="p-3 border-l border-white/20">{t('unit_price')}</th>
+                                            <th className="p-3 border-l border-white/20">{t('total_without_vat')}</th>
+                                            <th className="p-3 border-l border-white/20">{t('vat')}</th>
+                                            <th className="p-3">{t('total_price')}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr className="border-b border-gray-200 bg-white">
+                                            <td className="p-3 border-x border-gray-100">1</td>
+                                            <td className="p-3 border-x border-gray-100">60990980 - عباية كريب مع اكمام مموجه</td>
+                                            <td className="p-3 border-x border-gray-100">-2.00 وحدة</td>
+                                            <td className="p-3 border-x border-gray-100">250.00</td>
+                                            <td className="p-3 border-x border-gray-100">500.00-</td>
+                                            <td className="p-3 border-x border-gray-100">0.00</td>
+                                            <td className="p-3 border-x border-gray-100 font-bold">500.00-</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
 
-                        <button className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2">
-                          {t('download_pdf')}
-                          <FileText size={16} />
-                        </button>
-                        <button className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2">
-                          {t('download_excel')}
-                          <FileSpreadsheet size={16} />
-                        </button>
-                        <button className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2">
-                          {t('download_csv')}
-                          <FileSpreadsheet size={16} />
-                        </button>
-                        <button className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2">
-                          {t('send_email')}
-                          <Mail size={16} />
-                        </button>
-                        <button className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2">
-                          {t('send_whatsapp')}
-                          <MessageCircle size={16} />
-                        </button>
-                        <button className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2">
-                          {t('release_bond')}
-                          <Truck size={16} />
-                        </button>
-                        <button className="w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center justify-end gap-2">
-                          {t('edit_delegate')}
-                          <Truck size={16} />
-                        </button>
-                      </div>
+                            <div className="flex flex-wrap gap-2 justify-center pt-4 border-t border-gray-100">
+                                <button className="bg-[#00a651] text-white px-6 py-2 rounded-md flex items-center gap-2 hover:bg-[#008f45] transition-colors">
+                                    <Printer size={18} /> {t('print')}
+                                </button>
+                                <button className="bg-[#00a651] text-white px-6 py-2 rounded-md flex items-center gap-2 hover:bg-[#008f45] transition-colors">
+                                    <Download size={18} /> {t('download_pdf')}
+                                </button>
+                                <button className="bg-[#00a651] text-white px-6 py-2 rounded-md flex items-center gap-2 hover:bg-[#008f45] transition-colors">
+                                    <Mail size={18} /> {t('send_email')}
+                                </button>
+                                <button className="bg-[#00a651] text-white px-6 py-2 rounded-md flex items-center gap-2 hover:bg-[#008f45] transition-colors">
+                                    <DollarSign size={18} /> {t('add_payment')}
+                                </button>
+                            </div>
+                        </div>
                     )}
-                  </td>
-                </tr>
-              ))}
+                </ResponsiveModal>
 
-              {!loading && !loadError && filteredSales.length === 0 && (
-                <tr>
-                  <td colSpan={13} className="p-6 text-center text-gray-500">
-                    {direction === 'rtl' ? 'لا توجد بيانات' : 'No data'}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                <ResponsiveModal key="payments-modal" isOpen={!!showPayments} onClose={() => setShowPayments(null)} title={t('payment_view_title').replace('{ref}', showPayments?.refNo || '')} maxWidth="max-w-4xl">
+                    {showPayments && (
+                        <div className="p-6" dir={direction}>
+                            <div className="overflow-x-auto rounded-xl border border-gray-200">
+                                <table className="w-full text-sm text-right border-collapse min-w-[600px]">
+                                    <thead>
+                                        <tr className="bg-[#00a651] text-white">
+                                            <th className="p-3 border-l border-white/20">{t('date')}</th>
+                                            <th className="p-3 border-l border-white/20">{t('ref_no')}</th>
+                                            <th className="p-3 border-l border-white/20">{t('paid')}</th>
+                                            <th className="p-3 border-l border-white/20">{t('payment_type')}</th>
+                                            <th className="p-3">{t('actions')}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-white">
+                                        {salePayments.map((payment) => (
+                                            <tr key={payment.id} className="border-b border-gray-100">
+                                                <td className="p-3 border-x border-gray-100">{payment.date}</td>
+                                                <td className="p-3 border-x border-gray-100">{payment.refNo}</td>
+                                                <td className="p-3 border-x border-gray-100 font-bold">{(payment.amount || 0).toFixed(2)}</td>
+                                                <td className="p-3 border-x border-gray-100">{t(payment.type)}</td>
+                                                <td className="p-3 border-x border-gray-100 flex justify-center gap-2">
+                                                    <button onClick={() => setSalePayments(salePayments.filter(p => p.id !== payment.id))} className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg"><Trash2 size={16} /></button>
+                                                    <button onClick={() => setShowEditPayment(payment)} className="text-blue-600 hover:bg-blue-50 p-1.5 rounded-lg"><Edit2 size={16} /></button>
+                                                    <button onClick={() => setShowPaymentReceipt(payment)} className="text-gray-600 hover:bg-gray-50 p-1.5 rounded-lg"><FileText size={16} /></button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </ResponsiveModal>
+
+                <ResponsiveModal key="edit-payment-modal" isOpen={!!showEditPayment} onClose={() => setShowEditPayment(null)} title={t('edit_payment')} maxWidth="max-w-2xl">
+                    {showEditPayment && (
+                        <div className="p-8 space-y-6 text-right" dir={direction}>
+                            <p className="text-sm text-[#00a651] font-bold">{t('edit_payment_desc')}</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2"><label className="text-sm font-bold">{t('date')} *</label><input type="text" defaultValue={showEditPayment.date} className="takamol-input" /></div>
+                                <div className="space-y-2"><label className="text-sm font-bold">{t('payment_ref')} *</label><input type="text" defaultValue={showEditPayment.refNo} className="takamol-input" /></div>
+                                <div className="space-y-2"><label className="text-sm font-bold">{t('paid')}</label><input type="number" defaultValue={showEditPayment.amount} className="takamol-input" /></div>
+                                <div className="space-y-2"><label className="text-sm font-bold">{t('paid_by')}</label><select className="takamol-input"><option value="mada">{t('mada')}</option><option value="cash">{t('cash')}</option><option value="bank_transfer">{t('bank_transfer')}</option></select></div>
+                            </div>
+                            <div className="flex justify-end pt-4"><button onClick={() => setShowEditPayment(null)} className="bg-[#00a651] text-white px-8 py-2.5 rounded-lg font-bold hover:bg-[#008f45]">{t('edit_payment')}</button></div>
+                        </div>
+                    )}
+                </ResponsiveModal>
+
+                <ResponsiveModal key="payment-receipt-modal" isOpen={!!showPaymentReceipt} onClose={() => setShowPaymentReceipt(null)} maxWidth="max-w-4xl" headerActions={<button className="flex items-center gap-1 px-4 py-1.5 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm font-bold"><Printer size={16} /> {t('print')}</button>}>
+                    {showPaymentReceipt && (
+                        <div className="p-10 space-y-8 text-right" dir={direction}>
+                            <div className="flex justify-between items-start">
+                                <div className="w-32 h-32 bg-gray-50 rounded-xl flex items-center justify-center border border-dashed border-gray-200"><LayoutGrid size={48} className="text-gray-300" /></div>
+                                <div className="space-y-1">
+                                    <h2 className="text-xl font-bold text-[#00a651]">{t('test_company')}</h2>
+                                    <p className="text-sm font-bold text-gray-600">الرياض - الملقا - سعود بن فيصل</p>
+                                    <p className="text-sm font-bold text-gray-600">السجل التجاري: 1234123123</p>
+                                </div>
+                            </div>
+                            <div className="bg-[#e6f4ea] text-[#00a651] p-3 rounded-lg text-center font-bold text-lg">{t('receipt_bond')}</div>
+                            <div className="flex justify-between font-bold text-gray-800"><p>{t('date')}: {showPaymentReceipt.date.split(' ')[0]}</p><p>{t('payment_ref')}: {showPaymentReceipt.refNo}</p></div>
+                        </div>
+                    )}
+                </ResponsiveModal>
+
+                <ResponsiveModal key="store-bond-modal" isOpen={!!showStoreBond} onClose={() => setShowStoreBond(null)} title={t('store_bond_title')} maxWidth="max-w-4xl" headerActions={<button className="flex items-center gap-1 px-4 py-1.5 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm font-bold"><Printer size={16} /> {t('print')}</button>}>
+                    {showStoreBond && (
+                        <div className="p-8 space-y-6" dir={direction}>
+                            <div className="text-right space-y-2">
+                                <p className="text-sm font-bold"><span className="text-gray-500">{t('cashier')}:</span> {showStoreBond.cashier}</p>
+                                <p className="text-sm font-bold"><span className="text-gray-500">{t('ref_no')}:</span> <span className="text-[#00a651]">{showStoreBond.refNo}</span></p>
+                            </div>
+                            <div className="overflow-x-auto rounded-xl border border-gray-200">
+                                <table className="w-full text-sm text-right border-collapse min-w-[500px]">
+                                    <thead className="bg-[#00a651] text-white"><tr><th className="p-3 border-l border-white/20">{t('name')}</th><th className="p-3 border-l border-white/20">{t('quantity')}</th><th className="p-3">{t('ref')}</th></tr></thead>
+                                    <tbody className="bg-white"><tr className="border-b border-gray-100"><td className="p-3 border-x border-gray-100 font-bold">60990980 - عباية كريب مع اكمام مموجه</td><td className="p-3 border-x border-gray-100 font-bold">-2.00</td><td className="p-3 border-x border-gray-100">003</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </ResponsiveModal>
+
+                <ResponsiveModal key="claim-bond-modal" isOpen={!!showClaimBond} onClose={() => setShowClaimBond(null)} maxWidth="max-w-4xl" headerActions={<button className="flex items-center gap-1 px-4 py-1.5 bg-gray-100 rounded-lg hover:bg-gray-200 text-sm font-bold"><Printer size={16} /> {t('print')}</button>}>
+                    {showClaimBond && (
+                        <div className="p-10 space-y-8 text-right" dir={direction}>
+                            <div className="bg-gray-100 p-4 rounded-xl text-center font-bold text-xl text-gray-800 border border-gray-200">{t('claim_letter_title')}</div>
+                            <div className="space-y-4 font-medium text-gray-700 leading-loose bg-gray-50 p-6 rounded-xl border border-gray-100">
+                                <p><span className="font-bold text-[#00a651]">المرسل:</span> {showClaimBond.cashier}</p>
+                                <p><span className="font-bold text-[#00a651]">المستلم:</span> {showClaimBond.customer}</p>
+                                <p className="pt-4 text-justify">نود تذكيركم بأن الفاتورة رقم <span className="font-bold text-gray-900">{showClaimBond.invoiceNo}</span> الصادرة بتاريخ <span className="font-bold text-gray-900">{showClaimBond.date}</span> المتعلقة بقيمة <span className="font-bold text-gray-900">{(showClaimBond.grandTotal || 0).toFixed(2)}</span> ريال لم يتم سدادها حتى الآن.</p>
+                            </div>
+                        </div>
+                    )}
+                </ResponsiveModal>
+
+                <ResponsiveModal key="add-delivery-modal" isOpen={!!showAddDelivery} onClose={() => setShowAddDelivery(null)} title={t('delivery_title')} maxWidth="max-w-4xl">
+                    {showAddDelivery && (
+                        <div className="p-8 space-y-6 text-right" dir={direction}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2"><label className="text-sm font-bold">{t('date')} *</label><input type="text" defaultValue="07:44:00 23/02/2026" className="takamol-input" /></div>
+                                <div className="space-y-2"><label className="text-sm font-bold">{t('delivery_status')} *</label><select className="takamol-input"><option>جاري العمل عليه</option><option>تم التوصيل</option></select></div>
+                                <div className="space-y-2"><label className="text-sm font-bold">{t('sale_ref')} *</label><input type="text" defaultValue={showAddDelivery.refNo} className="takamol-input font-bold text-[#00a651]" /></div>
+                                <div className="space-y-2"><label className="text-sm font-bold">{t('customer')} *</label><input type="text" defaultValue={showAddDelivery.customer} className="takamol-input" /></div>
+                            </div>
+                            <div className="flex justify-end pt-4"><button onClick={() => { setShowAddDelivery(null); navigate('/sales/deliveries'); }} className="bg-[#00a651] text-white px-8 py-2.5 rounded-lg font-bold hover:bg-[#008f45]">حفظ التوصيل</button></div>
+                        </div>
+                    )}
+                </ResponsiveModal>
+
+                <DeleteConfirmationModal
+                    key="delete-bond-modal"
+                    isOpen={bondToDelete !== null}
+                    onClose={() => setBondToDelete(null)}
+                    onConfirm={() => { deleteSale(bondToDelete!); setBondToDelete(null); setActiveActionMenu(null); }}
+                    itemName={t('this_bond')}
+                />
+            </AnimatePresence>
         </div>
-
-        {/* Pagination (UI ثابت زي ما هو) */}
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mt-6" dir={direction}>
-          <div className="text-sm text-gray-600">
-            {t('showing_records')} 1 {t('to')} {filteredSales.length} {t('of')} {sales.length} {t('records')}
-          </div>
-          <div className="flex items-center gap-1">
-            <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-gray-600 text-sm">{t('previous')}</button>
-            <button className="px-3 py-1 border border-primary bg-primary text-white rounded text-sm">1</button>
-            <button className="px-3 py-1 border border-gray-300 hover:bg-gray-50 rounded text-sm">2</button>
-            <button className="px-3 py-1 border border-gray-300 hover:bg-gray-50 rounded text-sm">3</button>
-            <button className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-gray-600 text-sm">{t('next')}</button>
-          </div>
-        </div>
-      </div>
-
-      {/* Modals (زي ما هي) */}
-      <AnimatePresence>
-       
-
-        {/* باقي المودالات زي ما هي في كودك — بدون تغيير */}
-        {showPayments && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-[100] flex items-center justify-center p-4"
-            onClick={() => setShowPayments(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl relative overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="p-4 flex justify-between items-center border-b border-gray-100">
-                <h2 className="text-lg font-bold text-primary">
-                  {t('payment_view_title').replace('{ref}', showPayments.refNo)}
-                </h2>
-                <button onClick={() => setShowPayments(null)} className="text-gray-400 hover:text-gray-600">
-                  <X size={24} />
-                </button>
-              </div>
-              <div className="p-6">
-                <table className="w-full text-sm text-right border-collapse">
-                  <thead>
-                    <tr className="bg-primary text-white">
-                      <th className="p-3 border border-primary-hover">{t('date')}</th>
-                      <th className="p-3 border border-primary-hover">{t('ref_no')}</th>
-                      <th className="p-3 border border-primary-hover">{t('paid')}</th>
-                      <th className="p-3 border border-primary-hover">{t('payment_type')}</th>
-                      <th className="p-3 border border-primary-hover">{t('actions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {salePayments.map((payment) => (
-                      <tr key={payment.id} className="border-b border-gray-200">
-                        <td className="p-3 border-x border-gray-200">{payment.date}</td>
-                        <td className="p-3 border-x border-gray-200">{payment.refNo}</td>
-                        <td className="p-3 border-x border-gray-200 font-bold">{payment.amount.toFixed(2)}</td>
-                        <td className="p-3 border-x border-gray-200">{t(payment.type)}</td>
-                        <td className="p-3 border-x border-gray-200 flex justify-center gap-2">
-                          <button
-                            onClick={() => setSalePayments(salePayments.filter((p) => p.id !== payment.id))}
-                            className="text-red-600 hover:bg-red-50 p-1 rounded"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                          <button onClick={() => setShowEditPayment(payment)} className="text-blue-600 hover:bg-blue-50 p-1 rounded">
-                            <Edit2 size={16} />
-                          </button>
-                          <button onClick={() => alert(t('email_sent_success'))} className="text-gray-600 hover:bg-gray-50 p-1 rounded">
-                            <Mail size={16} />
-                          </button>
-                          <button onClick={() => setShowPaymentReceipt(payment)} className="text-gray-600 hover:bg-gray-50 p-1 rounded">
-                            <FileText size={16} />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-              {showEditPayment && (
-          <motion.div 
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center p-4 overflow-y-auto"
-            onClick={() => setShowEditPayment(null)}
-          >
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl w-full max-w-2xl shadow-2xl relative overflow-hidden my-8"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="p-4 flex justify-between items-center border-b border-gray-100">
-                <h2 className="text-lg font-bold text-primary">{t('edit_payment')}</h2>
-                <button onClick={() => setShowEditPayment(null)} className="text-gray-400 hover:text-gray-600">
-                  <X size={24} />
-                </button>
-              </div>
-
-              <div className="p-8 space-y-6 text-right" dir={direction}>
-                <p className="text-sm text-red-600">{t('edit_payment_desc')}</p>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold">{t('date')} *</label>
-                    <input type="text"
-                      defaultValue={showEditPayment.date}
-                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold">{t('payment_ref')} *</label>
-                    <input type="text"
-                      defaultValue={showEditPayment.refNo}
-                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold">{t('paid')}</label>
-                    <input type="number"
-                      defaultValue={showEditPayment.amount}
-                      className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-bold">{t('paid_by')}</label>
-                    <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary bg-white">
-                      <option value="mada">{t('mada')}</option>
-                      <option value="cash">{t('cash')}</option>
-                      <option value="bank_transfer">{t('bank_transfer')}</option>
-                    </select>
-                  </div>
-
-                </div>
-
-                <div className="flex justify-start">
-                  <button
-                    onClick={() => setShowEditPayment(null)}
-                    className="bg-[#8b0000] text-white px-8 py-2 rounded-md font-bold hover:bg-[#a52a2a] transition-colors"
-                  >
-                    {t('edit_payment')}
-                  </button>
-                </div>
-
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-
-
-
-        {showPaymentReceipt && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-[110] flex items-center justify-center p-4 overflow-y-auto"
-            onClick={() => setShowPaymentReceipt(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl relative overflow-hidden my-8"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="p-4 flex justify-between items-center border-b border-gray-100">
-
-                <button className="flex items-center gap-1 px-3 py-1 border border-gray-200 rounded hover:bg-gray-50 text-sm">
-                  <Printer size={16}/> {t('print')}
-                </button>
-
-                <button onClick={() => setShowPaymentReceipt(null)}
-                  className="text-gray-400 hover:text-gray-600">
-                  <X size={24}/>
-                </button>
-
-              </div>
-
-              <div className="p-10 space-y-8 text-right" dir={direction}>
-
-                <div className="flex justify-between items-start">
-
-                  <div className="w-32 h-32 bg-gray-50 rounded-lg flex items-center justify-center border border-dashed border-gray-200">
-                    <LayoutGrid size={48} className="text-gray-300"/>
-                  </div>
-
-                  <div className="space-y-1">
-                    <h2 className="text-xl font-bold">{t('test_company')}</h2>
-                    <p className="text-sm text-gray-600">الرياض - الملقا - سعود بن فيصل</p>
-                    <p className="text-sm text-gray-600">السجل التجاري: 1234123123</p>
-                    <p className="text-sm text-gray-600">هاتف: 0146580073</p>
-                  </div>
-
-                </div>
-
-
-                <div className="bg-gray-200 p-3 rounded-lg text-center font-bold text-lg">
-                  {t('receipt_bond')}
-                </div>
-
-
-                <div className="flex justify-between font-bold">
-                  <p>{t('date')} : {showPaymentReceipt.date.split(' ')[0]}</p>
-                  <p>{t('payment_ref')} : {showPaymentReceipt.refNo}</p>
-                </div>
-
-
-                <div className="space-y-6 border border-gray-200 p-6 rounded-xl">
-
-                  <div className="flex items-center gap-4">
-                    <span className="font-bold whitespace-nowrap">{t('received_from')} :</span>
-                    <span className="flex-1 border-b border-dotted border-gray-400 pb-1 text-red-600">
-                      عميل افتراضي
-                    </span>
-                  </div>
-
-
-                  <div className="flex items-center gap-4">
-                    <span className="font-bold whitespace-nowrap">{t('amount_of')} :</span>
-                    <span className="flex-1 border-b border-dotted border-gray-400 pb-1 text-red-600">
-                      {showPaymentReceipt.amount.toFixed(2)}
-                    </span>
-                  </div>
-
-
-                  <div className="flex items-center gap-4">
-                    <span className="font-bold whitespace-nowrap">{t('payment_type')} :</span>
-                    <span className="flex-1 border-b border-dotted border-gray-400 pb-1 text-red-600">
-                      {t(showPaymentReceipt.type)}
-                    </span>
-                  </div>
-
-                </div>
-
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-          <InvoiceDetailsModal
-            open={!!showInvoiceDetails}
-            sale={showInvoiceDetails}
-            onClose={() => setShowInvoiceDetails(null)}
-            t={t}
-            direction={direction}
-            apiBase={API_BASE}
-            onAddPayment={(sale) => {
-              setShowInvoiceDetails(null);
-              setShowPayments(sale);
-            }}
-          />  
-     </AnimatePresence>
-    </div>
-  );
+    );
 }

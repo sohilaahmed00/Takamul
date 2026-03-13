@@ -163,7 +163,7 @@ export default function ReturnPOSSale() {
                </label>
                <button 
                 onClick={() => setShowItemsModal(true)}
-                className="bg-green-600 text-white px-4 py-2 rounded text-sm font-bold hover:bg-green-700"
+                className="bg-[var(--primary)] text-white px-4 py-2 rounded text-sm font-bold hover:bg-[var(--primary-hover)]"
                >
                   {t('view_invoice_items')}
                </button>
@@ -194,7 +194,7 @@ export default function ReturnPOSSale() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm text-center border-collapse">
                 <thead>
-                  <tr className="bg-primary text-white">
+                  <tr className="bg-[var(--table-header)] text-white">
                     <th className="p-3 border border-primary-hover w-10">
                       <Trash2 size={16} />
                     </th>
@@ -227,7 +227,7 @@ export default function ReturnPOSSale() {
           </div>
 
           {/* Payment Status Banner */}
-          <div className="bg-green-100 text-green-800 p-3 rounded-md text-right font-bold text-sm">
+          <div className="bg-[var(--primary)]/10 text-[var(--primary)] p-3 rounded-md text-right font-bold text-sm">
              {t('payment_status')}: paid & {t('amount_paid')} 400.00
           </div>
 
@@ -239,7 +239,7 @@ export default function ReturnPOSSale() {
                   <button 
                     onClick={() => removePayment(payment.id)}
                     className={cn(
-                        "absolute top-2 text-red-500 hover:text-red-700",
+                        "absolute top-2 text-[var(--primary)] hover:text-[var(--primary-hover)]",
                         direction === 'rtl' ? "left-2" : "right-2"
                     )}
                   >
@@ -340,7 +340,7 @@ export default function ReturnPOSSale() {
               <div className="overflow-hidden rounded-xl border border-gray-200">
                 <table className="w-full text-sm text-center border-collapse">
                   <thead>
-                    <tr className="bg-primary text-white">
+                    <tr className="bg-[var(--table-header)] text-white">
                       <th className="p-4 border border-primary-hover">{t('quantity')}</th>
                       <th className="p-4 border border-primary-hover">{t('unit_price')}</th>
                       <th className="p-4 border border-primary-hover">{t('product')} ({t('code')})</th>

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AUTH_API_BASE } from '@/lib/utils';
 
 export interface Supplier {
@@ -6,6 +6,8 @@ export interface Supplier {
   supplierCode?: number | null;
 
   supplierName: string;
+  name?: string; // legacy alias
+
   email?: string;
   phone?: string;
   mobile: string;
@@ -23,7 +25,7 @@ export interface Supplier {
   createdAt?: string;
   updatedAt?: string | null;
 
-  // UI-only optional
+  // UI-only / legacy fields
   commercialRegistration?: string;
   openingBalance?: number;
 }
@@ -44,17 +46,21 @@ interface SuppliersContextType {
 
 const SuppliersContext = createContext<SuppliersContextType | undefined>(undefined);
 
-export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const API_BASE = AUTH_API_BASE || 'http://takamulerp.runasp.net';
+
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const token = useMemo(() => localStorage.getItem('takamul_token'), []);
-
-  const authHeaders = () => ({
-    Accept: 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  });
+  const authHeaders = () => {
+    const token = localStorage.getItem('takamul_token');
+    return {
+      Accept: 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
 
   const parseApiError = async (res: Response) => {
     let msg = `status ${res.status}`;
@@ -67,6 +73,8 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         msg = `${msg} - ${lines}`;
       } else if (j?.title) {
         msg = `${msg} - ${j.title}`;
+      } else if (j?.message) {
+        msg = `${msg} - ${j.message}`;
       } else {
         msg = `${msg} - ${JSON.stringify(j)}`;
       }
@@ -80,62 +88,124 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return msg;
   };
 
-  const mapApiSupplier = (s: any): Supplier => ({
-    id: Number(s?.id ?? 0),
-    supplierCode: s?.supplierCode ?? null,
-    supplierName: String(s?.supplierName ?? ''),
+  const normalizeSupplier = (s: Partial<Supplier> & Record<string, any>): Supplier => {
+    const supplierName = String(s?.supplierName ?? s?.name ?? '').trim();
 
-    email: s?.email ? String(s.email) : '',
-    phone: s?.phone ? String(s.phone) : '',
-    mobile: String(s?.mobile ?? ''),
+    return {
+      id: Number(s?.id ?? 0),
+      supplierCode: s?.supplierCode ?? null,
 
-    address: String(s?.address ?? ''),
-    city: String(s?.city ?? ''),
-    state: String(s?.state ?? ''),
-    country: String(s?.country ?? ''),
-    postalCode: String(s?.postalCode ?? ''),
+      supplierName,
+      name: supplierName,
 
-    taxNumber: s?.taxNumber ? String(s.taxNumber) : '',
-    paymentTerms: s?.paymentTerms ?? null,
-    isActive: Boolean(s?.isActive ?? true),
+      email: s?.email ? String(s.email) : '',
+      phone: s?.phone ? String(s.phone) : '',
+      mobile: String(s?.mobile ?? s?.phone ?? ''),
 
-    createdAt: s?.createdAt ? String(s.createdAt) : '',
-    updatedAt: s?.updatedAt ?? null,
+      address: String(s?.address ?? ''),
+      city: String(s?.city ?? ''),
+      state: String(s?.state ?? ''),
+      country: String(s?.country ?? ''),
+      postalCode: String(s?.postalCode ?? ''),
 
-    // UI-only (لو عندك)
-    commercialRegistration: s?.commercialRegistration ?? '',
-    openingBalance: s?.openingBalance ?? 0,
-  });
+      taxNumber: s?.taxNumber ? String(s.taxNumber) : '',
+      paymentTerms: s?.paymentTerms ?? 30,
+      isActive: Boolean(s?.isActive ?? true),
+
+      createdAt: s?.createdAt ? String(s.createdAt) : '',
+      updatedAt: s?.updatedAt ?? null,
+
+      commercialRegistration: s?.commercialRegistration
+        ? String(s.commercialRegistration)
+        : '',
+      openingBalance: Number(s?.openingBalance ?? 0),
+    };
+  };
+
+  const saveLocalBackup = (list: Supplier[]) => {
+    try {
+      localStorage.setItem('takamul_suppliers', JSON.stringify(list));
+    } catch {}
+  };
+
+  const loadLocalBackup = (): Supplier[] => {
+    try {
+      const saved = localStorage.getItem('takamul_suppliers');
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.map(normalizeSupplier) : [];
+    } catch {
+      return [];
+    }
+  };
 
   const reload = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/Suppliers`, { headers: authHeaders() });
+      const res = await fetch(`${API_BASE}/api/Suppliers`, {
+        headers: authHeaders(),
+      });
+
       if (!res.ok) {
         console.warn('Failed to fetch suppliers. status:', res.status);
-        setSuppliers([]);
+        const localData = loadLocalBackup();
+        setSuppliers(localData);
         return;
       }
+
       const data = await res.json();
-      setSuppliers(Array.isArray(data) ? data.map(mapApiSupplier) : []);
+      const normalized = Array.isArray(data) ? data.map(normalizeSupplier) : [];
+      setSuppliers(normalized);
+      saveLocalBackup(normalized);
     } catch (e) {
       console.error('Error fetching suppliers', e);
-      setSuppliers([]);
+      const localData = loadLocalBackup();
+      setSuppliers(localData);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    const localData = loadLocalBackup();
+
+    if (localData.length) {
+      setSuppliers(localData);
+    } else {
+      setSuppliers([
+        normalizeSupplier({
+          id: 1,
+          supplierCode: 1,
+          supplierName: 'مورد عام',
+          name: 'مورد عام',
+          email: 'general@example.com',
+          phone: '966500000000',
+          mobile: '966500000000',
+          taxNumber: '1234567890',
+          address: '',
+          city: '',
+          state: '',
+          country: '',
+          postalCode: '',
+          isActive: true,
+          paymentTerms: 30,
+          commercialRegistration: '',
+          openingBalance: 0,
+        }),
+      ]);
+    }
+
     reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    saveLocalBackup(suppliers);
+  }, [suppliers]);
 
   const getSupplierById = (id: number) => suppliers.find((s) => s.id === id);
 
   const normalizePayload = (p: Partial<Supplier>) => {
-    // ✅ required fields fallback
-    const supplierName = String(p.supplierName ?? '').trim();
+    const supplierName = String(p.supplierName ?? p.name ?? '').trim();
     const mobile = String(p.mobile ?? p.phone ?? '').trim();
 
     const address = String(p.address ?? '').trim();
@@ -179,13 +249,20 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  const updateSupplier = async (id: number, updates: Partial<Supplier>): Promise<ApiResult> => {
+  const updateSupplier = async (
+    id: number,
+    updates: Partial<Supplier>
+  ): Promise<ApiResult> => {
     try {
-      // ✅ PUT غالباً بيحتاج required fields بالكامل
       const current = getSupplierById(id);
       if (!current) return { ok: false, message: 'المورد غير موجود' };
 
-      const merged: Supplier = { ...current, ...updates } as Supplier;
+      const merged = normalizeSupplier({
+        ...current,
+        ...updates,
+        supplierName: updates.supplierName ?? updates.name ?? current.supplierName,
+      });
+
       const body = normalizePayload(merged);
 
       const res = await fetch(`${API_BASE}/api/Suppliers/${id}`, {
@@ -220,7 +297,17 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   return (
-    <SuppliersContext.Provider value={{ suppliers, loading, reload, addSupplier, updateSupplier, deleteSupplier, getSupplierById }}>
+    <SuppliersContext.Provider
+      value={{
+        suppliers,
+        loading,
+        reload,
+        addSupplier,
+        updateSupplier,
+        deleteSupplier,
+        getSupplierById,
+      }}
+    >
       {children}
     </SuppliersContext.Provider>
   );

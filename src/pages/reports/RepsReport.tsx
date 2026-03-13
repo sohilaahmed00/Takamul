@@ -1,0 +1,143 @@
+import React, { useState } from 'react';
+import { 
+  Search, 
+  FileText, 
+  ChevronDown, 
+  ChevronUp,
+  ArrowRight,
+  ArrowLeft,
+  Users
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useLanguage } from '@/context/LanguageContext';
+
+const RepsReport = () => {
+  const { dir } = useLanguage();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Mock data based on the image
+  const reps = [
+    { id: '0001', name: 'عام', phone: '0', region: 'عام' },
+    { id: '345345', name: '35xcvsdf', phone: '0103055555', region: 'عام' }
+  ];
+
+  return (
+    <div className="p-6 bg-white min-h-screen" dir={dir}>
+      {/* Breadcrumbs */}
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+        <span>البداية</span>
+        <span>/</span>
+        <span>التقارير</span>
+        <span>/</span>
+        <span className="text-[var(--primary)] font-medium">تقرير المندوبين</span>
+      </div>
+
+      {/* Header */}
+      <div className="bg-white rounded-t-lg border border-gray-200 p-4">
+        <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+          <div className="flex items-center gap-2 text-[var(--primary)]">
+            <Users className="w-5 h-5" />
+            <h1 className="text-xl font-bold">المندوبين و الموظفين</h1>
+          </div>
+          <div className="flex gap-2">
+            <button className="p-1.5 hover:bg-gray-100 rounded text-[var(--primary)] border border-[var(--primary)]">
+              <FileText className="w-4 h-4" />
+            </button>
+            <button className="p-1.5 hover:bg-gray-100 rounded text-[var(--primary)] border border-[var(--primary)]">
+              <ChevronUp className="w-4 h-4" />
+            </button>
+            <button className="p-1.5 hover:bg-gray-100 rounded text-[var(--primary)] border border-[var(--primary)]">
+              <ChevronDown className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        
+        <p className="text-[var(--primary)] font-bold mb-6 text-center">عرض تقرير المندوبين</p>
+
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+          <div className="relative w-full md:w-64">
+            <input
+              type="text"
+              placeholder="بحث"
+              className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-right"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[var(--primary)]">اظهار</span>
+            <select 
+              className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+              value={itemsPerPage}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Table */}
+        <div className="overflow-x-auto border border-gray-200 rounded">
+          <table className="w-full text-right border-collapse">
+            <thead>
+              <tr className="bg-[var(--primary)] text-white">
+                <th className="p-3 border border-[var(--primary-hover)]">كود</th>
+                <th className="p-3 border border-[var(--primary-hover)]">اسم</th>
+                <th className="p-3 border border-[var(--primary-hover)]">هاتف</th>
+                <th className="p-3 border border-[var(--primary-hover)]">المنطقة</th>
+                <th className="p-3 border border-[var(--primary-hover)]">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              {reps.map((rep, index) => (
+                <tr key={rep.id} className={cn(index % 2 === 0 ? 'bg-white' : 'bg-[var(--primary)]/5')}>
+                  <td className="p-3 border border-gray-200 text-sm">{rep.id}</td>
+                  <td className="p-3 border border-gray-200 text-sm font-bold">{rep.name}</td>
+                  <td className="p-3 border border-gray-200 text-sm font-bold">{rep.phone}</td>
+                  <td className="p-3 border border-gray-200 text-sm font-bold">{rep.region}</td>
+                  <td className="p-3 border border-gray-200 text-sm">
+                    <button className="bg-[var(--primary)] text-white px-3 py-1 rounded text-xs font-bold hover:bg-[var(--primary-hover)] transition-colors">
+                      عرض التقرير
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {/* Footer Row */}
+              <tr className="bg-gray-100 font-bold text-gray-600">
+                <td className="p-3 border border-gray-200 text-xs">[كود]</td>
+                <td className="p-3 border border-gray-200 text-xs">[اسم]</td>
+                <td className="p-3 border border-gray-200 text-xs">[هاتف]</td>
+                <td className="p-3 border border-gray-200 text-xs">[المنطقة]</td>
+                <td className="p-3 border border-gray-200 text-xs">الإجراءات</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex flex-col md:flex-row justify-between items-center mt-4 gap-4">
+          <div className="flex items-center border border-gray-300 rounded overflow-hidden">
+            <button className="px-4 py-2 bg-white hover:bg-gray-100 border-l border-gray-300 text-gray-600 flex items-center gap-1">
+              <ArrowRight className="w-4 h-4" /> التالي
+            </button>
+            <button className="px-4 py-2 bg-[var(--primary)] text-white border-l border-gray-300">1</button>
+            <button className="px-4 py-2 bg-white hover:bg-gray-100 text-gray-600 flex items-center gap-1">
+              سابق <ArrowLeft className="w-4 h-4" />
+            </button>
+          </div>
+          <div className="text-[var(--primary)] font-bold">
+            عرض 1 إلى 2 من 2 سجلات
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default RepsReport;

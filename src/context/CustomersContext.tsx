@@ -2,9 +2,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { AUTH_API_BASE } from '@/lib/utils';
 
 export interface Customer {
-  id: number;            // DB id (used for PUT/DELETE)
-  customerCode: number;  // display code
+  id: number; // DB id
+  customerCode?: number; // API display code
+  code?: string; // legacy display code
   customerName: string;
+  name?: string; // legacy alias
 
   email?: string;
   phone?: string;
@@ -19,11 +21,12 @@ export interface Customer {
   isActive: boolean;
   createdAt?: string;
 
-  // UI-only (optional)
+  // UI-only / legacy fields
   pricingGroup?: string;
   customerGroup?: string;
   actualBalance?: number;
   totalPoints?: number;
+  commercialRegister?: string;
   creditLimit?: number;
   stopSellingOverdue?: boolean;
   isTaxable?: boolean;
@@ -36,7 +39,10 @@ interface CustomersContextType {
   loading: boolean;
   reload: () => Promise<void>;
 
-  addCustomer: (payload: Omit<Customer, 'id' | 'customerCode' | 'createdAt'>) => Promise<ApiResult>;
+  addCustomer: (
+    payload: Omit<Customer, 'id' | 'customerCode' | 'createdAt'>
+  ) => Promise<ApiResult>;
+
   deleteCustomer: (id: number) => Promise<ApiResult>;
   updateCustomer: (id: number, updates: Partial<Customer>) => Promise<ApiResult>;
 
@@ -45,13 +51,14 @@ interface CustomersContextType {
 
 const CustomersContext = createContext<CustomersContextType | undefined>(undefined);
 
-export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const API_BASE = AUTH_API_BASE || 'http://takamulerp.runasp.net';
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // ✅ always read token fresh (don’t memo it once)
   const authHeaders = () => {
     const token = localStorage.getItem('takamul_token');
     return {
@@ -64,6 +71,7 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     let msg = `status ${res.status}`;
     try {
       const j = await res.json();
+
       if (j?.errors) {
         const lines = Object.entries(j.errors)
           .map(([k, v]: any) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
@@ -71,6 +79,8 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         msg = `${msg} - ${lines}`;
       } else if (j?.title) {
         msg = `${msg} - ${j.title}`;
+      } else if (j?.message) {
+        msg = `${msg} - ${j.message}`;
       } else {
         msg = `${msg} - ${JSON.stringify(j)}`;
       }
@@ -84,49 +94,125 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     return msg;
   };
 
-  const mapApiCustomer = (c: any): Customer => ({
-    id: Number(c?.id ?? 0),
-    customerCode: Number(c?.customerCode ?? c?.customerCode ?? 0),
-    customerName: String(c?.customerName ?? ''),
+  const normalizeCustomer = (c: Partial<Customer> & Record<string, any>): Customer => {
+    const id = Number(c?.id ?? 0);
+    const customerCode = Number(c?.customerCode ?? 0);
+    const customerName = String(c?.customerName ?? c?.name ?? '');
+    const code =
+      c?.code?.toString?.() ??
+      (customerCode ? String(customerCode) : id ? String(id) : '');
 
-    email: c?.email ? String(c.email) : '',
-    phone: c?.phone ? String(c.phone) : '',
-    mobile: c?.mobile ? String(c.mobile) : '',
+    return {
+      id,
+      customerCode,
+      code,
+      customerName,
+      name: customerName,
 
-    address: String(c?.address ?? ''),
-    city: String(c?.city ?? ''),
-    state: String(c?.state ?? ''),
-    postalCode: c?.postalCode ? String(c.postalCode) : '',
-    taxNumber: c?.taxNumber ? String(c.taxNumber) : '',
+      email: c?.email ? String(c.email) : '',
+      phone: c?.phone ? String(c.phone) : '',
+      mobile: c?.mobile ? String(c.mobile) : '',
 
-    isActive: Boolean(c?.isActive ?? true),
-    createdAt: c?.createdAt ? String(c.createdAt) : '',
-  });
+      address: String(c?.address ?? ''),
+      city: String(c?.city ?? ''),
+      state: String(c?.state ?? ''),
+      postalCode: c?.postalCode ? String(c.postalCode) : '',
+      taxNumber: c?.taxNumber ? String(c.taxNumber) : '',
+
+      isActive: Boolean(c?.isActive ?? true),
+      createdAt: c?.createdAt ? String(c.createdAt) : '',
+
+      pricingGroup: c?.pricingGroup ?? 'عام',
+      customerGroup: c?.customerGroup ?? 'عام',
+      actualBalance: Number(c?.actualBalance ?? 0),
+      totalPoints: Number(c?.totalPoints ?? 0),
+      commercialRegister: c?.commercialRegister ? String(c.commercialRegister) : '',
+      creditLimit: Number(c?.creditLimit ?? 0),
+      stopSellingOverdue: Boolean(c?.stopSellingOverdue ?? false),
+      isTaxable: Boolean(c?.isTaxable ?? !!c?.taxNumber),
+    };
+  };
+
+  const saveLocalBackup = (list: Customer[]) => {
+    try {
+      localStorage.setItem('takamul_customers', JSON.stringify(list));
+    } catch {}
+  };
+
+  const loadLocalBackup = (): Customer[] => {
+    try {
+      const saved = localStorage.getItem('takamul_customers');
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed) ? parsed.map(normalizeCustomer) : [];
+    } catch {
+      return [];
+    }
+  };
 
   const reload = async () => {
     setLoading(true);
+
     try {
-      const res = await fetch(`${API_BASE}/api/Customer`, { headers: authHeaders() });
+      const res = await fetch(`${API_BASE}/api/Customer`, {
+        headers: authHeaders(),
+      });
+
       if (!res.ok) {
         console.warn('Failed to fetch customers. status:', res.status);
-        setCustomers([]);
+        const localData = loadLocalBackup();
+        setCustomers(localData);
         return;
       }
+
       const data = await res.json();
-      if (Array.isArray(data)) setCustomers(data.map(mapApiCustomer));
-      else setCustomers([]);
+      const normalized = Array.isArray(data) ? data.map(normalizeCustomer) : [];
+      setCustomers(normalized);
+      saveLocalBackup(normalized);
     } catch (e) {
       console.error('Error fetching customers', e);
-      setCustomers([]);
+      const localData = loadLocalBackup();
+      setCustomers(localData);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    const localData = loadLocalBackup();
+    if (localData.length) {
+      setCustomers(localData);
+    } else {
+      setCustomers([
+        normalizeCustomer({
+          id: 1,
+          code: '1',
+          customerCode: 1,
+          customerName: 'عميل افتراضي',
+          name: 'عميل افتراضي',
+          email: 'info@posit.sa',
+          phone: '00',
+          mobile: '00',
+          pricingGroup: 'عام',
+          customerGroup: 'عام',
+          taxNumber: '',
+          actualBalance: 0,
+          totalPoints: 0,
+          address: '',
+          city: '',
+          state: '',
+          postalCode: '',
+          isActive: true,
+        }),
+      ]);
+    }
+
     reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    saveLocalBackup(customers);
+  }, [customers]);
 
   const getCustomerById = (id: number) => customers.find((c) => c.id === id);
 
@@ -134,18 +220,27 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     payload: Omit<Customer, 'id' | 'customerCode' | 'createdAt'>
   ): Promise<ApiResult> => {
     try {
-      // ✅ required fields
+      const normalizedInput = normalizeCustomer({
+        ...payload,
+        id: 0,
+        customerName: payload.customerName ?? payload.name ?? '',
+        name: payload.name ?? payload.customerName ?? '',
+      });
+
       const body = {
-        customerName: payload.customerName?.trim(),
-        email: payload.email?.trim() ?? '',
-        phone: payload.phone?.trim() ?? '',
-        mobile: (payload.mobile?.trim() ?? payload.phone?.trim() ?? ''),
-        address: payload.address?.trim(),
-        city: payload.city?.trim(),
-        state: payload.state?.trim(),
-        postalCode: payload.postalCode?.trim() ?? '',
-        taxNumber: payload.taxNumber?.trim() ?? '',
-        isActive: payload.isActive ?? true,
+        customerName: normalizedInput.customerName.trim(),
+        email: normalizedInput.email?.trim() ?? '',
+        phone: normalizedInput.phone?.trim() ?? '',
+        mobile:
+          normalizedInput.mobile?.trim() ??
+          normalizedInput.phone?.trim() ??
+          '',
+        address: normalizedInput.address?.trim() ?? '',
+        city: normalizedInput.city?.trim() ?? '',
+        state: normalizedInput.state?.trim() ?? '',
+        postalCode: normalizedInput.postalCode?.trim() ?? '',
+        taxNumber: normalizedInput.taxNumber?.trim() ?? '',
+        isActive: normalizedInput.isActive ?? true,
       };
 
       const res = await fetch(`${API_BASE}/api/Customer`, {
@@ -163,35 +258,42 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
- const deleteCustomer = async (id: number): Promise<ApiResult> => {
-  try {
-    const cid = Number(id);
-    if (!Number.isFinite(cid) || cid <= 0) {
-      return { ok: false, message: 'id غير صحيح' };
+  const deleteCustomer = async (id: number): Promise<ApiResult> => {
+    try {
+      const cid = Number(id);
+      if (!Number.isFinite(cid) || cid <= 0) {
+        return { ok: false, message: 'id غير صحيح' };
+      }
+
+      const res = await fetch(`${API_BASE}/api/Customer/${cid}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+
+      if (!res.ok) return { ok: false, message: await parseApiError(res) };
+
+      await reload();
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, message: String(e) };
     }
+  };
 
-    const res = await fetch(`${API_BASE}/api/Customer/${cid}`, {
-      method: 'DELETE',
-      headers: authHeaders(),
-    });
-
-    if (!res.ok) return { ok: false, message: await parseApiError(res) };
-
-    await reload();
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, message: String(e) };
-  }
-};
-
-  const updateCustomer = async (id: number, updates: Partial<Customer>): Promise<ApiResult> => {
+  const updateCustomer = async (
+    id: number,
+    updates: Partial<Customer>
+  ): Promise<ApiResult> => {
     try {
       const current = getCustomerById(id);
       if (!current) return { ok: false, message: 'العميل غير موجود في القائمة' };
 
-      const merged: Customer = { ...current, ...updates };
+      const merged = normalizeCustomer({
+        ...current,
+        ...updates,
+        customerName:
+          updates.customerName ?? updates.name ?? current.customerName ?? current.name,
+      });
 
-      // ✅ PUT غالباً محتاج كل required fields
       const body = {
         customerName: String((merged.customerName ?? '').trim()),
         email: String((merged.email ?? '').trim()),
@@ -239,6 +341,8 @@ export const CustomersProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
 export const useCustomers = () => {
   const ctx = useContext(CustomersContext);
-  if (!ctx) throw new Error('useCustomers must be used within CustomersProvider');
+  if (!ctx) {
+    throw new Error('useCustomers must be used within CustomersProvider');
+  }
   return ctx;
 };

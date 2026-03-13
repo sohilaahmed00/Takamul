@@ -1,179 +1,136 @@
 import React, { useState } from 'react';
-import { DollarSign, Menu, Search, Link as LinkIcon, ChevronDown, ChevronUp } from 'lucide-react';
+import { DollarSign, Search, Link as LinkIcon, ChevronDown, Edit2, Trash2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { useNavigate } from 'react-router-dom';
+import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
+import Pagination from '@/components/Pagination';
 
 export default function ExpensesList() {
-  const { t, direction } = useLanguage();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [entriesCount, setEntriesCount] = useState(10);
+    const { t, direction, language } = useLanguage();
+    const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState('');
+    const [entriesCount, setEntriesCount] = useState(10);
+    const [expenseToDelete, setExpenseToDelete] = useState<string | null>(null);
 
-  return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-        <div className="flex items-center gap-3">
-          <button className="p-2 bg-green-700 text-white rounded-md hover:bg-green-800 transition-colors">
-            <Menu size={20} />
-          </button>
-        </div>
-        <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold text-gray-800">المصروفات</h1>
-          <DollarSign className="text-green-700" size={24} />
-        </div>
-      </div>
+    return (
+        <div className="p-4 space-y-6 pb-12" dir={direction}>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-        {/* Table Description */}
-        <div className="p-4 border-b border-gray-100 bg-gray-50/50">
-          <p className="text-sm text-gray-600 text-right">
-            الرجاء استخدام الجدول أدناه للتنقل أو تصفية النتائج.
-          </p>
-        </div>
-
-        {/* Controls */}
-        <div className="p-4 flex flex-col sm:flex-row justify-between items-center gap-4" dir="rtl">
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="text-sm text-gray-600">إظهار</span>
-            <div className="relative">
-              <select
-                value={entriesCount}
-                onChange={(e) => setEntriesCount(Number(e.target.value))}
-                className="appearance-none bg-white border border-gray-300 rounded-md py-1 pl-8 pr-3 focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
-                dir="ltr"
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
-              <ChevronDown size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+            {/* 1. استخدام أسطمبة الهيدر الجاهزة من الـ CSS الموحد */}
+            <div className="takamol-page-header">
+                <div className="flex items-center gap-3">
+                    <div className="bg-[#e6f4ea] border border-[#00a651]/20 p-2.5 rounded-xl text-[var(--primary)]">
+                        <DollarSign size={24} />
+                    </div>
+                    <div>
+                        <h1 className="takamol-page-title">{t('expenses')}</h1>
+                        <p className="takamol-page-subtitle">{t('please_use_table_below')}</p>
+                    </div>
+                </div>
             </div>
-          </div>
-          
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <span className="text-sm text-gray-600">بحث</span>
-            <div className="relative">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full sm:w-48 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-right text-sm"
-                dir="rtl"
-              />
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 md:p-6 min-h-[500px]">
+                <div className="space-y-6">
+
+                    {/* Controls: إظهار & بحث */}
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-gray-700">{t('show')}</span>
+                            <select
+                                value={entriesCount}
+                                onChange={(e) => setEntriesCount(Number(e.target.value))}
+                                className="takamol-input py-1.5 px-3 w-20"
+                            >
+                                <option value={10}>10</option>
+                                <option value={25}>25</option>
+                                <option value={50}>50</option>
+                                <option value={100}>100</option>
+                            </select>
+                        </div>
+
+                        {/* إصلاح مشكلة تداخل أيقونة البحث */}
+                        <div className="w-full md:w-72 flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:border-[var(--primary)] transition-colors shadow-sm">
+                            <Search className="text-gray-400 shrink-0 ml-2" size={18} />
+                            <input
+                                type="text"
+                                placeholder={t('search_placeholder')}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="flex-1 w-full bg-transparent text-sm outline-none text-gray-700 placeholder:text-gray-400"
+                            />
+                        </div>
+                    </div>
+
+                    {/* 2. السحر الحقيقي: استخدام الكلاسات الموحدة للجداول بالكيرف الدائري */}
+                    <div className="hidden md:block pb-10 w-full">
+                        <div className="takamol-table-container">
+                            <div className="overflow-x-auto">
+                                {/* تم حذف كلاسات border لأنها مدمجة في takamol-table */}
+                                <table className="takamol-table min-w-[900px]">
+                                    <thead>
+                                        <tr>
+                                            {/* تم إزالة خانة التحديد Checkbox بناءً على طلبك */}
+                                            <th>{t('date')}</th>
+                                            <th>{t('reference')}</th>
+                                            <th>{t('expense_category')}</th>
+                                            <th>{t('paid')}</th>
+                                            <th>{t('description')}</th>
+                                            <th>{t('data_entry_user')}</th>
+                                            <th className="w-10 text-center">
+                                                <LinkIcon size={16} className="mx-auto" />
+                                            </th>
+                                            <th className="w-24 text-center">{t('actions')}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td colSpan={8} className="p-8 text-center text-gray-500 font-bold">
+                                                {t('no_data_in_table')}
+                                            </td>
+                                        </tr>
+
+                                        {/* مثال لكيفية وضع زر التعديل عندما يكون هناك بيانات:
+                            <td className="relative action-menu-container">
+                                <button 
+                                  onClick={() => navigate('/products/create')} // مسار التعديل الذي طلبته
+                                  className="bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white px-4 py-2 rounded-md text-sm font-bold flex items-center justify-center gap-1.5 transition-colors shadow-sm mx-auto"
+                                >
+                                    خيارات <ChevronDown size={16} strokeWidth={2.5} />
+                                </button>
+                            </td> 
+                          */}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Mobile View */}
+                    <div className="md:hidden space-y-4">
+                        <div className="p-8 text-center text-gray-500 font-bold bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                            {t('no_data_in_table')}
+                        </div>
+                    </div>
+
+                    {/* Pagination Section */}
+                    <Pagination
+                        currentPage={1}
+                        totalPages={1}
+                        totalItems={0}
+                        itemsPerPage={entriesCount}
+                        onPageChange={() => { }}
+                    />
+                </div>
             </div>
-          </div>
-        </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-right" dir="rtl">
-            <thead>
-              <tr className="bg-[#0f5132] text-white">
-                <th className="p-3 w-12 text-center border-r border-white/10">
-                  <input type="checkbox" className="rounded border-gray-300" />
-                </th>
-                <th className="p-3 font-medium border-r border-white/10">
-                  <div className="flex items-center justify-between">
-                    <span>التاريخ</span>
-                    <div className="flex flex-col">
-                      <ChevronUp size={12} className="text-white/50 cursor-pointer hover:text-white" />
-                      <ChevronDown size={12} className="text-white/50 cursor-pointer hover:text-white" />
-                    </div>
-                  </div>
-                </th>
-                <th className="p-3 font-medium border-r border-white/10">
-                  <div className="flex items-center justify-between">
-                    <span>مرجع</span>
-                    <div className="flex flex-col">
-                      <ChevronUp size={12} className="text-white/50 cursor-pointer hover:text-white" />
-                      <ChevronDown size={12} className="text-white/50 cursor-pointer hover:text-white" />
-                    </div>
-                  </div>
-                </th>
-                <th className="p-3 font-medium border-r border-white/10">
-                  <div className="flex items-center justify-between">
-                    <span>تصنيف المصروف</span>
-                    <div className="flex flex-col">
-                      <ChevronUp size={12} className="text-white/50 cursor-pointer hover:text-white" />
-                      <ChevronDown size={12} className="text-white/50 cursor-pointer hover:text-white" />
-                    </div>
-                  </div>
-                </th>
-                <th className="p-3 font-medium border-r border-white/10">
-                  <div className="flex items-center justify-between">
-                    <span>المدفوع</span>
-                    <div className="flex flex-col">
-                      <ChevronUp size={12} className="text-white/50 cursor-pointer hover:text-white" />
-                      <ChevronDown size={12} className="text-white/50 cursor-pointer hover:text-white" />
-                    </div>
-                  </div>
-                </th>
-                <th className="p-3 font-medium border-r border-white/10">
-                  <div className="flex items-center justify-between">
-                    <span>وصف</span>
-                    <div className="flex flex-col">
-                      <ChevronUp size={12} className="text-white/50 cursor-pointer hover:text-white" />
-                      <ChevronDown size={12} className="text-white/50 cursor-pointer hover:text-white" />
-                    </div>
-                  </div>
-                </th>
-                <th className="p-3 font-medium border-r border-white/10">
-                  <div className="flex items-center justify-between">
-                    <span>مدخل البيانات</span>
-                    <div className="flex flex-col">
-                      <ChevronUp size={12} className="text-white/50 cursor-pointer hover:text-white" />
-                      <ChevronDown size={12} className="text-white/50 cursor-pointer hover:text-white" />
-                    </div>
-                  </div>
-                </th>
-                <th className="p-3 text-center border-r border-white/10">
-                  <LinkIcon size={16} className="mx-auto" />
-                </th>
-                <th className="p-3 font-medium text-center">الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {/* Empty State Row */}
-              <tr className="border-b border-gray-100 bg-gray-50/30">
-                <td colSpan={9} className="p-4 text-center text-sm text-gray-500">
-                  لا توجد بيانات في الجدول
-                </td>
-              </tr>
-              {/* Dummy Data Row (as seen in the image) */}
-              <tr className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                <td className="p-3 text-center border-l border-gray-100">
-                  <input type="checkbox" className="rounded border-gray-300" />
-                </td>
-                <td className="p-3 text-sm text-gray-600 border-l border-gray-100">[التاريخ yy-mm-dd]</td>
-                <td className="p-3 text-sm text-gray-600 border-l border-gray-100">[مرجع]</td>
-                <td className="p-3 text-sm text-gray-600 border-l border-gray-100">[التصنيفات الرئيسية]</td>
-                <td className="p-3 text-sm text-gray-600 border-l border-gray-100">0.00</td>
-                <td className="p-3 text-sm text-gray-600 border-l border-gray-100">[مذكرة]</td>
-                <td className="p-3 text-sm text-gray-600 border-l border-gray-100">[مدخل البيانات]</td>
-                <td className="p-3 text-center border-l border-gray-100">
-                  <LinkIcon size={16} className="mx-auto text-gray-400" />
-                </td>
-                <td className="p-3 text-sm text-gray-600 text-center">الإجراءات</td>
-              </tr>
-            </tbody>
-          </table>
+            <DeleteConfirmationModal
+                isOpen={expenseToDelete !== null}
+                onClose={() => setExpenseToDelete(null)}
+                onConfirm={() => {
+                    // In a real app, delete the expense
+                    setExpenseToDelete(null);
+                }}
+                itemName={language === 'ar' ? 'هذا المصروف' : 'this expense'}
+            />
         </div>
-
-        {/* Footer / Pagination */}
-        <div className="p-4 flex flex-col sm:flex-row justify-between items-center gap-4 border-t border-gray-100" dir="rtl">
-          <div className="text-sm text-gray-600">
-            عرض 0 إلى 0 من 0 سجلات
-          </div>
-          <div className="flex gap-1" dir="ltr">
-            <button className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50">
-              &lt; السابق
-            </button>
-            <button className="px-3 py-1 border border-gray-300 rounded-md text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50">
-              التالي &gt;
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    );
 }
