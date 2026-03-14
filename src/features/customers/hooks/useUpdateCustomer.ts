@@ -1,9 +1,9 @@
 "use client";
 
 import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createCustomer } from "../types/customers.types";
 import { updateCustomer } from "../services/customers";
 import { customersKeys } from "../keys/customers.keys";
+import type { createCustomer } from "../types/customers.types";
 
 type UpdateCustomerPayload = {
   id: number;

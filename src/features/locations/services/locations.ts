@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import { GetAllCountriesResponse, GetCitiesWithCountryIdResponse, GetStatesWithCityIdResponse } from "../types/locations.types";
+import type { GetAllCountriesResponse, GetCitiesWithCountryIdResponse, GetStatesWithCityIdResponse } from "../types/locations.types";
 
 // ===================
 // GET

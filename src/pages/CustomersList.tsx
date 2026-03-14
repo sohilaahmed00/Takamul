@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { User, Search, Edit2, Trash2, Plus, FileText, ChevronRight, ChevronLeft, UserPlus, CreditCard, List, Minus, PlusCircle, ChevronDown, Wallet, ArrowDownCircle, ArrowUpCircle, History, Printer, Menu, SlidersHorizontal } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { useCustomers } from "@/context/CustomersContext";
+import { useCustomers, type Customer } from "@/context/CustomersContext";
 import { motion, AnimatePresence } from "framer-motion";
 import Pagination from "@/components/Pagination";
 import { cn } from "@/lib/utils";
@@ -21,7 +21,6 @@ import { Link } from "react-router-dom";
 import { useDeleteCustomer } from "@/features/customers/hooks/useDeleteCustomer";
 import useToast from "@/hooks/useToast";
 import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerById";
-import { Customer } from "@/features/customers/types/customers.types";
 
 export default function CustomersList() {
   const { t, direction } = useLanguage();

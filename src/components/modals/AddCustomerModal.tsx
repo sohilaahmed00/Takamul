@@ -20,10 +20,10 @@ import { useGetStatesWithCityId } from "@/features/locations/hooks/useGetStatesW
 import { useCreateCustomer } from "@/features/customers/hooks/useCreateCustomer";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Customer } from "@/features/customers/types/customers.types";
 import { useUpdateCustomer } from "@/features/customers/hooks/useUpdateCustomer";
 import useToast from "@/hooks/useToast";
 import axios from "axios";
+import type { Customer } from "@/features/customers/types/customers.types";
 
 interface AddCustomerModalProps {
   isOpen: boolean;

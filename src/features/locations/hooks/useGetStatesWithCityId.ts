@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { getAllCountries, getCitiesWithCountryId, getStatesWithCityId } from "../services/locations";
 import { locationsKeys } from "../keys/locations.keys";
-import { GetStatesWithCityIdResponse } from "../types/locations.types";
+import type { GetStatesWithCityIdResponse } from "../types/locations.types";
+import { getStatesWithCityId } from "../services/locations";
 
 export const useGetStatesWithCityId = (cityId: number) =>
   useQuery<GetStatesWithCityIdResponse>({
