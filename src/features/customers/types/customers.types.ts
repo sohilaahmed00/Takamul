@@ -1,4 +1,3 @@
-import type { PaginationMeta } from "@/types/common";
 
 export interface Customer {
   id: number;

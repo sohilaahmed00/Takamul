@@ -25,7 +25,6 @@ const AddQuoteModal: React.FC<AddQuoteModalProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     addQuote({
       ...formData,
-      quoteNo: `QUO-${Math.floor(Math.random() * 10000)}`,
       total: formData.items.reduce((acc, item) => acc + item.price * item.quantity, 0),
       cashier: "Admin",
     });

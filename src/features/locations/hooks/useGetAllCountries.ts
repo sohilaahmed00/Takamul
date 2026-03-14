@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import type { GetAllCountriesResponse } from "../types/customers.types";
-import { customersKeys } from "../keys/customers.keys";
 import { getAllCountries } from "../services/locations";
+import { locationsKeys } from "../keys/locations.keys";
+import { GetAllCountriesResponse } from "../types/locations.types";
 
 export const useGetAllCountries = () =>
   useQuery<GetAllCountriesResponse>({
-    queryKey: customersKeys.list(),
+    queryKey: locationsKeys.list(),
     queryFn: () => getAllCountries(),
   });

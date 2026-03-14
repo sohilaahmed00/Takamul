@@ -18,6 +18,10 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useDeleteCustomer } from "@/features/customers/hooks/useDeleteCustomer";
+import useToast from "@/hooks/useToast";
+import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerById";
+import { Customer } from "@/features/customers/types/customers.types";
 
 export default function CustomersList() {
   const { t, direction } = useLanguage();
@@ -26,18 +30,20 @@ export default function CustomersList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
+  const [selectedCustomer2, setSelectedCustomer2] = useState<Customer>();
   const [activeActionMenu, setActiveActionMenu] = useState<number | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [isPaymentsModalOpen, setIsPaymentsModalOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [selectedCustomer, setSelectedCustomer] = useState<number | undefined>();
   const actionButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, width: 0 });
   const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
-  const { data } = useGetAllCustomers();
+  const { mutateAsync: deleteCustomer } = useDeleteCustomer();
+  const { notifyError, notifySuccess } = useToast();
+  const { data, refetch } = useGetCustomerById(selectedCustomer ?? undefined);
 
   useEffect(() => {
     if (activeActionMenu !== null && actionButtonRefs.current[activeActionMenu]) {
@@ -61,25 +67,30 @@ export default function CustomersList() {
     };
   }, []);
 
-  const filteredCustomers = customers?.filter((c) => c.customerName.toLowerCase().includes(searchTerm.toLowerCase()) || c.phone.includes(searchTerm) || String(c?.customerCode).includes(searchTerm));
+  const filteredCustomers = customers
+    ?.filter((c) => {
+      const term = searchTerm.toLowerCase();
 
+      return c.customerName?.toLowerCase().includes(term) || c.phone?.includes(term) || String(c.customerCode)?.includes(term);
+    })
+    ?.sort((a, b) => b.id - a.id);
   const paginatedCustomers = filteredCustomers?.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
 
-  const toggleSelectAll = () => {
-    if (selectedCustomers.length === paginatedCustomers?.length) {
-      setSelectedCustomers([]);
-    } else {
-      setSelectedCustomers(paginatedCustomers?.map((c) => c?.id));
-    }
-  };
+  // const toggleSelectAll = () => {
+  //   if (selectedCustomers.length === paginatedCustomers?.length) {
+  //     setSelectedCustomers([]);
+  //   } else {
+  //     setSelectedCustomers(paginatedCustomers?.map((c) => c?.id));
+  //   }
+  // };
 
-  const toggleSelectCustomer = (id: number) => {
-    if (selectedCustomers.includes(id)) {
-      setSelectedCustomers(selectedCustomers.filter((sid) => sid !== id));
-    } else {
-      setSelectedCustomers([...selectedCustomers, id]);
-    }
-  };
+  // const toggleSelectCustomer = (id: number) => {
+  //   if (selectedCustomers.includes(id)) {
+  //     setSelectedCustomers(selectedCustomers.filter((sid) => sid !== id));
+  //   } else {
+  //     setSelectedCustomers([...selectedCustomers, id]);
+  //   }
+  // };
 
   return (
     <div className="p-4 space-y-4" dir={direction}>
@@ -130,32 +141,36 @@ export default function CustomersList() {
               <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
                 <Search size={18} className="text-gray-400" />
               </div>
-              <input type="text" placeholder={t("search_placeholder") || "البحث برقم الهاتف، الكود، أو الاسم..."} className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-[#10b981] focus:bg-white text-gray-700 text-sm rounded-xl py-3 pr-11 pl-4 transition-all outline-none" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder={t("search_placeholder") || "البحث برقم الهاتف، الكود، أو الاسم..."}
+                className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 pr-11 pl-4 transition-all outline-none"
+              />{" "}
             </div>
 
-            {/* 2. أزرار الفلاتر (Filter Buttons) */}
-            <div className="flex gap-3 shrink-0">
-              {/* زر الفلاتر العامة */}
+            {/* <div className="flex gap-3 shrink-0">
               <button className="flex items-center gap-2 bg-[#f8fafc] hover:bg-gray-100 text-gray-600 border border-transparent text-sm font-medium rounded-xl px-4 py-3 transition-colors">
                 <SlidersHorizontal size={16} className="text-gray-400" />
                 <span>{t("filters") || "الفلاتر"}</span>
                 <ChevronDown size={16} className="text-gray-400 ml-1" />
               </button>
 
-              {/* زر ترتيب أو فلتر إضافي (مثال: أحدث العملاء) */}
               <button className="flex items-center gap-2 bg-[#f8fafc] hover:bg-gray-100 text-gray-600 border border-transparent text-sm font-medium rounded-xl px-4 py-3 transition-colors">
                 <span>{t("recent_customers") || "أحدث العملاء"}</span>
                 <ChevronDown size={16} className="text-gray-400 ml-1" />
               </button>
-            </div>
+            </div> */}
           </div>
           {/* Table - Desktop */}
           <div className="overflow-x-auto rounded-xl border border-gray-100">
-            <DataTable responsiveLayout="stack" className="custom-green-table custom-compact-table" /* تم إضافة كلاس ثانٍ للتحكم في الضغط */ value={customers} paginator rows={entriesPerPage} first={(currentPage - 1) * entriesPerPage} onPage={(e) => setCurrentPage(e.page + 1)} selection={selectedCustomers} onSelectionChange={(e) => setSelectedCustomers(e.value)} dataKey="id" stripedRows={false} /* في هذا التصميم، من الأفضل إيقاف stripedRows للحفاظ على البساطة */>
-              {/* 1. عمود التحديد (Checkbox) - كما هو */}
-              <Column selectionMode="multiple" headerStyle={{ width: "2rem" }}></Column>
+            <DataTable responsiveLayout="stack" className="custom-green-table custom-compact-table" value={filteredCustomers} paginator rows={entriesPerPage} first={(currentPage - 1) * entriesPerPage} onPage={(e) => setCurrentPage(e.page + 1)} dataKey="id" stripedRows={false} /* في هذا التصميم، من الأفضل إيقاف stripedRows للحفاظ على البساطة */>
+              {/* <Column selectionMode="multiple" headerStyle={{ width: "2rem" }}></Column> */}
 
-              {/* 2. باقي الأعمدة مع كلاسات التراص */}
               <Column field="customerCode" header={t("code")} sortable />
 
               <Column
@@ -164,9 +179,7 @@ export default function CustomersList() {
                 body={(customer) => (
                   <div className="cell-data-stack">
                     {" "}
-                    {/* كلاس لضمان التراص الرأسي */}
                     <span className="customer-name-main">{customer.customerName}</span>
-                    {/* يمكنك إضافة سطر ثانٍ هنا إذا لزم الأمر، مثل العنوان أو القسم */}
                   </div>
                 )}
               />
@@ -177,15 +190,27 @@ export default function CustomersList() {
               <Column
                 header={t("actions")}
                 body={(customer) => (
-                  <button
-                    onClick={() => {
-                      setSelectedCustomer(customer);
-                      setIsEditModalOpen(true);
-                    }}
-                    className="btn-minimal-action btn-compact-action" /* كلاس ثانٍ لتصغير الأيقونة */
-                  >
-                    <Edit2 size={16} /> {/* تصغير الأيقونة قليلاً */}
-                  </button>
+                  <>
+                    <button
+                      onClick={async () => {
+                        setSelectedCustomer(customer?.id);
+                        setIsAddModalOpen(true);
+                      }}
+                      className="btn-minimal-action btn-compact-action"
+                    >
+                      <Edit2 size={16} />
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const res = await deleteCustomer(customer?.id);
+                        console.log(res);
+                        notifySuccess(res);
+                      }}
+                      className="btn-minimal-action btn-compact-action"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </>
                 )}
               />
             </DataTable>
@@ -196,7 +221,14 @@ export default function CustomersList() {
         </div>
       </div>
 
-      <AddCustomerModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+      <AddCustomerModal
+        customer={data}
+        isOpen={isAddModalOpen}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setSelectedCustomer(undefined);
+        }}
+      />
 
       <EditCustomerModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} customer={selectedCustomer} />
 

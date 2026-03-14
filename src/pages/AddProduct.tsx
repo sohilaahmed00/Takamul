@@ -200,7 +200,6 @@ export default function AddProduct() {
 
   const [mainCategories, setMainCategories] = useState<NormalizedCategory[]>([]);
   const [subCategories, setSubCategories] = useState<NormalizedCategory[]>([]);
-  const [units, setUnits] = useState<NormalizedUnit[]>([]);
 
   const [isLoadingMainCategories, setIsLoadingMainCategories] = useState(false);
   const [isLoadingSubCategories, setIsLoadingSubCategories] = useState(false);
@@ -620,69 +619,69 @@ export default function AddProduct() {
     return fd;
   };
 
-  const validateForm = () => {
-    const newErrors: FormErrors = {};
+  // const validateForm = () => {
+  //   const newErrors: FormErrors = {};
 
-    if (!formData.productType.trim()) {
-      newErrors.productType = direction === "rtl" ? "نوع الصنف مطلوب" : "Product type is required";
-    }
+  //   if (!formData.productType.trim()) {
+  //     newErrors.productType = direction === "rtl" ? "نوع الصنف مطلوب" : "Product type is required";
+  //   }
 
-    if (!formData.name.trim()) {
-      newErrors.name = direction === "rtl" ? "يرجى إدخال الاسم" : "Please enter name";
-    }
+  //   if (!formData.name.trim()) {
+  //     newErrors.name = direction === "rtl" ? "يرجى إدخال الاسم" : "Please enter name";
+  //   }
 
-    if (!formData.nameLang2.trim()) {
-      newErrors.nameLang2 = direction === "rtl" ? "الاسم باللغة الثانية مطلوب" : "Second language name is required";
-    }
+  //   if (!formData.nameLang2.trim()) {
+  //     newErrors.nameLang2 = direction === "rtl" ? "الاسم باللغة الثانية مطلوب" : "Second language name is required";
+  //   }
 
-    if (!formData.nameLang3.trim()) {
-      newErrors.nameLang3 = direction === "rtl" ? "الاسم باللغة الثالثة مطلوب" : "Third language name is required";
-    }
+  //   if (!formData.nameLang3.trim()) {
+  //     newErrors.nameLang3 = direction === "rtl" ? "الاسم باللغة الثالثة مطلوب" : "Third language name is required";
+  //   }
 
-    if ((formData.productNature === "basic" || formData.productNature === "prepared") && !formData.code.trim()) {
-      newErrors.code = direction === "rtl" ? "يرجى إدخال الكود" : "Please enter code";
-    }
+  //   if ((formData.productNature === "basic" || formData.productNature === "prepared") && !formData.code.trim()) {
+  //     newErrors.code = direction === "rtl" ? "يرجى إدخال الكود" : "Please enter code";
+  //   }
 
-    if (!formData.categoryId) {
-      newErrors.categoryId = direction === "rtl" ? "يرجى اختيار التصنيف الرئيسي" : "Please select category";
-    }
+  //   if (!formData.categoryId) {
+  //     newErrors.categoryId = direction === "rtl" ? "يرجى اختيار التصنيف الرئيسي" : "Please select category";
+  //   }
 
-    if (!formData.details.trim()) {
-      newErrors.details = direction === "rtl" ? "يرجى إدخال الوصف" : "Please enter description";
-    }
+  //   if (!formData.details.trim()) {
+  //     newErrors.details = direction === "rtl" ? "يرجى إدخال الوصف" : "Please enter description";
+  //   }
 
-    if ((formData.productNature === "basic" || formData.productNature === "materials" || formData.productNature === "sub") && (formData.cost.trim() === "" || isNaN(Number(formData.cost)))) {
-      newErrors.cost = direction === "rtl" ? "التكلفة غير صحيحة" : "Invalid cost";
-    }
+  //   if ((formData.productNature === "basic" || formData.productNature === "materials" || formData.productNature === "sub") && (formData.cost.trim() === "" || isNaN(Number(formData.cost)))) {
+  //     newErrors.cost = direction === "rtl" ? "التكلفة غير صحيحة" : "Invalid cost";
+  //   }
 
-    if (formData.sellingPrice.trim() === "" || isNaN(Number(formData.sellingPrice))) {
-      newErrors.sellingPrice = direction === "rtl" ? "سعر البيع غير صحيح" : "Invalid selling price";
-    }
+  //   if (formData.sellingPrice.trim() === "" || isNaN(Number(formData.sellingPrice))) {
+  //     newErrors.sellingPrice = direction === "rtl" ? "سعر البيع غير صحيح" : "Invalid selling price";
+  //   }
 
-    if (formData.productNature === "sub" && formData.parentProductIds.length === 0) {
-      alert(direction === "rtl" ? "يرجى اختيار صنف مباشر واحد على الأقل" : "Please select at least one parent product");
-      return;
-    }
+  //   if (formData.productNature === "sub" && formData.parentProductIds.length === 0) {
+  //     alert(direction === "rtl" ? "يرجى اختيار صنف مباشر واحد على الأقل" : "Please select at least one parent product");
+  //     return;
+  //   }
 
-    if (formData.productNature === "prepared" && formData.materials.length === 0) {
-      alert(direction === "rtl" ? "يرجى إضافة خامة واحدة على الأقل" : "Please add at least one material");
-      return;
-    }
+  //   if (formData.productNature === "prepared" && formData.materials.length === 0) {
+  //     alert(direction === "rtl" ? "يرجى إضافة خامة واحدة على الأقل" : "Please add at least one material");
+  //     return;
+  //   }
 
-    if (!formData.defaultSaleUnitId) {
-      newErrors.defaultSaleUnitId = direction === "rtl" ? "وحدة البيع الافتراضية مطلوبة" : "Default sale unit is required";
-    }
+  //   if (!formData.defaultSaleUnitId) {
+  //     newErrors.defaultSaleUnitId = direction === "rtl" ? "وحدة البيع الافتراضية مطلوبة" : "Default sale unit is required";
+  //   }
 
-    if (imageFile) {
-      const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
-      if (!allowedTypes.includes(imageFile.type)) {
-        newErrors.image = direction === "rtl" ? "نوع الصورة غير مدعوم" : "Unsupported image format";
-      }
-    }
+  //   if (imageFile) {
+  //     const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+  //     if (!allowedTypes.includes(imageFile.type)) {
+  //       newErrors.image = direction === "rtl" ? "نوع الصورة غير مدعوم" : "Unsupported image format";
+  //     }
+  //   }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  //   setErrors(newErrors);
+  //   return Object.keys(newErrors).length === 0;
+  // };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

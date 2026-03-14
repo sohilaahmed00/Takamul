@@ -1,151 +1,163 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { X, UserPlus } from "lucide-react";
-import Toast from "../Toast";
-import { useCustomers } from "@/context/CustomersContext";
+import React, { useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { UserPlus } from "lucide-react";
+
 import { useLanguage } from "@/context/LanguageContext";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
 import { Input } from "../ui/input";
-import { Field, FieldLabel } from "@/components/ui/field";
+
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+import { useGetAllCountries } from "@/features/locations/hooks/useGetAllCountries";
+import { useGetCityWithCountryId } from "@/features/locations/hooks/useGetCityWithCountryId";
+import { useGetStatesWithCityId } from "@/features/locations/hooks/useGetStatesWithCityId";
+import { useCreateCustomer } from "@/features/customers/hooks/useCreateCustomer";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Customer } from "@/features/customers/types/customers.types";
+import { useUpdateCustomer } from "@/features/customers/hooks/useUpdateCustomer";
+import useToast from "@/hooks/useToast";
+import axios from "axios";
+
 interface AddCustomerModalProps {
   isOpen: boolean;
   onClose: () => void;
+  customer?: Customer;
 }
 
-type Country = { id: number; countryName: string };
-type City = { id: number; cityName?: string; name?: string };
-type StateItem = { id: number; stateName?: string; name?: string };
+export const customerSchema = z
+  .object({
+    customerName: z.string().min(3, "اسم العميل يجب أن يكون 3 أحرف على الأقل"),
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL ?? "";
+    phone: z.string().min(1, "رقم الهاتف مطلوب").min(10, "رقم الموبايل غير صحيح"),
 
-async function apiGet<T>(url: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${url}`, {
-    headers: { "Content-Type": "application/json" },
+    mobile: z.string().min(1, "رقم الموبايل مطلوب").min(10, "رقم الموبايل غير صحيح"),
+
+    commercialRegister: z.string().min(1, "السجل التجاري مطلوب"),
+
+    isTaxable: z.boolean(),
+
+    taxNumber: z.string().optional(),
+
+    countryId: z.number().min(1, "يجب اختيار الدولة"),
+
+    cityId: z.number().min(1, "يجب اختيار المدينة"),
+
+    stateId: z.number().min(1, "يجب اختيار المحافظة"),
+
+    postalCode: z.string().min(1, "الرمز البريدي مطلوب"),
+
+    address: z.string().min(5, "العنوان يجب أن يكون 5 أحرف على الأقل"),
+  })
+  .refine((data) => !data.isTaxable || (data.taxNumber?.trim().length ?? 0) > 0, {
+    message: "الرقم الضريبي مطلوب",
+    path: ["taxNumber"],
   });
+export default function AddCustomerModal({ isOpen, onClose, customer }: AddCustomerModalProps) {
+  const { t } = useLanguage();
 
-  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-  return res.json();
-}
+  const { data: countriesData } = useGetAllCountries();
+  const { mutateAsync: createCustomer } = useCreateCustomer();
+  const { mutateAsync: updateCustomer } = useUpdateCustomer();
+  const { notifyError, notifySuccess } = useToast();
 
-function getName(o: any) {
-  return o?.countryName ?? o?.cityName ?? o?.stateName ?? o?.name ?? "";
-}
-
-export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalProps) {
-  const { t, direction } = useLanguage();
-  const { addCustomer } = useCustomers();
-
-  const [formData, setFormData] = useState({
-    customerName: "",
-    email: "",
-    phone: "",
-    mobile: "",
-    pricingGroup: "عام",
-    customerGroup: "عام",
-    taxNumber: "",
-    actualBalance: 0,
-    commercialRegister: "",
-    creditLimit: 0,
-    stopSellingOverdue: false,
-    isTaxable: false,
-    address: "",
-    postalCode: "",
-    isActive: true,
-    countryId: 0,
-    cityId: 0,
-    stateId: 0,
-    city: "",
-    state: "",
+  const form = useForm<z.infer<typeof customerSchema>>({
+    resolver: zodResolver(customerSchema),
+    defaultValues: {
+      customerName: "",
+      phone: "",
+      mobile: "",
+      address: "",
+      postalCode: "",
+      taxNumber: "",
+      commercialRegister: "",
+      isTaxable: false,
+      countryId: 0,
+      cityId: 0,
+      stateId: 0,
+    },
   });
-
-  const [toastOpen, setToastOpen] = useState(false);
-  const [toastMsg, setToastMsg] = useState("");
-  const [toastType, setToastType] = useState<"success" | "error">("success");
-  const [submitting, setSubmitting] = useState(false);
-
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [cities, setCities] = useState<City[]>([]);
-  const [states, setStates] = useState<StateItem[]>([]);
-
-  const showToast = (type: "success" | "error", msg: string) => {
-    setToastType(type);
-    setToastMsg(msg);
-    setToastOpen(true);
-  };
-
   useEffect(() => {
     if (!isOpen) return;
 
-    apiGet<Country[]>("/api/Location/countries")
-      .then((data) => setCountries(Array.isArray(data) ? data : []))
-      .catch(() => showToast("error", "فشل تحميل الدول"));
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (!formData.countryId) {
-      setCities([]);
-      return;
+    if (customer) {
+      form.reset({
+        customerName: customer.customerName ?? "",
+        phone: customer.phone ?? "",
+        mobile: customer.mobile ?? "",
+        address: customer.address ?? "",
+        postalCode: customer.postalCode ?? "",
+        taxNumber: customer.taxNumber ?? "",
+        commercialRegister: "",
+        isTaxable: !!customer.taxNumber,
+        countryId: 0,
+        cityId: 0,
+        stateId: 0,
+      });
+    } else {
+      form.reset({
+        customerName: "",
+        phone: "",
+        mobile: "",
+        address: "",
+        postalCode: "",
+        taxNumber: "",
+        commercialRegister: "",
+        isTaxable: false,
+        countryId: 0,
+        cityId: 0,
+        stateId: 0,
+      });
     }
+  }, [customer, isOpen]);
+  const countryId = form.watch("countryId");
+  const cityId = form.watch("cityId");
+  const isTaxable = form.watch("isTaxable");
 
-    apiGet<City[]>(`/api/Location/countries/${formData.countryId}/cities`)
-      .then((data) => setCities(Array.isArray(data) ? data : []))
-      .catch(() => showToast("error", "فشل تحميل المدن"));
-  }, [formData.countryId]);
+  const { data: citiesData } = useGetCityWithCountryId(countryId);
+  const { data: statesdata } = useGetStatesWithCityId(cityId);
 
-  useEffect(() => {
-    if (!formData.cityId) {
-      setStates([]);
-      return;
-    }
-
-    apiGet<StateItem[]>(`/api/Location/cities/${formData.cityId}/states`)
-      .then((data) => setStates(Array.isArray(data) ? data : []))
-      .catch(() => showToast("error", "فشل تحميل المحافظات"));
-  }, [formData.cityId]);
-
-  const selectedCountry = useMemo(() => countries.find((c) => c.id === formData.countryId), [countries, formData.countryId]);
-
-  const selectedCity = useMemo(() => cities.find((c: any) => c.id === formData.cityId), [cities, formData.cityId]);
-
-  const selectedState = useMemo(() => states.find((s: any) => s.id === formData.stateId), [states, formData.stateId]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    console.log("first")
-    e.preventDefault();
-    // if (submitting) return;
-
-    // if (!formData.countryId || !formData.cityId || !formData.stateId) {
-    //   showToast("error", "من فضلك اختر الدولة والمدينة والمحافظة");
-    //   return;
-    // }
-
-    // setSubmitting(true);
-
-    const payload = {
-      ...formData,
-      city: getName(selectedCity),
-      state: getName(selectedState),
-      countryName: getName(selectedCountry),
-    };
-    console.log(payload)
-    return
-
+  const onSubmit = async (data: z.infer<typeof customerSchema>) => {
     try {
-      const res = await addCustomer(payload as any);
+      const selectedCountry = countriesData?.find((c) => c.id === data.countryId);
 
-      if (res?.ok || res === true) {
-        showToast("success", "تم الإضافة بنجاح");
-        onClose();
+      const selectedCity = citiesData?.find((c) => c.id === data.cityId);
+
+      const selectedState = statesdata?.find((s) => s.id === data.stateId);
+
+      const payload = {
+        customerName: data.customerName,
+        phone: data.phone ?? "",
+        mobile: data.mobile ?? "",
+        address: data.address,
+        postalCode: data.postalCode ?? "",
+        taxNumber: data.taxNumber ?? "",
+        countryName: selectedCountry?.countryName ?? "",
+        city: selectedCity?.cityName ?? "",
+        state: selectedState?.statesName ?? "",
+      };
+
+      if (customer) {
+        const res = await updateCustomer({ id: customer?.id, data: payload });
+        notifySuccess("تم تعديل العميل بنجاح");
       } else {
-        showToast("error", "فشل الإضافة");
+        await createCustomer(payload);
+        notifySuccess("تم إضافة العميل بنجاح");
       }
-    } catch {
-      showToast("error", "فشل الإضافة");
-    } finally {
-      setSubmitting(false);
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const message = error.response?.data?.message;
+        notifyError(message);
+      }
     }
+    form.reset();
+    onClose();
   };
 
   return (
@@ -155,138 +167,231 @@ export default function AddCustomerModal({ isOpen, onClose }: AddCustomerModalPr
           <DialogHeader className="py-3">
             <DialogTitle className="flex items-center gap-2 text-[#2ecc71]">
               <UserPlus size={20} />
-              {t("add_customer") || "إضافة عميل"}
+              {customer ? t("edit_customer") || "تعديل العميل" : t("add_customer") || "إضافة عميل"}
             </DialogTitle>
           </DialogHeader>
-          <form id="addCustomerForm" onSubmit={handleSubmit} className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
+
+          <form id="addCustomerForm" onSubmit={form.handleSubmit(onSubmit)} className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-2">
-              <Field>
-                <FieldLabel htmlFor="customerName">{t("customer_name") || "اسم العميل"} *</FieldLabel>
-                <Input id="customerName" required placeholder="أدخل اسم العميل..." value={formData.customerName} onChange={(e) => setFormData({ ...formData, customerName: e.target.value })} />
-              </Field>
+              {/* اسم العميل */}
+              <Controller
+                name="customerName"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>اسم العميل *</FieldLabel>
 
-              <Field>
-                <FieldLabel htmlFor="phone">{t("phone") || "هاتف"}</FieldLabel>
+                    <Input {...field} placeholder="أدخل اسم العميل..." />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
 
-                <Input id="phone" placeholder="أدخل رقم الهاتف..." value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
-              </Field>
+              {/* هاتف */}
+              <Controller
+                name="phone"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>هاتف*</FieldLabel>
 
-              <Field>
-                <FieldLabel htmlFor="mobile">{t("mobile") || "موبايل"}</FieldLabel>
+                    <Input {...field} type="number" placeholder="أدخل رقم الهاتف..." />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
 
-                <Input id="mobile" placeholder="أدخل رقم الموبايل..." value={formData.mobile} onChange={(e) => setFormData({ ...formData, mobile: e.target.value })} />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="commercialRegister">{t("commercial_register") || "السجل التجاري"}</FieldLabel>
+              {/* موبايل */}
+              <Controller
+                name="mobile"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>موبايل*</FieldLabel>
 
-                <Input id="commercialRegister" placeholder="أدخل رقم السجل التجاري..." value={formData.commercialRegister} onChange={(e) => setFormData({ ...formData, commercialRegister: e.target.value })} />
-              </Field>
+                    <Input {...field} type="number" placeholder="أدخل رقم الموبايل..." />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
 
-              <div className="col-span-1 md:col-span-2 bg-white border border-gray-200 rounded-2xl p-5 my-2 ">
+              {/* سجل تجاري */}
+              <Controller
+                name="commercialRegister"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>السجل التجاري*</FieldLabel>
+                    <Input {...field} type="number" placeholder="أدخل رقم السجل التجاري..." />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+
+              {/* التسجيل الضريبي */}
+
+              <div className="col-span-1 md:col-span-2 bg-white border border-gray-200 rounded-2xl p-5 my-2">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <h3 className="text-base font-bold text-gray-800">التسجيل الضريبي</h3>
+
                     <p className="text-sm text-gray-500 mt-1">قم بتفعيل هذا الخيار إذا كان العميل مسجلاً في ضريبة القيمة المضافة.</p>
                   </div>
-                  <Switch className="scale-130 cursor-pointer" onCheckedChange={(checked) => setFormData({ ...formData, isTaxable: checked })} />{" "}
+
+                  <Controller name="isTaxable" control={form.control} render={({ field }) => <Switch className="scale-130 cursor-pointer" checked={field.value} onCheckedChange={field.onChange} />} />
                 </div>
 
-                {formData.isTaxable && (
+                {isTaxable && (
                   <div className="mt-5 pt-5 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <Field>
-                      <FieldLabel htmlFor="taxNumber">{t("tax_number") || "الرقم الضريبي"} *</FieldLabel>
-
-                      <Input id="taxNumber" placeholder="أدخل الرقم الضريبي..." value={formData.taxNumber} onChange={(e) => setFormData({ ...formData, taxNumber: e.target.value })} />
-                    </Field>
+                    <Controller
+                      name="taxNumber"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>الرقم الضريبي *</FieldLabel>
+                          <Input {...field} placeholder="أدخل الرقم الضريبي..." />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
                   </div>
                 )}
               </div>
 
+              {/* الدولة */}
+
+              <Controller
+                name="countryId"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>الدولة *</FieldLabel>
+                    <Select
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={(value) => {
+                        field.onChange(Number(value));
+                        form.setValue("cityId", 0);
+                        form.setValue("stateId", 0);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="اختر الدولة..." />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectGroup>
+                          {countriesData?.map((c) => (
+                            <SelectItem key={c.id} value={String(c.id)}>
+                              {c.countryName}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+
+              {/* المدينة */}
+
+              <Controller
+                name="cityId"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>المدينة *</FieldLabel>
+                    <Select
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={(value) => {
+                        field.onChange(Number(value));
+                        form.setValue("stateId", 0);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="اختر المدينة..." />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectGroup>
+                          {citiesData?.map((c) => (
+                            <SelectItem key={c.id} value={String(c.id)}>
+                              {c.cityName}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+
+              {/* المحافظة */}
+
+              <Controller
+                name="stateId"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>المحافظة *</FieldLabel>
+                    <Select value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="اختر المحافظة..." />
+                      </SelectTrigger>
+
+                      <SelectContent>
+                        <SelectGroup>
+                          {statesdata?.map((s) => (
+                            <SelectItem key={s.id} value={String(s.id)}>
+                              {s.statesName}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+
               <Field>
-                <FieldLabel htmlFor="countryId">الدولة *</FieldLabel>
-
-                <Select value={formData.countryId ? String(formData.countryId) : ""} onValueChange={(value) => setFormData({ ...formData, countryId: Number(value), cityId: 0, stateId: 0 })}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="اختر الدولة..." />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    <SelectGroup>
-                      {countries.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          {c.countryName}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="cityId">المدينة *</FieldLabel>
-
-                <Select value={formData.cityId ? String(formData.cityId) : ""} onValueChange={(value) => setFormData({ ...formData, cityId: Number(value), stateId: 0 })}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="اختر المدينة..." />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    <SelectGroup>
-                      {cities.map((c) => (
-                        <SelectItem key={c.id} value={String(c.id)}>
-                          {getName(c)}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="stateId">المحافظة *</FieldLabel>
-
-                <Select value={formData.stateId ? String(formData.stateId) : ""} onValueChange={(value) => setFormData({ ...formData, stateId: Number(value) })}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="اختر المحافظة..." />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    <SelectGroup>
-                      {states.map((s) => (
-                        <SelectItem key={s.id} value={String(s.id)}>
-                          {getName(s)}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="postalCode">الرمز البريدي</FieldLabel>
-
-                <Input id="postalCode" placeholder="أدخل الرمز البريدي..." value={formData.postalCode} onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })} />
+                <Controller
+                  name="postalCode"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>الرمز البريدي*</FieldLabel>
+                      <Input {...field} placeholder="أدخل الرمز البريدي..." />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
               </Field>
 
               <div className="col-span-1 md:col-span-2">
-                <Field>
-                  <FieldLabel htmlFor="address">العنوان التفصيلي *</FieldLabel>
-
-                  <Input id="address" required placeholder="الشارع، رقم المبنى، تفاصيل إضافية..." value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} />
-                </Field>
+                <Controller
+                  name="address"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>العنوان التفصيلي *</FieldLabel>
+                      <Input {...field} placeholder="الشارع، رقم المبنى..." />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
               </div>
             </div>
-            
           </form>
+
           <DialogFooter>
-            <DialogClose asChild>
-              <Button form="addCustomerForm" className="h-12 px-6 text-base" type="submit" >
-                {submitting ? t("saving") || "جارٍ الحفظ..." : t("add_customer_button") || t("add_customer") || "إضافة عميل"}
-              </Button>
-            </DialogClose>
+            <Button form="addCustomerForm" className="h-12 px-6 text-base" type="submit">
+              {customer ? "تعديل عميل" : "إضافة عميل"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <Toast isOpen={toastOpen} message={toastMsg} type={toastType} onClose={() => setToastOpen(false)} />
     </>
   );
 }

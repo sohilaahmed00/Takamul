@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 export interface SystemSettings {
   site: {
@@ -54,6 +54,7 @@ export interface SystemSettings {
     enableGlasses: boolean;
   };
   prefixes: {
+    product: string;
     sales: string;
     salesReturn: string;
     payment: string;
@@ -184,21 +185,21 @@ interface SettingsContextType {
 
 const defaultSystemSettings: SystemSettings = {
   site: {
-    companyName: 'تجريبي',
-    language: 'Arabic',
-    defaultCurrency: 'Saudi Riyal',
-    accountingMethod: 'FIFO (First In First Out)',
-    defaultEmail: 'info@posit2030.com',
-    defaultCustomerGroup: 'عام',
-    generalPriceGroup: 'عام',
+    companyName: "تجريبي",
+    language: "Arabic",
+    defaultCurrency: "Saudi Riyal",
+    accountingMethod: "FIFO (First In First Out)",
+    defaultEmail: "info@posit2030.com",
+    defaultCustomerGroup: "عام",
+    generalPriceGroup: "عام",
     rtlSupport: true,
     invoiceEditDays: 1000,
     rowsPerPage: 10,
-    timezone: 'Asia/Kuwait',
-    defaultBranch: 'تجريبي (WHI)',
-    defaultCashier: 'تجريبي',
-    pdfLibrary: 'mPDF',
-    defaultPaymentCompany: 'بدون',
+    timezone: "Asia/Kuwait",
+    defaultBranch: "تجريبي (WHI)",
+    defaultCashier: "تجريبي",
+    pdfLibrary: "mPDF",
+    defaultPaymentCompany: "بدون",
     expiryAlertDays: 100,
     showActualBalance: true,
     showCostGreaterMsg: true,
@@ -215,53 +216,54 @@ const defaultSystemSettings: SystemSettings = {
     imageSize: { width: 800, height: 800 },
     thumbnailSize: { width: 150, height: 150 },
     watermark: false,
-    showWarehouseItems: 'اظهار جميع الاصناف حتى لو رصيدها صفر',
-    barcodeSeparator: '( _ ) Underscore',
-    barcodeStandard: 'صورة',
-    inventoryTransfer: 'تكلفة',
+    showWarehouseItems: "اظهار جميع الاصناف حتى لو رصيدها صفر",
+    barcodeSeparator: "( _ ) Underscore",
+    barcodeStandard: "صورة",
+    inventoryTransfer: "تكلفة",
     enableSecondLangName: false,
   },
   sales: {
     sellIfZero: false,
-    referenceFormat: 'الشهر / السنة / تسلسل رقم (م / 08/001 / 4..)',
+    referenceFormat: "الشهر / السنة / تسلسل رقم (م / 08/001 / 4..)",
     itemSerial: true,
-    addItemMethod: 'زيادة كمية البند، إذا كان موجوداً بالفعل في ..',
-    cursorPosition: 'اضافة منتج جديد',
-    defaultPaymentMethod: 'شبكة',
-    serialNameInInvoices: '',
-    defaultPurchasePaymentMethod: 'آجل',
+    addItemMethod: "زيادة كمية البند، إذا كان موجوداً بالفعل في ..",
+    cursorPosition: "اضافة منتج جديد",
+    defaultPaymentMethod: "شبكة",
+    serialNameInInvoices: "",
+    defaultPurchasePaymentMethod: "آجل",
     enableQuickSearch: true,
     clearSearchFilters: true,
     enableMarketers: false,
     enableGlasses: false,
   },
   prefixes: {
-    sales: 'SALE',
-    salesReturn: 'SR',
-    payment: 'IPAY',
-    purchasePayment: 'POP',
-    delivery: 'DO',
-    quotes: 'QUOTE',
-    purchases: 'PO',
-    purchasesReturn: 'PR',
-    transfer: 'TR',
-    expenses: 'Dep',
-    quantityAdjustment: 'Up',
+    product: "",
+    sales: "SALE",
+    salesReturn: "SR",
+    payment: "IPAY",
+    purchasePayment: "POP",
+    delivery: "DO",
+    quotes: "QUOTE",
+    purchases: "PO",
+    purchasesReturn: "PR",
+    transfer: "TR",
+    expenses: "Dep",
+    quantityAdjustment: "Up",
   },
   money: {
     decimals: 2,
     quantityDecimals: 2,
     southAsiaFormat: false,
-    decimalSeparator: '.',
-    thousandSeparator: ',',
+    decimalSeparator: ".",
+    thousandSeparator: ",",
     showCurrencySymbol: true,
-    currencySymbol: 'ر.س',
+    currencySymbol: "ر.س",
     a4InvoiceDecimals: 4,
   },
   barcode: {
-    type: 'الوزن/الكمية',
+    type: "الوزن/الكمية",
     totalCharacters: 0,
-    flagCharacters: '0',
+    flagCharacters: "0",
     codeStart: 0,
     codeLength: 0,
     weightStart: 0,
@@ -269,17 +271,17 @@ const defaultSystemSettings: SystemSettings = {
     weightDivider: 0,
   },
   email: {
-    protocol: 'SMTP',
-    smtpHost: 'posit.sa',
-    smtpUser: 'info@posit.sa',
-    smtpPassword: '',
+    protocol: "SMTP",
+    smtpHost: "posit.sa",
+    smtpUser: "info@posit.sa",
+    smtpPassword: "",
     smtpPort: 465,
-    smtpEncryption: 'SSL',
+    smtpEncryption: "SSL",
   },
   points: {
-    customerPointsPerSpend: 100.00,
+    customerPointsPerSpend: 100.0,
     totalCustomerPoints: 0,
-    staffPointsPerSale: 1.00,
+    staffPointsPerSale: 1.0,
     totalStaffPoints: 0,
   },
   fees: {
@@ -289,36 +291,36 @@ const defaultSystemSettings: SystemSettings = {
   },
   reports: {
     headerStatus: true,
-    headerImage: '',
+    headerImage: "",
   },
   salesPrint: {
     printHeader: false,
-    headerImage: '',
+    headerImage: "",
     showSellerAndRecipient: true,
     enableDotMatrix: false,
-    purchaseOrderField: 'رقم أمر الشراء',
-    projectNameField: 'اسم المشروع',
+    purchaseOrderField: "رقم أمر الشراء",
+    projectNameField: "اسم المشروع",
   },
 };
 
 const defaultPOSSettings: POSSettings = {
   config: {
     displayItems: 60,
-    defaultCategory: 'عام',
-    defaultCashier: 'تجريبي',
-    defaultCustomer: 'شخص عام(عميل افتراضي)',
+    defaultCategory: "عام",
+    defaultCashier: "تجريبي",
+    defaultCustomer: "شخص عام(عميل افتراضي)",
     displayTime: true,
     onScreenKeyboard: false,
     instructionsTool: false,
     rounding: false,
-    itemOrder: 'Default',
-    afterSalePage: 'الإيصال',
+    itemOrder: "Default",
+    afterSalePage: "الإيصال",
     printCustomerDetails: false,
     displayTaxDetails: false,
     enableBillSuspension: true,
     cancelItemFromBill: true,
     enableBillCancellation: true,
-    operationPassword: '',
+    operationPassword: "",
     enableOrderNumber: false,
     enableDisplayScreen: false,
     enableAlertSound: true,
@@ -328,10 +330,10 @@ const defaultPOSSettings: POSSettings = {
     enableReservations: false,
   },
   printing: {
-    printer: 'Web Browser',
+    printer: "Web Browser",
   },
   customFields: {
-    field1Value: '',
+    field1Value: "",
   },
   receipt: {
     printAddress: true,
@@ -345,14 +347,14 @@ const defaultPOSSettings: POSSettings = {
     printDiscount: false,
   },
   shortcuts: {
-    focusSearch: 'f3',
-    cancelSale: 'f11',
-    suspendSale: 'f7',
-    lastInvoice: 'f4',
-    finishSale: 'f9',
-    todaySales: 'Ctrl+f1',
-    openSuspendedSales: 'Ctrl+f2',
-    closeShift: 'Ctrl+f10',
+    focusSearch: "f3",
+    cancelSale: "f11",
+    suspendSale: "f7",
+    lastInvoice: "f4",
+    finishSale: "f9",
+    todaySales: "Ctrl+f1",
+    openSuspendedSales: "Ctrl+f2",
+    closeShift: "Ctrl+f10",
   },
 };
 
@@ -363,34 +365,36 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [posSettings, setPOSSettings] = useState<POSSettings>(defaultPOSSettings);
 
   useEffect(() => {
-    const savedSystem = localStorage.getItem('systemSettings');
-    const savedPOS = localStorage.getItem('posSettings');
+    const savedSystem = localStorage.getItem("systemSettings");
+    const savedPOS = localStorage.getItem("posSettings");
     if (savedSystem) setSystemSettings(JSON.parse(savedSystem));
     if (savedPOS) setPOSSettings(JSON.parse(savedPOS));
   }, []);
 
   const updateSystemSettings = (settings: Partial<SystemSettings>) => {
-    setSystemSettings(prev => ({ ...prev, ...settings }));
+    setSystemSettings((prev) => ({ ...prev, ...settings }));
   };
 
   const updatePOSSettings = (settings: Partial<POSSettings>) => {
-    setPOSSettings(prev => ({ ...prev, ...settings }));
+    setPOSSettings((prev) => ({ ...prev, ...settings }));
   };
 
   const saveSettings = () => {
-    localStorage.setItem('systemSettings', JSON.stringify(systemSettings));
-    localStorage.setItem('posSettings', JSON.stringify(posSettings));
-    alert('Settings saved successfully!');
+    localStorage.setItem("systemSettings", JSON.stringify(systemSettings));
+    localStorage.setItem("posSettings", JSON.stringify(posSettings));
+    alert("Settings saved successfully!");
   };
 
   return (
-    <SettingsContext.Provider value={{ 
-      systemSettings, 
-      posSettings, 
-      updateSystemSettings, 
-      updatePOSSettings, 
-      saveSettings 
-    }}>
+    <SettingsContext.Provider
+      value={{
+        systemSettings,
+        posSettings,
+        updateSystemSettings,
+        updatePOSSettings,
+        saveSettings,
+      }}
+    >
       {children}
     </SettingsContext.Provider>
   );
@@ -399,7 +403,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 export const useSettings = () => {
   const context = useContext(SettingsContext);
   if (context === undefined) {
-    throw new Error('useSettings must be used within a SettingsProvider');
+    throw new Error("useSettings must be used within a SettingsProvider");
   }
   return context;
 };

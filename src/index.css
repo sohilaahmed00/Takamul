@@ -302,10 +302,10 @@ textarea {
   align-items: center;
   gap: 0.5rem;
 }
-.custom-green-table .p-datatable-thead > tr > th:first-child .p-column-header-content {
+/* .custom-green-table .p-datatable-thead > tr > th:first-child .p-column-header-content {
   gap: 0 !important;
   justify-content: center !important;
-}
+} */
 
 .custom-green-table .p-datatable-tbody > tr > td {
   background-color: #ffffff;
@@ -340,6 +340,9 @@ textarea {
 
 .btn-minimal-action:hover {
   color: #10b981;
+}
+.btn-minimal-action:last-child:hover   {
+  color: red;
 }
 
 .custom-green-table .p-sortable-column-icon {
