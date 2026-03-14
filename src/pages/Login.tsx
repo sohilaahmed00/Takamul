@@ -1,286 +1,92 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { User, Lock, Moon, Sun, Globe, Check } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { useTheme } from '@/context/ThemeContext';
-import { useLanguage } from '@/context/LanguageContext';
-import Logo from '@/components/Logo';
-import { localizeAuthError, AUTH_API_BASE } from '@/lib/utils';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
+import { useLanguage } from "@/context/LanguageContext";
+import Logo from "@/components/Logo";
+import { useLogin } from "@/features/auth/hooks/useLogin";
+import axios from "axios";
+import useToast from "@/hooks/useToast";
 
 export default function Login() {
   const navigate = useNavigate();
+  const { mutateAsync: login } = useLogin();
   const { theme, toggleTheme } = useTheme();
   const { t, direction, language, setLanguage } = useLanguage();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLanguageMenuOpen, setIsLanguageMenuOpen] = useState(false);
-  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const { notifyError, notifySuccess } = useToast();
+  const [error, setError] = useState("");
 
-  const isDark = theme === 'dark';
-
-  const LOGIN_API = `${AUTH_API_BASE}/api/Auth/login`;
+  const isDark = theme === "dark";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
     try {
-      const res = await fetch(LOGIN_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userName: username.trim(),
-          email: username.trim(),
-          password,
-        }),
+      const res = await login({
+        email: username,
+        password,
       });
-      const text = await res.text();
-      const data = text ? (() => { try { return JSON.parse(text); } catch { return {}; } })() : {};
-      if (!res.ok) {
-        const rawMsg =
-          typeof data?.message === 'string' ? data.message
-          : typeof data?.error === 'string' ? data.error
-          : Array.isArray(data?.errors) ? data.errors.join(' ')
-          : (data?.title ?? text) || '';
-        setError(localizeAuthError(rawMsg, t, 'login_error'));
-        setLoading(false);
-        return;
-      }
-      const token =
-        data?.token ?? data?.accessToken ?? data?.access_token ?? data?.data?.token;
-      const refreshToken =
-        data?.refreshToken ?? data?.refresh_token ?? data?.data?.refreshToken;
-      if (token) {
-        localStorage.setItem('takamul_token', token);
-      }
-      if (refreshToken) {
-        localStorage.setItem('takamul_refresh_token', refreshToken);
-      }
-      navigate('/dashboard');
+
+      notifySuccess("تم تسجيل الدخول بنجاح");
+      navigate("/dashboard");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : t('login_error');
-      setError(t('login_network_error') || msg);
+      if (axios.isAxiosError(err)) {
+        console.log(err.response);
+        const message = err.response?.data?.message;
+        notifyError(message);
+      } else {
+        console.log(err);
+      }
     } finally {
       setLoading(false);
     }
   };
-
-  const setThemeMode = (mode: 'light' | 'dark') => {
-    if (theme !== mode) {
-      toggleTheme();
-    }
-    setIsThemeMenuOpen(false);
+  const toggleLanguage = () => {
+    setLanguage(language === "ar" ? "en" : "ar");
   };
 
   return (
-    <div 
-      className={`min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden transition-colors duration-500 ${
-        isDark ? 'bg-gradient-to-b from-[#0a1930] to-[#050c18]' : 'bg-[#f1f5f9]'
-      }`}
-      dir={direction}
-    >
-      {/* Theme & Language Toggles */}
-      <div className={`absolute top-4 ${direction === 'rtl' ? 'left-4' : 'right-4'} flex gap-2 z-50`}>
-        <div className="relative">
-          <button 
-            onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
-            className={`p-2 rounded-full transition-colors backdrop-blur-sm shadow-sm border ${
-              isDark 
-                ? 'bg-white/10 text-white hover:bg-white/20 border-white/20' 
-                : 'bg-white text-gray-800 hover:bg-gray-100 border-gray-200'
-            }`}
-          >
-            {isDark ? <Moon size={20} /> : <Sun size={20} />}
-          </button>
-
-          <AnimatePresence>
-            {isThemeMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className={`absolute mt-2 w-40 rounded-lg shadow-lg border py-2 z-50 ${
-                    direction === 'rtl' ? 'left-0' : 'right-0'
-                } ${
-                    isDark 
-                      ? 'bg-[#1e293b] border-gray-700 text-white' 
-                      : 'bg-white border-gray-200 text-gray-800'
-                }`}
-              >
-                <button 
-                  onClick={() => setThemeMode('light')}
-                  className={`w-full px-4 py-2 text-sm hover:bg-opacity-10 hover:bg-gray-500 flex items-center justify-between ${!isDark ? 'text-[#10b981] font-bold' : ''}`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Sun size={16} />
-                    <span>{t('light_mode')}</span>
-                  </span>
-                  {!isDark && <Check size={16} />}
-                </button>
-                <button 
-                  onClick={() => setThemeMode('dark')}
-                  className={`w-full px-4 py-2 text-sm hover:bg-opacity-10 hover:bg-gray-500 flex items-center justify-between ${isDark ? 'text-[#10b981] font-bold' : ''}`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Moon size={16} />
-                    <span>{t('dark_mode')}</span>
-                  </span>
-                  {isDark && <Check size={16} />}
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        <div className="relative">
-          <button 
-            onClick={() => setIsLanguageMenuOpen(!isLanguageMenuOpen)}
-            className={`p-2 rounded-full transition-colors backdrop-blur-sm shadow-sm border ${
-              isDark 
-                ? 'bg-white/10 text-white hover:bg-white/20 border-white/20' 
-                : 'bg-white text-gray-800 hover:bg-gray-100 border-gray-200'
-            }`}
-          >
-            <Globe size={20} />
-          </button>
-
-          <AnimatePresence>
-            {isLanguageMenuOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 10 }}
-                className={`absolute mt-2 w-40 rounded-lg shadow-lg border py-2 z-50 ${
-                    direction === 'rtl' ? 'left-0' : 'right-0'
-                } ${
-                    isDark 
-                      ? 'bg-[#1e293b] border-gray-700 text-white' 
-                      : 'bg-white border-gray-200 text-gray-800'
-                }`}
-              >
-                <button 
-                  onClick={() => { setLanguage('ar'); setIsLanguageMenuOpen(false); }}
-                  className={`w-full px-4 py-2 text-sm hover:bg-opacity-10 hover:bg-gray-500 flex items-center justify-between ${language === 'ar' ? 'text-[#10b981] font-bold' : ''}`}
-                >
-                  <span className="flex items-center gap-2">
-                    <span>العربية</span>
-                  </span>
-                  {language === 'ar' && <Check size={16} />}
-                </button>
-                <button 
-                  onClick={() => { setLanguage('en'); setIsLanguageMenuOpen(false); }}
-                  className={`w-full px-4 py-2 text-sm hover:bg-opacity-10 hover:bg-gray-500 flex items-center justify-between ${language === 'en' ? 'text-[#10b981] font-bold' : ''}`}
-                >
-                  <span className="flex items-center gap-2">
-                    <span>English</span>
-                  </span>
-                  {language === 'en' && <Check size={16} />}
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+    <div className={`min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300 ${isDark ? "bg-[#0f172a] text-white" : "bg-gray-50 text-gray-900"}`} dir={direction}>
+      <div className={`absolute top-6 ${direction === "rtl" ? "left-6" : "right-6"} flex items-center gap-4`}>
+        <button onClick={toggleLanguage} className="text-sm font-medium text-gray-500 hover:text-[#10b981] transition-colors">
+          {language === "ar" ? "English" : "عربي"}
+        </button>
+        <button onClick={toggleTheme} className="text-gray-500 hover:text-[#10b981] transition-colors">
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
       </div>
 
-      {/* Header Outside Card */}
-      <div className="flex flex-col items-center mb-6 z-10">
-        <div className="mb-2 transform scale-125 transition-all duration-300">
-           <Logo /> 
+      <div className={`w-full max-w-md p-8 sm:p-10 rounded-xl  border transition-colors duration-300 ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
+        <div className="flex flex-col items-center mb-8 text-center">
+          <Logo />
+          <h1 className="text-2xl font-bold mt-6">{t("login")}</h1>
+          <p className={`text-sm mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>{t("welcome_login_message")}</p>
         </div>
-        <h1 className={`text-3xl font-bold mt-4 transition-colors duration-300 ${isDark ? 'text-white' : 'text-[#0a1a44]'}`}>
-          {t('login')}
-        </h1>
-      </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden relative p-8 z-10 transition-colors duration-300 ${
-          isDark ? 'bg-[#e2e8f0]' : 'bg-white'
-        }`}
-      >
-        <h2 className={`text-lg font-bold mb-6 text-[#0a1a44] ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>{t('welcome_login_message')}</h2>
+        <form onSubmit={handleLogin} className="space-y-4">
+          <input type="text" placeholder={t("email")} className={`w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] ${isDark ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`} value={username} onChange={(e) => setUsername(e.target.value)} required />
 
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div className="relative">
-            <div className={`absolute top-0 h-full w-12 flex items-center justify-center text-gray-500 ${direction === 'rtl' ? 'right-0' : 'left-0'}`}>
-              <User size={20} />
-            </div>
-            <input 
-              type="text" 
-              placeholder={t('email')}
-              className={`w-full h-12 border-none rounded-xl outline-none focus:ring-2 focus:ring-[#10b981]/20 transition-all placeholder-gray-500 text-[#0a1a44] ${
-                isDark ? 'bg-[#cbd5e1]' : 'bg-[#f8fafc] border border-gray-100'
-              } ${direction === 'rtl' ? 'pr-12 pl-4 text-right' : 'pl-12 pr-4 text-left'}`}
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
+          <input type="password" placeholder={t("password")} className={`w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] ${isDark ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`} value={password} onChange={(e) => setPassword(e.target.value)} required />
 
-          <div className="relative">
-            <div className={`absolute top-0 h-full w-12 flex items-center justify-center text-gray-500 ${direction === 'rtl' ? 'right-0' : 'left-0'}`}>
-              <Lock size={20} />
-            </div>
-            <input 
-              type="password" 
-              placeholder={t('password')}
-              className={`w-full h-12 border-none rounded-xl outline-none focus:ring-2 focus:ring-[#10b981]/20 transition-all placeholder-gray-500 text-[#0a1a44] ${
-                isDark ? 'bg-[#cbd5e1]' : 'bg-[#f8fafc] border border-gray-100'
-              } ${direction === 'rtl' ? 'pr-12 pl-4 text-right' : 'pl-12 pr-4 text-left'}`}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          {error && <p className="text-sm text-red-500 py-1 text-center">{error}</p>}
 
-          {error && (
-            <p className={`text-sm ${direction === 'rtl' ? 'text-right' : 'text-left'} text-red-600 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg`} role="alert">
-              {error}
-            </p>
-          )}
-
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex justify-between items-center text-sm py-2">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input 
-                type="checkbox" 
-                className="w-4 h-4 rounded border-gray-400 focus:ring-[#10b981] accent-[#10b981]" 
-              />
-              <span className="font-medium text-[#0a1a44]">{t('remember_me')}</span>
+              <input type="checkbox" className="w-4 h-4 accent-[#10b981] rounded border-gray-300" />
+              <span className={isDark ? "text-gray-400" : "text-gray-500"}>{t("remember_me")}</span>
             </label>
-            
-            <button 
-              type="button"
-              onClick={() => navigate('/forgot-password')}
-              className="font-bold hover:underline text-[#0a1a44]"
-            >
-              {t('forgot_password')}
+            <button type="button" onClick={() => navigate("/forgot-password")} className={`font-medium ${isDark ? "text-gray-300" : "text-gray-600"} hover:text-[#10b981] transition-colors`}>
+              {t("forgot_password")}
             </button>
           </div>
 
-          <button 
-            type="submit"
-            disabled={loading}
-            className="w-full h-12 text-white text-lg font-bold rounded-xl shadow-md hover:opacity-90 transition-all bg-[#10b981] disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {loading ? t('login_loading') : t('login_button')}
+          <button type="submit" disabled={loading} className="w-full py-3 mt-4 text-white text-base font-bold rounded-lg bg-[#10b981] hover:bg-[#059669] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            {loading ? t("login_loading") : t("login_button")}
           </button>
         </form>
-
-        <div className="mt-8 text-center border-t border-gray-300 pt-4">
-          <p className="text-xs font-medium text-gray-600">
-            {t('login_footer_text')}
-          </p>
-        </div>
-      </motion.div>
-
-      {/* Footer Outside Card */}
-      <div className="mt-8 text-center z-10">
-        <p className={`text-xs dir-ltr transition-colors duration-300 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-          {t('copyright_text')}
-        </p>
       </div>
     </div>
   );

@@ -1,12 +1,5 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-  ReactNode,
-  useCallback,
-} from 'react';
-import { AUTH_API_BASE } from '@/lib/utils';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
+import { AUTH_API_BASE } from "@/lib/utils";
 
 type ApiResult<T = any> = {
   ok: boolean;
@@ -44,8 +37,8 @@ export interface Product {
   nameUr?: string;
 
   // legacy/local fields
-  status?: 'active' | 'inactive';
-  productNature?: 'basic' | 'prepared' | 'sub';
+  status?: "active" | "inactive";
+  productNature?: "basic" | "prepared" | "sub";
   selectedAddons?: string[];
   parentProductName?: string;
   createdAt?: string;
@@ -62,7 +55,7 @@ export interface UnitOption {
   name: string;
 }
 
-interface AddProductParams extends Omit<Product, 'id'> {
+interface AddProductParams extends Omit<Product, "id"> {
   nameAr?: string;
   nameEn?: string;
   nameUr?: string;
@@ -93,8 +86,8 @@ interface UpdateProductParams {
   image?: string;
   brand?: string;
   agent?: string;
-  status?: 'active' | 'inactive';
-  productNature?: 'basic' | 'prepared' | 'sub';
+  status?: "active" | "inactive";
+  productNature?: "basic" | "prepared" | "sub";
   selectedAddons?: string[];
   parentProductName?: string;
 }
@@ -118,61 +111,64 @@ interface ProductsContextType {
 const ProductsContext = createContext<ProductsContextType | undefined>(undefined);
 
 const extractApiErrorMessage = (data: any) => {
-  console.log('updateProduct API error response:', data);
+  console.log("updateProduct API error response:", data);
 
-  if (typeof data?.message === 'string' && data.message.trim()) {
+  if (typeof data?.message === "string" && data.message.trim()) {
     return data.message.trim();
   }
 
-  if (typeof data?.title === 'string' && data.title.trim()) {
+  if (typeof data?.title === "string" && data.title.trim()) {
     return data.title.trim();
   }
 
-  if (typeof data === 'string' && data.trim()) {
+  if (typeof data === "string" && data.trim()) {
     return data.trim();
   }
 
-  if (data?.errors && typeof data.errors === 'object') {
+  if (data?.errors && typeof data.errors === "object") {
     const lines: string[] = [];
     for (const key of Object.keys(data.errors)) {
       const arr = data.errors[key];
       if (Array.isArray(arr)) {
         for (const msg of arr) {
-          if (typeof msg === 'string' && msg.trim()) lines.push(msg.trim());
+          if (typeof msg === "string" && msg.trim()) lines.push(msg.trim());
         }
       }
     }
-    if (lines.length) return lines.join(' | ');
+    if (lines.length) return lines.join(" | ");
   }
 
-  return 'فشل العملية';
+  return "فشل العملية";
 };
 
 const toUserMessage = (raw?: string) => {
-  if (!raw) return 'حدث خطأ، حاول مرة أخرى';
+  if (!raw) return "حدث خطأ، حاول مرة أخرى";
 
   const clean = raw.trim();
   if (clean) return clean;
 
-  return 'حدث خطأ، حاول مرة أخرى';
+  return "حدث خطأ، حاول مرة أخرى";
 };
 
 const normalizeProductType = (value: any): string => {
-  const v = String(value ?? '').trim().toLowerCase();
+  const v = String(value ?? "")
+    .trim()
+    .toLowerCase();
 
-  if (v === 'prepared' || v === '1') return 'prepared';
-  if (v === 'branched' || v === '2' || v === 'sub') return 'branched';
+  if (v === "prepared" || v === "1") return "prepared";
+  if (v === "branched" || v === "2" || v === "sub") return "branched";
 
-
-  return 'prepared';
+  return "prepared";
 };
 
-const normalizeProductNature = (value: any): 'basic' | 'prepared' | 'sub' => {
-  const v = String(value ?? '').trim().toLowerCase();
+const normalizeProductNature = (value: any): "basic" | "prepared" | "sub" => {
+  const v = String(value ?? "")
+    .trim()
+    .toLowerCase();
 
-  if (v === 'sub' || v === 'branched' || v === '2') return 'sub';
-  if (v === 'prepared' || v === '1') return 'prepared';
-  return 'basic';
+  if (v === "sub" || v === "branched" || v === "2") return "sub";
+  if (v === "prepared" || v === "1") return "prepared";
+  return "basic";
 };
 
 const mapApiProduct = (p: any): Product => {
@@ -181,76 +177,64 @@ const mapApiProduct = (p: any): Product => {
 
   return {
     id: realId,
-    image: String(p?.imageUrl ?? p?.image ?? ''),
-    code: String(p?.barcode ?? p?.productCode ?? ''),
-    name: String(p?.productNameAr || p?.productNameEn || p?.productNameUr || p?.name || ''),
-    nameAr: String(p?.productNameAr ?? ''),
-    nameEn: String(p?.productNameEn ?? ''),
-    nameUr: String(p?.productNameUr ?? ''),
-    brand: String(p?.brand ?? ''),
-    agent: String(p?.agent ?? ''),
-    category: String(p?.categoryName ?? p?.category ?? ''),
+    image: String(p?.imageUrl ?? p?.image ?? ""),
+    code: String(p?.barcode ?? p?.productCode ?? ""),
+    name: String(p?.productNameAr || p?.productNameEn || p?.productNameUr || p?.name || ""),
+    nameAr: String(p?.productNameAr ?? ""),
+    nameEn: String(p?.productNameEn ?? ""),
+    nameUr: String(p?.productNameUr ?? ""),
+    brand: String(p?.brand ?? ""),
+    agent: String(p?.agent ?? ""),
+    category: String(p?.categoryName ?? p?.category ?? ""),
     categoryId: p?.categoryId ?? undefined,
     cost: String(p?.costPrice ?? p?.cost ?? 0),
     price: String(p?.sellingPrice ?? p?.price ?? 0),
     quantity: String(p?.quantity ?? 0),
-    unit: String(p?.unitName ?? p?.unit ?? ''),
+    unit: String(p?.unitName ?? p?.unit ?? ""),
     unitId: p?.unitId ?? undefined,
     alertQuantity: String(p?.minStockLevel ?? p?.alertQuantity ?? 0),
-    description: String(p?.description ?? ''),
+    description: String(p?.description ?? ""),
     productType,
     parentProductId: Number(p?.parentProductId ?? 0),
 
     // legacy compatibility
-    status: p?.isActive === false ? 'inactive' : 'active',
-    productNature:
-      productType === 'branched' ? 'sub' : productType === 'prepared' ? 'prepared' : 'basic',
+    status: p?.isActive === false ? "inactive" : "active",
+    productNature: productType === "branched" ? "sub" : productType === "prepared" ? "prepared" : "basic",
     selectedAddons: Array.isArray(p?.selectedAddons) ? p.selectedAddons : [],
-    parentProductName: String(p?.parentProductName ?? ''),
+    parentProductName: String(p?.parentProductName ?? ""),
     createdAt: p?.createdAt ? String(p.createdAt) : undefined,
     updatedAt: p?.updatedAt ? String(p.updatedAt) : undefined,
   };
 };
 
 const mapLocalProduct = (p: any): Product => {
-  const idValue =
-    typeof p?.id === 'number'
-      ? p.id
-      : Number.isFinite(Number(p?.id))
-      ? Number(p.id)
-      : String(p?.id ?? Date.now());
+  const idValue = typeof p?.id === "number" ? p.id : Number.isFinite(Number(p?.id)) ? Number(p.id) : String(p?.id ?? Date.now());
 
   return {
     id: idValue,
-    image: String(p?.image ?? ''),
-    code: String(p?.code ?? ''),
-    name: String(p?.name ?? ''),
-    nameAr: String(p?.nameAr ?? p?.name ?? ''),
-    nameEn: String(p?.nameEn ?? p?.name ?? ''),
-    nameUr: String(p?.nameUr ?? p?.name ?? ''),
-    brand: String(p?.brand ?? ''),
-    agent: String(p?.agent ?? ''),
-    category: String(p?.category ?? ''),
+    image: String(p?.image ?? ""),
+    code: String(p?.code ?? ""),
+    name: String(p?.name ?? ""),
+    nameAr: String(p?.nameAr ?? p?.name ?? ""),
+    nameEn: String(p?.nameEn ?? p?.name ?? ""),
+    nameUr: String(p?.nameUr ?? p?.name ?? ""),
+    brand: String(p?.brand ?? ""),
+    agent: String(p?.agent ?? ""),
+    category: String(p?.category ?? ""),
     categoryId: p?.categoryId ?? undefined,
     cost: p?.cost ?? 0,
     price: p?.price ?? 0,
     quantity: p?.quantity ?? 0,
-    unit: String(p?.unit ?? ''),
+    unit: String(p?.unit ?? ""),
     unitId: p?.unitId ?? undefined,
     alertQuantity: p?.alertQuantity ?? 0,
-    description: String(p?.description ?? ''),
-    productType:
-      p?.productType ??
-      (p?.productNature === 'sub'
-        ? 'branched'
-        : p?.productNature === 'prepared'
-        ? 'prepared'
-        : 'prepared'),
+    description: String(p?.description ?? ""),
+    productType: p?.productType ?? (p?.productNature === "sub" ? "branched" : p?.productNature === "prepared" ? "prepared" : "prepared"),
     parentProductId: Number(p?.parentProductId ?? 0),
-    status: p?.status ?? 'active',
+    status: p?.status ?? "active",
     productNature: normalizeProductNature(p?.productNature ?? p?.productType),
     selectedAddons: Array.isArray(p?.selectedAddons) ? p.selectedAddons : [],
-    parentProductName: String(p?.parentProductName ?? ''),
+    parentProductName: String(p?.parentProductName ?? ""),
     createdAt: p?.createdAt,
     updatedAt: p?.updatedAt,
   };
@@ -261,30 +245,30 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE = AUTH_API_BASE || 'http://takamulerp.runasp.net';
+  const API_BASE = AUTH_API_BASE || "http://takamulerp.runasp.net";
 
   const getAuthHeaders = () => {
-    const token = localStorage.getItem('takamul_token');
+    const token = localStorage.getItem("takamul_token");
     return {
-      Accept: 'application/json',
+      Accept: "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
   };
 
   const saveLocalProducts = useCallback((newProducts: Product[]) => {
     setProducts(newProducts);
-    localStorage.setItem('products', JSON.stringify(newProducts));
-    window.dispatchEvent(new Event('products-updated'));
+    localStorage.setItem("products", JSON.stringify(newProducts));
+    window.dispatchEvent(new Event("products-updated"));
   }, []);
 
   const loadLocalProducts = useCallback((): Product[] => {
     try {
-      const stored = localStorage.getItem('products');
+      const stored = localStorage.getItem("products");
       if (!stored) return [];
       const parsed = JSON.parse(stored);
       return Array.isArray(parsed) ? parsed.map(mapLocalProduct) : [];
     } catch (err) {
-      console.error('Error loading products from localStorage:', err);
+      console.error("Error loading products from localStorage:", err);
       return [];
     }
   }, []);
@@ -314,10 +298,10 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
       }
 
       setProducts(mapped);
-      localStorage.setItem('products', JSON.stringify(mapped));
+      localStorage.setItem("products", JSON.stringify(mapped));
     } catch (err) {
-      console.error('Error loading products from API', err);
-      setError('فشل تحميل البيانات');
+      console.error("Error loading products from API", err);
+      setError("فشل تحميل البيانات");
 
       const local = loadLocalProducts();
       setProducts(local);
@@ -350,14 +334,11 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
         .map((item: any, index: number) => ({
           id: Number(item?.id ?? item ?? index + 1),
 
-          name: String(
-            item?.categoryNameAr ?? item?.name ?? item?.productCategoryName ?? ''
-          ).trim(),
-
+          name: String(item?.categoryNameAr ?? item?.name ?? item?.productCategoryName ?? "").trim(),
         }))
         .filter((item: ProductCategoryOption) => item.name);
     } catch (err) {
-      console.error('Error loading categories', err);
+      console.error("Error loading categories", err);
       return [];
     }
   };
@@ -376,11 +357,11 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
       return arr
         .map((item: any, index: number) => ({
           id: Number(item?.id ?? item?.unitId ?? index + 1),
-          name: String(item?.unitName ?? item?.name ?? '').trim(),
+          name: String(item?.unitName ?? item?.name ?? "").trim(),
         }))
         .filter((item: UnitOption) => item.name);
     } catch (err) {
-      console.error('Error loading units', err);
+      console.error("Error loading units", err);
       return [];
     }
   };
@@ -391,22 +372,22 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
       ProductNameAr: product.nameAr ?? product.name,
       ProductNameEn: product.nameEn ?? product.name,
       ProductNameUr: product.nameUr ?? product.name,
-      Description: product.description ?? '',
-      CategoryName: product.category || '',
-      CostPrice: Number(product.cost || '0'),
-      SellingPrice: Number(product.price || '0'),
-      MinStockLevel: Number(product.alertQuantity || '0'),
+      Description: product.description ?? "",
+      CategoryName: product.category || "",
+      CostPrice: Number(product.cost || "0"),
+      SellingPrice: Number(product.price || "0"),
+      MinStockLevel: Number(product.alertQuantity || "0"),
       ParentProductId: Number(product.parentProductId ?? 0),
       ProductType: normalizeProductType(product.productType ?? product.productNature),
-      Image: product.image ?? '',
+      Image: product.image ?? "",
     };
 
     try {
-      const token = localStorage.getItem('takamul_token');
+      const token = localStorage.getItem("takamul_token");
       const res = await fetch(`${API_BASE}/api/Products/add`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(payload),
@@ -418,7 +399,7 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
           id: Date.now(),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          status: 'active',
+          status: "active",
         });
         saveLocalProducts([...products, fallbackProduct]);
         return fallbackProduct;
@@ -427,14 +408,14 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
       await loadFromApi();
       return { ok: true };
     } catch (err) {
-      console.error('Failed to add product via API', err);
+      console.error("Failed to add product via API", err);
 
       const fallbackProduct: Product = mapLocalProduct({
         ...product,
         id: Date.now(),
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        status: 'active',
+        status: "active",
       });
       saveLocalProducts([...products, fallbackProduct]);
       return fallbackProduct;
@@ -444,16 +425,16 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const deleteProduct = async (id: number | string) => {
     try {
       const numericId = Number(id);
-      const token = localStorage.getItem('takamul_token');
+      const token = localStorage.getItem("takamul_token");
 
       if (Number.isFinite(numericId) && numericId > 0) {
         const res = await fetch(`${API_BASE}/api/Products/${numericId}`, {
-          method: 'DELETE',
+          method: "DELETE",
           headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         });
 
         if (!res.ok) {
-          console.error('Failed to delete product via API, status:', res.status);
+          console.error("Failed to delete product via API, status:", res.status);
         } else {
           await loadFromApi();
           return;
@@ -463,7 +444,7 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
       const newProducts = products.filter((p) => String(p.id) !== String(id));
       saveLocalProducts(newProducts);
     } catch (err) {
-      console.error('Failed to delete product via API', err);
+      console.error("Failed to delete product via API", err);
       const newProducts = products.filter((p) => String(p.id) !== String(id));
       saveLocalProducts(newProducts);
     }
@@ -471,29 +452,26 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   const deleteMultipleProducts = async (ids: (number | string)[]) => {
     try {
-      const token = localStorage.getItem('takamul_token');
+      const token = localStorage.getItem("takamul_token");
 
       await Promise.all(
         ids.map((id) =>
           fetch(`${API_BASE}/api/Products/${Number(id)}`, {
-            method: 'DELETE',
+            method: "DELETE",
             headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-          }).catch(() => null)
-        )
+          }).catch(() => null),
+        ),
       );
 
       await loadFromApi();
     } catch (err) {
-      console.error('Failed to delete products via API', err);
+      console.error("Failed to delete products via API", err);
       const newProducts = products.filter((p) => !ids.some((id) => String(id) === String(p.id)));
       saveLocalProducts(newProducts);
     }
   };
 
-  const urlToFile = async (
-    url: string,
-    fallbackName = 'current-image.jpg'
-  ): Promise<File | null> => {
+  const urlToFile = async (url: string, fallbackName = "current-image.jpg"): Promise<File | null> => {
     if (!url) return null;
 
     try {
@@ -501,77 +479,64 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
       if (!res.ok) return null;
 
       const blob = await res.blob();
-      const type = blob.type || 'image/jpeg';
+      const type = blob.type || "image/jpeg";
 
       return new File([blob], fallbackName, { type });
     } catch (error) {
-      console.error('Failed converting image url to file', error);
+      console.error("Failed converting image url to file", error);
       return null;
     }
   };
 
-  const updateProduct = async (
-    id: number | string,
-    updates: UpdateProductParams | Product
-  ): Promise<any> => {
+  const updateProduct = async (id: number | string, updates: UpdateProductParams | Product): Promise<any> => {
     try {
       const currentProduct = products.find((p) => String(p.id) === String(id));
 
       if (!currentProduct) {
-        return { ok: false, status: 404, message: 'الصنف غير موجود' };
+        return { ok: false, status: 404, message: "الصنف غير موجود" };
       }
 
       const rawUpdates = updates as any;
 
-      const nameAr = String(
-        rawUpdates.nameAr ?? currentProduct.nameAr ?? rawUpdates.name ?? currentProduct.name ?? ''
-      ).trim();
-      const nameEn = String(
-        rawUpdates.nameEn ?? currentProduct.nameEn ?? rawUpdates.name ?? currentProduct.name ?? ''
-      ).trim();
-      const nameUr = String(
-        rawUpdates.nameUr ?? currentProduct.nameUr ?? rawUpdates.name ?? currentProduct.name ?? ''
-      ).trim();
+      const nameAr = String(rawUpdates.nameAr ?? currentProduct.nameAr ?? rawUpdates.name ?? currentProduct.name ?? "").trim();
+      const nameEn = String(rawUpdates.nameEn ?? currentProduct.nameEn ?? rawUpdates.name ?? currentProduct.name ?? "").trim();
+      const nameUr = String(rawUpdates.nameUr ?? currentProduct.nameUr ?? rawUpdates.name ?? currentProduct.name ?? "").trim();
 
-      const categoryName = String(rawUpdates.category ?? currentProduct.category ?? '').trim();
-      const unitName = String(rawUpdates.unit ?? currentProduct.unit ?? '').trim();
-      const barcode = String(rawUpdates.code ?? currentProduct.code ?? '').trim();
-      const description = String(rawUpdates.description ?? currentProduct.description ?? '').trim();
+      const categoryName = String(rawUpdates.category ?? currentProduct.category ?? "").trim();
+      const unitName = String(rawUpdates.unit ?? currentProduct.unit ?? "").trim();
+      const barcode = String(rawUpdates.code ?? currentProduct.code ?? "").trim();
+      const description = String(rawUpdates.description ?? currentProduct.description ?? "").trim();
 
-      const productType = normalizeProductType(
-        rawUpdates.productType ?? rawUpdates.productNature ?? currentProduct.productType ?? 'prepared'
-      );
+      const productType = normalizeProductType(rawUpdates.productType ?? rawUpdates.productNature ?? currentProduct.productType ?? "prepared");
 
       const sellingPrice = Number(rawUpdates.price ?? currentProduct.price ?? 0);
       const costPrice = Number(rawUpdates.cost ?? currentProduct.cost ?? 0);
       const minStockLevel = Number(rawUpdates.alertQuantity ?? currentProduct.alertQuantity ?? 0);
       const quantity = Number(rawUpdates.quantity ?? currentProduct.quantity ?? 0);
-      const parentProductId = Number(
-        rawUpdates.parentProductId ?? currentProduct.parentProductId ?? 0
-      );
+      const parentProductId = Number(rawUpdates.parentProductId ?? currentProduct.parentProductId ?? 0);
 
       if (!nameAr || !nameEn || !nameUr) {
-        return { ok: false, status: 400, message: 'من فضلك اكتب اسم الصنف' };
+        return { ok: false, status: 400, message: "من فضلك اكتب اسم الصنف" };
       }
 
       if (!categoryName) {
-        return { ok: false, status: 400, message: 'من فضلك اختر التصنيف الرئيسي' };
+        return { ok: false, status: 400, message: "من فضلك اختر التصنيف الرئيسي" };
       }
 
       if (!Number.isFinite(sellingPrice) || sellingPrice < 0) {
-        return { ok: false, status: 400, message: 'من فضلك اكتب سعر بيع صحيح' };
+        return { ok: false, status: 400, message: "من فضلك اكتب سعر بيع صحيح" };
       }
 
       if (!Number.isFinite(costPrice) || costPrice < 0) {
-        return { ok: false, status: 400, message: 'من فضلك اكتب تكلفة صحيحة' };
+        return { ok: false, status: 400, message: "من فضلك اكتب تكلفة صحيحة" };
       }
 
       if (!Number.isFinite(minStockLevel) || minStockLevel < 0) {
-        return { ok: false, status: 400, message: 'من فضلك اكتب حد تنبيه صحيح' };
+        return { ok: false, status: 400, message: "من فضلك اكتب حد تنبيه صحيح" };
       }
 
       if (!Number.isFinite(quantity) || quantity < 0) {
-        return { ok: false, status: 400, message: 'من فضلك اكتب كمية صحيحة' };
+        return { ok: false, status: 400, message: "من فضلك اكتب كمية صحيحة" };
       }
 
       const numericId = Number(id);
@@ -593,14 +558,11 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
           cost: costPrice,
           quantity,
           alertQuantity: minStockLevel,
-          productNature:
-            productType === 'branched' ? 'sub' : productType === 'prepared' ? 'prepared' : 'basic',
+          productNature: productType === "branched" ? "sub" : productType === "prepared" ? "prepared" : "basic",
           updatedAt: new Date().toISOString(),
         };
 
-        const newProducts = products.map((p) =>
-          String(p.id) === String(id) ? mergedLocal : p
-        );
+        const newProducts = products.map((p) => (String(p.id) === String(id) ? mergedLocal : p));
         saveLocalProducts(newProducts);
         return mergedLocal;
       }
@@ -615,28 +577,28 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
         return {
           ok: false,
           status: 400,
-          message: 'الصورة الحالية لا يمكن إرسالها تلقائيًا، من فضلك اختر الصورة مرة أخرى',
+          message: "الصورة الحالية لا يمكن إرسالها تلقائيًا، من فضلك اختر الصورة مرة أخرى",
         };
       }
 
-      const token = localStorage.getItem('takamul_token');
+      const token = localStorage.getItem("takamul_token");
       const form = new FormData();
 
-      form.append('Id', String(numericId));
-      form.append('ProductNameAr', nameAr);
-      form.append('ProductNameEn', nameEn);
-      form.append('ProductNameUr', nameUr);
-      form.append('CategoryName', categoryName);
-      form.append('Barcode', barcode);
-      form.append('CostPrice', String(costPrice));
-      form.append('SellingPrice', String(sellingPrice));
-      form.append('MinStockLevel', String(minStockLevel));
-      form.append('ProductType', productType);
-      form.append('ParentProductId', String(parentProductId));
-      form.append('ImageUrl', imageFile);
+      form.append("Id", String(numericId));
+      form.append("ProductNameAr", nameAr);
+      form.append("ProductNameEn", nameEn);
+      form.append("ProductNameUr", nameUr);
+      form.append("CategoryName", categoryName);
+      form.append("Barcode", barcode);
+      form.append("CostPrice", String(costPrice));
+      form.append("SellingPrice", String(sellingPrice));
+      form.append("MinStockLevel", String(minStockLevel));
+      form.append("ProductType", productType);
+      form.append("ParentProductId", String(parentProductId));
+      form.append("ImageUrl", imageFile);
 
       const res = await fetch(`${API_BASE}/api/Products/${numericId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
@@ -672,14 +634,14 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
         ok: true,
         status: res.status,
         data,
-        message: 'تم حفظ تعديلات الصنف بنجاح',
+        message: "تم حفظ تعديلات الصنف بنجاح",
       };
     } catch (err) {
-      console.error('updateProduct error', err);
+      console.error("updateProduct error", err);
       return {
         ok: false,
         status: 0,
-        message: 'حدث خطأ أثناء حفظ التعديلات',
+        message: "حدث خطأ أثناء حفظ التعديلات",
       };
     }
   };
@@ -688,7 +650,7 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
     (id: number | string): Product | undefined => {
       return products.find((p) => String(p.id) === String(id));
     },
-    [products]
+    [products],
   );
 
   return (
@@ -714,6 +676,6 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
 
 export const useProducts = () => {
   const context = useContext(ProductsContext);
-  if (!context) throw new Error('useProducts must be used within a ProductsProvider');
+  if (!context) throw new Error("useProducts must be used within a ProductsProvider");
   return context;
 };

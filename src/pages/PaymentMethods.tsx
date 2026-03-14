@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { useLanguage } from '../context/LanguageContext';
-import { usePaymentMethods } from '../context/PaymentMethodsContext';
-import { Plus, Search, Trash2, Edit2, X, ChevronRight, ChevronLeft, LayoutGrid, Upload } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '../lib/utils';
-import { PaymentMethod } from '../types';
+import React, { useState } from "react";
+import { useLanguage } from "../context/LanguageContext";
+import { usePaymentMethods } from "../context/PaymentMethodsContext";
+import { Plus, Search, Trash2, Edit2, X, ChevronRight, ChevronLeft, LayoutGrid, Upload } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "../lib/utils";
+import type { PaymentMethod } from "../types";
 
 const PaymentMethods: React.FC = () => {
   const { t, direction } = useLanguage();
@@ -12,30 +12,30 @@ const PaymentMethods: React.FC = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [editingMethod, setEditingMethod] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [form, setForm] = useState<Omit<PaymentMethod, 'id'>>({ 
-    code: '', 
-    name: '', 
-    status: 'available',
-    image: ''
+  const [searchTerm, setSearchTerm] = useState("");
+  const [form, setForm] = useState<Omit<PaymentMethod, "id">>({
+    code: "",
+    name: "",
+    status: "available",
+    image: "",
   });
 
   const handleOpenModal = (method?: PaymentMethod) => {
     if (method) {
       setEditingMethod(method.id);
-      setForm({ 
-        code: method.code, 
-        name: method.name, 
+      setForm({
+        code: method.code,
+        name: method.name,
         status: method.status,
-        image: method.image || ''
+        image: method.image || "",
       });
     } else {
       setEditingMethod(null);
-      setForm({ 
-        code: '', 
-        name: '', 
-        status: 'available',
-        image: ''
+      setForm({
+        code: "",
+        name: "",
+        status: "available",
+        image: "",
       });
     }
     setShowModal(true);
@@ -51,37 +51,25 @@ const PaymentMethods: React.FC = () => {
     setShowModal(false);
   };
 
-  const filteredMethods = paymentMethods.filter(m => 
-    m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.code.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredMethods = paymentMethods.filter((m) => m.name.toLowerCase().includes(searchTerm.toLowerCase()) || m.code.toLowerCase().includes(searchTerm.toLowerCase()));
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold text-[var(--text-main)]">{t('payment_methods')}</h1>
-        <button 
-          onClick={() => handleOpenModal()}
-          className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-all text-sm font-medium"
-        >
+        <h1 className="text-2xl font-bold text-[var(--text-main)]">{t("payment_methods")}</h1>
+        <button onClick={() => handleOpenModal()} className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-all text-sm font-medium">
           <Plus size={18} />
-          {t('add_payment_method')}
+          {t("add_payment_method")}
         </button>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-[var(--card-bg)] rounded-xl border border-[var(--border)] overflow-hidden"
-      >
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[var(--card-bg)] rounded-xl border border-[var(--border)] overflow-hidden">
         <div className="p-4 border-b border-[var(--border)] flex flex-wrap items-center justify-between gap-4 bg-[var(--bg-main)]/50">
           <div className="flex items-center gap-2">
             <LayoutGrid size={20} className="text-[var(--primary)]" />
-            <span className="font-bold text-[var(--text-main)]">{t('payment_methods')}</span>
+            <span className="font-bold text-[var(--text-main)]">{t("payment_methods")}</span>
           </div>
-          <div className="text-sm text-[var(--text-muted)] italic">
-            الرجاء استخدام الجدول أدناه للتنقل أو تصفية النتائج.
-          </div>
+          <div className="text-sm text-[var(--text-muted)] italic">الرجاء استخدام الجدول أدناه للتنقل أو تصفية النتائج.</div>
         </div>
 
         <div className="p-4 space-y-4">
@@ -95,13 +83,7 @@ const PaymentMethods: React.FC = () => {
               </select>
             </div>
             <div className="relative">
-              <input
-                type="text"
-                placeholder={t('search')}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-[var(--input-bg)] border border-[var(--border)] rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] w-64"
-              />
+              <input type="text" placeholder={t("search")} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-[var(--input-bg)] border border-[var(--border)] rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] w-64" />
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
             </div>
           </div>
@@ -113,18 +95,18 @@ const PaymentMethods: React.FC = () => {
                   <th className="p-3 border border-white/10 w-12">
                     <input type="checkbox" className="rounded border-white/20" />
                   </th>
-                  <th className="p-3 border border-white/10">{t('payment_method_image')}</th>
-                  <th className="p-3 border border-white/10">{t('payment_method_code')}</th>
-                  <th className="p-3 border border-white/10">{t('payment_method_name')}</th>
-                  <th className="p-3 border border-white/10">{t('payment_method_status')}</th>
-                  <th className="p-3 border border-white/10 text-center">{t('promotion_actions')}</th>
+                  <th className="p-3 border border-white/10">{t("payment_method_image")}</th>
+                  <th className="p-3 border border-white/10">{t("payment_method_code")}</th>
+                  <th className="p-3 border border-white/10">{t("payment_method_name")}</th>
+                  <th className="p-3 border border-white/10">{t("payment_method_status")}</th>
+                  <th className="p-3 border border-white/10 text-center">{t("promotion_actions")}</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredMethods.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="p-8 text-center text-[var(--text-muted)] bg-[var(--bg-main)]/30">
-                      {t('no_promotions_found')}
+                      {t("no_promotions_found")}
                     </td>
                   </tr>
                 ) : (
@@ -145,25 +127,14 @@ const PaymentMethods: React.FC = () => {
                       <td className="p-3 font-mono">{m.code}</td>
                       <td className="p-3">{m.name}</td>
                       <td className="p-3">
-                        <span className={cn(
-                          "px-2 py-1 rounded-full text-xs font-medium",
-                          m.status === 'available' ? "bg-green-100 text-green-700" : "bg-emerald-100 text-emerald-700"
-                        )}>
-                          {m.status === 'available' ? t('available') : t('unavailable')}
-                        </span>
+                        <span className={cn("px-2 py-1 rounded-full text-xs font-medium", m.status === "available" ? "bg-green-100 text-green-700" : "bg-emerald-100 text-emerald-700")}>{m.status === "available" ? t("available") : t("unavailable")}</span>
                       </td>
                       <td className="p-3">
                         <div className="flex items-center gap-2 justify-center">
-                          <button 
-                            onClick={() => handleOpenModal(m)}
-                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
-                          >
+                          <button onClick={() => handleOpenModal(m)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors">
                             <Edit2 size={16} />
                           </button>
-                          <button 
-                            onClick={() => deletePaymentMethod(m.id)}
-                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
-                          >
+                          <button onClick={() => deletePaymentMethod(m.id)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors">
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -178,9 +149,7 @@ const PaymentMethods: React.FC = () => {
           {/* Mobile Card View */}
           <div className="md:hidden space-y-4">
             {filteredMethods.length === 0 ? (
-              <div className="p-8 text-center text-[var(--text-muted)] bg-[var(--bg-main)]/30 rounded-xl">
-                {t('no_promotions_found')}
-              </div>
+              <div className="p-8 text-center text-[var(--text-muted)] bg-[var(--bg-main)]/30 rounded-xl">{t("no_promotions_found")}</div>
             ) : (
               filteredMethods.map((m) => (
                 <div key={`mobile-${m.id}`} className="bg-[var(--bg-main)]/30 p-4 rounded-xl border border-[var(--border)] space-y-3">
@@ -190,31 +159,20 @@ const PaymentMethods: React.FC = () => {
                       <span className="font-bold text-[var(--text-main)]">{m.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => handleOpenModal(m)}
-                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                      >
+                      <button onClick={() => handleOpenModal(m)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
                         <Edit2 size={18} />
                       </button>
-                      <button 
-                        onClick={() => deletePaymentMethod(m.id)}
-                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                      >
+                      <button onClick={() => deletePaymentMethod(m.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors">
                         <Trash2 size={18} />
                       </button>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div className="text-[var(--text-muted)]">{t('payment_method_code')}:</div>
+                    <div className="text-[var(--text-muted)]">{t("payment_method_code")}:</div>
                     <div className="font-mono text-left">{m.code}</div>
-                    <div className="text-[var(--text-muted)]">{t('payment_method_status')}:</div>
+                    <div className="text-[var(--text-muted)]">{t("payment_method_status")}:</div>
                     <div className="text-left">
-                      <span className={cn(
-                        "px-2 py-0.5 rounded-full text-xs font-medium",
-                        m.status === 'available' ? "bg-green-100 text-green-700" : "bg-emerald-100 text-emerald-700"
-                      )}>
-                        {m.status === 'available' ? t('available') : t('unavailable')}
-                      </span>
+                      <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", m.status === "available" ? "bg-green-100 text-green-700" : "bg-emerald-100 text-emerald-700")}>{m.status === "available" ? t("available") : t("unavailable")}</span>
                     </div>
                   </div>
                 </div>
@@ -243,40 +201,20 @@ const PaymentMethods: React.FC = () => {
       <AnimatePresence>
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
-            >
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl">
               <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-primary text-white">
-                <button 
-                  onClick={() => setShowModal(false)}
-                  className="p-1 hover:bg-white/10 rounded-full transition-colors text-white/80"
-                >
+                <button onClick={() => setShowModal(false)} className="p-1 hover:bg-white/10 rounded-full transition-colors text-white/80">
                   <X size={20} />
                 </button>
-                <span className="font-bold text-lg">
-                  {editingMethod ? t('edit_payment_method') : t('add_payment_method')}
-                </span>
+                <span className="font-bold text-lg">{editingMethod ? t("edit_payment_method") : t("add_payment_method")}</span>
               </div>
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                <div className="text-sm text-emerald-800 text-right leading-relaxed font-bold">
-                  {editingMethod 
-                    ? "يرجى تحديث المعلومات الواردة أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية ."
-                    : "برجاء ادخال المعلومات أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية ."
-                  }
-                </div>
+                <div className="text-sm text-emerald-800 text-right leading-relaxed font-bold">{editingMethod ? "يرجى تحديث المعلومات الواردة أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية ." : "برجاء ادخال المعلومات أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية ."}</div>
 
                 <div className="space-y-4 text-right">
                   <div>
-                    <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('payment_method_code')} *</label>
-                    <select
-                      required
-                      value={form.code}
-                      onChange={(e) => setForm({ ...form, code: e.target.value })}
-                      className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all"
-                    >
+                    <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t("payment_method_code")} *</label>
+                    <select required value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all">
                       <option value="">اختر الكود</option>
                       <option value="cash">cash</option>
                       <option value="CC">CC</option>
@@ -289,57 +227,35 @@ const PaymentMethods: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('payment_method_name')} *</label>
-                    <input
-                      type="text"
-                      required
-                      value={form.name}
-                      onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all"
-                    />
+                    <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t("payment_method_name")} *</label>
+                    <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all" />
                   </div>
 
                   {editingMethod && (
                     <div>
-                      <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('payment_method_status')}</label>
-                      <select
-                        value={form.status}
-                        onChange={(e) => setForm({ ...form, status: e.target.value as 'available' | 'unavailable' })}
-                        className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all"
-                      >
-                        <option value="available">{t('available')}</option>
-                        <option value="unavailable">{t('unavailable')}</option>
+                      <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t("payment_method_status")}</label>
+                      <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as "available" | "unavailable" })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all">
+                        <option value="available">{t("available")}</option>
+                        <option value="unavailable">{t("unavailable")}</option>
                       </select>
                     </div>
                   )}
 
                   <div>
-                    <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('payment_method_image')}</label>
+                    <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t("payment_method_image")}</label>
                     <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={form.image}
-                        onChange={(e) => setForm({ ...form, image: e.target.value })}
-                        className="flex-1 p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all"
-                        placeholder="رابط الصورة"
-                      />
-                      <button 
-                        type="button"
-                        className="bg-emerald-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm hover:bg-emerald-700 transition-all font-bold"
-                      >
+                      <input type="text" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} className="flex-1 p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all" placeholder="رابط الصورة" />
+                      <button type="button" className="bg-emerald-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm hover:bg-emerald-700 transition-all font-bold">
                         <Upload size={16} />
-                        {t('browse')}
+                        {t("browse")}
                       </button>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex justify-end pt-2">
-                  <button
-                    type="submit"
-                    className="bg-emerald-600 text-white px-8 py-3 rounded-xl hover:bg-emerald-700 transition-all font-bold shadow-lg shadow-emerald-100 active:scale-95"
-                  >
-                    {editingMethod ? t('edit_payment_method') : t('add_payment_method')}
+                  <button type="submit" className="bg-emerald-600 text-white px-8 py-3 rounded-xl hover:bg-emerald-700 transition-all font-bold shadow-lg shadow-emerald-100 active:scale-95">
+                    {editingMethod ? t("edit_payment_method") : t("add_payment_method")}
                   </button>
                 </div>
               </form>

@@ -1,31 +1,12 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Search, 
-  Printer, 
-  FileText, 
-  FileDown, 
-  LayoutGrid, 
-  ChevronRight, 
-  ChevronLeft,
-  MoreVertical,
-  Calendar,
-  Filter,
-  ArrowUpDown,
-  CheckSquare,
-  Square,
-  ExternalLink,
-  Plus,
-  Edit2,
-  Trash2,
-  Copy
-} from 'lucide-react';
-import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import { Purchase, PurchaseStatus, PaymentStatus } from '@/types';
-import { usePurchases } from '@/context/PurchasesContext';
-import MobileDataCard from '@/components/MobileDataCard';
-import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Search, Printer, FileText, FileDown, LayoutGrid, ChevronRight, ChevronLeft, MoreVertical, Calendar, Filter, ArrowUpDown, CheckSquare, Square, ExternalLink, Plus, Edit2, Trash2, Copy } from "lucide-react";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { PurchaseStatus, PaymentStatus } from "@/types";
+import { usePurchases } from "@/context/PurchasesContext";
+import MobileDataCard from "@/components/MobileDataCard";
+import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 
 const StatusBadge = ({ status }: { status: PurchaseStatus }) => {
   const styles = {
@@ -40,11 +21,7 @@ const StatusBadge = ({ status }: { status: PurchaseStatus }) => {
     [PurchaseStatus.ORDERED]: "تم الطلب",
   };
 
-  return (
-    <span className={cn("px-2 py-1 rounded-md text-xs font-medium border", styles[status])}>
-      {labels[status]}
-    </span>
-  );
+  return <span className={cn("px-2 py-1 rounded-md text-xs font-medium border", styles[status])}>{labels[status]}</span>;
 };
 
 const PaymentBadge = ({ status }: { status: PaymentStatus }) => {
@@ -62,17 +39,13 @@ const PaymentBadge = ({ status }: { status: PaymentStatus }) => {
     [PaymentStatus.OVERDUE]: "متأخر",
   };
 
-  return (
-    <span className={cn("px-2 py-1 rounded-md text-xs font-medium border", styles[status])}>
-      {labels[status]}
-    </span>
-  );
+  return <span className={cn("px-2 py-1 rounded-md text-xs font-medium border", styles[status])}>{labels[status]}</span>;
 };
 
 export default function PurchasesList() {
   const navigate = useNavigate();
   const { purchases, addPurchase, updatePurchase, deletePurchase } = usePurchases();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
 
@@ -85,34 +58,30 @@ export default function PurchasesList() {
   };
 
   const handleDuplicate = (id: string) => {
-    const purchaseToDuplicate = purchases.find(p => p.id === id);
+    const purchaseToDuplicate = purchases.find((p) => p.id === id);
     if (purchaseToDuplicate) {
       const { id: _, ...purchaseData } = purchaseToDuplicate;
-      const newPurchase = { 
-        ...purchaseData, 
-        reference: `${purchaseToDuplicate.reference}-copy` 
+      const newPurchase = {
+        ...purchaseData,
+        reference: `${purchaseToDuplicate.reference}-copy`,
       };
       addPurchase(newPurchase);
     }
   };
 
-  const filteredPurchases = purchases.filter(purchase =>
-    Object.values(purchase).some(value =>
-      String(value).toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  const filteredPurchases = purchases.filter((purchase) => Object.values(purchase).some((value) => String(value).toLowerCase().includes(searchTerm.toLowerCase())));
 
   const toggleSelectAll = () => {
     if (selectedRows.length === filteredPurchases.length) {
       setSelectedRows([]);
     } else {
-      setSelectedRows(filteredPurchases.map(p => p.id));
+      setSelectedRows(filteredPurchases.map((p) => p.id));
     }
   };
 
   const toggleSelectRow = (id: string) => {
     if (selectedRows.includes(id)) {
-      setSelectedRows(selectedRows.filter(rowId => rowId !== id));
+      setSelectedRows(selectedRows.filter((rowId) => rowId !== id));
     } else {
       setSelectedRows([...selectedRows, id]);
     }
@@ -126,7 +95,7 @@ export default function PurchasesList() {
         onConfirm={() => {
           if (purchaseToDelete) handleDelete(purchaseToDelete);
         }}
-        itemName={purchases.find(p => p.id === purchaseToDelete)?.reference}
+        itemName={purchases.find((p) => p.id === purchaseToDelete)?.reference}
       />
       {/* Breadcrumbs & Subscription Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -144,11 +113,9 @@ export default function PurchasesList() {
             <LayoutGrid className="text-[var(--primary)]" />
             المشتريات (جميع الفروع)
           </h1>
-          <p className="text-[var(--text-muted)] mt-1 text-sm">
-            الرجاء استخدام الجدول أدناه للتنقل أو تصفية النتائج.
-          </p>
+          <p className="text-[var(--text-muted)] mt-1 text-sm">الرجاء استخدام الجدول أدناه للتنقل أو تصفية النتائج.</p>
         </div>
-        <button onClick={() => navigate('/purchases/create')} className="bg-[var(--primary)] text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-bold shadow-md hover:opacity-90 transition-all">
+        <button onClick={() => navigate("/purchases/create")} className="bg-[var(--primary)] text-white px-6 py-2.5 rounded-lg flex items-center gap-2 font-bold shadow-md hover:opacity-90 transition-all">
           <Plus size={20} />
           <span>إضافة عملية شراء</span>
         </button>
@@ -158,31 +125,20 @@ export default function PurchasesList() {
       <div className="bg-[var(--bg-card)] rounded-xl border border-[var(--border)] shadow-sm overflow-hidden">
         <div className="p-4 border-b border-[var(--border)] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--bg-main)]/50">
           <div className="flex items-center gap-2">
-            
             <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
-                <span>اظهار</span>
-                <select 
-                    value={rowsPerPage}
-                    onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                    className="bg-[var(--bg-card)] border border-[var(--border)] rounded-md px-2 py-1 outline-none focus:border-[var(--primary)] text-[var(--text-main)]"
-                >
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                </select>
+              <span>اظهار</span>
+              <select value={rowsPerPage} onChange={(e) => setRowsPerPage(Number(e.target.value))} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-md px-2 py-1 outline-none focus:border-[var(--primary)] text-[var(--text-main)]">
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="relative flex-1 md:w-64">
               <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
-              <input 
-                type="text" 
-                placeholder="بحث..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pr-10 pl-4 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all text-sm text-[var(--text-main)]"
-              />
+              <input type="text" placeholder="بحث..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pr-10 pl-4 py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all text-sm text-[var(--text-main)]" />
             </div>
             <button className="p-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg text-[var(--text-muted)] hover:bg-[var(--bg-main)] transition-colors">
               <Filter size={18} />
@@ -218,62 +174,51 @@ export default function PurchasesList() {
             <tbody className="divide-y divide-[var(--border)]">
               {filteredPurchases.length > 0 ? (
                 filteredPurchases.map((purchase) => (
-                    <tr 
-                      key={`desktop-${purchase.id}`} 
-                      className={cn(
-                        "hover:bg-[var(--bg-main)]/50 transition-colors group",
-                        selectedRows.includes(purchase.id) && "bg-[var(--primary)]/10"
-                      )}
-                    >
-                      <td className="p-4">
-                        <button onClick={() => toggleSelectRow(purchase.id)} className="text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
-                          {selectedRows.includes(purchase.id) ? <CheckSquare size={20} className="text-[var(--primary)]" /> : <Square size={20} />}
+                  <tr key={`desktop-${purchase.id}`} className={cn("hover:bg-[var(--bg-main)]/50 transition-colors group", selectedRows.includes(purchase.id) && "bg-[var(--primary)]/10")}>
+                    <td className="p-4">
+                      <button onClick={() => toggleSelectRow(purchase.id)} className="text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
+                        {selectedRows.includes(purchase.id) ? <CheckSquare size={20} className="text-[var(--primary)]" /> : <Square size={20} />}
+                      </button>
+                    </td>
+                    <td className="p-4 text-sm text-[var(--text-main)] font-medium">{purchase.date}</td>
+                    <td className="p-4 text-sm text-[var(--primary)] font-bold hover:underline cursor-pointer">{purchase.reference}</td>
+                    <td className="p-4 text-sm text-[var(--text-main)]">{purchase.supplier}</td>
+                    <td className="p-4">
+                      <StatusBadge status={purchase.status} />
+                    </td>
+                    <td className="p-4 text-sm font-bold text-[var(--text-main)]">{purchase.total.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س</td>
+                    <td className="p-4 text-sm font-bold text-[var(--primary)]">{purchase.paid.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س</td>
+                    <td className="p-4 text-sm font-bold text-[var(--primary)]">{purchase.balance.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س</td>
+                    <td className="p-4">
+                      <PaymentBadge status={purchase.paymentStatus} />
+                    </td>
+                    <td className="p-4 text-center">
+                      <div className="relative">
+                        <button onClick={() => setOpenActionMenu(openActionMenu === purchase.id ? null : purchase.id)} className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold shadow-sm hover:bg-primary-hover transition-colors">
+                          الإجراءات
                         </button>
-                      </td>
-                      <td className="p-4 text-sm text-[var(--text-main)] font-medium">{purchase.date}</td>
-                      <td className="p-4 text-sm text-[var(--primary)] font-bold hover:underline cursor-pointer">{purchase.reference}</td>
-                      <td className="p-4 text-sm text-[var(--text-main)]">{purchase.supplier}</td>
-                      <td className="p-4"><StatusBadge status={purchase.status} /></td>
-                      <td className="p-4 text-sm font-bold text-[var(--text-main)]">{purchase.total.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</td>
-                      <td className="p-4 text-sm font-bold text-[var(--primary)]">{purchase.paid.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</td>
-                      <td className="p-4 text-sm font-bold text-[var(--primary)]">{purchase.balance.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س</td>
-                      <td className="p-4"><PaymentBadge status={purchase.paymentStatus} /></td>
-                      <td className="p-4 text-center">
-                        <div className="relative">
-                            <button 
-                              onClick={() => setOpenActionMenu(openActionMenu === purchase.id ? null : purchase.id)}
-                              className="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 text-sm font-bold shadow-sm hover:bg-primary-hover transition-colors"
-                            >
-                              الإجراءات
+                        {openActionMenu === purchase.id && (
+                          <div className="absolute left-0 mt-2 w-48 bg-[var(--bg-card)] rounded-lg shadow-lg border border-[var(--border)] z-10">
+                            <button onClick={() => navigate(`/purchases/edit/${purchase.id}`)} className="w-full text-right px-4 py-2 text-sm text-[var(--text-main)] hover:bg-[var(--bg-main)] flex items-center gap-2">
+                              تعديل
                             </button>
-                            {openActionMenu === purchase.id && (
-                              <div className="absolute left-0 mt-2 w-48 bg-[var(--bg-card)] rounded-lg shadow-lg border border-[var(--border)] z-10">
-                                <button 
-                                  onClick={() => navigate(`/purchases/edit/${purchase.id}`)}
-                                  className="w-full text-right px-4 py-2 text-sm text-[var(--text-main)] hover:bg-[var(--bg-main)] flex items-center gap-2"
-                                >
-                                  تعديل
-                                </button>
-                                <button 
-                                  onClick={() => handleDuplicate(purchase.id)}
-                                  className="w-full text-right px-4 py-2 text-sm text-[var(--text-main)] hover:bg-[var(--bg-main)] flex items-center gap-2"
-                                >
-                                  تكرار عملية الشراء
-                                </button>
-                                <button 
-                                  onClick={() => {
-                                    setPurchaseToDelete(purchase.id);
-                                    setOpenActionMenu(null);
-                                  }}
-                                  className="w-full text-right px-4 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/10 flex items-center gap-2"
-                                >
-                                  حذف
-                                </button>
-                              </div>
-                            )}
+                            <button onClick={() => handleDuplicate(purchase.id)} className="w-full text-right px-4 py-2 text-sm text-[var(--text-main)] hover:bg-[var(--bg-main)] flex items-center gap-2">
+                              تكرار عملية الشراء
+                            </button>
+                            <button
+                              onClick={() => {
+                                setPurchaseToDelete(purchase.id);
+                                setOpenActionMenu(null);
+                              }}
+                              className="w-full text-right px-4 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/10 flex items-center gap-2"
+                            >
+                              حذف
+                            </button>
                           </div>
-                      </td>
-                    </tr>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
                 ))
               ) : (
                 <tr>
@@ -300,41 +245,32 @@ export default function PurchasesList() {
                 title={purchase.reference}
                 status={{
                   label: purchase.status === PurchaseStatus.RECEIVED ? "تم الاستلام" : purchase.status === PurchaseStatus.PENDING ? "قيد الانتظار" : "تم الطلب",
-                  type: purchase.status === PurchaseStatus.RECEIVED ? 'success' : purchase.status === PurchaseStatus.PENDING ? 'warning' : 'info'
+                  type: purchase.status === PurchaseStatus.RECEIVED ? "success" : purchase.status === PurchaseStatus.PENDING ? "warning" : "info",
                 }}
                 fields={[
                   { label: "التاريخ", value: purchase.date },
                   { label: "المورد", value: purchase.supplier },
-                  { label: "المجموع الكلي", value: `${purchase.total.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س`, isBold: true },
-                  { label: "مدفوع", value: `${purchase.paid.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س`, isBold: true },
-                  { label: "الرصيد", value: `${purchase.balance.toLocaleString('ar-SA', { minimumFractionDigits: 2 })} ر.س`, isBold: true },
-                  { 
-                    label: "حالة الدفع", 
+                  { label: "المجموع الكلي", value: `${purchase.total.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س`, isBold: true },
+                  { label: "مدفوع", value: `${purchase.paid.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س`, isBold: true },
+                  { label: "الرصيد", value: `${purchase.balance.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س`, isBold: true },
+                  {
+                    label: "حالة الدفع",
                     value: purchase.paymentStatus === PaymentStatus.PAID ? "مدفوع" : purchase.paymentStatus === PaymentStatus.PARTIAL ? "جزئي" : "مستحق",
                     isBadge: true,
-                    badgeType: purchase.paymentStatus === PaymentStatus.PAID ? 'success' : purchase.paymentStatus === PaymentStatus.PARTIAL ? 'warning' : 'danger'
-                  }
+                    badgeType: purchase.paymentStatus === PaymentStatus.PAID ? "success" : purchase.paymentStatus === PaymentStatus.PARTIAL ? "warning" : "danger",
+                  },
                 ]}
                 actions={
                   <div className="flex flex-wrap justify-end gap-2">
-                    <button 
-                      onClick={() => navigate(`/purchases/edit/${purchase.id}`)}
-                      className="p-2 text-primary hover:bg-primary/5 rounded-lg border border-primary/10 transition-colors flex items-center gap-1 text-xs font-bold"
-                    >
+                    <button onClick={() => navigate(`/purchases/edit/${purchase.id}`)} className="p-2 text-primary hover:bg-primary/5 rounded-lg border border-primary/10 transition-colors flex items-center gap-1 text-xs font-bold">
                       <Edit2 size={16} />
                       تعديل
                     </button>
-                    <button 
-                      onClick={() => handleDuplicate(purchase.id)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors flex items-center gap-1 text-xs font-bold"
-                    >
+                    <button onClick={() => handleDuplicate(purchase.id)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors flex items-center gap-1 text-xs font-bold">
                       <Copy size={16} />
                       تكرار
                     </button>
-                    <button 
-                      onClick={() => setPurchaseToDelete(purchase.id)}
-                      className="p-2 text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg border border-[var(--primary)]/20 transition-colors flex items-center gap-1 text-xs font-bold"
-                    >
+                    <button onClick={() => setPurchaseToDelete(purchase.id)} className="p-2 text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg border border-[var(--primary)]/20 transition-colors flex items-center gap-1 text-xs font-bold">
                       <Trash2 size={16} />
                       حذف
                     </button>

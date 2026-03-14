@@ -1,0 +1,170 @@
+import React, { useState } from 'react';
+import { Search, Plus, ArrowRightLeft, Download, ChevronLeft, ChevronRight, Edit2, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '@/context/LanguageContext';
+import AddPaymentModal from '../components/AddPaymentModal'; 
+import EditPaymentModal from '../components/EditPaymentModal'; 
+
+import { useCollections } from '@/context/CollectionsContext';
+import { useCustomers } from '@/context/CustomersContext';
+import { useSuppliers } from '@/context/SuppliersContext';
+import { useWarehouses } from '@/context/WarehousesContext';
+
+export default function IncomingCollections() {
+    const { direction = 'rtl' } = useLanguage() as { direction: 'rtl' | 'ltr' };
+
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [editingTransaction, setEditingTransaction] = useState<any>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    const collectionsContext = useCollections();
+    const transactions = collectionsContext?.transactions || [];
+    const deleteTransaction = collectionsContext?.deleteTransaction;
+
+    const customersContext = useCustomers();
+    const suppliersContext = useSuppliers();
+    const warehousesContext = useWarehouses();
+
+    const getAccountName = (type: string, id: any) => {
+        if (!id) return "غير محدد";
+        if (type === 'receipt') {
+            const c = customersContext?.customers.find(x => String(x.id) === String(id));
+            return c ? c.name : "غير محدد";
+        } else {
+            const s = suppliersContext?.suppliers.find(x => String(x.id) === String(id));
+            return s ? s.name : "غير محدد";
+        }
+    };
+
+    const displayData = transactions.map(trx => ({
+        ...trx,
+        accountNameLabel: getAccountName(trx.paymentType, trx.accountId),
+        displayDate: trx.date ? trx.date.replace('T', ' ') : ''
+    })).filter(trx => 
+        (trx.accountNameLabel || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+        (String(trx.id) || '').includes(searchTerm)
+    );
+
+    const totalPages = Math.ceil(displayData.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const currentTransactions = displayData.slice(startIndex, startIndex + itemsPerPage);
+
+    // 👇 دالة الحذف المخصصة لترجيع الفلوس للرصيد
+    const handleDeleteWithRefund = (trx: any) => {
+        if (window.confirm("هل أنت متأكد من حذف هذا السند؟ سيتم إرجاع المبلغ لرصيد الحساب.")) {
+            if (deleteTransaction) deleteTransaction(trx.id);
+            
+            // إرجاع الرصيد لأصله
+            if (trx.paymentType === 'receipt' && customersContext?.updateCustomer) {
+                const customer = customersContext.customers.find(c => String(c.id) === String(trx.accountId));
+                if (customer) {
+                    customersContext.updateCustomer(customer.id, { actualBalance: (customer.actualBalance || 0) + trx.amount });
+                }
+            } else if (trx.paymentType === 'payment' && suppliersContext?.updateSupplier) {
+                const supplier = suppliersContext.suppliers.find(s => String(s.id) === String(trx.accountId));
+                if (supplier) {
+                    suppliersContext.updateSupplier(supplier.id, { openingBalance: (supplier.openingBalance || 0) + trx.amount });
+                }
+            }
+        }
+    };
+
+    return (
+        <div className="space-y-6 p-4 lg:p-6" dir={direction}>
+            
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div className="flex items-center gap-4">
+                    <div className="p-3.5 bg-green-50 rounded-[16px] text-[#00a651]">
+                        <ArrowRightLeft size={28} />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-[#0c4a3b]">سجلات مدفوعات الحسابات</h1>
+                    </div>
+                </div>
+                <button onClick={() => setIsPaymentModalOpen(true)} className="flex items-center gap-2 bg-[#00a651] text-white px-5 py-3 rounded-xl font-black">
+                    <Plus size={20} /> إضافة تحصيل / سداد
+                </button>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-right">
+                        <thead className="bg-[#00a651] text-white">
+                            <tr>
+                                <th className="px-6 py-4">رقم السند</th>
+                                <th className="px-6 py-4">التاريخ</th>
+                                <th className="px-6 py-4">اسم الحساب</th>
+                                <th className="px-6 py-4">النوع</th>
+                                <th className="px-6 py-4">المبلغ</th>
+                                <th className="px-6 py-4 text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {currentTransactions.length === 0 && (
+                                <tr><td colSpan={6} className="text-center py-10 text-gray-400 font-bold">لا توجد سجلات حالياً</td></tr>
+                            )}
+                            {currentTransactions.map((trx) => (
+                                <tr key={trx.id} className="hover:bg-green-50/30">
+                                    <td className="px-6 py-4 text-sm font-bold text-gray-500">#{trx.id}</td>
+                                    <td className="px-6 py-4 text-sm font-bold text-gray-800">{trx.displayDate}</td>
+                                    <td className="px-6 py-4 text-sm font-black text-[#0c4a3b]">{trx.accountNameLabel}</td>
+                                    <td className="px-6 py-4 text-sm font-bold">
+                                        <span className={cn("px-3 py-1 rounded-full text-xs", trx.paymentType === 'receipt' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
+                                            {trx.paymentType === 'receipt' ? "تحصيل وارد" : "سداد صادر"}
+                                        </span>
+                                    </td>
+                                    <td className="px-6 py-4 text-sm font-black">{trx.amount} ر.س</td>
+                                    <td className="px-6 py-4 text-center flex justify-center gap-2">
+                                        <button onClick={() => setEditingTransaction(trx)} className="p-2 text-[#00a651] bg-green-50 hover:bg-green-100 rounded-lg">
+                                            <Edit2 size={18} />
+                                        </button>
+                                        <button onClick={() => handleDeleteWithRefund(trx)} className="p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg">
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div className="md:hidden p-4 space-y-4 bg-gray-50/30">
+                    {currentTransactions.map((trx) => (
+                        <div key={`mobile-${trx.id}`} className="bg-white p-4 rounded-[20px] shadow-sm border border-gray-100">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className="font-black text-lg text-[#0c4a3b]">{trx.accountNameLabel}</h3>
+                                    <p className="text-xs text-gray-400 mt-1">#{trx.id} • {trx.displayDate}</p>
+                                </div>
+                                <span className={cn("px-2.5 py-1 rounded-md text-[10px] font-black", trx.paymentType === 'receipt' ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}>
+                                    {trx.paymentType === 'receipt' ? "تحصيل" : "سداد"}
+                                </span>
+                            </div>
+                            <div className="flex justify-between items-center pt-3 mt-2 border-t border-gray-50">
+                                <span className="font-black text-xl text-gray-900">{trx.amount} ر.س</span>
+                                <div className="flex gap-2">
+                                    <button onClick={() => setEditingTransaction(trx)} className="p-2 text-[#00a651] bg-green-50 rounded-xl"><Edit2 size={16} /></button>
+                                    <button onClick={() => handleDeleteWithRefund(trx)} className="p-2 text-red-600 bg-red-50 rounded-xl"><Trash2 size={16} /></button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <AddPaymentModal 
+                isOpen={isPaymentModalOpen} 
+                onClose={() => setIsPaymentModalOpen(false)}
+            />
+
+            <EditPaymentModal
+                isOpen={!!editingTransaction}
+                onClose={() => setEditingTransaction(null)}
+                transaction={editingTransaction}
+            />
+        </div>
+    );
+}

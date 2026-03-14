@@ -1,4 +1,4 @@
-import { SystemSettings } from "@/context/SettingsContext";
+import type { SystemSettings } from "@/context/SettingsContext";
 
 export function formatCurrency(amount: number, settings: SystemSettings): string {
   let { decimalSeparator, thousandSeparator, decimals } = settings.money;
