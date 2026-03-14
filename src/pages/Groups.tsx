@@ -11,7 +11,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useGroups } from '@/context/GroupsContext';
 import { cn } from '@/lib/utils';
 import MobileDataCard from '@/components/MobileDataCard';
-import AddGroupModal from '@/components/AddGroupModal';
+import AddGroupModal from '@/components/modals/AddGroupModal';
 import Toast from '@/components/Toast';
 
 export default function UserGroups() {

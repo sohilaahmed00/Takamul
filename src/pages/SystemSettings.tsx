@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
-import { useSettings, SystemSettings as ISystemSettings } from '@/context/SettingsContext';
+import { useSettings, type SystemSettings } from '@/context/SettingsContext';
 import { 
   Settings, 
   Package, 
@@ -55,7 +55,7 @@ export default function SystemSettings() {
   const { systemSettings, updateSystemSettings, saveSettings } = useSettings();
   const [activeSection, setActiveSection] = React.useState('site');
 
-  const handleUpdate = (section: keyof ISystemSettings, field: string, value: any) => {
+  const handleUpdate = (section: keyof SystemSettings, field: string, value: any) => {
     updateSystemSettings({
       [section]: {
         ...(systemSettings[section] as any),
@@ -64,7 +64,7 @@ export default function SystemSettings() {
     });
   };
 
-  const handleNestedUpdate = (section: keyof ISystemSettings, field: string, nestedField: string, value: any) => {
+  const handleNestedUpdate = (section: keyof SystemSettings, field: string, nestedField: string, value: any) => {
     const sectionData = systemSettings[section] as any;
     updateSystemSettings({
       [section]: {

@@ -14,9 +14,9 @@ import {
   Printer
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { PriceGroup } from '@/types';
-import PriceGroupsModal from '@/components/PriceGroupsModal';
-import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
+import type { PriceGroup } from '@/types';
+import PriceGroupsModal from '@/components/modals/PriceGroupsModal';
+import DeleteConfirmationModal from '@/components/modals/DeleteConfirmationModal';
 import Pagination from '@/components/Pagination';
 import MobileDataCard from '@/components/MobileDataCard';
 import { cn } from '@/lib/utils';

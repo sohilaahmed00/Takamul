@@ -1,5 +1,5 @@
+import type { ExpenseCategory } from '@/types';
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ExpenseCategory } from '@/types';
 
 interface ExpenseCategoriesContextType {
   categories: ExpenseCategory[];

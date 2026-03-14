@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCustomers } from "@/context/CustomersContext";
 import { useLanguage } from "@/context/LanguageContext";
-import ResponsiveModal from "@/components/ResponsiveModal";
+import ResponsiveModal from "@/components/modals/ResponsiveModal";
 import Toast from "../Toast";
 
 interface EditCustomerModalProps {
@@ -12,11 +12,7 @@ interface EditCustomerModalProps {
   customer: any;
 }
 
-export default function EditCustomerModal({
-  isOpen,
-  onClose,
-  customer,
-}: EditCustomerModalProps) {
+export default function EditCustomerModal({ isOpen, onClose, customer }: EditCustomerModalProps) {
   const { t, direction } = useLanguage();
   const { updateCustomer } = useCustomers();
 
@@ -128,10 +124,7 @@ export default function EditCustomerModal({
       const res = await updateCustomer(id, updates as any);
 
       if (res?.ok || res === true) {
-        showToast(
-          "success",
-          t("operation_completed_successfully") || "تم التعديل بنجاح"
-        );
+        showToast("success", t("operation_completed_successfully") || "تم التعديل بنجاح");
         setTimeout(() => onClose(), 400);
       } else {
         showToast("error", res?.message || "فشل التعديل");
@@ -145,54 +138,28 @@ export default function EditCustomerModal({
 
   return (
     <>
-      <ResponsiveModal
-        isOpen={isOpen}
-        onClose={onClose}
-        title={t("edit_customer") || "تعديل العميل"}
-        maxWidth="max-w-4xl"
-      >
+      <ResponsiveModal isOpen={isOpen} onClose={onClose} title={t("edit_customer") || "تعديل العميل"} maxWidth="max-w-4xl">
         <div dir={direction} className="relative">
           <AnimatePresence mode="wait">
             {isOpen && (
-              <motion.div
-                key="edit-customer-modal-content"
-                initial={{ opacity: 0, y: 16, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 16, scale: 0.98 }}
-                transition={{ duration: 0.2 }}
-                className="bg-white rounded-2xl"
-              >
+              <motion.div key="edit-customer-modal-content" initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.98 }} transition={{ duration: 0.2 }} className="bg-white rounded-2xl">
                 {/* Custom Header */}
                 <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 sm:px-6 py-4 flex items-center justify-between rounded-t-2xl">
-                  <button
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 transition-colors p-1"
-                    aria-label={t("close") || "إغلاق"}
-                  >
+                  <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1" aria-label={t("close") || "إغلاق"}>
                     <X size={22} />
                   </button>
 
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg sm:text-xl font-bold text-[#2ecc71]">
-                      {t("edit_customer") || "تعديل العميل"}
-                    </h2>
+                    <h2 className="text-lg sm:text-xl font-bold text-[#2ecc71]">{t("edit_customer") || "تعديل العميل"}</h2>
                   </div>
                 </div>
 
-                <form
-                  onSubmit={handleSubmit}
-                  className="p-4 sm:p-6 space-y-6 max-h-[80vh] overflow-y-auto"
-                >
-                  <p className="text-center text-gray-500 text-sm leading-6">
-                    برجاء ادخال المعلومات أدناه. تسميات الحقول التي تحمل علامة *
-                    هي حقول اجبارية.
-                  </p>
+                <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+                  <p className="text-center text-gray-500 text-sm leading-6">برجاء ادخال المعلومات أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية.</p>
 
                   {/* Customer Type */}
                   <div className="bg-[#fff9e6] p-4 rounded-xl border border-[#ffeeba] space-y-3">
-                    <p className="text-center font-bold text-[#856404] text-sm sm:text-base">
-                      برجاء تحديد نوع العميل
-                    </p>
+                    <p className="text-center font-bold text-[#856404] text-sm sm:text-base">برجاء تحديد نوع العميل</p>
 
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-8">
                       <label className="flex items-center gap-2 cursor-pointer">
@@ -209,24 +176,12 @@ export default function EditCustomerModal({
                           }
                           className="w-4 h-4 accent-[#2ecc71]"
                         />
-                        <span className="text-sm font-medium text-gray-700">
-                          فرد / شركة (غير مسجل بالضريبة)
-                        </span>
+                        <span className="text-sm font-medium text-gray-700">فرد / شركة (غير مسجل بالضريبة)</span>
                       </label>
 
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="isTaxable"
-                          checked={formData.isTaxable}
-                          onChange={() =>
-                            setFormData({ ...formData, isTaxable: true })
-                          }
-                          className="w-4 h-4 accent-[#2ecc71]"
-                        />
-                        <span className="text-sm font-medium text-gray-700">
-                          شركة (مسجل بالضريبة)
-                        </span>
+                        <input type="radio" name="isTaxable" checked={formData.isTaxable} onChange={() => setFormData({ ...formData, isTaxable: true })} className="w-4 h-4 accent-[#2ecc71]" />
+                        <span className="text-sm font-medium text-gray-700">شركة (مسجل بالضريبة)</span>
                       </label>
                     </div>
                   </div>
@@ -266,37 +221,15 @@ export default function EditCustomerModal({
                       </Field>
 
                       <Field label="اسم العميل *">
-                        <input
-                          type="text"
-                          required
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
-                          value={formData.name}
-                          onChange={(e) =>
-                            setFormData({ ...formData, name: e.target.value })
-                          }
-                        />
+                        <input type="text" required className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
                       </Field>
 
                       <Field label="هاتف">
-                        <input
-                          type="text"
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
-                          value={formData.phone}
-                          onChange={(e) =>
-                            setFormData({ ...formData, phone: e.target.value })
-                          }
-                        />
+                        <input type="text" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
                       </Field>
 
                       <Field label="عنوان البريد الإلكتروني">
-                        <input
-                          type="email"
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
-                          value={formData.email}
-                          onChange={(e) =>
-                            setFormData({ ...formData, email: e.target.value })
-                          }
-                        />
+                        <input type="email" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                       </Field>
 
                       <Field label="السجل التجاري">
@@ -344,9 +277,7 @@ export default function EditCustomerModal({
                       </Field>
 
                       <div className="flex items-start sm:items-center gap-2 justify-end">
-                        <span className="text-sm font-bold text-[#2ecc71] text-right leading-5">
-                          ايقاف البيع في حالة وجود مبالغ مستحقة
-                        </span>
+                        <span className="text-sm font-bold text-[#2ecc71] text-right leading-5">ايقاف البيع في حالة وجود مبالغ مستحقة</span>
                         <input
                           type="checkbox"
                           checked={formData.stopSellingOverdue}
@@ -361,9 +292,7 @@ export default function EditCustomerModal({
                       </div>
 
                       <div className="flex items-center gap-2 justify-end">
-                        <span className="text-sm font-bold text-[#2ecc71]">
-                          {t("active") || "نشط"}
-                        </span>
+                        <span className="text-sm font-bold text-[#2ecc71]">{t("active") || "نشط"}</span>
                         <input
                           type="checkbox"
                           checked={formData.isActive}
@@ -396,27 +325,11 @@ export default function EditCustomerModal({
                       </Field>
 
                       <Field label="المدينة *">
-                        <input
-                          type="text"
-                          required
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
-                          value={formData.city}
-                          onChange={(e) =>
-                            setFormData({ ...formData, city: e.target.value })
-                          }
-                        />
+                        <input type="text" required className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
                       </Field>
 
                       <Field label="المحافظة/الولاية *">
-                        <input
-                          type="text"
-                          required
-                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
-                          value={formData.state}
-                          onChange={(e) =>
-                            setFormData({ ...formData, state: e.target.value })
-                          }
-                        />
+                        <input type="text" required className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} />
                       </Field>
 
                       <Field label="الرمز البريدي">
@@ -454,11 +367,7 @@ export default function EditCustomerModal({
 
                   {/* Submit */}
                   <div className="flex justify-stretch sm:justify-end pt-2">
-                    <button
-                      type="submit"
-                      disabled={submitting}
-                      className="w-full sm:w-auto bg-[#00a65a] text-white px-6 sm:px-10 py-3 rounded-lg font-bold hover:bg-[#008d4c] transition-colors shadow-md disabled:opacity-60"
-                    >
+                    <button type="submit" disabled={submitting} className="w-full sm:w-auto bg-[#00a65a] text-white px-6 sm:px-10 py-3 rounded-lg font-bold hover:bg-[#008d4c] transition-colors shadow-md disabled:opacity-60">
                       {submitting ? "جارٍ الحفظ..." : "حفظ التعديلات"}
                     </button>
                   </div>
@@ -469,28 +378,15 @@ export default function EditCustomerModal({
         </div>
       </ResponsiveModal>
 
-      <Toast
-        isOpen={toastOpen}
-        message={toastMsg}
-        type={toastType}
-        onClose={() => setToastOpen(false)}
-      />
+      <Toast isOpen={toastOpen} message={toastMsg} type={toastType} onClose={() => setToastOpen(false)} />
     </>
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-bold text-[#2ecc71] text-right">
-        {label}
-      </label>
+      <label className="block text-sm font-bold text-[#2ecc71] text-right">{label}</label>
       {children}
     </div>
   );

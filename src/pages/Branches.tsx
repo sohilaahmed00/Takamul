@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { useWarehouses, Warehouse } from '../context/WarehousesContext';
+import { useWarehouses, type Warehouse } from '../context/WarehousesContext';
 import { Plus, Search, Trash2, Edit2, X, ChevronRight, ChevronLeft, Building, Camera, Square } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MobileDataCard from '../components/MobileDataCard';

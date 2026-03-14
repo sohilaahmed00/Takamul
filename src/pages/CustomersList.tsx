@@ -1,665 +1,303 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import {
-  User,
-  Search,
-  Edit2,
-  Trash2,
-  UserPlus,
-  FileText,
-  Minus,
-  PlusCircle,
-  ChevronDown,
-  History,
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
-import Pagination from '@/components/Pagination';
-import Toast from '@/components/Toast';
-import Confirm from '@/components/Confirm';
-import MobileDataCard from '@/components/MobileDataCard';
-
-import { useLanguage } from '@/context/LanguageContext';
-import { useCustomers } from '@/context/CustomersContext';
-
-import AddCustomerModal from '@/components/AddCustomerModal';
-import EditCustomerModal from '@/components/modals/EditCustomerModal';
-import AddDepositModal from '@/components/modals/AddDepositModal';
-import AddDiscountModal from '@/components/modals/AddDiscountModal';
-import ViewPaymentsModal from '@/components/modals/ViewPaymentsModal';
-
-// Professional dropdown positioning
-import { useFloating, offset, flip, shift, autoUpdate } from '@floating-ui/react';
+import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { User, Search, Edit2, Trash2, Plus, FileText, ChevronRight, ChevronLeft, UserPlus, CreditCard, List, Minus, PlusCircle, ChevronDown, Wallet, ArrowDownCircle, ArrowUpCircle, History, Printer, Menu, SlidersHorizontal } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
+import { useCustomers } from "@/context/CustomersContext";
+import { motion, AnimatePresence } from "framer-motion";
+import Pagination from "@/components/Pagination";
+import { cn } from "@/lib/utils";
+import MobileDataCard from "@/components/MobileDataCard";
+import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
+import AddCustomerModal from "@/components/modals/AddCustomerModal";
+import EditCustomerModal from "@/components/modals/EditCustomerModal";
+import AddDepositModal from "@/components/modals/AddDepositModal";
+import AddDiscountModal from "@/components/modals/AddDiscountModal";
+import ViewPaymentsModal from "@/components/modals/ViewPaymentsModal";
+import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export default function CustomersList() {
   const { t, direction } = useLanguage();
-  const isRTL = direction === 'rtl';
-
-  const { customers, deleteCustomer, loading } = useCustomers();
-
-  const [searchTerm, setSearchTerm] = useState('');
+  // const { customers, deleteCustomer } = useCustomers();
+  const { data: customers } = useGetAllCustomers();
+  const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const [activeActionMenu, setActiveActionMenu] = useState<number | null>(null);
-
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
   const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
   const [isPaymentsModalOpen, setIsPaymentsModalOpen] = useState(false);
-
-  const [paymentType, setPaymentType] = useState<'deposit' | 'discount'>('deposit');
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
-
-  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
-
-  const [toastOpen, setToastOpen] = useState(false);
-  const [toastMsg, setToastMsg] = useState('');
-  const [toastType, setToastType] = useState<'success' | 'error'>('success');
-
-  const showToast = (type: 'success' | 'error', msg: string) => {
-    setToastType(type);
-    setToastMsg(msg);
-    setToastOpen(true);
-  };
-
-  // helpers to unify API fields
-  const getName = (c: any) => String(c?.customerName ?? c?.name ?? '');
-  const getCode = (c: any) => String(c?.customerCode ?? c?.code ?? '');
-  const getEmail = (c: any) => String(c?.email ?? '');
-  const getPhone = (c: any) => String(c?.phone ?? c?.mobile ?? '');
-  const getTax = (c: any) => String(c?.taxNumber ?? '');
-
-  const filteredCustomers = useMemo(() => {
-    const s = searchTerm.trim().toLowerCase();
-    if (!s) return customers;
-
-    return customers.filter((c: any) => {
-      const hay = `${getName(c)} ${getEmail(c)} ${getPhone(c)} ${getCode(c)} ${getTax(c)}`.toLowerCase();
-      return hay.includes(s);
-    });
-  }, [customers, searchTerm]);
+  const actionButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
+  const { data } = useGetAllCustomers();
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, entriesPerPage]);
+    if (activeActionMenu !== null && actionButtonRefs.current[activeActionMenu]) {
+      const rect = actionButtonRefs.current[activeActionMenu]!.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  }, [activeActionMenu]);
 
-  const paginatedCustomers = useMemo(() => {
-    const start = (currentPage - 1) * entriesPerPage;
-    return filteredCustomers.slice(start, start + entriesPerPage);
-  }, [filteredCustomers, currentPage, entriesPerPage]);
+  // Close menu on scroll or resize
+  useEffect(() => {
+    const handleScroll = () => setActiveActionMenu(null);
+    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("resize", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("resize", handleScroll);
+    };
+  }, []);
 
-  const startIndex = filteredCustomers.length === 0 ? 0 : (currentPage - 1) * entriesPerPage + 1;
-  const endIndex = Math.min(currentPage * entriesPerPage, filteredCustomers.length);
+  const filteredCustomers = customers?.filter((c) => c.customerName.toLowerCase().includes(searchTerm.toLowerCase()) || c.phone.includes(searchTerm) || String(c?.customerCode).includes(searchTerm));
+
+  const paginatedCustomers = filteredCustomers?.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
 
   const toggleSelectAll = () => {
-    if (selectedCustomers.length === paginatedCustomers.length) {
+    if (selectedCustomers.length === paginatedCustomers?.length) {
       setSelectedCustomers([]);
     } else {
-      setSelectedCustomers(paginatedCustomers.map((c: any) => c.id));
+      setSelectedCustomers(paginatedCustomers?.map((c) => c?.id));
     }
   };
 
   const toggleSelectCustomer = (id: number) => {
-    setSelectedCustomers((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  };
-
-  const openEdit = (id: number) => {
-    const c = customers.find((x: any) => x.id === id) || null;
-    setSelectedCustomer(c);
-    setIsEditModalOpen(true);
-  };
-
-  const openPayments = (id: number, type: 'deposit' | 'discount') => {
-    const c = customers.find((x: any) => x.id === id) || null;
-    setSelectedCustomer(c);
-    setPaymentType(type);
-    setIsPaymentsModalOpen(true);
-  };
-
-  const openDeposit = (id: number) => {
-    const c = customers.find((x: any) => x.id === id) || null;
-    setSelectedCustomer(c);
-    setIsDepositModalOpen(true);
-  };
-
-  const openDiscount = (id: number) => {
-    const c = customers.find((x: any) => x.id === id) || null;
-    setSelectedCustomer(c);
-    setIsDiscountModalOpen(true);
-  };
-
-  // Dropdown positioning
-  const actionButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
-
-  const { x, y, strategy, refs, update } = useFloating({
-    placement: isRTL ? 'bottom-end' : 'bottom-start',
-    middleware: [offset(6), flip({ padding: 8 }), shift({ padding: 8 })],
-    whileElementsMounted: autoUpdate,
-  });
-
-  useEffect(() => {
-    if (activeActionMenu !== null) {
-      const el = actionButtonRefs.current[activeActionMenu];
-      if (el) refs.setReference(el);
-      requestAnimationFrame(() => update());
-    }
-  }, [activeActionMenu, refs, update]);
-
-  // Close menu on scroll or resize
-  useEffect(() => {
-    const handleCloseMenu = () => setActiveActionMenu(null);
-
-    window.addEventListener('scroll', handleCloseMenu, true);
-    window.addEventListener('resize', handleCloseMenu);
-
-    return () => {
-      window.removeEventListener('scroll', handleCloseMenu, true);
-      window.removeEventListener('resize', handleCloseMenu);
-    };
-  }, []);
-
-  // Delete flow
-  const handleDelete = (id: number) => {
-    setConfirmDeleteId(id);
-  };
-
-  const performDelete = async () => {
-    if (confirmDeleteId === null) return;
-
-    const id = confirmDeleteId;
-    setConfirmDeleteId(null);
-
-    const result = await deleteCustomer(id);
-
-    if (result.ok) {
-      const msgFromT = t('customer_deleted_successfully');
-      const msg =
-        msgFromT && msgFromT !== 'customer_deleted_successfully'
-          ? msgFromT
-          : isRTL
-            ? 'تم حذف العميل بنجاح'
-            : 'Customer deleted successfully';
-
-      showToast('success', msg);
+    if (selectedCustomers.includes(id)) {
+      setSelectedCustomers(selectedCustomers.filter((sid) => sid !== id));
     } else {
-      const msgFromT = t('operation_failed');
-      const fallback = isRTL ? 'فشلت العملية' : 'Operation failed';
-      showToast('error', result.message || (msgFromT && msgFromT !== 'operation_failed' ? msgFromT : fallback));
+      setSelectedCustomers([...selectedCustomers, id]);
     }
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-4"
-      dir={direction}
-    >
+    <div className="p-4 space-y-4" dir={direction}>
       {/* Breadcrumb */}
-      <div className="text-sm text-gray-500 flex items-center gap-1">
-        <span>{t('home') || (isRTL ? 'الرئيسية' : 'Home')}</span>
+      <div className="text-sm text-[var(--text-muted)] flex items-center gap-1">
+        <span>{t("home")}</span>
         <span>/</span>
-        <span className="text-gray-800 font-medium">
-          {t('customers') || (isRTL ? 'العملاء' : 'Customers')}
-        </span>
+        <span className="text-[var(--text-main)] font-medium">{t("customers")}</span>
       </div>
 
-      {/* Header */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+      {/* Page Header */}
+      <div className="bg-white p-4 rounded-lg   ">
         <div className="flex justify-between items-center">
-          <div className="flex items-center gap-2 text-[#007e4a]">
-            <UserPlus size={20} />
-            <h1 className="text-lg font-bold">
-              {t('customers') || (isRTL ? 'العملاء' : 'Customers')}
-            </h1>
-          </div>
-
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="px-4 py-2 bg-[#2ecc71] text-white rounded-md hover:bg-[#27ae60] transition-colors flex items-center gap-2 text-sm font-bold shadow-sm"
-          >
-            <UserPlus size={18} />
-            <span>{t('add_customer') || (isRTL ? 'إضافة عميل' : 'Add Customer')}</span>
-          </button>
+          <h1 className="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
+            <UserPlus size={20} className="text-[var(--primary)]" />
+            {t("customers")}
+          </h1>
+          <Button onClick={() => setIsAddModalOpen(true)} variant="default" size={"xl"}>
+            <Plus size={20} />
+            {t("add_customer")}
+          </Button>
+          {/* <button onClick={() => setIsAddModalOpen(true)} className="btn-primary">
+            <Plus size={20} />
+            {t("add_customer")}
+          </button> */}
         </div>
-
-        <div className="text-sm text-gray-500 mt-2">
-          {t('customers_table_desc') ||
-            (isRTL
-              ? 'الرجاء استخدام الجدول أدناه للتنقل أو تصفية النتائج.'
-              : 'Use the table below to navigate or filter results.')}
-        </div>
+        <p className="text-sm text-[var(--text-muted)] mt-1">{t("customize_report_below")}</p>
       </div>
+
+      <DeleteConfirmationModal
+        isOpen={customerToDelete !== null}
+        onClose={() => setCustomerToDelete(null)}
+        onConfirm={() => {
+          // if (customerToDelete !== null) {
+          //   deleteCustomer(customerToDelete);
+          //   setCustomerToDelete(null);
+          // }
+        }}
+        itemName={customers?.find((c) => c.id === customerToDelete)?.customerName}
+      />
 
       {/* Table Container */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-visible">
-        {/* Controls */}
-        <div className="p-4 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-50">
-          <div className="flex items-center gap-2 order-2 md:order-1">
-            <span className="text-sm text-gray-600">{t('show') || (isRTL ? 'إظهار' : 'Show')}</span>
-            <select
-              value={entriesPerPage}
-              onChange={(e) => setEntriesPerPage(Number(e.target.value))}
-              className="border border-gray-300 rounded px-2 py-1 text-sm outline-none focus:border-[#2ecc71] bg-white"
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-            <span className="text-sm text-gray-600">{t('records') || (isRTL ? 'سجلات' : 'records')}</span>
-          </div>
+      <div className="bg-white rounded-lg    p-4 min-h-100">
+        <div className="space-y-4">
+          {/* Table Controls */}
+          <div className="flex flex-col md:flex-row gap-4 mb-6 mt-4">
+            <div className="relative flex-grow">
+              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                <Search size={18} className="text-gray-400" />
+              </div>
+              <input type="text" placeholder={t("search_placeholder") || "البحث برقم الهاتف، الكود، أو الاسم..."} className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-[#10b981] focus:bg-white text-gray-700 text-sm rounded-xl py-3 pr-11 pl-4 transition-all outline-none" />
+            </div>
 
-          <div className="flex items-center gap-2 order-1 md:order-2 w-full md:w-auto">
-            <span className="text-sm text-gray-600 whitespace-nowrap">
-              {t('search') || (isRTL ? 'بحث' : 'Search')}
-            </span>
+            {/* 2. أزرار الفلاتر (Filter Buttons) */}
+            <div className="flex gap-3 shrink-0">
+              {/* زر الفلاتر العامة */}
+              <button className="flex items-center gap-2 bg-[#f8fafc] hover:bg-gray-100 text-gray-600 border border-transparent text-sm font-medium rounded-xl px-4 py-3 transition-colors">
+                <SlidersHorizontal size={16} className="text-gray-400" />
+                <span>{t("filters") || "الفلاتر"}</span>
+                <ChevronDown size={16} className="text-gray-400 ml-1" />
+              </button>
 
-            <div className="relative flex-1 md:w-72">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={t('search_placeholder') || (isRTL ? 'ابحث هنا...' : 'Search here...')}
-                className={cn(
-                  'w-full border border-gray-300 rounded-xl py-2 text-sm outline-none focus:border-[#2ecc71]',
-                  isRTL ? 'pr-10 pl-3 text-right' : 'pl-10 pr-3 text-left'
-                )}
-              />
-              <Search
-                size={18}
-                className={cn(
-                  'absolute top-1/2 -translate-y-1/2 text-gray-400',
-                  isRTL ? 'right-3' : 'left-3'
-                )}
-              />
+              {/* زر ترتيب أو فلتر إضافي (مثال: أحدث العملاء) */}
+              <button className="flex items-center gap-2 bg-[#f8fafc] hover:bg-gray-100 text-gray-600 border border-transparent text-sm font-medium rounded-xl px-4 py-3 transition-colors">
+                <span>{t("recent_customers") || "أحدث العملاء"}</span>
+                <ChevronDown size={16} className="text-gray-400 ml-1" />
+              </button>
             </div>
           </div>
-        </div>
+          {/* Table - Desktop */}
+          <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <DataTable responsiveLayout="stack" className="custom-green-table custom-compact-table" /* تم إضافة كلاس ثانٍ للتحكم في الضغط */ value={customers} paginator rows={entriesPerPage} first={(currentPage - 1) * entriesPerPage} onPage={(e) => setCurrentPage(e.page + 1)} selection={selectedCustomers} onSelectionChange={(e) => setSelectedCustomers(e.value)} dataKey="id" stripedRows={false} /* في هذا التصميم، من الأفضل إيقاف stripedRows للحفاظ على البساطة */>
+              {/* 1. عمود التحديد (Checkbox) - كما هو */}
+              <Column selectionMode="multiple" headerStyle={{ width: "2rem" }}></Column>
 
-        {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-sm text-right border-collapse">
-            <thead>
-              <tr className="bg-green-500 text-white">
-                <th className="p-3 border-l border-white/10 w-10 text-center">
-                  <input
-                    type="checkbox"
-                    checked={paginatedCustomers.length > 0 && selectedCustomers.length === paginatedCustomers.length}
-                    onChange={toggleSelectAll}
-                    className="w-4 h-4 accent-[#2ecc71]"
-                  />
-                </th>
+              {/* 2. باقي الأعمدة مع كلاسات التراص */}
+              <Column field="customerCode" header={t("code")} sortable />
 
-                <th className="p-3 border-l border-white/10 font-bold">
-                  {t('code') || (isRTL ? 'كود' : 'Code')}
-                </th>
-                <th className="p-3 border-l border-white/10 font-bold">
-                  {t('name') || (isRTL ? 'اسم' : 'Name')}
-                </th>
-                <th className="p-3 border-l border-white/10 font-bold">
-                  {t('email_address') || (isRTL ? 'عنوان البريد الإلكتروني' : 'Email')}
-                </th>
-                <th className="p-3 border-l border-white/10 font-bold">
-                  {t('phone') || (isRTL ? 'هاتف' : 'Phone')}
-                </th>
-
-                <th className="p-3 border-l border-white/10 font-bold">
-                  {t('pricing_group') || (isRTL ? 'مجموعة التسعيرة' : 'Pricing Group')}
-                </th>
-                <th className="p-3 border-l border-white/10 font-bold">
-                  {t('customer_group') || (isRTL ? 'مجموعة العملاء' : 'Customer Group')}
-                </th>
-
-                <th className="p-3 border-l border-white/10 font-bold">
-                  {t('tax_number') || (isRTL ? 'الرقم الضريبي' : 'Tax Number')}
-                </th>
-                <th className="p-3 border-l border-white/10 font-bold">
-                  {t('actual_balance') || (isRTL ? 'الرصيد الفعلي' : 'Balance')}
-                </th>
-                <th className="p-3 border-l border-white/10 font-bold">
-                  {t('total_points') || (isRTL ? 'إجمالي النقاط المكتسبة' : 'Total Points')}
-                </th>
-
-                <th className="p-3 font-bold text-center">
-                  {t('actions') || (isRTL ? 'الإجراءات' : 'Actions')}
-                </th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-gray-200">
-              {loading ? (
-                <tr>
-                  <td colSpan={11} className="p-8 text-center text-gray-400 italic bg-gray-50">
-                    {isRTL ? 'جاري تحميل البيانات...' : 'Loading...'}
-                  </td>
-                </tr>
-              ) : paginatedCustomers.length === 0 ? (
-                <tr>
-                  <td colSpan={11} className="p-8 text-center text-gray-400 italic bg-gray-50">
-                    {t('no_data_in_table') || (isRTL ? 'لا توجد بيانات في الجدول' : 'No data')}
-                  </td>
-                </tr>
-              ) : (
-                paginatedCustomers.map((customer: any) => (
-                  <tr key={customer.id} className={cn('hover:bg-gray-50 transition-colors group')}>
-                    <td className="p-3 border-l border-gray-100 text-center">
-                      <input
-                        type="checkbox"
-                        checked={selectedCustomers.includes(customer.id)}
-                        onChange={() => toggleSelectCustomer(customer.id)}
-                        className="w-4 h-4 accent-[#2ecc71]"
-                      />
-                    </td>
-
-                    <td className="p-3 border-l border-gray-100">{getCode(customer)}</td>
-                    <td className="p-3 border-l border-gray-100 font-medium">{getName(customer)}</td>
-                    <td className="p-3 border-l border-gray-100 text-blue-600">{getEmail(customer) || '-'}</td>
-                    <td className="p-3 border-l border-gray-100">{getPhone(customer) || '-'}</td>
-
-                    <td className="p-3 border-l border-gray-100">
-                      {customer.pricingGroup ?? (isRTL ? 'عام' : 'General')}
-                    </td>
-                    <td className="p-3 border-l border-gray-100">
-                      {customer.customerGroup ?? (isRTL ? 'عام' : 'General')}
-                    </td>
-
-                    <td className="p-3 border-l border-gray-100">{getTax(customer) || '-'}</td>
-                    <td className="p-3 border-l border-gray-100 font-bold">
-                      {Number(customer.actualBalance ?? 0).toFixed(2)}
-                    </td>
-                    <td className="p-3 border-l border-gray-100 font-bold">
-                      {Number(customer.totalPoints ?? 0).toFixed(2)}
-                    </td>
-
-                    <td className="p-3 text-center">
-                      <button
-                        ref={(el) => {
-                          actionButtonRefs.current[customer.id] = el;
-                          if (activeActionMenu === customer.id && el) refs.setReference(el);
-                        }}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveActionMenu((prev) => {
-                            const next = prev === customer.id ? null : customer.id;
-                            if (next === customer.id) {
-                              const el = actionButtonRefs.current[customer.id];
-                              if (el) refs.setReference(el);
-                            }
-                            return next;
-                          });
-                        }}
-                        className="bg-[#2ecc71] text-white px-3 py-1.5 rounded-md text-xs flex items-center gap-1 mx-auto hover:bg-[#27ae60] transition-colors font-bold shadow-sm"
-                      >
-                        <ChevronDown
-                          size={14}
-                          className={cn(
-                            'transition-transform',
-                            activeActionMenu === customer.id && 'rotate-180'
-                          )}
-                        />
-                        <span>{t('actions') || (isRTL ? 'الإجراءات' : 'Actions')}</span>
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile View */}
-        <div className="md:hidden space-y-4 p-4">
-          {loading ? (
-            <div className="p-8 text-center text-gray-400 italic bg-gray-50 rounded-lg border border-dashed border-gray-200">
-              {isRTL ? 'جاري تحميل البيانات...' : 'Loading...'}
-            </div>
-          ) : paginatedCustomers.length === 0 ? (
-            <div className="p-8 text-center text-gray-400 italic bg-gray-50 rounded-lg border border-dashed border-gray-200">
-              {t('no_data_in_table') || (isRTL ? 'لا توجد بيانات في الجدول' : 'No data')}
-            </div>
-          ) : (
-            paginatedCustomers.map((customer: any) => (
-              <MobileDataCard
-                key={`mobile-${customer.id}`}
-                title={getName(customer)}
-                subtitle={getCode(customer)}
-                fields={[
-                  {
-                    label: t('email_address') || (isRTL ? 'البريد الإلكتروني' : 'Email'),
-                    value: getEmail(customer) || '-',
-                  },
-                  {
-                    label: t('phone') || (isRTL ? 'الهاتف' : 'Phone'),
-                    value: getPhone(customer) || '-',
-                  },
-                  {
-                    label: t('customer_group') || (isRTL ? 'مجموعة العملاء' : 'Customer Group'),
-                    value: customer.customerGroup ?? (isRTL ? 'عام' : 'General'),
-                  },
-                  {
-                    label: t('actual_balance') || (isRTL ? 'الرصيد الفعلي' : 'Balance'),
-                    value: Number(customer.actualBalance ?? 0).toFixed(2),
-                    isBold: true,
-                  },
-                  {
-                    label: t('total_points') || (isRTL ? 'إجمالي النقاط' : 'Total Points'),
-                    value: Number(customer.totalPoints ?? 0).toFixed(2),
-                  },
-                ]}
-                actions={
-                  <div className="flex flex-wrap justify-end gap-2">
-                    <button
-                      onClick={() => {
-                        setSelectedCustomer(customer);
-                        setIsEditModalOpen(true);
-                      }}
-                      className="px-3 py-1.5 rounded-md border border-gray-300 text-xs flex items-center gap-1 hover:bg-gray-50"
-                    >
-                      <Edit2 size={14} />
-                      {t('edit') || (isRTL ? 'تعديل' : 'Edit')}
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setSelectedCustomer(customer);
-                        setIsDepositModalOpen(true);
-                      }}
-                      className="px-3 py-1.5 rounded-md bg-[#2ecc71] text-white text-xs flex items-center gap-1 hover:bg-[#27ae60]"
-                    >
-                      <PlusCircle size={14} />
-                      {t('add_deposit') || (isRTL ? 'إضافة إيداع' : 'Add Deposit')}
-                    </button>
-
-                    <button
-                      onClick={() => handleDelete(customer.id)}
-                      className="px-3 py-1.5 rounded-md bg-red-50 text-red-600 text-xs flex items-center gap-1 hover:bg-red-100"
-                    >
-                      <Trash2 size={14} />
-                      {t('delete') || (isRTL ? 'حذف' : 'Delete')}
-                    </button>
+              <Column
+                header={t("name")}
+                sortable
+                body={(customer) => (
+                  <div className="cell-data-stack">
+                    {" "}
+                    {/* كلاس لضمان التراص الرأسي */}
+                    <span className="customer-name-main">{customer.customerName}</span>
+                    {/* يمكنك إضافة سطر ثانٍ هنا إذا لزم الأمر، مثل العنوان أو القسم */}
                   </div>
-                }
+                )}
               />
-            ))
-          )}
-        </div>
 
-        {/* Pagination */}
-        <div className="p-4 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-gray-50 bg-gray-50/50">
-          <div className="text-sm text-gray-500">
-            {t('showing_records') || (isRTL ? 'عرض' : 'Showing')} {startIndex}{' '}
-            {t('to') || (isRTL ? 'إلى' : 'to')} {endIndex} {t('of') || (isRTL ? 'من' : 'of')}{' '}
-            {filteredCustomers.length} {t('records') || (isRTL ? 'سجلات' : 'records')}
+              <Column field="phone" header={t("phone")} />
+              <Column field="taxNumber" header={t("tax_number")} />
+
+              <Column
+                header={t("actions")}
+                body={(customer) => (
+                  <button
+                    onClick={() => {
+                      setSelectedCustomer(customer);
+                      setIsEditModalOpen(true);
+                    }}
+                    className="btn-minimal-action btn-compact-action" /* كلاس ثانٍ لتصغير الأيقونة */
+                  >
+                    <Edit2 size={16} /> {/* تصغير الأيقونة قليلاً */}
+                  </button>
+                )}
+              />
+            </DataTable>
           </div>
 
-          <Pagination
-            currentPage={currentPage}
-            totalItems={filteredCustomers.length}
-            itemsPerPage={entriesPerPage}
-            onPageChange={setCurrentPage}
-          />
+          {/* Pagination Section */}
+          {/* <Pagination currentPage={currentPage} totalPages={Math.ceil(filteredCustomers.length / entriesPerPage)} totalItems={filteredCustomers.length} itemsPerPage={entriesPerPage} onPageChange={setCurrentPage} /> */}
         </div>
       </div>
 
-      {/* Modals */}
       <AddCustomerModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
 
-      <EditCustomerModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        customer={selectedCustomer}
-      />
+      <EditCustomerModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} customer={selectedCustomer} />
 
-      <AddDepositModal
-        isOpen={isDepositModalOpen}
-        onClose={() => setIsDepositModalOpen(false)}
-        customer={selectedCustomer}
-      />
+      <AddDepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} customer={selectedCustomer} />
 
-      <AddDiscountModal
-        isOpen={isDiscountModalOpen}
-        onClose={() => setIsDiscountModalOpen(false)}
-        customer={selectedCustomer}
-      />
+      <AddDiscountModal isOpen={isDiscountModalOpen} onClose={() => setIsDiscountModalOpen(false)} customer={selectedCustomer} />
 
-      <ViewPaymentsModal
-        isOpen={isPaymentsModalOpen}
-        onClose={() => setIsPaymentsModalOpen(false)}
-        customer={selectedCustomer}
-        type={paymentType}
-      />
-
-      {/* Confirm delete */}
-      <Confirm
-        isOpen={confirmDeleteId !== null}
-        title={t('confirm_delete') || (isRTL ? 'تأكيد الحذف' : 'Confirm Delete')}
-        message={t('confirm_delete_customer') || (isRTL ? 'هل تريد حذف هذا العميل؟' : 'Do you want to delete this customer?')}
-        confirmLabel={t('delete') || (isRTL ? 'حذف' : 'Delete')}
-        cancelLabel={t('cancel') || (isRTL ? 'إلغاء' : 'Cancel')}
-        onConfirm={performDelete}
-        onClose={() => setConfirmDeleteId(null)}
-      />
-
-      {toastOpen && (
-        <Toast
-          isOpen={toastOpen}
-          message={toastMsg}
-          type={toastType}
-          onClose={() => setToastOpen(false)}
-        />
-      )}
+      <ViewPaymentsModal isOpen={isPaymentsModalOpen} onClose={() => setIsPaymentsModalOpen(false)} customer={selectedCustomer} />
 
       {/* Action Menu Portal */}
-      {createPortal(
+      {/* {createPortal(
         <AnimatePresence>
           {activeActionMenu !== null && (
             <>
               <div className="fixed inset-0 z-[9998]" onClick={() => setActiveActionMenu(null)} />
-
               <motion.div
-                ref={refs.setFloating}
-                initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                initial={{ opacity: 0, scale: 0.95, y: -10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -6 }}
+                exit={{ opacity: 0, scale: 0.95, y: -10 }}
                 style={{
-                  position: strategy,
-                  top: y ?? 0,
-                  left: x ?? 0,
-                  minWidth: 220,
-                  maxHeight: '70vh',
-                  overflowY: 'auto',
+                  position: "absolute",
+                  top: menuPosition.top + 4,
+                  ...(direction === "rtl" ? { right: Math.max(10, Math.min(window.innerWidth - (menuPosition.left + menuPosition.width), window.innerWidth - 220)) } : { left: Math.max(10, Math.min(menuPosition.left, window.innerWidth - 220)) }),
+                  minWidth: "200px",
                 }}
                 className="z-[9999] bg-white border border-gray-200 rounded-lg shadow-2xl py-2 text-right"
               >
                 <button
                   onClick={() => {
-                    openPayments(activeActionMenu, 'deposit');
+                    setIsPaymentsModalOpen(true);
+                    setSelectedCustomer(customers.find((c) => c.id === activeActionMenu));
                     setActiveActionMenu(null);
                   }}
                   className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                 >
                   <History size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">
-                    {t('deposits_list') || (isRTL ? 'قائمة الإيداعات' : 'Deposits')}
-                  </span>
+                  <span className="flex-1 text-right">{t("deposits_list")}</span>
                 </button>
-
                 <button
                   onClick={() => {
-                    openDeposit(activeActionMenu);
+                    setIsDepositModalOpen(true);
+                    setSelectedCustomer(customers.find((c) => c.id === activeActionMenu));
                     setActiveActionMenu(null);
                   }}
                   className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                 >
                   <PlusCircle size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">
-                    {t('add_deposit') || (isRTL ? 'إضافة إيداع' : 'Add Deposit')}
-                  </span>
+                  <span className="flex-1 text-right">{t("add_deposit")}</span>
                 </button>
-
                 <button
                   onClick={() => {
-                    openPayments(activeActionMenu, 'discount');
+                    setIsPaymentsModalOpen(true);
+                    setSelectedCustomer(customers.find((c) => c.id === activeActionMenu));
                     setActiveActionMenu(null);
                   }}
                   className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                 >
                   <FileText size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">
-                    {t('discounts_list') || (isRTL ? 'قائمة الخصومات' : 'Discounts')}
-                  </span>
+                  <span className="flex-1 text-right">{t("discounts_list")}</span>
                 </button>
-
                 <button
                   onClick={() => {
-                    openDiscount(activeActionMenu);
+                    setIsDiscountModalOpen(true);
+                    setSelectedCustomer(customers.find((c) => c.id === activeActionMenu));
                     setActiveActionMenu(null);
                   }}
                   className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                 >
                   <Minus size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">
-                    {t('add_discount') || (isRTL ? 'إضافة خصم' : 'Add Discount')}
-                  </span>
+                  <span className="flex-1 text-right">{t("add_discount")}</span>
                 </button>
-
-                <div className="h-px bg-gray-100 my-1 mx-2" />
-
+                <div className="h-px bg-gray-100 my-1 mx-2"></div>
                 <button
                   onClick={() => {
-                    openEdit(activeActionMenu);
+                    setIsEditModalOpen(true);
+                    setSelectedCustomer(customers.find((c) => c.id === activeActionMenu));
                     setActiveActionMenu(null);
                   }}
                   className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                 >
                   <Edit2 size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">
-                    {t('edit_customer') || (isRTL ? 'تعديل العميل' : 'Edit Customer')}
-                  </span>
+                  <span className="flex-1 text-right">{t("edit_customer")}</span>
                 </button>
-
                 <button
                   onClick={() => {
-                    handleDelete(activeActionMenu);
-                    setActiveActionMenu(null);
+                    if (activeActionMenu !== null) {
+                      setCustomerToDelete(activeActionMenu);
+                      setActiveActionMenu(null);
+                    }
                   }}
-                  className="w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-3 transition-colors font-medium"
+                  className="w-full px-4 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/10 flex items-center gap-3 transition-colors font-medium"
                 >
                   <Trash2 size={18} />
-                  <span className="flex-1 text-right">
-                    {t('delete') || (isRTL ? 'حذف' : 'Delete')}
-                  </span>
+                  <span className="flex-1 text-right">{t("delete")}</span>
                 </button>
               </motion.div>
             </>
           )}
         </AnimatePresence>,
-        document.body
-      )}
-    </motion.div>
+        document.body,
+      )} */}
+    </div>
   );
 }

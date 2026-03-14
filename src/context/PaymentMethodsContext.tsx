@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { PaymentMethod } from '../types';
+import  type{ PaymentMethod } from '../types';
 
 interface PaymentMethodsContextType {
   paymentMethods: PaymentMethod[];

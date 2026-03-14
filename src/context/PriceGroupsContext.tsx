@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { PriceGroup } from '@/types';
+import type { PriceGroup } from '@/types';
 
 interface PriceGroupsContextType {
   priceGroups: PriceGroup[];

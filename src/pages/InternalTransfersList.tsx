@@ -3,7 +3,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useTransfers } from '@/context/TransfersContext';
 import { Trash2, List as ListIcon, Plus } from 'lucide-react';
 import AddInternalTransferModal from '@/components/modals/AddInternalTransferModal';
-import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
+import DeleteConfirmationModal from '@/components/modals/DeleteConfirmationModal';
 import MobileDataCard from '@/components/MobileDataCard';
 
 export default function InternalTransfersList() {

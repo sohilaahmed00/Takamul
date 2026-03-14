@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-import { Bank } from '@/types';
+import type { Bank } from '@/types';
 
 interface BanksContextType {
   banks: Bank[];

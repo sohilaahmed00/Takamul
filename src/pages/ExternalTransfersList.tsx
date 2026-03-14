@@ -4,7 +4,7 @@ import { useTransfers } from '@/context/TransfersContext';
 import { useBanks } from '@/context/BanksContext';
 import { Trash2, List as ListIcon, Plus } from 'lucide-react';
 import AddExternalTransferModal from '@/components/modals/AddExternalTransferModal';
-import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';
+import DeleteConfirmationModal from '@/components/modals/DeleteConfirmationModal';
 import MobileDataCard from '@/components/MobileDataCard';
 
 export default function ExternalTransfersList() {

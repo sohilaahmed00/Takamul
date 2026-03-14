@@ -1,5 +1,5 @@
+import type { Sale } from '@/types';
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Sale } from '@/types';
 
 interface SalesContextType {
   sales: Sale[];
