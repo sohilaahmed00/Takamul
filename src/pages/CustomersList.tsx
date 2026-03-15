@@ -29,7 +29,6 @@ export default function CustomersList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedCustomer2, setSelectedCustomer2] = useState<Customer>();
   const [activeActionMenu, setActiveActionMenu] = useState<number | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -73,7 +72,6 @@ export default function CustomersList() {
       return c.customerName?.toLowerCase().includes(term) || c.phone?.includes(term) || String(c.customerCode)?.includes(term);
     })
     ?.sort((a, b) => b.id - a.id);
-  const paginatedCustomers = filteredCustomers?.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage);
 
   // const toggleSelectAll = () => {
   //   if (selectedCustomers.length === paginatedCustomers?.length) {
@@ -214,9 +212,6 @@ export default function CustomersList() {
               />
             </DataTable>
           </div>
-
-          {/* Pagination Section */}
-          {/* <Pagination currentPage={currentPage} totalPages={Math.ceil(filteredCustomers.length / entriesPerPage)} totalItems={filteredCustomers.length} itemsPerPage={entriesPerPage} onPageChange={setCurrentPage} /> */}
         </div>
       </div>
 
@@ -229,106 +224,6 @@ export default function CustomersList() {
         }}
       />
 
-      <EditCustomerModal isOpen={isEditModalOpen} onClose={() => setIsEditModalOpen(false)} customer={selectedCustomer} />
-
-      <AddDepositModal isOpen={isDepositModalOpen} onClose={() => setIsDepositModalOpen(false)} customer={selectedCustomer} />
-
-      <AddDiscountModal isOpen={isDiscountModalOpen} onClose={() => setIsDiscountModalOpen(false)} customer={selectedCustomer} />
-
-      <ViewPaymentsModal isOpen={isPaymentsModalOpen} onClose={() => setIsPaymentsModalOpen(false)} customer={selectedCustomer} />
-
-      {/* Action Menu Portal */}
-      {/* {createPortal(
-        <AnimatePresence>
-          {activeActionMenu !== null && (
-            <>
-              <div className="fixed inset-0 z-[9998]" onClick={() => setActiveActionMenu(null)} />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                style={{
-                  position: "absolute",
-                  top: menuPosition.top + 4,
-                  ...(direction === "rtl" ? { right: Math.max(10, Math.min(window.innerWidth - (menuPosition.left + menuPosition.width), window.innerWidth - 220)) } : { left: Math.max(10, Math.min(menuPosition.left, window.innerWidth - 220)) }),
-                  minWidth: "200px",
-                }}
-                className="z-[9999] bg-white border border-gray-200 rounded-lg shadow-2xl py-2 text-right"
-              >
-                <button
-                  onClick={() => {
-                    setIsPaymentsModalOpen(true);
-                    setSelectedCustomer(customers.find((c) => c.id === activeActionMenu));
-                    setActiveActionMenu(null);
-                  }}
-                  className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
-                >
-                  <History size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">{t("deposits_list")}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsDepositModalOpen(true);
-                    setSelectedCustomer(customers.find((c) => c.id === activeActionMenu));
-                    setActiveActionMenu(null);
-                  }}
-                  className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
-                >
-                  <PlusCircle size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">{t("add_deposit")}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsPaymentsModalOpen(true);
-                    setSelectedCustomer(customers.find((c) => c.id === activeActionMenu));
-                    setActiveActionMenu(null);
-                  }}
-                  className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
-                >
-                  <FileText size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">{t("discounts_list")}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setIsDiscountModalOpen(true);
-                    setSelectedCustomer(customers.find((c) => c.id === activeActionMenu));
-                    setActiveActionMenu(null);
-                  }}
-                  className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
-                >
-                  <Minus size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">{t("add_discount")}</span>
-                </button>
-                <div className="h-px bg-gray-100 my-1 mx-2"></div>
-                <button
-                  onClick={() => {
-                    setIsEditModalOpen(true);
-                    setSelectedCustomer(customers.find((c) => c.id === activeActionMenu));
-                    setActiveActionMenu(null);
-                  }}
-                  className="w-full px-4 py-2 text-sm text-black hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
-                >
-                  <Edit2 size={18} className="text-gray-400" />
-                  <span className="flex-1 text-right">{t("edit_customer")}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    if (activeActionMenu !== null) {
-                      setCustomerToDelete(activeActionMenu);
-                      setActiveActionMenu(null);
-                    }
-                  }}
-                  className="w-full px-4 py-2 text-sm text-[var(--primary)] hover:bg-[var(--primary)]/10 flex items-center gap-3 transition-colors font-medium"
-                >
-                  <Trash2 size={18} />
-                  <span className="flex-1 text-right">{t("delete")}</span>
-                </button>
-              </motion.div>
-            </>
-          )}
-        </AnimatePresence>,
-        document.body,
-      )} */}
     </div>
   );
 }
