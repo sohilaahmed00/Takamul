@@ -201,9 +201,10 @@ const apiPostProduct      = (n:ProductNature, fd:FormData): Promise<any> => fetc
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-  const [mainCategories, setMainCategories] = useState<NormalizedCategory[]>([]);
-  const [subCategories, setSubCategories] = useState<NormalizedCategory[]>([]);
+
 export default function AddProduct() {
+    const [mainCategories, setMainCategories] = useState<NormalizedCategory[]>([]);
+  const [subCategories, setSubCategories] = useState<NormalizedCategory[]>([]);
   const { t, direction }     = useLanguage();
   const { systemSettings }   = useSettings();
   const navigate             = useNavigate();
