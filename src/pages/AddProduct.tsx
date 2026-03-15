@@ -1,29 +1,22 @@
 // src/pages/AddProduct.tsx
-import { cn } from "@/lib/utils";
 import React, { useState, useRef, ChangeEvent, FormEvent, useEffect, useMemo } from "react";
-import { PlusCircle, Upload, Barcode, Save, Edit2, Box, Package, Layers, X, FolderPlus, Search, Check, Trash2 } from "lucide-react";
-import { useNavigate, useLocation, useParams } from "react-router-dom";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  PlusCircle, Upload, Barcode, Save, Box, Package,
+  Layers, X, FolderPlus, Search, Check, Trash2, ChevronDown,
+} from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings } from "@/context/SettingsContext";
+import { Toast } from "primereact/toast";
+import { cn } from "@/lib/utils";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
+const REAL_API  = "http://takamulerp.runasp.net";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type ProductNature = "basic" | "prepared" | "sub" | "materials";
-
-type ApiCategory = {
-  id?: number | string;
-  Id?: number | string;
-  categoryId?: number | string;
-  CategoryId?: number | string;
-  categoryNameAr?: string;
-  CategoryNameAr?: string;
-  categoryNameEn?: string;
-  CategoryNameEn?: string;
-  categoryNameUr?: string;
-  CategoryNameUr?: string;
-  name?: string;
-  Name?: string;
-};
 
 type NormalizedCategory = {
   id: number | string;
@@ -41,23 +34,45 @@ type ProductLite = {
 };
 
 interface MaterialItem {
-  materialId: string;
+  materialId:   string;
   materialName: string;
-  quantity: number;
-  unitId?: string;
-  unitName?: string;
-  cost?: number;
+  quantity:     number;
+  unitId?:      string;
+  unitName?:    string;
+  cost?:        number;
 }
 
 interface Unit {
-  id: string;
+  id:   string;
   code: string;
   name: string;
 }
 
+interface TaxOption {
+  id:     number;
+  name:   string;
+  amount: number;
+}
+
+const NO_TAX_ID = 1;
+
+type FormErrors = Partial<Record<string, string>>;
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const UNITS_LIST: Unit[] = [
+  { id: "1", code: "U-001", name: "قطعة"   },
+  { id: "2", code: "U-002", name: "كيلو"   },
+  { id: "3", code: "U-003", name: "جرام"   },
+  { id: "4", code: "U-004", name: "لتر"    },
+  { id: "5", code: "U-005", name: "علبة"   },
+  { id: "6", code: "U-006", name: "كرتونة" },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   const token = localStorage.getItem("takamul_token");
-
   const res = await fetch(url, {
     ...init,
     headers: {
@@ -67,708 +82,548 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
     },
   });
 
-  const contentType = res.headers.get("content-type") || "";
-  const isJson = contentType.includes("application/json");
+  const rawText = await res.text();
+
+  console.groupCollapsed(`[API] ${init?.method || "GET"} ${url} → ${res.status}`);
+  console.log("Status:",      res.status, res.statusText);
+  console.log("Content-Type:", res.headers.get("content-type"));
+  console.log("Raw response body:", rawText);
+  console.groupEnd();
 
   if (!res.ok) {
-    let msg = `Request failed (${res.status})`;
-
-    if (isJson) {
-      try {
-        const data: any = await res.json();
-        msg =
-          data?.message ||
-          data?.title ||
-          (data?.errors
-            ? Object.entries(data.errors)
-                .map(([k, v]: any) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
-                .join(" | ")
-            : msg);
-      } catch {
-        //
-      }
-    } else {
-      try {
-        const text = await res.text();
-        if (text) msg = text;
-      } catch {
-        //
-      }
+    let msg = rawText || `Request failed (${res.status})`;
+    try {
+      const d: any = JSON.parse(rawText);
+      // Log the full error object so we can see exactly which fields failed
+      console.error(`[API FULL ERROR] ${url}:`, JSON.stringify(d, null, 2));
+      const extracted =
+        d?.message ||
+        d?.Message ||
+        d?.title   ||
+        d?.Title   ||
+        d?.error   ||
+        d?.Error   ||
+        (d?.errors
+          ? Object.entries(d.errors)
+              .map(([k, v]: any) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+              .join(" | ")
+          : null);
+      if (extracted) msg = extracted;
+    } catch {
+      // rawText is already set above
     }
-
+    console.error(`[API ERROR] ${url}:`, msg);
     throw new Error(msg);
   }
 
-  if (isJson) return (await res.json()) as T;
-  return (await res.text()) as unknown as T;
+  const ct = res.headers.get("content-type") || "";
+  if (ct.includes("application/json")) {
+    try { return JSON.parse(rawText) as T; } catch { return rawText as unknown as T; }
+  }
+  return rawText as unknown as T;
 }
 
 function normalizeCategory(item: any): NormalizedCategory {
   const id = item?.id ?? item?.Id ?? item?.categoryId ?? item?.CategoryId ?? "";
-  const nameAr = (item?.categoryNameAr ?? item?.CategoryNameAr ?? item?.nameAr ?? item?.NameAr ?? "").toString();
-  const nameEn = (item?.categoryNameEn ?? item?.CategoryNameEn ?? item?.nameEn ?? item?.NameEn ?? "").toString();
-  const nameUr = (item?.categoryNameUr ?? item?.CategoryNameUr ?? item?.nameUr ?? item?.NameUr ?? "").toString();
-  // const genericName = (item?.name ?? item?.Name ?? '').toString();
+  // Try every possible field name the API might return
+  const nameAr = (
+    item?.categoryNameAr ?? item?.CategoryNameAr ??
+    item?.nameAr         ?? item?.NameAr         ??
+    item?.categoryName   ?? item?.CategoryName   ??
+    item?.name           ?? item?.Name           ?? ""
+  ).toString();
+  const nameEn = (
+    item?.categoryNameEn ?? item?.CategoryNameEn ??
+    item?.nameEn         ?? item?.NameEn         ??
+    item?.categoryName   ?? item?.CategoryName   ??
+    item?.name           ?? item?.Name           ?? ""
+  ).toString();
+  const nameUr = (
+    item?.categoryNameUr ?? item?.CategoryNameUr ??
+    item?.nameUr         ?? item?.NameUr         ??
+    item?.categoryName   ?? item?.CategoryName   ??
+    item?.name           ?? item?.Name           ?? ""
+  ).toString();
+  return { id, nameAr, nameEn, nameUr };
+}
 
-  const genericName = (item?.name ?? item?.Name ?? item?.categoryName ?? item?.CategoryName ?? item?.title ?? "").toString();
+function getDisplayName(c: NormalizedCategory, dir: string): string {
+  return dir === "rtl" ? (c.nameAr||c.nameEn||c.nameUr) : (c.nameEn||c.nameAr||c.nameUr);
+}
 
+function mapProductLite(item: any): ProductLite {
   return {
-    id,
-    nameAr: nameAr || genericName,
-    nameEn: nameEn || genericName,
-    nameUr: nameUr || genericName,
-  };
-}
-
-function getDisplayCategoryName(c: NormalizedCategory, direction: string) {
-  if (direction === "rtl") return c.nameAr || c.nameEn || c.nameUr || "";
-  return c.nameEn || c.nameAr || c.nameUr || "";
-}
-
-function getCategoryNameToSend(c: NormalizedCategory | undefined) {
-  return (c?.nameAr || c?.nameEn || c?.nameUr || "").trim();
-}
-
-function natureToEndpoint(nature: ProductNature) {
-  switch (nature) {
-    case "basic":
-      return "/api/Products/direct";
-    case "materials":
-      return "/api/Products/raw-material";
-    case "sub":
-      return "/api/Products/branched";
-    case "prepared":
-      return "/api/Products/prepared";
-    default:
-      return "/api/Products/direct";
-  }
-}
-
-function getProductNatureLabel(nature: ProductNature) {
-  switch (nature) {
-    case "basic":
-      return "الصنف المباشر";
-    case "prepared":
-      return "الصنف المجهز";
-    case "sub":
-      return "الصنف المتفرع";
-    case "materials":
-      return "الخامة";
-    default:
-      return "الصنف";
-  }
-}
-
-function getProductNatureIcon(nature: ProductNature) {
-  switch (nature) {
-    case "basic":
-      return <Box size={20} />;
-    case "prepared":
-      return <Package size={20} />;
-    case "sub":
-      return <Layers size={20} />;
-    case "materials":
-      return <FolderPlus size={20} />;
-    default:
-      return <Box size={20} />;
-  }
-}
-
-function mapApiProductLite(item: any): ProductLite {
-  return {
-    id: String(item?.id ?? item?.productId ?? ""),
-    code: String(item?.barcode ?? item?.productCode ?? ""),
-    name: String(item?.productNameAr || item?.productNameEn || item?.productNameUr || item?.name || ""),
-    cost: Number(item?.costPrice ?? item?.cost ?? 0),
+    id:    String(item?.id ?? item?.productId ?? ""),
+    code:  String(item?.barcode ?? item?.productCode ?? ""),
+    name:  String(item?.productNameAr || item?.productNameEn || item?.name || ""),
+    cost:  Number(item?.costPrice ?? item?.cost ?? 0),
     image: String(item?.imageUrl ?? item?.image ?? ""),
   };
 }
 
-export default function AddProduct() {
-  const { t, direction } = useLanguage();
-  const { systemSettings } = useSettings();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { id } = useParams();
+function natureToEndpoint(n: ProductNature): string {
+  switch (n) {
+    case "basic":     return "/api/Products/direct";
+    case "materials": return "/api/Products/raw-material";
+    case "sub":       return "/api/Products/branched";
+    case "prepared":  return "/api/Products/prepared";
+  }
+}
+function getNatureLabel(n: ProductNature): string {
+  switch (n) {
+    case "basic":     return "الصنف المباشر";
+    case "prepared":  return "الصنف المجهز";
+    case "sub":       return "الصنف المتفرع";
+    case "materials": return "الخامة";
+  }
+}
+function getNatureIcon(n: ProductNature) {
+  switch (n) {
+    case "basic":     return <Box        size={20} />;
+    case "prepared":  return <Package    size={20} />;
+    case "sub":       return <Layers     size={20} />;
+    case "materials": return <FolderPlus size={20} />;
+  }
+}
 
-  const isEditMode = Boolean(id);
+// ─── API fns ──────────────────────────────────────────────────────────────────
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
+const apiFetchMainCats   = ():             Promise<any[]> => fetchJson(`${REAL_API}/api/ProductCategories/MainCategory`,                            { method:"GET" });
+const apiFetchSubCats    = (id:string):    Promise<any[]> => fetchJson(`${REAL_API}/api/ProductCategories/SubCategory/${encodeURIComponent(id)}`,   { method:"GET" });
+const apiFetchDirect      = ():            Promise<any[]> => fetchJson(`${REAL_API}/api/Products/direct`,      { method:"GET" }).catch(()=>[]);
+const apiFetchAllProducts = ():            Promise<any[]> => fetchJson(`${REAL_API}/api/Products`,             { method:"GET" }).catch(()=>[]);
+const apiFetchRaw         = ():            Promise<any[]> => fetchJson(`${REAL_API}/api/Products/raw-material`,{ method:"GET" }).catch(()=>[]);
+const apiFetchTaxes       = ():            Promise<TaxOption[]> => fetchJson<TaxOption[]>(`${REAL_API}/api/Taxes`, { method:"GET" }).catch(()=>[]);
+const apiFetchUnits       = ():            Promise<Unit[]> => fetchJson<any[]>(`${REAL_API}/api/UnitOfMeasure`, { method:"GET" })
+  .then((arr: any[]) => (Array.isArray(arr) ? arr : []).map((u: any) => ({ id: String(u?.id ?? u?.unitId ?? ""), code: String(u?.code ?? ""), name: String(u?.unitName ?? u?.name ?? "") })))
+  .catch(() => UNITS_LIST);
+const apiPostProduct      = (n:ProductNature, fd:FormData): Promise<any> => fetchJson(`${REAL_API}${natureToEndpoint(n)}`, { method:"POST", body:fd });
 
-  const [fileName, setFileName] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
+// ─── Component ────────────────────────────────────────────────────────────────
 
   const [mainCategories, setMainCategories] = useState<NormalizedCategory[]>([]);
   const [subCategories, setSubCategories] = useState<NormalizedCategory[]>([]);
+export default function AddProduct() {
+  const { t, direction }     = useLanguage();
+  const { systemSettings }   = useSettings();
+  const navigate             = useNavigate();
+  const location             = useLocation();
+  const toastRef             = useRef<Toast>(null);
+  const fileInputRef         = useRef<HTMLInputElement>(null);
+  const queryClient          = useQueryClient();
 
-  const [isLoadingMainCategories, setIsLoadingMainCategories] = useState(false);
-  const [isLoadingSubCategories, setIsLoadingSubCategories] = useState(false);
-  const [isLoadingUnits, setIsLoadingUnits] = useState(false);
+  const toast = (severity:"success"|"error"|"warn"|"info", summary:string, detail?:string) =>
+    toastRef.current?.show({ severity, summary, detail, life: 4500 });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  // ── state ─────────────────────────────────────────────────────────────────
 
-  const [allProducts, setAllProducts] = useState<ProductLite[]>([]);
-  const [directProductsList, setDirectProductsList] = useState<ProductLite[]>([]);
-  const [materialsProductsList, setMaterialsProductsList] = useState<ProductLite[]>([]);
-  const [isLoadingProducts, setIsLoadingProducts] = useState(false);
+  const [fileName,  setFileName]  = useState("");
+  const [imageFile, setImageFile] = useState<File|null>(null);
+  const [errors,    setErrors]    = useState<FormErrors>({});
 
-  const [showMaterialSearch, setShowMaterialSearch] = useState(false);
-  const [showUnitSearch, setShowUnitSearch] = useState(false);
+  const [showMatSearch,    setShowMatSearch]    = useState(false);
+  const [showUnitSearch,   setShowUnitSearch]   = useState(false);
   const [showParentSearch, setShowParentSearch] = useState(false);
 
-  const [materialSearch, setMaterialSearch] = useState("");
-  const [materialQuantity, setMaterialQuantity] = useState("1");
-  const [unitSearch, setUnitSearch] = useState("");
-  const [parentProductSearch, setParentProductSearch] = useState("");
+  const [matSearch,     setMatSearch]     = useState("");
+  const [matQty,        setMatQty]        = useState("1");
+  const [unitSearch,    setUnitSearch]    = useState("");
+  const [parentSearch,  setParentSearch]  = useState("");
 
-  const unitsList: Unit[] = [
-    { id: "1", code: "U-001", name: "قطعة" },
-    { id: "2", code: "U-002", name: "كيلو" },
-    { id: "3", code: "U-003", name: "جرام" },
-    { id: "4", code: "U-004", name: "لتر" },
-    { id: "5", code: "U-005", name: "علبة" },
-    { id: "6", code: "U-006", name: "كرتونة" },
-  ];
+  const [vatIncluded, setVatIncluded] = useState<boolean>(true);
+  const [selectedVat, setSelectedVat] = useState<TaxOption|null>(null);
 
-  const [formData, setFormData] = useState({
-    productNature: (location.state?.productNature || "basic") as ProductNature,
-    parentProductIds: [] as string[],
+  const [form, setForm] = useState({
+    productNature:      (location.state?.productNature || "basic") as ProductNature,
+    name:               "",
+    nameLang2:          "",
+    nameLang3:          "",
+    code:               "",
+    cost:               "",
+    sellingPrice:       "",
+    categoryId:         "",
+    subCategoryId:      "",
+    alertQuantity:      "0",
+    hideInPos:          false,
+    details:            "",
+    parentProductIds:   [] as string[],
     parentProductNames: [] as string[],
-    name: "",
-    nameLang2: "",
-    nameLang3: "",
-    alertQuantity: "0",
-    code: "",
-    cost: "0",
-    sellingPrice: "0",
-    category: "",
-    categoryId: "",
-    subCategoryId: "",
-    subCategory: "",
-    hideInPos: false,
-    details: "",
-    materials: [] as MaterialItem[],
+    materials:          [] as MaterialItem[],
+    baseUnitId:         "",
+    purchaseUnitId:     "",
+    conversionFactor:   "1",
   });
 
-  const [errors, setErrors] = useState<{
-    name?: string;
-    nameLang2?: string;
-    nameLang3?: string;
-    code?: string;
-    cost?: string;
-    sellingPrice?: string;
-    categoryId?: string;
-    details?: string;
-  }>({});
+  // ── derived ───────────────────────────────────────────────────────────────
 
-  const preparedCost = useMemo(() => {
-    return formData.materials.reduce((sum, item) => {
-      return sum + Number(item.cost || 0) * Number(item.quantity || 0);
-    }, 0);
-  }, [formData.materials]);
+  const finalSellingPrice = useMemo<number>(() => {
+    const base = parseFloat(form.sellingPrice) || 0;
+    if (vatIncluded || !selectedVat) return base;
+    return parseFloat((base * (1 + selectedVat.amount / 100)).toFixed(4));
+  }, [form.sellingPrice, vatIncluded, selectedVat]);
 
-  const filteredParentProducts = useMemo(() => {
-    return directProductsList.filter((p) => p.name.toLowerCase().includes(parentProductSearch.toLowerCase()) || p.code.toLowerCase().includes(parentProductSearch.toLowerCase()));
-  }, [directProductsList, parentProductSearch]);
+  const taxRateToSend = useMemo<number>(
+    () => (vatIncluded || !selectedVat ? 0 : selectedVat.amount),
+    [vatIncluded, selectedVat],
+  );
 
-  const filteredMaterials = useMemo(() => {
-    return materialsProductsList.filter((m) => m.name.toLowerCase().includes(materialSearch.toLowerCase()) || m.code.toLowerCase().includes(materialSearch.toLowerCase()));
-  }, [materialsProductsList, materialSearch]);
+  const preparedCost = useMemo(
+    () => form.materials.reduce((s,m) => s + Number(m.cost||0)*Number(m.quantity||0), 0),
+    [form.materials],
+  );
 
-  const filteredUnits = useMemo(() => {
-    return unitsList.filter((u) => u.name.toLowerCase().includes(unitSearch.toLowerCase()) || u.code.toLowerCase().includes(unitSearch.toLowerCase()));
-  }, [unitsList, unitSearch]);
+  // ── queries ───────────────────────────────────────────────────────────────
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target as any;
+  const { data: mainCatRaw=[], isLoading: loadingMain } = useQuery({
+    queryKey: ["mainCategories"],
+    queryFn:  apiFetchMainCats,
+    staleTime: 5*60*1000,
+  });
+  const mainCats: NormalizedCategory[] = useMemo(
+    () => (Array.isArray(mainCatRaw)?mainCatRaw:[]).map(normalizeCategory).filter(c=>String(c.id)!==""),
+    [mainCatRaw],
+  );
+
+  const { data: subCatRaw=[], isLoading: loadingSub } = useQuery({
+    queryKey: ["subCategories", form.categoryId],
+    queryFn:  () => apiFetchSubCats(form.categoryId),
+    enabled:  Boolean(form.categoryId),
+    staleTime: 5*60*1000,
+  });
+  const subCats: NormalizedCategory[] = useMemo(
+    () => (Array.isArray(subCatRaw)?subCatRaw:[]).map(normalizeCategory).filter(c=>String(c.id)!==""),
+    [subCatRaw],
+  );
+
+  const { data: directRaw=[] } = useQuery({ queryKey:["directProducts"], queryFn:apiFetchDirect, staleTime:2*60*1000 });
+  const directList: ProductLite[] = useMemo(()=>(Array.isArray(directRaw)?directRaw:[]).map(mapProductLite),[directRaw]);
+
+  // All products for "sub" parent selector
+  const { data: allProductsRaw=[] } = useQuery({ queryKey:["allProducts"], queryFn:apiFetchAllProducts, staleTime:2*60*1000 });
+  const allProductsList: ProductLite[] = useMemo(()=>(Array.isArray(allProductsRaw)?allProductsRaw:[]).map(mapProductLite),[allProductsRaw]);
+
+  const { data: rawMatsRaw=[] } = useQuery({ queryKey:["rawMaterials"], queryFn:apiFetchRaw, staleTime:2*60*1000 });
+  const { data: apiUnits = UNITS_LIST } = useQuery({ queryKey:["units"], queryFn: apiFetchUnits, staleTime: 5*60*1000 });
+  const unitsForPrepared: Unit[] = useMemo(() => (Array.isArray(apiUnits) && apiUnits.length > 0 ? apiUnits : UNITS_LIST), [apiUnits]);
+
+  const { data: taxesRaw=[] } = useQuery({ queryKey:["taxes"], queryFn:apiFetchTaxes, staleTime:10*60*1000 });
+  const taxOptions: TaxOption[] = useMemo(
+    ()=>(Array.isArray(taxesRaw)?taxesRaw:[]).filter(t=>t.id!==NO_TAX_ID),
+    [taxesRaw],
+  );
+  const matList: ProductLite[] = useMemo(()=>(Array.isArray(rawMatsRaw)?rawMatsRaw:[]).map(mapProductLite),[rawMatsRaw]);
+
+  // ── mutation ──────────────────────────────────────────────────────────────
+
+  const mutation = useMutation({
+    mutationFn: ({nature,fd}:{nature:ProductNature;fd:FormData}) => apiPostProduct(nature,fd),
+    onSuccess: () => {
+      toast("success", "تم الحفظ بنجاح", "تم إضافة الصنف بنجاح");
+      queryClient.invalidateQueries({ queryKey:["directProducts"] });
+      queryClient.invalidateQueries({ queryKey:["allProducts"] });
+      queryClient.invalidateQueries({ queryKey:["rawMaterials"] });
+      setTimeout(()=>navigate("/products",{state:{productNature:form.productNature,refreshed:true}}),1200);
+    },
+    onError: (err:any) => toast("error","فشل الحفظ", err?.message||"Unknown error"),
+  });
+
+  // ── filtered lists ────────────────────────────────────────────────────────
+
+  const filteredParents = useMemo(()=>
+    allProductsList.filter(p=>p.name.toLowerCase().includes(parentSearch.toLowerCase())||p.code.toLowerCase().includes(parentSearch.toLowerCase())),
+    [allProductsList,parentSearch],
+  );
+  const filteredMats = useMemo(()=>
+    matList.filter(m=>m.name.toLowerCase().includes(matSearch.toLowerCase())||m.code.toLowerCase().includes(matSearch.toLowerCase())),
+    [matList,matSearch],
+  );
+  const filteredUnits = useMemo(()=>
+    UNITS_LIST.filter(u=>u.name.toLowerCase().includes(unitSearch.toLowerCase())||u.code.toLowerCase().includes(unitSearch.toLowerCase())),
+    [unitSearch],
+  );
+
+  // ── handlers ──────────────────────────────────────────────────────────────
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>) => {
+    const {name,value,type} = e.target as any;
     const checked = (e.target as HTMLInputElement).checked;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setForm(prev=>({...prev,[name]:type==="checkbox"?checked:value}));
+    if (errors[name]) setErrors(prev=>({...prev,[name]:undefined}));
   };
 
-  const loadMainCategories = async () => {
-    try {
-      setIsLoadingMainCategories(true);
-
-      const data = await fetchJson<ApiCategory[]>(`${API_BASE}/api/ProductCategories/MainCategory`, {
-        method: "GET",
-        headers: { accept: "*/*" },
-      });
-
-      const normalized = (Array.isArray(data) ? data : []).map(normalizeCategory).filter((c) => String(c.id) !== "" && (c.nameAr || c.nameEn || c.nameUr));
-
-      setMainCategories(normalized);
-    } catch (e) {
-      console.error(e);
-      setMainCategories([]);
-    } finally {
-      setIsLoadingMainCategories(false);
-    }
+  const handleAddMat = () => {
+    const sel = matList.find(m=>m.name===matSearch);
+    if (!sel) { toast("warn","تحذير","يرجى اختيار خامة صحيحة من القائمة"); return; }
+    if (form.materials.some(m=>String(m.materialId)===String(sel.id))) { toast("warn","تحذير","الخامة مضافة بالفعل"); return; }
+    const unit = UNITS_LIST.find(u=>u.id===unitSearch);
+    setForm(prev=>({...prev, materials:[...prev.materials,{
+      materialId:String(sel.id), materialName:sel.name,
+      quantity:parseFloat(matQty)||1, unitId:unit?.id, unitName:unit?.name, cost:Number(sel.cost??0),
+    }]}));
+    setMatSearch(""); setMatQty("1"); setUnitSearch(""); setShowMatSearch(false); setShowUnitSearch(false);
   };
 
-  const loadSubCategories = async (mainCategoryId: string) => {
-    if (!mainCategoryId) {
-      setSubCategories([]);
-      return;
-    }
+  const removeMat     = (i:number) => setForm(prev=>({...prev,materials:prev.materials.filter((_,idx)=>idx!==i)}));
+  const toggleParent  = (p:ProductLite) => setForm(prev=>{
+    const sel = prev.parentProductIds.includes(String(p.id));
+    return sel
+      ? {...prev, parentProductIds:prev.parentProductIds.filter(x=>x!==String(p.id)), parentProductNames:prev.parentProductNames.filter(x=>x!==p.name)}
+      : {...prev, parentProductIds:[...prev.parentProductIds,String(p.id)], parentProductNames:[...prev.parentProductNames,p.name]};
+  });
+  const removeParent  = (i:number) => setForm(prev=>({...prev,
+    parentProductIds:prev.parentProductIds.filter((_,idx)=>idx!==i),
+    parentProductNames:prev.parentProductNames.filter((_,idx)=>idx!==i),
+  }));
 
-    try {
-      setIsLoadingSubCategories(true);
+  // ── category helpers ──────────────────────────────────────────────────────
 
-      const data = await fetchJson<ApiCategory[]>(`${API_BASE}/api/ProductCategories/SubCategory/${encodeURIComponent(mainCategoryId)}`, {
-        method: "GET",
-        headers: { accept: "*/*" },
-      });
-
-      const normalized = (Array.isArray(data) ? data : []).map(normalizeCategory).filter((c) => String(c.id) !== "" && (c.nameAr || c.nameEn || c.nameUr));
-
-      setSubCategories(normalized);
-    } catch (e) {
-      console.error(e);
-      setSubCategories([]);
-    } finally {
-      setIsLoadingSubCategories(false);
-    }
+  /**
+   * Returns the effective category ID (sub takes priority over main)
+   */
+  const resolvedCategoryId = (): string => {
+    return form.subCategoryId || form.categoryId;
   };
 
-  const loadProductsLists = async () => {
-    try {
-      setIsLoadingProducts(true);
-
-      const [directData, rawData, allData] = await Promise.all([
-        fetchJson<any[]>(`${API_BASE}/api/Products/direct`, {
-          method: "GET",
-          headers: { accept: "*/*" },
-        }).catch(() => []),
-        fetchJson<any[]>(`${API_BASE}/api/Products/raw-material`, {
-          method: "GET",
-          headers: { accept: "*/*" },
-        }).catch(() => []),
-        fetchJson<any[]>(`${API_BASE}/api/Products`, {
-          method: "GET",
-          headers: { accept: "*/*" },
-        }).catch(() => []),
-      ]);
-
-      const directMapped = (Array.isArray(directData) ? directData : []).map(mapApiProductLite);
-      const rawMapped = (Array.isArray(rawData) ? rawData : []).map(mapApiProductLite);
-      const allMapped = (Array.isArray(allData) ? allData : []).map(mapApiProductLite);
-
-      setDirectProductsList(directMapped);
-      setMaterialsProductsList(rawMapped);
-      setAllProducts(allMapped);
-    } catch (e) {
-      console.error(e);
-      setDirectProductsList([]);
-      setMaterialsProductsList([]);
-      setAllProducts([]);
-    } finally {
-      setIsLoadingProducts(false);
-    }
+  /**
+   * Returns display name of the selected category.
+   * Tries every possible field the API might return.
+   */
+  const resolveCatName = (): string => {
+    const effectiveId = form.subCategoryId || form.categoryId;
+    const allCats = [...mainCats, ...subCats];
+    const found = allCats.find(c => String(c.id) === String(effectiveId));
+    const name = (found?.nameAr || found?.nameEn || found?.nameUr || "").trim();
+    // Debug — remove after confirming it works
+    console.log("[resolveCatName] id:", effectiveId, "| found:", found, "| name:", name);
+    if (mainCats.length > 0) console.log("[resolveCatName] mainCats[0]:", mainCats[0]);
+    return name;
   };
 
-  const loadProductForEdit = async (productId: string) => {
-    try {
-      const data = await fetchJson<any>(`${API_BASE}/api/Products/${productId}`, {
-        method: "GET",
-        headers: { accept: "*/*" },
-      });
-
-      const productName = data?.productNameAr || data?.productNameEn || data?.productNameUr || "";
-
-      setFormData((prev) => ({
-        ...prev,
-        name: String(data?.productNameAr ?? ""),
-        nameLang2: String(data?.productNameEn ?? ""),
-        nameLang3: String(data?.productNameUr ?? ""),
-        code: String(data?.barcode ?? ""),
-        cost: String(data?.costPrice ?? 0),
-        sellingPrice: String(data?.sellingPrice ?? 0),
-        alertQuantity: String(data?.minStockLevel ?? 0),
-        details: String(data?.description ?? ""),
-        category: String(data?.categoryName ?? ""),
-        subCategory: "",
-        categoryId: "",
-        subCategoryId: "",
-        productNature: location.state?.productNature || (String(data?.productType || "").toLowerCase() === "prepared" ? "prepared" : String(data?.productType || "").toLowerCase() === "branched" ? "sub" : "basic"),
-        parentProductIds: Array.isArray(data?.parentProductIds) ? data.parentProductIds.map(String) : data?.parentProductId ? [String(data.parentProductId)] : [],
-        parentProductNames: Array.isArray(data?.parentProductNames) ? data.parentProductNames.map(String) : data?.parentProductName ? [String(data.parentProductName)] : [],
-        materials: Array.isArray(data?.materials)
-          ? data.materials.map((m: any) => ({
-              materialId: String(m?.materialId ?? ""),
-              materialName: String(m?.materialName ?? ""),
-              quantity: Number(m?.quantity ?? 1),
-              unitId: m?.unitId ? String(m.unitId) : undefined,
-              unitName: m?.unitName ? String(m.unitName) : undefined,
-              cost: Number(m?.cost ?? 0),
-            }))
-          : [],
-      }));
-
-      setParentProductSearch(productName);
-      setFileName("");
-      setImageFile(null);
-    } catch (e) {
-      console.error(e);
-      alert(direction === "rtl" ? "فشل تحميل بيانات الصنف" : "Failed to load product");
-    }
+  /**
+   * Debug helper — logs exactly what will be sent to the API
+   */
+  const debugFD = (fd: FormData, label: string) => {
+    console.group(`[buildFD] ${label}`);
+    fd.forEach((val, key) => console.log(`  ${key}:`, val));
+    console.groupEnd();
   };
 
-  useEffect(() => {
-    loadMainCategories();
-    loadProductsLists();
-  }, []);
+  // ── validation ────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    if (!formData.categoryId) {
-      setSubCategories([]);
-      setFormData((prev) => ({ ...prev, subCategoryId: "" }));
-      return;
+  const validate = (): boolean => {
+    const e: FormErrors = {};
+
+    // Name fields required for all types
+    if (!form.name.trim())      e.name      = "اسم الصنف (عربي) مطلوب";
+    if (!form.nameLang2.trim()) e.nameLang2 = "الاسم بالإنجليزية مطلوب";
+    if (!form.nameLang3.trim()) e.nameLang3 = "الاسم باللغة الثالثة مطلوب";
+
+    // CategoryName required for basic, sub, prepared — NOT for raw-material
+    if (form.productNature !== "materials" && !form.categoryId)
+      e.categoryId = "يرجى اختيار التصنيف الرئيسي";
+
+    // Barcode required for basic, prepared, and sub
+    if (["basic","prepared","sub"].includes(form.productNature) && !form.code.trim())
+      e.code = "الكود مطلوب";
+
+    // CostPrice required for basic and materials only (NOT sub, NOT prepared)
+    if (["basic","materials"].includes(form.productNature) && (!form.cost || isNaN(Number(form.cost))))
+      e.cost = "التكلفة غير صحيحة";
+
+    // SellingPrice required for basic and prepared only (NOT sub, NOT materials)
+    if (["basic","prepared"].includes(form.productNature)) {
+      if (!form.sellingPrice || isNaN(Number(form.sellingPrice)))
+        e.sellingPrice = "سعر البيع غير صحيح";
+      else if (!vatIncluded && !selectedVat)
+        e.sellingPrice = "يرجى اختيار نسبة الضريبة أو تغيير الخيار إلى شامل الضريبة";
     }
 
-    loadSubCategories(formData.categoryId);
-  }, [formData.categoryId]);
+    if (form.productNature === "materials" && (!form.alertQuantity || isNaN(Number(form.alertQuantity))))
+      e.alertQuantity = "حد التنبيه غير صحيح";
 
-  useEffect(() => {
-    if (isEditMode && id) {
-      loadProductForEdit(id);
+    if (imageFile && !["image/png","image/jpeg","image/jpg","image/webp"].includes(imageFile.type))
+      e.image = "صيغة الصورة غير مدعومة (PNG, JPG, WEBP فقط)";
+
+    setErrors(e);
+
+    if (form.productNature === "sub" && form.parentProductIds.length === 0) {
+      toast("warn","تنبيه","يرجى اختيار صنف مباشر واحد على الأقل"); return false;
     }
-  }, [isEditMode, id]);
-
-  const handleAddMaterial = () => {
-    if (!materialSearch.trim()) return;
-
-    const selectedMaterial = materialsProductsList.find((m) => m.id === materialSearch || m.name === materialSearch);
-
-    if (!selectedMaterial) return;
-
-    const alreadyExists = formData.materials.some((m) => String(m.materialId) === String(selectedMaterial.id));
-
-    if (alreadyExists) {
-      alert(direction === "rtl" ? "الخامة مضافة بالفعل" : "Material already added");
-      return;
+    if (form.productNature === "prepared" && form.materials.length === 0) {
+      toast("warn","تنبيه","يرجى إضافة خامة واحدة على الأقل"); return false;
     }
 
-    const selectedUnit = unitsList.find((u) => u.id === unitSearch);
-
-    const newMaterial: MaterialItem = {
-      materialId: String(selectedMaterial.id),
-      materialName: selectedMaterial.name,
-      quantity: parseFloat(materialQuantity) || 1,
-      unitId: selectedUnit?.id,
-      unitName: selectedUnit?.name,
-      cost: Number(selectedMaterial.cost ?? 0),
-    };
-
-    setFormData((prev) => ({
-      ...prev,
-      materials: [...prev.materials, newMaterial],
-    }));
-
-    setMaterialSearch("");
-    setMaterialQuantity("1");
-    setUnitSearch("");
-    setShowMaterialSearch(false);
-    setShowUnitSearch(false);
+    return Object.keys(e).length === 0;
   };
 
-  const handleRemoveMaterial = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      materials: prev.materials.filter((_, i) => i !== index),
-    }));
-  };
+  // ── build FormData ────────────────────────────────────────────────────────
 
-  const handleToggleParentProduct = (product: ProductLite) => {
-    setFormData((prev) => {
-      const isAlreadySelected = prev.parentProductIds.includes(String(product.id));
+  const buildFD = (): FormData => {
+    const fd      = new FormData();
+    const taxId   = (!vatIncluded && selectedVat) ? selectedVat.id : NO_TAX_ID;
+    const taxCalc = (!vatIncluded && selectedVat) ? "Excludestax" : "Includestax";
+    const priceToSend = String(finalSellingPrice);
+    // CategoryName = Arabic name of selected sub-category or main category
+    const catName = resolveCatName();
 
-      if (isAlreadySelected) {
-        return {
-          ...prev,
-          parentProductIds: prev.parentProductIds.filter((pid) => pid !== String(product.id)),
-          parentProductNames: prev.parentProductNames.filter((name) => name !== product.name),
-        };
-      }
+    switch (form.productNature) {
 
-      return {
-        ...prev,
-        parentProductIds: [...prev.parentProductIds, String(product.id)],
-        parentProductNames: [...prev.parentProductNames, product.name],
-      };
-    });
-  };
+      // ── الصنف المباشر ─────────────────────────────────────────────────────
+      // POST /api/Products/direct  (multipart/form-data)
+      // Required: ProductNameAr*, CategoryName*, CostPrice*, SellingPrice*, TaxCalculation*
+      // Optional: Barcode, ProductNameEn, ProductNameUr, Description, MinStockLevel, TaxId, Image
+      case "basic":
+        fd.append("Barcode",        form.code.trim());
+        fd.append("ProductNameAr",  form.name.trim());
+        fd.append("ProductNameEn",  form.nameLang2.trim());
+        fd.append("ProductNameUr",  form.nameLang3.trim());
+        fd.append("Description",    form.details.trim());
+        fd.append("CategoryName",   catName);               // ✅ string — per Swagger
+        fd.append("CostPrice",      form.cost);
+        fd.append("SellingPrice",   priceToSend);
+        fd.append("MinStockLevel",  form.alertQuantity || "0");
+        fd.append("TaxId",          String(taxId));
+        fd.append("TaxCalculation", taxCalc);               // ✅ required per Swagger
+        if (imageFile) fd.append("Image", imageFile);
+        debugFD(fd, "direct");
+        break;
 
-  const handleRemoveParentProduct = (index: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      parentProductIds: prev.parentProductIds.filter((_, i) => i !== index),
-      parentProductNames: prev.parentProductNames.filter((_, i) => i !== index),
-    }));
-  };
+      // ── الخامة ────────────────────────────────────────────────────────────
+      // POST /api/Products/raw-material  (multipart/form-data)
+      // Required: ProductNameAr*, CostPrice*
+      // Optional: BaseUnitId (int), PurchaseUnitId (int), ConversionFactor (double)
+      // ⚠️ No CategoryName/Id, no SellingPrice, no Tax, no Description per Swagger
+      case "materials":
+        fd.append("ProductNameAr",  form.name.trim());
+        fd.append("ProductNameEn",  form.nameLang2.trim());
+        fd.append("ProductNameUr",  form.nameLang3.trim());
+        fd.append("CostPrice",      form.cost);
+        if (form.details.trim())     fd.append("Description",    form.details.trim());
+        if (form.baseUnitId)         fd.append("BaseUnitId",     String(Number(form.baseUnitId)));
+        if (form.purchaseUnitId)     fd.append("PurchaseUnitId", String(Number(form.purchaseUnitId)));
+        if (form.conversionFactor)   fd.append("ConversionFactor", form.conversionFactor);
+        debugFD(fd, "raw-material");
+        break;
 
-  const handleSelectUnit = (unit: Unit) => {
-    setUnitSearch(unit.id);
-    setShowUnitSearch(false);
-  };
+      // ── الصنف المتفرع ─────────────────────────────────────────────────────
+      // POST /api/Products/branched  (multipart/form-data)
+      // Required: ProductNameAr*, CategoryName*
+      // Optional: ProductNameEn, ProductNameUr, Image, ChildrenIds (array of int), Description
+      // ⚠️ No CostPrice, no SellingPrice, no Tax per Swagger
+      case "sub":
+        fd.append("ProductNameAr", form.name.trim());
+        fd.append("ProductNameEn", form.nameLang2.trim());
+        fd.append("ProductNameUr", form.nameLang3.trim());
+        fd.append("CategoryName",  catName);
+        fd.append("Description",   form.details.trim());
+        // Barcode مطلوب من الـ backend حتى لو مش في الـ Swagger
+        fd.append("Barcode", form.code.trim() || `SUB${Math.floor(Math.random()*10_000_000).toString().padStart(7,"0")}`);
+        form.parentProductIds.forEach(pid => fd.append("ChildrenIds", pid));
+        if (imageFile) fd.append("Image", imageFile);
+        debugFD(fd, "branched");
+        break;
 
-  const buildFormDataForCreate = () => {
-    const fd = new FormData();
-
-    const main = mainCategories.find((c) => String(c.id) === String(formData.categoryId));
-    const sub = subCategories.find((c) => String(c.id) === String(formData.subCategoryId));
-    const categoryNameToSend = getCategoryNameToSend(sub || main);
-
-    fd.append("Barcode", formData.code.trim());
-    fd.append("ProductNameAr", formData.name.trim());
-    fd.append("ProductNameEn", formData.nameLang2.trim());
-    fd.append("ProductNameUr", formData.nameLang3.trim());
-    fd.append("Description", formData.details.trim());
-    fd.append("CategoryName", categoryNameToSend);
-
-    if (formData.productNature === "prepared") {
-      fd.append("CostPrice", String(Number(preparedCost || 0)));
-      fd.append("SellingPrice", String(Number(formData.sellingPrice || 0)));
-    } else if (formData.productNature === "sub") {
-      fd.append("CostPrice", String(Number(formData.cost || 0)));
-      fd.append("SellingPrice", String(Number(formData.sellingPrice || 0)));
-    } else {
-      fd.append("CostPrice", String(Number(formData.cost || 0)));
-      fd.append("SellingPrice", String(Number(formData.sellingPrice || 0)));
+      // ── الصنف المجهز ─────────────────────────────────────────────────────
+      // POST /api/Products/prepared  (multipart/form-data)
+      // Required: ProductNameAr*, ProductNameEn*, ProductNameUr*, CategoryId* (int),
+      //           SellingPrice*, TaxCalculation*, Components* (JSON string)
+      // Optional: Barcode, Description, TaxId, Image
+      case "prepared":
+        fd.append("Barcode",        form.code.trim());
+        fd.append("ProductNameAr",  form.name.trim());
+        fd.append("ProductNameEn",  form.nameLang2.trim());
+        fd.append("ProductNameUr",  form.nameLang3.trim());
+        fd.append("Description",    form.details.trim());
+        fd.append("CategoryId",     resolvedCategoryId());  // ✅ integer — per Swagger
+        fd.append("SellingPrice",   priceToSend);
+        fd.append("TaxId",          String(taxId));
+        fd.append("TaxCalculation", taxCalc);
+        if (imageFile) fd.append("Image", imageFile);
+        // Components as JSON string with componentProductId (per Swagger)
+        fd.append("Components", JSON.stringify(
+          form.materials.map(m => ({
+            componentProductId: Number(m.materialId),
+            quantity:           Number(m.quantity),
+            unitId:             m.unitId ? Number(m.unitId) : null,
+          }))
+        ));
+        break;
     }
-
-    fd.append("MinStockLevel", String(parseInt(formData.alertQuantity || "0", 10) || 0));
-
-    if (imageFile) {
-      fd.append("Image", imageFile);
-    }
-
-    // branched
-    if (formData.productNature === "sub") {
-      formData.parentProductIds.forEach((pid) => {
-        fd.append("ParentProductIds", pid);
-      });
-    }
-
-    // prepared
-    if (formData.productNature === "prepared") {
-      fd.append(
-        "MaterialsJson",
-        JSON.stringify(
-          formData.materials.map((m) => ({
-            materialId: Number(m.materialId),
-            quantity: Number(m.quantity),
-            unitId: m.unitId ? Number(m.unitId) : null,
-          })),
-        ),
-      );
-    }
-
     return fd;
   };
 
-  const buildFormDataForUpdate = () => {
-    const fd = new FormData();
+  // ── submit ────────────────────────────────────────────────────────────────
 
-    const main = mainCategories.find((c) => String(c.id) === String(formData.categoryId));
-    const sub = subCategories.find((c) => String(c.id) === String(formData.subCategoryId));
-    const categoryNameToSend = getCategoryNameToSend(sub || main) || formData.category || "";
-
-    fd.append("Id", String(id));
-    fd.append("Barcode", formData.code.trim());
-    fd.append("ProductNameAr", formData.name.trim());
-    fd.append("ProductNameEn", formData.nameLang2.trim());
-    fd.append("ProductNameUr", formData.nameLang3.trim());
-    fd.append("Description", formData.details.trim());
-    fd.append("CategoryName", categoryNameToSend);
-    fd.append("CostPrice", String(Number(formData.productNature === "prepared" ? preparedCost : formData.cost || 0)));
-    fd.append("SellingPrice", String(Number(formData.sellingPrice || 0)));
-    fd.append("Quantity", "0");
-    fd.append("MinStockLevel", String(parseInt(formData.alertQuantity || "0", 10) || 0));
-    fd.append("ProductType", formData.productNature === "prepared" ? "Prepared" : formData.productNature === "sub" ? "Branched" : "Direct");
-    fd.append("ParentProductId", formData.productNature === "sub" && formData.parentProductIds.length > 0 ? String(formData.parentProductIds[0]) : "0");
-
-    if (imageFile) {
-      fd.append("ImageUrl", imageFile);
-    }
-
-    if (formData.productNature === "sub") {
-      formData.parentProductIds.forEach((pid) => {
-        fd.append("ParentProductIds", pid);
-      });
-    }
-
-    if (formData.productNature === "prepared") {
-      fd.append(
-        "MaterialsJson",
-        JSON.stringify(
-          formData.materials.map((m) => ({
-            materialId: Number(m.materialId),
-            quantity: Number(m.quantity),
-            unitId: m.unitId ? Number(m.unitId) : null,
-          })),
-        ),
-      );
-    }
-
-    return fd;
-  };
-
-  // const validateForm = () => {
-  //   const newErrors: FormErrors = {};
-
-  //   if (!formData.productType.trim()) {
-  //     newErrors.productType = direction === "rtl" ? "نوع الصنف مطلوب" : "Product type is required";
-  //   }
-
-  //   if (!formData.name.trim()) {
-  //     newErrors.name = direction === "rtl" ? "يرجى إدخال الاسم" : "Please enter name";
-  //   }
-
-  //   if (!formData.nameLang2.trim()) {
-  //     newErrors.nameLang2 = direction === "rtl" ? "الاسم باللغة الثانية مطلوب" : "Second language name is required";
-  //   }
-
-  //   if (!formData.nameLang3.trim()) {
-  //     newErrors.nameLang3 = direction === "rtl" ? "الاسم باللغة الثالثة مطلوب" : "Third language name is required";
-  //   }
-
-  //   if ((formData.productNature === "basic" || formData.productNature === "prepared") && !formData.code.trim()) {
-  //     newErrors.code = direction === "rtl" ? "يرجى إدخال الكود" : "Please enter code";
-  //   }
-
-  //   if (!formData.categoryId) {
-  //     newErrors.categoryId = direction === "rtl" ? "يرجى اختيار التصنيف الرئيسي" : "Please select category";
-  //   }
-
-  //   if (!formData.details.trim()) {
-  //     newErrors.details = direction === "rtl" ? "يرجى إدخال الوصف" : "Please enter description";
-  //   }
-
-  //   if ((formData.productNature === "basic" || formData.productNature === "materials" || formData.productNature === "sub") && (formData.cost.trim() === "" || isNaN(Number(formData.cost)))) {
-  //     newErrors.cost = direction === "rtl" ? "التكلفة غير صحيحة" : "Invalid cost";
-  //   }
-
-  //   if (formData.sellingPrice.trim() === "" || isNaN(Number(formData.sellingPrice))) {
-  //     newErrors.sellingPrice = direction === "rtl" ? "سعر البيع غير صحيح" : "Invalid selling price";
-  //   }
-
-  //   if (formData.productNature === "sub" && formData.parentProductIds.length === 0) {
-  //     alert(direction === "rtl" ? "يرجى اختيار صنف مباشر واحد على الأقل" : "Please select at least one parent product");
-  //     return;
-  //   }
-
-  //   if (formData.productNature === "prepared" && formData.materials.length === 0) {
-  //     alert(direction === "rtl" ? "يرجى إضافة خامة واحدة على الأقل" : "Please add at least one material");
-  //     return;
-  //   }
-
-  //   if (!formData.defaultSaleUnitId) {
-  //     newErrors.defaultSaleUnitId = direction === "rtl" ? "وحدة البيع الافتراضية مطلوبة" : "Default sale unit is required";
-  //   }
-
-  //   if (imageFile) {
-  //     const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
-  //     if (!allowedTypes.includes(imageFile.type)) {
-  //       newErrors.image = direction === "rtl" ? "نوع الصورة غير مدعوم" : "Unsupported image format";
-  //     }
-  //   }
-
-  //   setErrors(newErrors);
-  //   return Object.keys(newErrors).length === 0;
-  // };
-
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-
-    setSubmitError("");
-    setSuccessMessage("");
-
-    try {
-      if (isEditMode && id) {
-        const fd = buildFormDataForUpdate();
-
-        await fetchJson(`${API_BASE}/api/Products/${id}`, {
-          method: "PUT",
-          body: fd,
-        });
-      } else {
-        const fd = buildFormDataForCreate();
-
-        await fetchJson(`${API_BASE}${natureToEndpoint(formData.productNature)}`, {
-          method: "POST",
-          body: fd,
-        });
-      }
-
-      navigate("/products", {
-        state: {
-          productNature: formData.productNature,
-          refreshed: true,
-          message: isEditMode ? "تم التعديل بنجاح" : "تم الحفظ بنجاح",
-        },
-      });
-    } catch (err: any) {
-      console.error(err);
-      alert((direction === "rtl" ? "فشل حفظ الصنف: " : "Failed to save product: ") + (err?.message || ""));
-    }
+    if (!validate()) return;
+    mutation.mutate({ nature:form.productNature, fd:buildFD() });
   };
+
+  // ── close dropdowns on outside click ─────────────────────────────────────
+
+  useEffect(()=>{
+    const h = (e:MouseEvent) => {
+      if (!(e.target as HTMLElement).closest(".dp-wrap")) {
+        setShowMatSearch(false); setShowUnitSearch(false); setShowParentSearch(false);
+      }
+    };
+    document.addEventListener("mousedown",h);
+    return ()=>document.removeEventListener("mousedown",h);
+  },[]);
+
+  // ── helpers ───────────────────────────────────────────────────────────────
+
+  const isSubmitting = mutation.isPending;
+  const ErrMsg = ({field}:{field:string}) =>
+    errors[field] ? <p className="mt-1 text-xs text-red-600">⚠ {errors[field]}</p> : null;
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-4 pb-24" dir={direction}>
+      <Toast ref={toastRef} position={direction==="rtl"?"top-left":"top-right"} />
+
+      {/* Breadcrumb */}
       <div className="text-sm text-gray-500 flex items-center gap-1">
-        <span className="cursor-pointer hover:text-[var(--primary)]" onClick={() => navigate("/")}>
-          {t("home")}
-        </span>
+        <span className="cursor-pointer hover:text-[var(--primary)]" onClick={()=>navigate("/")}>{t("home")}</span>
         <span>/</span>
-        <span className="cursor-pointer hover:text-[var(--primary)]" onClick={() => navigate("/products")}>
-          {t("products")}
-        </span>
+        <span className="cursor-pointer hover:text-[var(--primary)]" onClick={()=>navigate("/products")}>{t("products")}</span>
         <span>/</span>
-        <span className="text-gray-800 font-medium">
-          {isEditMode ? "تعديل" : "إضافة"} {getProductNatureLabel(formData.productNature)}
-        </span>
+        <span className="text-gray-800 font-medium">إضافة {getNatureLabel(form.productNature)}</span>
       </div>
 
-      <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-        <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2 mb-2">
-          {isEditMode ? <Edit2 size={22} className="text-blue-600" /> : <PlusCircle size={22} className="text-[var(--primary)]" />}
-          {isEditMode ? `تعديل ${getProductNatureLabel(formData.productNature)}` : `إضافة ${getProductNatureLabel(formData.productNature)}`}
-        </h1>
+      {/* Header */}
+      <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
+        <PlusCircle size={22} className="text-[var(--primary)]" />
+        <h1 className="text-xl font-bold text-gray-800">إضافة {getNatureLabel(form.productNature)}</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" noValidate>
         <div className="p-6 md:p-8 space-y-8">
+
+          {/* ── Nature ── */}
           <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100">
             <label className="block text-base font-bold text-blue-900 mb-4">
               طبيعة الصنف المضاف <span className="text-red-500">*</span>
             </label>
-
             <div className="flex flex-wrap gap-4">
-              {(["basic", "sub", "prepared", "materials"] as const).map((nature) => (
-                <label key={nature} className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer min-w-[180px] ${formData.productNature === nature ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-md" : "bg-white border-gray-200 hover:border-[var(--primary)]"} ${isEditMode ? "opacity-60 cursor-not-allowed" : ""}`}>
-                  <input
-                    type="radio"
-                    name="productNature"
-                    value={nature}
-                    checked={formData.productNature === nature}
-                    onChange={() =>
-                      !isEditMode &&
-                      setFormData((prev) => ({
-                        ...prev,
-                        productNature: nature,
-                      }))
-                    }
-                    disabled={isEditMode}
-                    className="w-5 h-5 accent-white"
-                  />
-                  {getProductNatureIcon(nature)}
-                  <span className="font-bold">{getProductNatureLabel(nature)}</span>
+              {(["basic","sub","prepared","materials"] as const).map(nature=>(
+                <label key={nature} className={cn(
+                  "flex items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer min-w-[180px]",
+                  form.productNature===nature
+                    ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-md"
+                    : "bg-white border-gray-200 hover:border-[var(--primary)]",
+                )}>
+                  <input type="radio" name="productNature" value={nature}
+                    checked={form.productNature===nature}
+                    onChange={()=>setForm(prev=>({...prev,productNature:nature,parentProductIds:[],parentProductNames:[],materials:[],sellingPrice:"",cost:""}))}
+                    className="w-5 h-5 accent-white" />
+                  {getNatureIcon(nature)}
+                  <span className="font-bold">{getNatureLabel(nature)}</span>
                 </label>
               ))}
             </div>
@@ -776,365 +631,486 @@ export default function AddProduct() {
 
           <hr className="border-gray-100" />
 
+          {/* ── Grid ── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-6">
+
+            {/* ─ LEFT ──────────────────────────────────────────────── */}
             <div className="space-y-5">
+
+              {/* Name AR */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  اسم {getProductNatureLabel(formData.productNature)} <span className="text-red-500">*</span>
+                  اسم {getNatureLabel(form.productNature)} (عربي) <span className="text-red-500">*</span>
                 </label>
-                <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="takamol-input" placeholder="أدخل الاسم..." required />
-                {errors.name && <p className="mt-1 text-xs text-red-600">{errors.name}</p>}
+                <input type="text" name="name" value={form.name} onChange={handleChange}
+                  className={cn("takamol-input",errors.name&&"border-red-400")} placeholder="أدخل الاسم بالعربية..." />
+                <ErrMsg field="name" />
               </div>
 
+              {/* Name EN */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  الاسم باللغة الثانية <span className="text-red-500">*</span>
+                  الاسم بالإنجليزية <span className="text-red-500">*</span>
                 </label>
-                <input type="text" name="nameLang2" value={formData.nameLang2} onChange={handleInputChange} className="takamol-input" />
-                {errors.nameLang2 && <p className="mt-1 text-xs text-red-600">{errors.nameLang2}</p>}
+                <input type="text" name="nameLang2" value={form.nameLang2} onChange={handleChange}
+                  className={cn("takamol-input",errors.nameLang2&&"border-red-400")} placeholder="Enter English name..." />
+                <ErrMsg field="nameLang2" />
               </div>
 
+              {/* Name Lang3 */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   الاسم باللغة الثالثة <span className="text-red-500">*</span>
                 </label>
-                <input type="text" name="nameLang3" value={formData.nameLang3} onChange={handleInputChange} className="takamol-input" />
-                {errors.nameLang3 && <p className="mt-1 text-xs text-red-600">{errors.nameLang3}</p>}
+                <input type="text" name="nameLang3" value={form.nameLang3} onChange={handleChange}
+                  className={cn("takamol-input",errors.nameLang3&&"border-red-400")} placeholder="نام به زبان سوم..." />
+                <ErrMsg field="nameLang3" />
               </div>
 
-              {(formData.productNature === "basic" || formData.productNature === "prepared") && (
+              {/* Code */}
+              {["basic","prepared","sub"].includes(form.productNature) && (
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
-                    الكود <span className="text-red-500">*</span>
+                    الكود / الباركود <span className="text-red-500">*</span>
                   </label>
                   <div className="flex gap-2">
-                    <input type="text" name="code" value={formData.code} onChange={handleInputChange} className="takamol-input font-mono" placeholder="PRD-001" required />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          code: `${systemSettings?.prefixes?.product || "PRD"}${Math.floor(Math.random() * 10000000)
-                            .toString()
-                            .padStart(6, "0")}`,
-                        }))
-                      }
-                      className="bg-gray-100 border border-gray-300 p-2.5 rounded-lg hover:bg-gray-200"
-                    >
+                    <input type="text" name="code" value={form.code} onChange={handleChange}
+                      className={cn("takamol-input font-mono",errors.code&&"border-red-400")} placeholder="PRD-001" />
+                    <button type="button" title="توليد كود تلقائي"
+                      onClick={()=>setForm(prev=>({...prev,code:`${systemSettings?.prefixes?.product||"PRD"}${Math.floor(Math.random()*10_000_000).toString().padStart(6,"0")}`}))}
+                      className="bg-gray-100 border border-gray-300 p-2.5 rounded-lg hover:bg-gray-200 transition-colors">
                       <Barcode size={20} />
                     </button>
                   </div>
-                  {errors.code && <p className="mt-1 text-xs text-red-600">{errors.code}</p>}
+                  <ErrMsg field="code" />
                 </div>
               )}
 
-              {(formData.productNature === "basic" || formData.productNature === "materials" || formData.productNature === "sub") && (
+              {/* Cost */}
+              {["basic","materials"].includes(form.productNature) && (
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
                     التكلفة <span className="text-red-500">*</span>
                   </label>
-                  <input type="number" name="cost" value={formData.cost} onChange={handleInputChange} className="takamol-input font-bold text-[var(--primary)]" step="0.01" min="0" required />
-                  {errors.cost && <p className="mt-1 text-xs text-red-600">{errors.cost}</p>}
+                  <input type="number" name="cost" value={form.cost} onChange={handleChange}
+                    className={cn("takamol-input font-bold text-[var(--primary)]",errors.cost&&"border-red-400")}
+                    step="0.01" min="0" placeholder="0.00" />
+                  <ErrMsg field="cost" />
                 </div>
               )}
 
-              {formData.productNature === "prepared" && (
+              {/* Prepared cost (read-only) */}
+              {form.productNature==="prepared" && (
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">تكلفة الصنف المجهز</label>
-                  <input type="number" value={preparedCost} className="takamol-input font-bold text-[var(--primary)] bg-gray-50" readOnly />
+                  <label className="block text-sm font-bold text-gray-700 mb-2">تكلفة الصنف المجهز (محسوبة تلقائياً)</label>
+                  <input type="number" value={preparedCost.toFixed(2)} readOnly
+                    className="takamol-input font-bold text-[var(--primary)] bg-gray-50 cursor-not-allowed" />
                 </div>
               )}
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  سعر البيع <span className="text-red-500">*</span>
-                </label>
-                <input type="number" name="sellingPrice" value={formData.sellingPrice} onChange={handleInputChange} className="takamol-input" step="0.01" min="0" required />
-                {errors.sellingPrice && <p className="mt-1 text-xs text-red-600">{errors.sellingPrice}</p>}
-              </div>
+              {/* ── Selling price + VAT ── */}
+              {["basic","prepared","sub"].includes(form.productNature) && (
+                <div className="space-y-3 p-4 rounded-xl border border-gray-200 bg-gray-50/40">
 
-              {formData.productNature === "materials" && (
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">حد التنبيه من نفاذ الكمية</label>
-                  <input type="number" name="alertQuantity" value={formData.alertQuantity} onChange={handleInputChange} className="takamol-input" min="0" placeholder="أدخل الحد الأدنى" />
-                </div>
-              )}
-
-              {formData.productNature === "sub" && (
-                <div className="lg:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    الأصناف المباشرة التابعة لها <span className="text-red-500">*</span>
+                  <label className="block text-sm font-bold text-gray-700">
+                    سعر البيع <span className="text-red-500">*</span>
                   </label>
 
+                  {/* price input */}
+                  <input type="number" name="sellingPrice" value={form.sellingPrice} onChange={handleChange}
+                    className={cn("takamol-input",errors.sellingPrice&&"border-red-400")}
+                    step="0.01" min="0" placeholder="0.00" />
+                  <ErrMsg field="sellingPrice" />
+
+                  {/* VAT toggle */}
+                  <div className="flex gap-2 pt-1">
+                    {[
+                      { val:true,  label:"✔ شامل ضريبة القيمة المضافة"     },
+                      { val:false, label:"＋ غير شامل ضريبة القيمة المضافة" },
+                    ].map(opt=>(
+                      <button key={String(opt.val)} type="button"
+                        onClick={()=>{ setVatIncluded(opt.val); if(opt.val) setSelectedVat(null); }}
+                        className={cn(
+                          "flex-1 py-2 px-3 rounded-lg border-2 text-xs font-bold transition-all text-center",
+                          vatIncluded===opt.val
+                            ? "bg-emerald-600 text-white border-emerald-600 shadow"
+                            : "bg-white border-gray-200 text-gray-700 hover:border-emerald-400",
+                        )}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Rate buttons */}
+                  {!vatIncluded && (
+                    <div>
+                      <p className="text-xs font-bold text-gray-600 mb-2">اختر نسبة الضريبة:</p>
+                      <div className="flex gap-2 flex-wrap">
+                        {taxOptions.length===0
+                          ? <p className="text-xs text-gray-400">لا توجد ضرائب متاحة</p>
+                          : taxOptions.map(opt=>(
+                          <button key={opt.id} type="button"
+                            onClick={()=>setSelectedVat(prev=>prev?.id===opt.id?null:opt)}
+                            className={cn(
+                              "px-4 py-2 rounded-lg border-2 font-bold text-sm transition-all",
+                              selectedVat?.id===opt.id
+                                ? "bg-amber-500 text-white border-amber-500 shadow-sm"
+                                : "bg-white border-gray-200 hover:border-amber-400",
+                            )}>
+                            {opt.name} ({opt.amount}%)
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Price preview */}
+                  {!vatIncluded && selectedVat && form.sellingPrice && Number(form.sellingPrice)>0 && (
+                    <div className="rounded-lg p-3 text-sm border bg-amber-50 border-amber-200 space-y-1">
+                      <div className="flex justify-between text-gray-600">
+                        <span>السعر قبل الضريبة</span>
+                        <span>{parseFloat(form.sellingPrice).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-amber-700">
+                        <span>ضريبة {selectedVat.name} ({selectedVat.amount}%)</span>
+                        <span>+ {((parseFloat(form.sellingPrice)||0)*selectedVat.amount/100).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between font-bold text-amber-900 border-t border-amber-200 pt-1 mt-1">
+                        <span>السعر النهائي</span>
+                        <span>{finalSellingPrice.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Alert qty — materials */}
+              {form.productNature==="materials" && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    حد التنبيه من نفاذ الكمية <span className="text-red-500">*</span>
+                  </label>
+                  <input type="number" name="alertQuantity" value={form.alertQuantity} onChange={handleChange}
+                    className={cn("takamol-input",errors.alertQuantity&&"border-red-400")} min="0" placeholder="0" />
+                  <ErrMsg field="alertQuantity" />
+                </div>
+              )}
+
+              {/* Raw-material extras */}
+              {form.productNature==="materials" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">وحدة الأساس</label>
+                    <select name="baseUnitId" value={form.baseUnitId} onChange={handleChange} className="takamol-input">
+                      <option value="">اختياري</option>
+                      {UNITS_LIST.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">وحدة الشراء</label>
+                    <select name="purchaseUnitId" value={form.purchaseUnitId} onChange={handleChange} className="takamol-input">
+                      <option value="">اختياري</option>
+                      {UNITS_LIST.map(u=><option key={u.id} value={u.id}>{u.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">معامل التحويل</label>
+                    <input type="number" name="conversionFactor" value={form.conversionFactor} onChange={handleChange}
+                      className="takamol-input" step="0.001" min="0" placeholder="1" />
+                  </div>
+                </>
+              )}
+
+              {/* Sub: parent selector */}
+              {form.productNature==="sub" && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                     الأصناف <span className="text-red-500">*</span>
+                  </label>
                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                    {formData.parentProductNames.length > 0 && (
+                    {form.parentProductNames.length>0 && (
                       <div className="mb-3 flex flex-wrap gap-2">
-                        {formData.parentProductNames.map((name, index) => (
-                          <span key={index} className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                        {form.parentProductNames.map((name,i)=>(
+                          <span key={i} className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
                             {name}
-                            <button type="button" onClick={() => handleRemoveParentProduct(index)} className="hover:text-red-600 transition-colors">
-                              <X size={14} />
-                            </button>
+                            <button type="button" onClick={()=>removeParent(i)} className="hover:text-red-600"><X size={13}/></button>
                           </span>
                         ))}
                       </div>
                     )}
-
-                    <div className="grid grid-cols-12 gap-3">
-                      <div className="col-span-3 flex items-end">
-                        <button type="button" onClick={() => setShowParentSearch(!showParentSearch)} className="w-full bg-[var(--primary)] text-white py-2.5 rounded-lg hover:bg-[var(--primary-hover)] flex items-center justify-center gap-2 font-bold">
-                          <Search size={18} />
-                          اختيار
-                        </button>
+                    <div className="dp-wrap relative">
+                      <div className="relative">
+                        <input type="text" value={parentSearch}
+                          onChange={e=>{setParentSearch(e.target.value);setShowParentSearch(true);}}
+                          onFocus={()=>setShowParentSearch(true)}
+                          className="takamol-input w-full pr-10" placeholder="    ابحث عن صنف ..." />
+                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16}/>
                       </div>
-
-                      <div className="col-span-9">
-                        <label className="block text-xs font-bold text-gray-600 mb-1">البحث في الأصناف المباشرة</label>
-
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={parentProductSearch}
-                            onChange={(e) => {
-                              setParentProductSearch(e.target.value);
-                              setShowParentSearch(true);
-                            }}
-                            onFocus={() => setShowParentSearch(true)}
-                            className="takamol-input w-full pr-10"
-                            placeholder="ابحث عن صنف مباشر..."
-                          />
-                          <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                        </div>
-
-                        {showParentSearch && parentProductSearch && (
-                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                            {filteredParentProducts.map((product) => {
-                              const isSelected = formData.parentProductIds.includes(String(product.id));
-
-                              return (
-                                <div key={product.id} onClick={() => handleToggleParentProduct(product)} className={`p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 flex items-center justify-between ${isSelected ? "bg-green-50" : ""}`}>
-                                  <div>
-                                    <div className="font-bold text-sm">{product.name}</div>
-                                    <div className="text-xs text-gray-500">الكود: {product.code}</div>
+                      {showParentSearch && (
+                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                          {filteredParents.length===0
+                            ? <div className="p-3 text-center text-gray-500 text-sm">لا توجد أصناف مطابقة</div>
+                            : filteredParents.map(p=>{
+                                const isSel=form.parentProductIds.includes(String(p.id));
+                                return (
+                                  <div key={p.id} onClick={()=>toggleParent(p)}
+                                    className={cn("p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 flex items-center justify-between",isSel&&"bg-green-50")}>
+                                    <div>
+                                      <div className="font-bold text-sm">{p.name}</div>
+                                      <div className="text-xs text-gray-500">الكود: {p.code}</div>
+                                    </div>
+                                    {isSel && <Check size={16} className="text-green-600"/>}
                                   </div>
-                                  {isSelected && <Check size={16} className="text-green-600" />}
-                                </div>
-                              );
-                            })}
-
-                            {filteredParentProducts.length === 0 && <div className="p-3 text-center text-gray-500 text-sm">لا توجد أصناف مطابقة</div>}
-                          </div>
-                        )}
-                      </div>
+                                );
+                              })
+                          }
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
 
-              {formData.productNature === "prepared" && (
-                <div className="lg:col-span-2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">الخامات المستخدمة في التجهيز</label>
+              {/* Prepared: materials */}
+              {form.productNature==="prepared" && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    الخامات المستخدمة <span className="text-red-500">*</span>
+                  </label>
 
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-4">
-                    <div className="grid grid-cols-12 gap-3">
-                      <div className="col-span-2 flex items-end">
-                        <button type="button" onClick={handleAddMaterial} disabled={!materialSearch} className="w-full bg-[var(--primary)] text-white py-2.5 rounded-lg hover:bg-[var(--primary-hover)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1 font-bold text-sm">
-                          <PlusCircle size={16} />
-                          إضافة
-                        </button>
-                      </div>
+                  {/* add row */}
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-3">
+                    <div className="grid grid-cols-12 gap-2">
 
-                      <div className="col-span-3">
-                        <label className="block text-xs font-bold text-gray-600 mb-1">الوحدة</label>
+                      {/* search */}
+                      <div className="col-span-5 dp-wrap relative">
+                        <label className="block text-xs font-bold text-gray-600 mb-1">بحث في الخامات</label>
                         <div className="relative">
-                          <input type="text" value={unitsList.find((u) => u.id === unitSearch)?.name || ""} onFocus={() => setShowUnitSearch(true)} onClick={() => setShowUnitSearch(true)} className="takamol-input w-full pr-8 text-sm" placeholder="اختر وحدة..." readOnly />
-                          <Search className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                          <input type="text" value={matSearch}
+                            onChange={e=>{setMatSearch(e.target.value);setShowMatSearch(true);}}
+                            onFocus={()=>setShowMatSearch(true)}
+                            className="takamol-input w-full pr-8 text-sm" placeholder="ابحث..." />
+                          <Search className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" size={13}/>
                         </div>
-
-                        {showUnitSearch && (
-                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                            {filteredUnits.map((unit) => (
-                              <div key={unit.id} onClick={() => handleSelectUnit(unit)} className="p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
-                                <div className="font-bold text-sm">{unit.name}</div>
-                                <div className="text-xs text-gray-500">الكود: {unit.code}</div>
-                              </div>
-                            ))}
+                        {showMatSearch && matSearch && (
+                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-40 overflow-y-auto">
+                            {filteredMats.length===0
+                              ? <div className="p-2 text-center text-gray-500 text-xs">لا توجد خامات</div>
+                              : filteredMats.map(m=>(
+                                  <div key={m.id} onClick={()=>{setMatSearch(m.name);setShowMatSearch(false);}}
+                                    className="p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
+                                    <div className="font-bold text-sm">{m.name}</div>
+                                    <div className="text-xs text-gray-500">{m.code}</div>
+                                  </div>
+                                ))
+                            }
                           </div>
                         )}
                       </div>
 
+                      {/* qty */}
                       <div className="col-span-3">
                         <label className="block text-xs font-bold text-gray-600 mb-1">الكمية</label>
-                        <input type="number" value={materialQuantity} onChange={(e) => setMaterialQuantity(e.target.value)} className="takamol-input w-full text-center text-sm" min="0.01" step="0.01" placeholder="1" />
+                        <input type="number" value={matQty} onChange={e=>setMatQty(e.target.value)}
+                          className="takamol-input w-full text-center text-sm" min="0.01" step="0.01" placeholder="1" />
                       </div>
 
-                      <div className="col-span-4">
-                        <label className="block text-xs font-bold text-gray-600 mb-1">البحث في الخامات</label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={materialSearch}
-                            onChange={(e) => {
-                              setMaterialSearch(e.target.value);
-                              setShowMaterialSearch(true);
-                            }}
-                            onFocus={() => setShowMaterialSearch(true)}
-                            className="takamol-input w-full pr-8 text-sm"
-                            placeholder="ابحث عن خامة..."
-                          />
-                          <Search className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
-                        </div>
-
-                        {showMaterialSearch && materialSearch && (
-                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                            {filteredMaterials.map((material) => (
-                              <div
-                                key={material.id}
-                                onClick={() => {
-                                  setMaterialSearch(material.name);
-                                  setShowMaterialSearch(false);
-                                }}
-                                className="p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0"
-                              >
-                                <div className="font-bold text-sm">{material.name}</div>
-                                <div className="text-xs text-gray-500">الكود: {material.code}</div>
+                      {/* unit */}
+                      <div className="col-span-2 dp-wrap relative">
+                        <label className="block text-xs font-bold text-gray-600 mb-1">الوحدة</label>
+                        <input type="text"
+                          value={UNITS_LIST.find(u=>u.id===unitSearch)?.name||""}
+                          onFocus={()=>setShowUnitSearch(true)} onClick={()=>setShowUnitSearch(true)}
+                          className="takamol-input w-full text-sm" placeholder="وحدة" readOnly />
+                        {showUnitSearch && (
+                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-40 overflow-y-auto">
+                            {UNITS_LIST.map(u=>(
+                              <div key={u.id} onClick={()=>{setUnitSearch(u.id);setShowUnitSearch(false);}}
+                                className="p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0 text-sm font-bold">
+                                {u.name}
                               </div>
                             ))}
-
-                            {filteredMaterials.length === 0 && <div className="p-3 text-center text-gray-500 text-sm">لا توجد خامات مطابقة</div>}
                           </div>
                         )}
+                      </div>
+
+                      {/* add btn */}
+                      <div className="col-span-2 flex items-end">
+                        <button type="button" onClick={handleAddMat} disabled={!matSearch}
+                          className="w-full bg-[var(--primary)] text-white py-2.5 rounded-lg hover:bg-[var(--primary-hover)] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1 font-bold text-sm transition-colors">
+                          <PlusCircle size={15}/> إضافة
+                        </button>
                       </div>
                     </div>
                   </div>
 
-                  {formData.materials.length > 0 && (
+                  {/* table */}
+                  {form.materials.length>0 && (
                     <div className="border border-gray-200 rounded-xl overflow-hidden">
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50">
                           <tr>
                             <th className="p-3 text-right font-bold text-gray-700">الخامة</th>
-                            <th className="p-3 text-center font-bold text-gray-700 w-24">الكمية</th>
-                            <th className="p-3 text-center font-bold text-gray-700 w-24">الوحدة</th>
+                            <th className="p-3 text-center font-bold text-gray-700 w-20">الكمية</th>
+                            <th className="p-3 text-center font-bold text-gray-700 w-20">الوحدة</th>
                             <th className="p-3 text-center font-bold text-gray-700 w-24">التكلفة</th>
-                            <th className="p-3 text-center font-bold text-gray-700 w-20">حذف</th>
+                            <th className="p-3 w-12"/>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                          {formData.materials.map((material, index) => (
-                            <tr key={index} className="hover:bg-gray-50">
-                              <td className="p-3 font-bold text-gray-800">{material.materialName}</td>
-                              <td className="p-3 text-center">{material.quantity}</td>
-                              <td className="p-3 text-center text-gray-600">{material.unitName || "-"}</td>
-                              <td className="p-3 text-center text-gray-600">{Number(material.cost || 0) * Number(material.quantity || 0)}</td>
+                          {form.materials.map((m,i)=>(
+                            <tr key={i} className="hover:bg-gray-50 transition-colors">
+                              <td className="p-3 font-bold text-gray-800">{m.materialName}</td>
+                              <td className="p-3 text-center">{m.quantity}</td>
+                              <td className="p-3 text-center text-gray-600">{m.unitName||"—"}</td>
+                              <td className="p-3 text-center text-gray-600">
+                                {(Number(m.cost||0)*Number(m.quantity||0)).toFixed(2)}
+                              </td>
                               <td className="p-3 text-center">
-                                <button type="button" onClick={() => handleRemoveMaterial(index)} className="text-red-500 hover:bg-red-50 p-1.5 rounded-lg transition-colors">
-                                  <Trash2 size={16} />
+                                <button type="button" onClick={()=>removeMat(i)}
+                                  className="text-red-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors">
+                                  <Trash2 size={15}/>
                                 </button>
                               </td>
                             </tr>
                           ))}
+                          <tr className="bg-gray-50 font-bold">
+                            <td className="p-3" colSpan={3}>الإجمالي</td>
+                            <td className="p-3 text-center text-[var(--primary)]">{preparedCost.toFixed(2)}</td>
+                            <td/>
+                          </tr>
                         </tbody>
                       </table>
                     </div>
                   )}
                 </div>
               )}
-            </div>
 
+            </div>{/* end LEFT */}
+
+            {/* ─ RIGHT ──────────────────────────────────────────────── */}
             <div className="space-y-5">
+
+              {/* Main category */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   التصنيف الرئيسي <span className="text-red-500">*</span>
                 </label>
-                <select name="categoryId" value={formData.categoryId} onChange={handleInputChange} className="takamol-input" required disabled={isLoadingMainCategories}>
-                  <option value="">{isLoadingMainCategories ? (direction === "rtl" ? "جاري التحميل..." : "Loading...") : "اختر التصنيف"}</option>
-
-                  {mainCategories.map((c) => (
-                    <option key={String(c.id)} value={String(c.id)}>
-                      {getDisplayCategoryName(c, direction)}
+                <div className="relative">
+                  <select name="categoryId" value={form.categoryId} onChange={handleChange}
+                    className={cn("takamol-input appearance-none pr-10",errors.categoryId&&"border-red-400")}
+                    disabled={loadingMain}>
+                    <option value="">
+                      {loadingMain ? "⏳ جاري تحميل التصنيفات..." : "اختر التصنيف الرئيسي"}
                     </option>
-                  ))}
-                </select>
-                {errors.categoryId && <p className="mt-1 text-xs text-red-600">{errors.categoryId}</p>}
+                    {mainCats.map(c=>(
+                      <option key={String(c.id)} value={String(c.id)}>{getDisplayName(c,direction)}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16}/>
+                </div>
+                {loadingMain && (
+                  <p className="mt-1 text-xs text-gray-400 flex items-center gap-1">
+                    <span className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin inline-block"/>
+                    يتم تحميل التصنيفات من الـ API...
+                  </p>
+                )}
+                <ErrMsg field="categoryId"/>
               </div>
 
+              {/* Sub category */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">التصنيف الفرعي</label>
-                <select name="subCategoryId" value={formData.subCategoryId} onChange={handleInputChange} className="takamol-input" disabled={!formData.categoryId || isLoadingSubCategories}>
-                  <option value="">{!formData.categoryId ? "اختر التصنيف الرئيسي أولًا" : isLoadingSubCategories ? "جاري التحميل..." : "اختياري"}</option>
-
-                  {subCategories.map((c) => (
-                    <option key={String(c.id)} value={String(c.id)}>
-                      {getDisplayCategoryName(c, direction)}
+                <div className="relative">
+                  <select name="subCategoryId" value={form.subCategoryId} onChange={handleChange}
+                    className="takamol-input appearance-none pr-10"
+                    disabled={!form.categoryId||loadingSub}>
+                    <option value="">
+                      {!form.categoryId ? "اختر التصنيف الرئيسي أولًا"
+                        : loadingSub ? "⏳ جاري التحميل..."
+                        : "اختياري — اختر تصنيفاً فرعياً"}
                     </option>
-                  ))}
-                </select>
+                    {subCats.map(c=>(
+                      <option key={String(c.id)} value={String(c.id)}>{getDisplayName(c,direction)}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16}/>
+                </div>
+                {loadingSub && (
+                  <p className="mt-1 text-xs text-gray-400 flex items-center gap-1">
+                    <span className="w-3 h-3 border border-gray-400 border-t-transparent rounded-full animate-spin inline-block"/>
+                    يتم تحميل التصنيفات الفرعية...
+                  </p>
+                )}
               </div>
 
-              {formData.productNature !== "materials" && (
+              {/* Hide in POS */}
+              {form.productNature!=="materials" && (
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <input type="checkbox" id="hideInPos" name="hideInPos" checked={formData.hideInPos} onChange={handleInputChange} className="w-5 h-5 rounded border-gray-300 text-[var(--primary)]" />
-                  <label htmlFor="hideInPos" className="text-sm font-bold text-gray-700 cursor-pointer flex-1">
+                  <input type="checkbox" id="hideInPos" name="hideInPos"
+                    checked={form.hideInPos} onChange={handleChange}
+                    className="w-5 h-5 rounded border-gray-300 text-[var(--primary)]"/>
+                  <label htmlFor="hideInPos" className="text-sm font-bold text-gray-700 cursor-pointer">
                     إخفاء في نقاط البيع
                   </label>
                 </div>
               )}
 
+              {/* Description */}
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  الوصف <span className="text-red-500">*</span>
-                </label>
-                <textarea name="details" value={formData.details} onChange={handleInputChange} className="takamol-input w-full min-h-[120px]" placeholder="أدخل الوصف..." required />
-                {errors.details && <p className="mt-1 text-xs text-red-600">{errors.details}</p>}
+                <label className="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
+                <textarea name="details" value={form.details} onChange={handleChange}
+                  className={cn("takamol-input w-full min-h-[120px] resize-y",errors.details&&"border-red-400")}
+                  placeholder="أدخل الوصف..." />
+                <ErrMsg field="details"/>
               </div>
 
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">صورة {getProductNatureLabel(formData.productNature)}</label>
-
-                <div className="flex gap-2">
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0] || null;
-                      setImageFile(file);
-                      setFileName(file?.name || "");
-                    }}
-                    accept="image/*"
-                  />
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="bg-gray-100 border border-gray-300 px-4 py-2.5 rounded-lg text-sm hover:bg-gray-200 flex items-center gap-2">
-                    <Upload size={16} /> استعراض
-                  </button>
-                  <input type="text" value={fileName} className="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-gray-50" readOnly placeholder={fileName || "لم يتم اختيار ملف"} />
+              {/* Image */}
+              {form.productNature!=="materials" && (
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    صورة {getNatureLabel(form.productNature)}
+                  </label>
+                  <div className="flex gap-2">
+                    <input type="file" ref={fileInputRef} className="hidden"
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      onChange={e=>{const f=e.target.files?.[0]||null;setImageFile(f);setFileName(f?.name||"");}}/>
+                    <button type="button" onClick={()=>fileInputRef.current?.click()}
+                      className="bg-gray-100 border border-gray-300 px-4 py-2.5 rounded-lg text-sm hover:bg-gray-200 flex items-center gap-2 transition-colors whitespace-nowrap">
+                      <Upload size={16}/> استعراض
+                    </button>
+                    <input type="text" value={fileName} readOnly
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-gray-50 min-w-0"
+                      placeholder="لم يتم اختيار ملف"/>
+                    {imageFile && (
+                      <button type="button"
+                        onClick={()=>{setImageFile(null);setFileName("");if(fileInputRef.current)fileInputRef.current.value="";}}
+                        className="p-2.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <X size={16}/>
+                      </button>
+                    )}
+                  </div>
+                  <ErrMsg field="image"/>
+                  <p className="mt-1 text-xs text-gray-400">الصيغ المقبولة: PNG, JPG, WEBP</p>
                 </div>
-              </div>
+              )}
 
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
-                <div className="font-bold text-gray-800 mb-2">مربوط على الـ APIs الجديدة:</div>
-                <ul className="space-y-1">
-                  <li>basic → /api/Products/direct</li>
-                  <li>materials → /api/Products/raw-material</li>
-                  <li>sub → /api/Products/branched</li>
-                  <li>prepared → /api/Products/prepared</li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="lg:col-span-2">
-              <div className="text-xs text-gray-500">{isLoadingProducts ? "جاري تحميل الأصناف المرتبطة..." : `عدد الأصناف المحملة: ${allProducts.length}`}</div>
-            </div>
-          </div>
+            </div>{/* end RIGHT */}
+          </div>{/* end grid */}
         </div>
 
-        <div className="flex justify-end gap-3 pt-6 border-t border-gray-100">
-          <button type="button" onClick={() => navigate("/products")} className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-bold hover:bg-gray-50 transition-colors flex items-center gap-2">
-            <X size={18} /> إلغاء
+        {/* Actions */}
+        <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50">
+          <button type="button" onClick={()=>navigate("/products")} disabled={isSubmitting}
+            className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg font-bold hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50">
+            <X size={18}/> إلغاء
           </button>
-
-          <button type="submit" className={cn("px-8 py-2.5 text-white rounded-lg font-bold transition-colors flex items-center gap-2 shadow-sm", isEditMode ? "bg-blue-600 hover:bg-blue-700" : "bg-[var(--primary)] hover:bg-[var(--primary-hover)]")}>
-            <Save size={20} /> {isEditMode ? "حفظ التعديلات" : "حفظ البيانات"}
+          <button type="submit" disabled={isSubmitting}
+            className="px-8 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white rounded-lg font-bold transition-colors flex items-center gap-2 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed min-w-[150px] justify-center">
+            {isSubmitting
+              ? <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/> جاري الحفظ...</>
+              : <><Save size={20}/> حفظ البيانات</>
+            }
           </button>
         </div>
       </form>
