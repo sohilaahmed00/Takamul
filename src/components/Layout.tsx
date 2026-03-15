@@ -46,7 +46,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { theme, toggleTheme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const { language, direction, setLanguage, t } = useLanguage();
   const { systemSettings } = useSettings();
 
@@ -147,7 +147,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     if (typeof setTheme === "function") {
       setTheme(value as any);
     } else if ((value === "light" && theme !== "light") || (value === "dark" && theme !== "dark")) {
-      toggleTheme();
+      // toggleTheme();
     }
     setActiveDropdown(null);
   };

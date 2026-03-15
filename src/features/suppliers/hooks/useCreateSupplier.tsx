@@ -1,12 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createCustomers } from "../services/customers";
-import type { createCustomer } from "../types/customers.types";
 import { customersKeys } from "../keys/customers.keys";
+import { createSuppliers } from "../services/customers";
+import type { createSupplier } from "../types/suppliers.types";
 
-export function useCreateCustomer() {
+export function useCreateSupplier() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: createCustomer) => createCustomers(data),
+    mutationFn: (data: createSupplier) => createSuppliers(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
         queryKey: customersKeys.list(),

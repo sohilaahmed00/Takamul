@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import type { createCustomer, GetAllCustomersResponse } from "../types/customers.types";
+import type { createCustomer, Customer, GetAllCustomersResponse } from "../types/customers.types";
 
 // ===================
 // GET
@@ -20,17 +20,17 @@ export const createCustomers = (data: createCustomer) =>
     data,
   });
 
-// export const updateCategory = (id: number, data: CreateCategory) =>
-//   httpClient<CreateResponse>(`/blog/category/${id}`, {
-//     method: "PUT",
-//     data,
-//   });
+export const updateCustomer = (id: number, data: createCustomer) =>
+  httpClient<Customer>(`/Customer/${id}`, {
+    method: "PUT",
+    data,
+  });
 
-// export const deleteCategory = (id: number) =>
-//   httpClient<void>(`/blog/category/${id}`, {
-//     method: "DELETE",
-//   });
+export const deleteCustomer = (id: number) =>
+  httpClient<string>(`/Customer/${id}`, {
+    method: "DELETE",
+  });
 
-// export function getCategoryById(id: string | number) {
-//   return httpClient<Category>(`/blog/category/${id}`);
-// }
+export function getCustomerById(id: number) {
+  return httpClient<Customer>(`/Customer/${id}`);
+}

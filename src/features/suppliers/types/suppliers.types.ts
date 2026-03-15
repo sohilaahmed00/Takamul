@@ -1,8 +1,8 @@
-
-export interface Customer {
+export interface Supplier {
   id: number;
-  customerCode: number;
-  customerName: string;
+  supplierCode: number;
+  supplierName: string;
+  email: string;
   phone: string;
   mobile: string;
   address: string;
@@ -10,18 +10,23 @@ export interface Customer {
   state: string;
   postalCode: string;
   taxNumber: string;
+  paymentTerms: number;
   isActive: boolean;
   createdAt: string;
+  updatedAt: string;
 }
-export interface createCustomer {
-  customerName: string;
+export interface createSupplier {
+  supplierName: number;
+  email: string;
   phone: string;
   mobile: string;
   address: string;
   city: string;
   state: string;
+  coutry: string;
   postalCode: string;
   taxNumber: string;
+  paymentTerms: string;
 }
 
-export type GetAllCustomersResponse = Customer[];
+export type GetAllSuppliersResponse = Supplier[];
