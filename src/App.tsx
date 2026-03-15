@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -11,6 +11,7 @@ import ResetPassword from "@/pages/ResetPassword";
 import Dashboard from "@/pages/Dashboard";
 import ProductsList from "@/pages/ProductsList";
 import AddProduct from "@/pages/AddProduct";
+import EditProduct from "@/pages/EditProduct";
 import ImportProducts from "@/pages/ImportProducts";
 import PrintBarcode from "@/pages/PrintBarcode";
 import A4Sales from "@/pages/A4Sales";
@@ -78,6 +79,15 @@ export default function App() {
         element={
           <Layout>
             <AddProduct />
+          </Layout>
+        }
+      />
+      {/* ✅ Edit Product Route */}
+      <Route
+        path="/products/edit/:id"
+        element={
+          <Layout>
+            <EditProduct />
           </Layout>
         }
       />

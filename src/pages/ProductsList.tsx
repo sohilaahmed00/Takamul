@@ -6,7 +6,7 @@ import {
     Search, Edit2, Trash2, ChevronDown, Plus, Box, Package, Layers, X, Link2, FolderPlus, RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { cn, getProductsApiBase } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 
 // ===================== TYPES =====================
@@ -38,16 +38,15 @@ interface Product {
 }
 
 // ===================== API CONFIG =====================
-const BASE_URL = 'http://takamulerp.runasp.net/api/Products';
-
+const getBaseUrl = () => `${getProductsApiBase()}/api/Products`;
 const API_ENDPOINTS = {
-    direct: `${BASE_URL}/direct`,
-    sub: `${BASE_URL}/branched`,
-    prepared: `${BASE_URL}/prepared`,
-    materials: `${BASE_URL}/raw-material`,
-    getById: (id: number) => `${BASE_URL}/${id}`,
-    update: (id: number) => `${BASE_URL}/${id}`,
-    delete: (id: number) => `${BASE_URL}/${id}`,
+    get direct() { return `${getBaseUrl()}/direct`; },
+    get sub() { return `${getBaseUrl()}/branched`; },
+    get prepared() { return `${getBaseUrl()}/prepared`; },
+    get materials() { return `${getBaseUrl()}/raw-material`; },
+    getById: (id: number) => `${getBaseUrl()}/${id}`,
+    update: (id: number) => `${getBaseUrl()}/${id}`,
+    delete: (id: number) => `${getBaseUrl()}/${id}`,
 };
 
 // ===================== HELPERS =====================
@@ -90,7 +89,10 @@ export default function ProductsList() {
                     : tab === 'prepared' ? API_ENDPOINTS.prepared
                         : API_ENDPOINTS.materials;
 
-            const res = await fetch(url);
+            const token = localStorage.getItem("takamul_token");
+            const res = await fetch(url, {
+                headers: { Accept: "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+            });
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
             const data: Product[] = await res.json();
 
