@@ -16,17 +16,17 @@ export interface Supplier {
   updatedAt: string;
 }
 export interface createSupplier {
-  supplierName: number;
+  supplierName: string;
   email: string;
   phone: string;
   mobile: string;
   address: string;
   city: string;
   state: string;
-  coutry: string;
+  country: string;
   postalCode: string;
   taxNumber: string;
-  paymentTerms: string;
+  paymentTerms?: number;
 }
 
 export type GetAllSuppliersResponse = Supplier[];

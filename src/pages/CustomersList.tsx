@@ -8,7 +8,7 @@ import Pagination from "@/components/Pagination";
 import { cn } from "@/lib/utils";
 import MobileDataCard from "@/components/MobileDataCard";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
-import AddCustomerModal from "@/components/modals/AddCustomerModal";
+import AddCustomerModal from "@/components/modals/AddParnterModal";
 import EditCustomerModal from "@/components/modals/EditCustomerModal";
 import AddDepositModal from "@/components/modals/AddDepositModal";
 import AddDiscountModal from "@/components/modals/AddDiscountModal";
@@ -21,6 +21,7 @@ import { Link } from "react-router-dom";
 import { useDeleteCustomer } from "@/features/customers/hooks/useDeleteCustomer";
 import useToast from "@/hooks/useToast";
 import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerById";
+import AddParnterModal from "@/components/modals/AddParnterModal";
 
 export default function CustomersList() {
   const { t, direction } = useLanguage();
@@ -117,17 +118,7 @@ export default function CustomersList() {
         <p className="text-sm text-[var(--text-muted)] mt-1">{t("customize_report_below")}</p>
       </div>
 
-      <DeleteConfirmationModal
-        isOpen={customerToDelete !== null}
-        onClose={() => setCustomerToDelete(null)}
-        onConfirm={() => {
-          // if (customerToDelete !== null) {
-          //   deleteCustomer(customerToDelete);
-          //   setCustomerToDelete(null);
-          // }
-        }}
-        itemName={customers?.find((c) => c.id === customerToDelete)?.customerName}
-      />
+   
 
       {/* Table Container */}
       <div className="bg-white rounded-lg    p-4 min-h-100">
@@ -215,15 +206,14 @@ export default function CustomersList() {
         </div>
       </div>
 
-      <AddCustomerModal
-        customer={data}
-        isOpen={isAddModalOpen}
-        onClose={() => {
-          setIsAddModalOpen(false);
-          setSelectedCustomer(undefined);
-        }}
-      />
-
+        <AddParnterModal
+          partner={data}
+          isOpen={isAddModalOpen}
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setSelectedCustomer(undefined);
+          }}
+        />
     </div>
   );
 }
