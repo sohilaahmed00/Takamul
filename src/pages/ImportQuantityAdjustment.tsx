@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Plus, Trash2, Bold, Italic, Underline, List, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, Upload, Download, FolderOpen } from 'lucide-react';
+import { Plus, Bold, Italic, Underline, List, AlignLeft, AlignCenter, AlignRight, Link as LinkIcon, Download, FolderOpen } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAdjustments } from '@/context/AdjustmentsContext';
 

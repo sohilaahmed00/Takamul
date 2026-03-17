@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, FileSpreadsheet, Printer, Search, Grid, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
+import { DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { cn } from '@/lib/utils';
 
 export default function UnpaidInvoicesReport() {
   const { direction } = useLanguage();

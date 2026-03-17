@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    Search, Edit2, Trash2, ChevronDown, Plus, Box, Package, Layers, X, Link2, FolderPlus, RefreshCw
+    Search, Edit2, Trash2, Plus, Box, Package, Layers, X, Link2, FolderPlus, RefreshCw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn, getProductsApiBase } from '@/lib/utils';

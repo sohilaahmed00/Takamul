@@ -4,20 +4,12 @@ import {
   Search, 
   Edit2, 
   Trash2, 
-  Eye,
-  MoreVertical,
-  ChevronRight,
-  ChevronLeft,
-  Filter,
-  Download,
-  FileText,
-  Printer
+  Eye
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import type { PriceGroup } from '@/types';
 import PriceGroupsModal from '@/components/modals/PriceGroupsModal';
 import DeleteConfirmationModal from '@/components/modals/DeleteConfirmationModal';
-import Pagination from '@/components/Pagination';
 import MobileDataCard from '@/components/MobileDataCard';
 import { cn } from '@/lib/utils';
 

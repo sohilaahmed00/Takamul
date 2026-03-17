@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { Users, Search, Plus, Edit2, Trash2, Shield, X, Check, Save, List } from "lucide-react";
+import { Users, Search, Plus, Edit2, Trash2, Shield, X, Save } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useUserGroups, type Permission, type UserGroup } from "@/context/UserGroupsContext";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 

@@ -8,7 +8,6 @@ import {
   ChevronUp,
   ArrowRight,
   ArrowLeft,
-  Clock,
   Layout
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { PlusCircle, X, Search, Barcode, Upload, Trash2, RefreshCcw, Eye, Edit2, Plus, UserPlus } from "lucide-react";
+import { PlusCircle, X, Barcode, Upload, Trash2, RefreshCcw, Eye, Edit2, Plus, UserPlus } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useProducts, type Product } from "@/context/ProductsContext";
 import { useQuotes } from "@/context/QuotesContext";

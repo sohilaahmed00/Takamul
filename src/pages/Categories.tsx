@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import { PlusCircle, Search, ChevronDown, Trash2, Edit, Printer, Image as ImageIcon } from "lucide-react";
+import { PlusCircle, Search, Trash2, Edit, Image as ImageIcon } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import AddCategoryModal from "@/components/modals/AddCategoryModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCategories, type Category } from "@/context/CategoriesContext";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 import MobileDataCard from "@/components/MobileDataCard";
 
 const Categories = () => {

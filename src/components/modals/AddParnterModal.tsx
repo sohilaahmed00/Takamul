@@ -25,7 +25,6 @@ import useToast from "@/hooks/useToast";
 import axios from "axios";
 import type { createCustomer, Customer } from "@/features/customers/types/customers.types";
 import type { createSupplier, Supplier } from "@/features/suppliers/types/suppliers.types";
-import { updateSupplier } from "@/features/suppliers/services/suppliers";
 import { useCreateSupplier } from "@/features/suppliers/hooks/useCreateSupplier";
 import { useUpdateSupplier } from "@/features/suppliers/hooks/useUpdateSupplier";
 

@@ -1,8 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Plus, Download, Upload, Calendar, Building, User, CheckCircle2, FileText, AlertCircle, PlusCircle, UserPlus } from "lucide-react";
+import { Plus, Download, Upload, Calendar, Building, User, CheckCircle2, FileText, UserPlus } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSuppliers } from "@/context/SuppliersContext";
-import { cn } from "@/lib/utils";
 import AddSupplierModal from "@/components/modals/AddSupplierModal";
 import { motion, AnimatePresence } from "framer-motion";
 

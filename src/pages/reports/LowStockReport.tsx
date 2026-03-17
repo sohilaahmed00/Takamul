@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, FileSpreadsheet, Printer, Search, Grid, Camera, RefreshCw } from 'lucide-react';
+import { FileText, FileSpreadsheet, Printer, Camera, RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { cn } from '@/lib/utils';
 
 export default function LowStockReport() {
   const { direction } = useLanguage();

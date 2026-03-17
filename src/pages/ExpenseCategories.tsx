@@ -1,11 +1,10 @@
 import React, { useState } from "react";
-import { Folder, Search, Edit, Trash2, Plus, FileUp, MoreVertical, ChevronRight, ChevronLeft, Menu } from "lucide-react";
+import { Folder, Search, Edit, Trash2, Plus, FileUp } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useExpenseCategories } from "@/context/ExpenseCategoriesContext";
 import AddExpenseCategoryModal from "@/components/modals/AddExpenseCategoryModal";
 import ImportExpenseCategoryModal from "@/components/modals/ImportExpenseCategoryModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import MobileDataCard from "@/components/MobileDataCard";
 import type { ExpenseCategory } from "@/types";

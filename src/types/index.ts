@@ -1,15 +1,19 @@
-export enum PurchaseStatus {
-  RECEIVED = "RECEIVED",
-  PENDING = "PENDING",
-  ORDERED = "ORDERED",
-}
+export const PurchaseStatus = {
+  RECEIVED: "RECEIVED",
+  PENDING: "PENDING",
+  ORDERED: "ORDERED",
+} as const;
 
-export enum PaymentStatus {
-  PAID = "PAID",
-  PARTIAL = "PARTIAL",
-  DUE = "DUE",
-  OVERDUE = "OVERDUE",
-}
+export type PurchaseStatus = (typeof PurchaseStatus)[keyof typeof PurchaseStatus];
+
+export const PaymentStatus = {
+  PAID: "PAID",
+  PARTIAL: "PARTIAL",
+  DUE: "DUE",
+  OVERDUE: "OVERDUE",
+} as const;
+
+export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
 
 export interface Bank {
   id: string;

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, FileSpreadsheet, Printer, Search, Grid, Target, ChevronDown, ChevronUp } from 'lucide-react';
+import { Target, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { cn } from '@/lib/utils';
 
 export default function SalesByCategoryReport() {
   const { direction } = useLanguage();

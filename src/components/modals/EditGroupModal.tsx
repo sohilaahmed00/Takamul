@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useGroups, Group } from '@/context/GroupsContext';
 import ResponsiveModal from './ResponsiveModal';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface EditGroupModalProps {
   isOpen: boolean;

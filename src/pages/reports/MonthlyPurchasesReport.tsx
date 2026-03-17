@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
 import { 
   Calendar,
-  ChevronLeft,
-  ChevronRight,
   FileText,
-  Download,
-  ArrowRight,
-  ArrowLeft
+  Download
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 
 const MonthlyPurchasesReport = () => {

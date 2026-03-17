@@ -3,7 +3,6 @@ import { useLanguage } from '../context/LanguageContext';
 import { usePaymentCompanies } from '../context/PaymentCompaniesContext';
 import { Plus, Search, Trash2, Edit2, X, ChevronRight, ChevronLeft, LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '../lib/utils';
 
 const PaymentCompanies: React.FC = () => {
   const { t, direction } = useLanguage();

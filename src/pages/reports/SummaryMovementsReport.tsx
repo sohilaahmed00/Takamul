@@ -6,7 +6,6 @@ import {
   Lock,
   PlusCircle
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 
 const SummaryMovementsReport = () => {

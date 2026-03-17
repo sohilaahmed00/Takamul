@@ -2,7 +2,7 @@
 import React, { useState, useRef, ChangeEvent, FormEvent, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Upload, Barcode, Save, Edit2, Box, Package,
+  Upload, Save, Edit2, Box, Package,
   Layers, X, FolderPlus, Search, Check, Trash2,
   PlusCircle, ChevronDown,
 } from "lucide-react";

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Users, Search, Plus, Edit2, Trash2, Shield, UserCheck, UserX } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, Shield, UserCheck, UserX } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useUsers } from "@/context/UsersContext";
 import { useNavigate } from "react-router-dom";

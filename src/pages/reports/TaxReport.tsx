@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { 
-  Calculator, FileText, FileSpreadsheet, Printer, Search, 
-  ChevronDown, ChevronUp, Download, Share2, ShieldCheck,
-  ArrowRight
+  Calculator, FileText, FileSpreadsheet, 
+  ChevronDown, ChevronUp
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
-import { Link } from 'react-router-dom';
 
 type TabType = 'sales' | 'zero-sales' | 'non-zero-sales' | 'purchases' | 'zero-purchases' | 'non-zero-purchases';
 

@@ -3,14 +3,13 @@ import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
 Search, Plus, Edit, Trash2,
-ChevronDown, ArrowRight, ArrowLeft,
-Users, Database, Copy
+ChevronDown,
+Users, Copy
 } from 'lucide-react';
 
 import { useLanguage } from '@/context/LanguageContext';
 import { useGroups } from '@/context/GroupsContext';
 import { cn } from '@/lib/utils';
-import MobileDataCard from '@/components/MobileDataCard';
 import AddGroupModal from '@/components/modals/AddGroupModal';
 import Toast from '@/components/Toast';
 

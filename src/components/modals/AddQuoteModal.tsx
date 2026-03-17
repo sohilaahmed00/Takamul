@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Save, Plus, Trash2, Search } from "lucide-react";
+import { Save } from "lucide-react";
 import ResponsiveModal from "./ResponsiveModal";
 import { useLanguage } from "@/context/LanguageContext";
 import { useQuotes } from "@/context/QuotesContext";

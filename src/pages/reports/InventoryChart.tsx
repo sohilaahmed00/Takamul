@@ -4,8 +4,7 @@ import {
   Pie, 
   Cell, 
   ResponsiveContainer, 
-  Tooltip, 
-  Legend 
+  Tooltip 
 } from 'recharts';
 import { BarChart2, FileText } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';

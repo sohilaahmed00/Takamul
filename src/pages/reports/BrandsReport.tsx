@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, FileSpreadsheet, Printer, Search, Grid, Tag, ChevronDown, ChevronUp, Image } from 'lucide-react';
+import { FileSpreadsheet, Tag, ChevronDown, ChevronUp, Image } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { cn } from '@/lib/utils';
 
 export default function BrandsReport() {
   const { direction } = useLanguage();

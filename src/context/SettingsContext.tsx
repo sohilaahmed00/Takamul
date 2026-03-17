@@ -142,9 +142,12 @@ export interface POSSettings {
     enableDisplayScreen: boolean;
     enableAlertSound: boolean;
     enableAdditions: boolean;
+    enableTax: boolean;
+    enableDiscount: boolean;
+    enableReservations: boolean;
+    allowNegativeStock: boolean;
     enableShortSalesReport: boolean;
     enableDailySalesReport: boolean;
-    enableReservations: boolean;
   };
   printing: {
     printer: string;
@@ -153,6 +156,8 @@ export interface POSSettings {
     field1Value: string;
   };
   receipt: {
+    header: string;
+    footer: string;
     printAddress: boolean;
     printExtraId: boolean;
     printPhone: boolean;
@@ -325,9 +330,12 @@ const defaultPOSSettings: POSSettings = {
     enableDisplayScreen: false,
     enableAlertSound: true,
     enableAdditions: false,
+    enableTax: false,
+    enableDiscount: false,
+    enableReservations: false,
+    allowNegativeStock: false,
     enableShortSalesReport: false,
     enableDailySalesReport: false,
-    enableReservations: false,
   },
   printing: {
     printer: "Web Browser",
@@ -336,6 +344,8 @@ const defaultPOSSettings: POSSettings = {
     field1Value: "",
   },
   receipt: {
+    header: "",
+    footer: "",
     printAddress: true,
     printExtraId: true,
     printPhone: true,

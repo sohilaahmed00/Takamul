@@ -2,17 +2,13 @@ import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FileText, 
-  Printer, 
   Download, 
   Mail, 
   DollarSign, 
   Truck, 
   Building, 
   User,
-  LayoutGrid,
-  ChevronLeft,
-  ChevronRight,
-  X
+  LayoutGrid
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { cn } from '../lib/utils';

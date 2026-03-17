@@ -12,7 +12,7 @@ import { Toast } from "primereact/toast";
 import { cn } from "@/lib/utils";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
-const REAL_API  = "http://takamulerp.runasp.net";
+const REAL_API  = "http://takamulerp.runasp.net"; // categories endpoint
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,12 +48,14 @@ interface Unit {
   name: string;
 }
 
+// Tax comes from /api/Taxes — shape: { id, name, amount }
 interface TaxOption {
   id:     number;
   name:   string;
-  amount: number;
+  amount: number; // percentage e.g. 0, 10, 20
 }
 
+// id=1 "شامل الضريبه" amount=0  → used as the "no-tax / inclusive" default
 const NO_TAX_ID = 1;
 
 type FormErrors = Partial<Record<string, string>>;
@@ -82,6 +84,7 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
     },
   });
 
+  // ── Always read raw text first so we never lose the body ──
   const rawText = await res.text();
 
   console.groupCollapsed(`[API] ${init?.method || "GET"} ${url} → ${res.status}`);
@@ -91,11 +94,10 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
   console.groupEnd();
 
   if (!res.ok) {
+    // Try to parse as JSON for a nicer message, fall back to raw text
     let msg = rawText || `Request failed (${res.status})`;
     try {
       const d: any = JSON.parse(rawText);
-      // Log the full error object so we can see exactly which fields failed
-      console.error(`[API FULL ERROR] ${url}:`, JSON.stringify(d, null, 2));
       const extracted =
         d?.message ||
         d?.Message ||
@@ -116,6 +118,7 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
     throw new Error(msg);
   }
 
+  // Success — parse JSON if applicable
   const ct = res.headers.get("content-type") || "";
   if (ct.includes("application/json")) {
     try { return JSON.parse(rawText) as T; } catch { return rawText as unknown as T; }
@@ -124,27 +127,12 @@ async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 function normalizeCategory(item: any): NormalizedCategory {
-  const id = item?.id ?? item?.Id ?? item?.categoryId ?? item?.CategoryId ?? "";
-  // Try every possible field name the API might return
-  const nameAr = (
-    item?.categoryNameAr ?? item?.CategoryNameAr ??
-    item?.nameAr         ?? item?.NameAr         ??
-    item?.categoryName   ?? item?.CategoryName   ??
-    item?.name           ?? item?.Name           ?? ""
-  ).toString();
-  const nameEn = (
-    item?.categoryNameEn ?? item?.CategoryNameEn ??
-    item?.nameEn         ?? item?.NameEn         ??
-    item?.categoryName   ?? item?.CategoryName   ??
-    item?.name           ?? item?.Name           ?? ""
-  ).toString();
-  const nameUr = (
-    item?.categoryNameUr ?? item?.CategoryNameUr ??
-    item?.nameUr         ?? item?.NameUr         ??
-    item?.categoryName   ?? item?.CategoryName   ??
-    item?.name           ?? item?.Name           ?? ""
-  ).toString();
-  return { id, nameAr, nameEn, nameUr };
+  const id     = item?.id ?? item?.Id ?? item?.categoryId ?? item?.CategoryId ?? "";
+  const nameAr = (item?.categoryNameAr ?? item?.CategoryNameAr ?? item?.nameAr ?? "").toString();
+  const nameEn = (item?.categoryNameEn ?? item?.CategoryNameEn ?? item?.nameEn ?? "").toString();
+  const nameUr = (item?.categoryNameUr ?? item?.CategoryNameUr ?? item?.nameUr ?? "").toString();
+  const gen    = (item?.name ?? item?.Name ?? item?.categoryName ?? "").toString();
+  return { id, nameAr: nameAr||gen, nameEn: nameEn||gen, nameUr: nameUr||gen };
 }
 
 function getDisplayName(c: NormalizedCategory, dir: string): string {
@@ -188,23 +176,26 @@ function getNatureIcon(n: ProductNature) {
 
 // ─── API fns ──────────────────────────────────────────────────────────────────
 
-const apiFetchMainCats   = ():             Promise<any[]> => fetchJson(`${REAL_API}/api/ProductCategories/MainCategory`,                            { method:"GET" });
-const apiFetchSubCats    = (id:string):    Promise<any[]> => fetchJson(`${REAL_API}/api/ProductCategories/SubCategory/${encodeURIComponent(id)}`,   { method:"GET" });
-const apiFetchDirect      = ():            Promise<any[]> => fetchJson(`${REAL_API}/api/Products/direct`,      { method:"GET" }).catch(()=>[]);
-const apiFetchAllProducts = ():            Promise<any[]> => fetchJson(`${REAL_API}/api/Products`,             { method:"GET" }).catch(()=>[]);
-const apiFetchRaw         = ():            Promise<any[]> => fetchJson(`${REAL_API}/api/Products/raw-material`,{ method:"GET" }).catch(()=>[]);
-const apiFetchTaxes       = ():            Promise<TaxOption[]> => fetchJson<TaxOption[]>(`${REAL_API}/api/Taxes`, { method:"GET" }).catch(()=>[]);
-const apiFetchUnits       = ():            Promise<Unit[]> => fetchJson<any[]>(`${REAL_API}/api/UnitOfMeasure`, { method:"GET" })
-  .then((arr: any[]) => (Array.isArray(arr) ? arr : []).map((u: any) => ({ id: String(u?.id ?? u?.unitId ?? ""), code: String(u?.code ?? ""), name: String(u?.unitName ?? u?.name ?? "") })))
-  .catch(() => UNITS_LIST);
-const apiPostProduct      = (n:ProductNature, fd:FormData): Promise<any> => fetchJson(`${REAL_API}${natureToEndpoint(n)}`, { method:"POST", body:fd });
+const apiFetchMainCats   = ():             Promise<any[]> =>
+  fetchJson<any[]>(`${REAL_API}/api/ProductCategories/MainCategory`, { method:"GET" })
+    .catch(() => fetchJson<any[]>(`${REAL_API}/api/ProductCategories`, { method:"GET" })
+      .then(all => all.filter(c => c.parentCategoryId === null || c.parentCategoryId === undefined))
+      .catch(() => [])
+    );
+const apiFetchSubCats    = (id:string):    Promise<any[]> =>
+  fetchJson<any[]>(`${REAL_API}/api/ProductCategories/SubCategory/${encodeURIComponent(id)}`, { method:"GET" })
+    .catch(() => fetchJson<any[]>(`${REAL_API}/api/ProductCategories`, { method:"GET" })
+      .then(all => all.filter(c => String(c.parentCategoryId) === String(id)))
+      .catch(() => [])
+    );
+const apiFetchDirect     = ():             Promise<any[]> => fetchJson(`${REAL_API}/api/Products/direct`,                                           { method:"GET" }).catch(()=>[]);
+const apiFetchRaw        = ():             Promise<any[]> => fetchJson(`${REAL_API}/api/Products/raw-material`,                                     { method:"GET" }).catch(()=>[]);
+const apiFetchTaxes      = ():             Promise<TaxOption[]> => fetchJson<TaxOption[]>(`${REAL_API}/api/Taxes`, { method:"GET" }).catch(()=>[]);
+const apiPostProduct     = (n:ProductNature, fd:FormData): Promise<any> => fetchJson(`${REAL_API}${natureToEndpoint(n)}`,                           { method:"POST", body:fd });
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-
 export default function AddProduct() {
-    const [mainCategories, setMainCategories] = useState<NormalizedCategory[]>([]);
-  const [subCategories, setSubCategories] = useState<NormalizedCategory[]>([]);
   const { t, direction }     = useLanguage();
   const { systemSettings }   = useSettings();
   const navigate             = useNavigate();
@@ -222,7 +213,6 @@ export default function AddProduct() {
   const [imageFile, setImageFile] = useState<File|null>(null);
   const [errors,    setErrors]    = useState<FormErrors>({});
 
-  const [showMatSearch,    setShowMatSearch]    = useState(false);
   const [showUnitSearch,   setShowUnitSearch]   = useState(false);
   const [showParentSearch, setShowParentSearch] = useState(false);
 
@@ -231,6 +221,9 @@ export default function AddProduct() {
   const [unitSearch,    setUnitSearch]    = useState("");
   const [parentSearch,  setParentSearch]  = useState("");
 
+  // VAT
+  // vatIncluded=true  → TaxCalculation=Includestax, TaxId=1, SellingPrice = كما هو
+  // vatIncluded=false → TaxCalculation=Excludestax, TaxId=selectedVat.id, SellingPrice = base*(1+amount/100)
   const [vatIncluded, setVatIncluded] = useState<boolean>(true);
   const [selectedVat, setSelectedVat] = useState<TaxOption|null>(null);
 
@@ -257,6 +250,11 @@ export default function AddProduct() {
 
   // ── derived ───────────────────────────────────────────────────────────────
 
+  /**
+   * The selling price that will actually be sent to the API:
+   * - vatIncluded=true  → same as input (no change)
+   * - vatIncluded=false + rate chosen → base * (1 + rate/100)
+   */
   const finalSellingPrice = useMemo<number>(() => {
     const base = parseFloat(form.sellingPrice) || 0;
     if (vatIncluded || !selectedVat) return base;
@@ -299,15 +297,10 @@ export default function AddProduct() {
   const { data: directRaw=[] } = useQuery({ queryKey:["directProducts"], queryFn:apiFetchDirect, staleTime:2*60*1000 });
   const directList: ProductLite[] = useMemo(()=>(Array.isArray(directRaw)?directRaw:[]).map(mapProductLite),[directRaw]);
 
-  // All products for "sub" parent selector
-  const { data: allProductsRaw=[] } = useQuery({ queryKey:["allProducts"], queryFn:apiFetchAllProducts, staleTime:2*60*1000 });
-  const allProductsList: ProductLite[] = useMemo(()=>(Array.isArray(allProductsRaw)?allProductsRaw:[]).map(mapProductLite),[allProductsRaw]);
-
   const { data: rawMatsRaw=[] } = useQuery({ queryKey:["rawMaterials"], queryFn:apiFetchRaw, staleTime:2*60*1000 });
-  const { data: apiUnits = UNITS_LIST } = useQuery({ queryKey:["units"], queryFn: apiFetchUnits, staleTime: 5*60*1000 });
-  const unitsForPrepared: Unit[] = useMemo(() => (Array.isArray(apiUnits) && apiUnits.length > 0 ? apiUnits : UNITS_LIST), [apiUnits]);
 
   const { data: taxesRaw=[] } = useQuery({ queryKey:["taxes"], queryFn:apiFetchTaxes, staleTime:10*60*1000 });
+  // Filter out id=1 (no-tax entry) from the selectable options shown to user
   const taxOptions: TaxOption[] = useMemo(
     ()=>(Array.isArray(taxesRaw)?taxesRaw:[]).filter(t=>t.id!==NO_TAX_ID),
     [taxesRaw],
@@ -321,7 +314,6 @@ export default function AddProduct() {
     onSuccess: () => {
       toast("success", "تم الحفظ بنجاح", "تم إضافة الصنف بنجاح");
       queryClient.invalidateQueries({ queryKey:["directProducts"] });
-      queryClient.invalidateQueries({ queryKey:["allProducts"] });
       queryClient.invalidateQueries({ queryKey:["rawMaterials"] });
       setTimeout(()=>navigate("/products",{state:{productNature:form.productNature,refreshed:true}}),1200);
     },
@@ -331,13 +323,10 @@ export default function AddProduct() {
   // ── filtered lists ────────────────────────────────────────────────────────
 
   const filteredParents = useMemo(()=>
-    allProductsList.filter(p=>p.name.toLowerCase().includes(parentSearch.toLowerCase())||p.code.toLowerCase().includes(parentSearch.toLowerCase())),
-    [allProductsList,parentSearch],
+    directList.filter(p=>p.name.toLowerCase().includes(parentSearch.toLowerCase())||p.code.toLowerCase().includes(parentSearch.toLowerCase())),
+    [directList,parentSearch],
   );
-  const filteredMats = useMemo(()=>
-    matList.filter(m=>m.name.toLowerCase().includes(matSearch.toLowerCase())||m.code.toLowerCase().includes(matSearch.toLowerCase())),
-    [matList,matSearch],
-  );
+
   const filteredUnits = useMemo(()=>
     UNITS_LIST.filter(u=>u.name.toLowerCase().includes(unitSearch.toLowerCase())||u.code.toLowerCase().includes(unitSearch.toLowerCase())),
     [unitSearch],
@@ -361,7 +350,7 @@ export default function AddProduct() {
       materialId:String(sel.id), materialName:sel.name,
       quantity:parseFloat(matQty)||1, unitId:unit?.id, unitName:unit?.name, cost:Number(sel.cost??0),
     }]}));
-    setMatSearch(""); setMatQty("1"); setUnitSearch(""); setShowMatSearch(false); setShowUnitSearch(false);
+    setMatSearch(""); setMatQty("1"); setUnitSearch(""); setShowUnitSearch(false);
   };
 
   const removeMat     = (i:number) => setForm(prev=>({...prev,materials:prev.materials.filter((_,idx)=>idx!==i)}));
@@ -376,37 +365,13 @@ export default function AddProduct() {
     parentProductNames:prev.parentProductNames.filter((_,idx)=>idx!==i),
   }));
 
-  // ── category helpers ──────────────────────────────────────────────────────
+  // ── category name ─────────────────────────────────────────────────────────
 
-  /**
-   * Returns the effective category ID (sub takes priority over main)
-   */
-  const resolvedCategoryId = (): string => {
-    return form.subCategoryId || form.categoryId;
-  };
-
-  /**
-   * Returns display name of the selected category.
-   * Tries every possible field the API might return.
-   */
   const resolveCatName = (): string => {
-    const effectiveId = form.subCategoryId || form.categoryId;
-    const allCats = [...mainCats, ...subCats];
-    const found = allCats.find(c => String(c.id) === String(effectiveId));
-    const name = (found?.nameAr || found?.nameEn || found?.nameUr || "").trim();
-    // Debug — remove after confirming it works
-    console.log("[resolveCatName] id:", effectiveId, "| found:", found, "| name:", name);
-    if (mainCats.length > 0) console.log("[resolveCatName] mainCats[0]:", mainCats[0]);
-    return name;
-  };
-
-  /**
-   * Debug helper — logs exactly what will be sent to the API
-   */
-  const debugFD = (fd: FormData, label: string) => {
-    console.group(`[buildFD] ${label}`);
-    fd.forEach((val, key) => console.log(`  ${key}:`, val));
-    console.groupEnd();
+    const sub  = subCats.find(c=>String(c.id)===String(form.subCategoryId));
+    const main = mainCats.find(c=>String(c.id)===String(form.categoryId));
+    const ch   = sub||main;
+    return (ch?.nameAr||ch?.nameEn||ch?.nameUr||"").trim();
   };
 
   // ── validation ────────────────────────────────────────────────────────────
@@ -414,32 +379,25 @@ export default function AddProduct() {
   const validate = (): boolean => {
     const e: FormErrors = {};
 
-    // Name fields required for all types
-    if (!form.name.trim())      e.name      = "اسم الصنف (عربي) مطلوب";
+    if (!form.name.trim())     e.name     = "اسم الصنف (عربي) مطلوب";
     if (!form.nameLang2.trim()) e.nameLang2 = "الاسم بالإنجليزية مطلوب";
     if (!form.nameLang3.trim()) e.nameLang3 = "الاسم باللغة الثالثة مطلوب";
+    if (!form.categoryId)      e.categoryId = "يرجى اختيار التصنيف الرئيسي";
 
-    // CategoryName required for basic, sub, prepared — NOT for raw-material
-    if (form.productNature !== "materials" && !form.categoryId)
-      e.categoryId = "يرجى اختيار التصنيف الرئيسي";
-
-    // Barcode required for basic, prepared, and sub
-    if (["basic","prepared","sub"].includes(form.productNature) && !form.code.trim())
+    if (["basic","prepared"].includes(form.productNature) && !form.code.trim())
       e.code = "الكود مطلوب";
 
-    // CostPrice required for basic and materials only (NOT sub, NOT prepared)
-    if (["basic","materials"].includes(form.productNature) && (!form.cost || isNaN(Number(form.cost))))
+    if (["basic","materials","sub"].includes(form.productNature) && (!form.cost||isNaN(Number(form.cost))))
       e.cost = "التكلفة غير صحيحة";
 
-    // SellingPrice required for basic and prepared only (NOT sub, NOT materials)
-    if (["basic","prepared"].includes(form.productNature)) {
-      if (!form.sellingPrice || isNaN(Number(form.sellingPrice)))
+    if (["basic","prepared","sub"].includes(form.productNature)) {
+      if (!form.sellingPrice||isNaN(Number(form.sellingPrice)))
         e.sellingPrice = "سعر البيع غير صحيح";
       else if (!vatIncluded && !selectedVat)
         e.sellingPrice = "يرجى اختيار نسبة الضريبة أو تغيير الخيار إلى شامل الضريبة";
     }
 
-    if (form.productNature === "materials" && (!form.alertQuantity || isNaN(Number(form.alertQuantity))))
+    if (form.productNature==="materials" && (form.alertQuantity===""||isNaN(Number(form.alertQuantity))))
       e.alertQuantity = "حد التنبيه غير صحيح";
 
     if (imageFile && !["image/png","image/jpeg","image/jpg","image/webp"].includes(imageFile.type))
@@ -447,106 +405,89 @@ export default function AddProduct() {
 
     setErrors(e);
 
-    if (form.productNature === "sub" && form.parentProductIds.length === 0) {
+    if (form.productNature==="sub" && form.parentProductIds.length===0) {
       toast("warn","تنبيه","يرجى اختيار صنف مباشر واحد على الأقل"); return false;
     }
-    if (form.productNature === "prepared" && form.materials.length === 0) {
+    if (form.productNature==="prepared" && form.materials.length===0) {
       toast("warn","تنبيه","يرجى إضافة خامة واحدة على الأقل"); return false;
     }
 
-    return Object.keys(e).length === 0;
+    return Object.keys(e).length===0;
   };
 
   // ── build FormData ────────────────────────────────────────────────────────
 
   const buildFD = (): FormData => {
-    const fd      = new FormData();
+    const fd          = new FormData();
+    const catName     = resolveCatName();
+    console.log("[buildFD] categoryId:", form.categoryId, "| subCategoryId:", form.subCategoryId, "| catName:", catName, "| mainCats:", mainCats.length, "| subCats:", subCats.length);
+    // TaxId: when inclusive/no-tax → use NO_TAX_ID(1); when exclusive → use selectedVat.id
     const taxId   = (!vatIncluded && selectedVat) ? selectedVat.id : NO_TAX_ID;
     const taxCalc = (!vatIncluded && selectedVat) ? "Excludestax" : "Includestax";
     const priceToSend = String(finalSellingPrice);
-    // CategoryName = Arabic name of selected sub-category or main category
-    const catName = resolveCatName();
 
     switch (form.productNature) {
-
-      // ── الصنف المباشر ─────────────────────────────────────────────────────
-      // POST /api/Products/direct  (multipart/form-data)
-      // Required: ProductNameAr*, CategoryName*, CostPrice*, SellingPrice*, TaxCalculation*
-      // Optional: Barcode, ProductNameEn, ProductNameUr, Description, MinStockLevel, TaxId, Image
       case "basic":
         fd.append("Barcode",        form.code.trim());
         fd.append("ProductNameAr",  form.name.trim());
         fd.append("ProductNameEn",  form.nameLang2.trim());
         fd.append("ProductNameUr",  form.nameLang3.trim());
         fd.append("Description",    form.details.trim());
-        fd.append("CategoryName",   catName);               // ✅ string — per Swagger
+        fd.append("CategoryName",   catName);
         fd.append("CostPrice",      form.cost);
         fd.append("SellingPrice",   priceToSend);
-        fd.append("MinStockLevel",  form.alertQuantity || "0");
+        fd.append("MinStockLevel",  form.alertQuantity||"0");
         fd.append("TaxId",          String(taxId));
-        fd.append("TaxCalculation", taxCalc);               // ✅ required per Swagger
+        fd.append("TaxCalculation", taxCalc);
         if (imageFile) fd.append("Image", imageFile);
-        debugFD(fd, "direct");
         break;
 
-      // ── الخامة ────────────────────────────────────────────────────────────
-      // POST /api/Products/raw-material  (multipart/form-data)
-      // Required: ProductNameAr*, CostPrice*
-      // Optional: BaseUnitId (int), PurchaseUnitId (int), ConversionFactor (double)
-      // ⚠️ No CategoryName/Id, no SellingPrice, no Tax, no Description per Swagger
       case "materials":
+        // Per Swagger: ProductNameAr*, ProductNameEn*, ProductNameUr*, CategoryName*,
+        // CostPrice*, MinStockLevel* are required
         fd.append("ProductNameAr",  form.name.trim());
         fd.append("ProductNameEn",  form.nameLang2.trim());
         fd.append("ProductNameUr",  form.nameLang3.trim());
+        fd.append("CategoryName",   catName);
         fd.append("CostPrice",      form.cost);
-        if (form.details.trim())     fd.append("Description",    form.details.trim());
-        if (form.baseUnitId)         fd.append("BaseUnitId",     String(Number(form.baseUnitId)));
-        if (form.purchaseUnitId)     fd.append("PurchaseUnitId", String(Number(form.purchaseUnitId)));
-        if (form.conversionFactor)   fd.append("ConversionFactor", form.conversionFactor);
-        debugFD(fd, "raw-material");
+        fd.append("MinStockLevel",  String(parseInt(form.alertQuantity||"0",10)));
+        if (form.details.trim())    fd.append("Description",    form.details.trim());
+        if (taxId !== NO_TAX_ID)    fd.append("TaxId",          String(taxId));
+        if (form.baseUnitId)        fd.append("BaseUnitId",     String(Number(form.baseUnitId)));
+        if (form.purchaseUnitId)    fd.append("PurchaseUnitId", String(Number(form.purchaseUnitId)));
+        if (form.conversionFactor)  fd.append("ConversionFactor", form.conversionFactor);
         break;
 
-      // ── الصنف المتفرع ─────────────────────────────────────────────────────
-      // POST /api/Products/branched  (multipart/form-data)
-      // Required: ProductNameAr*, CategoryName*
-      // Optional: ProductNameEn, ProductNameUr, Image, ChildrenIds (array of int), Description
-      // ⚠️ No CostPrice, no SellingPrice, no Tax per Swagger
       case "sub":
         fd.append("ProductNameAr", form.name.trim());
         fd.append("ProductNameEn", form.nameLang2.trim());
         fd.append("ProductNameUr", form.nameLang3.trim());
         fd.append("CategoryName",  catName);
         fd.append("Description",   form.details.trim());
-        // Barcode مطلوب من الـ backend حتى لو مش في الـ Swagger
-        fd.append("Barcode", form.code.trim() || `SUB${Math.floor(Math.random()*10_000_000).toString().padStart(7,"0")}`);
         form.parentProductIds.forEach(pid => fd.append("ChildrenIds", pid));
         if (imageFile) fd.append("Image", imageFile);
-        debugFD(fd, "branched");
         break;
 
-      // ── الصنف المجهز ─────────────────────────────────────────────────────
-      // POST /api/Products/prepared  (multipart/form-data)
-      // Required: ProductNameAr*, ProductNameEn*, ProductNameUr*, CategoryId* (int),
-      //           SellingPrice*, TaxCalculation*, Components* (JSON string)
-      // Optional: Barcode, Description, TaxId, Image
       case "prepared":
         fd.append("Barcode",        form.code.trim());
         fd.append("ProductNameAr",  form.name.trim());
         fd.append("ProductNameEn",  form.nameLang2.trim());
         fd.append("ProductNameUr",  form.nameLang3.trim());
         fd.append("Description",    form.details.trim());
-        fd.append("CategoryId",     resolvedCategoryId());  // ✅ integer — per Swagger
+        fd.append("CategoryId",     form.categoryId);        // prepared uses integer CategoryId
         fd.append("SellingPrice",   priceToSend);
         fd.append("TaxId",          String(taxId));
         fd.append("TaxCalculation", taxCalc);
         if (imageFile) fd.append("Image", imageFile);
-        // Components as JSON string with componentProductId (per Swagger)
         fd.append("Components", JSON.stringify(
-          form.materials.map(m => ({
-            componentProductId: Number(m.materialId),
-            quantity:           Number(m.quantity),
-            unitId:             m.unitId ? Number(m.unitId) : null,
-          }))
+          form.materials.map(m=>{
+            const comp: Record<string,any> = {
+              componentProductId: Number(m.materialId),
+              quantity: Number(m.quantity),
+            };
+            if (m.unitId) comp.unitId = Number(m.unitId);
+            return comp;
+          })
         ));
         break;
     }
@@ -566,7 +507,7 @@ export default function AddProduct() {
   useEffect(()=>{
     const h = (e:MouseEvent) => {
       if (!(e.target as HTMLElement).closest(".dp-wrap")) {
-        setShowMatSearch(false); setShowUnitSearch(false); setShowParentSearch(false);
+        setShowUnitSearch(false); setShowParentSearch(false);
       }
     };
     document.addEventListener("mousedown",h);
@@ -669,7 +610,7 @@ export default function AddProduct() {
               </div>
 
               {/* Code */}
-              {["basic","prepared","sub"].includes(form.productNature) && (
+              {["basic","prepared"].includes(form.productNature) && (
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
                     الكود / الباركود <span className="text-red-500">*</span>
@@ -688,7 +629,7 @@ export default function AddProduct() {
               )}
 
               {/* Cost */}
-              {["basic","materials"].includes(form.productNature) && (
+              {["basic","materials","sub"].includes(form.productNature) && (
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
                     التكلفة <span className="text-red-500">*</span>
@@ -765,7 +706,7 @@ export default function AddProduct() {
                     </div>
                   )}
 
-                  {/* Price preview */}
+                  {/* Price preview — only show when exclusive + tax chosen */}
                   {!vatIncluded && selectedVat && form.sellingPrice && Number(form.sellingPrice)>0 && (
                     <div className="rounded-lg p-3 text-sm border bg-amber-50 border-amber-200 space-y-1">
                       <div className="flex justify-between text-gray-600">
@@ -826,7 +767,7 @@ export default function AddProduct() {
               {form.productNature==="sub" && (
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
-                     الأصناف <span className="text-red-500">*</span>
+                    الأصناف المباشرة الأم <span className="text-red-500">*</span>
                   </label>
                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                     {form.parentProductNames.length>0 && (
@@ -844,7 +785,7 @@ export default function AddProduct() {
                         <input type="text" value={parentSearch}
                           onChange={e=>{setParentSearch(e.target.value);setShowParentSearch(true);}}
                           onFocus={()=>setShowParentSearch(true)}
-                          className="takamol-input w-full pr-10" placeholder="    ابحث عن صنف ..." />
+                          className="takamol-input w-full pr-10" placeholder="ابحث عن صنف مباشر..." />
                         <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16}/>
                       </div>
                       {showParentSearch && (
@@ -883,30 +824,23 @@ export default function AddProduct() {
                   <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-3">
                     <div className="grid grid-cols-12 gap-2">
 
-                      {/* search */}
-                      <div className="col-span-5 dp-wrap relative">
-                        <label className="block text-xs font-bold text-gray-600 mb-1">بحث في الخامات</label>
+                      {/* dropdown */}
+                      <div className="col-span-5">
+                        <label className="block text-xs font-bold text-gray-600 mb-1">اختر الخامة</label>
                         <div className="relative">
-                          <input type="text" value={matSearch}
-                            onChange={e=>{setMatSearch(e.target.value);setShowMatSearch(true);}}
-                            onFocus={()=>setShowMatSearch(true)}
-                            className="takamol-input w-full pr-8 text-sm" placeholder="ابحث..." />
-                          <Search className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" size={13}/>
+                          <select
+                            value={matSearch}
+                            onChange={e => setMatSearch(e.target.value)}
+                            className="takamol-input w-full appearance-none text-sm">
+                            <option value="">-- اختر خامة --</option>
+                            {matList.map(m => (
+                              <option key={m.id} value={m.name}>
+                                {m.name}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={13}/>
                         </div>
-                        {showMatSearch && matSearch && (
-                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-40 overflow-y-auto">
-                            {filteredMats.length===0
-                              ? <div className="p-2 text-center text-gray-500 text-xs">لا توجد خامات</div>
-                              : filteredMats.map(m=>(
-                                  <div key={m.id} onClick={()=>{setMatSearch(m.name);setShowMatSearch(false);}}
-                                    className="p-2 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-0">
-                                    <div className="font-bold text-sm">{m.name}</div>
-                                    <div className="text-xs text-gray-500">{m.code}</div>
-                                  </div>
-                                ))
-                            }
-                          </div>
-                        )}
                       </div>
 
                       {/* qty */}
@@ -1095,6 +1029,8 @@ export default function AddProduct() {
                   <p className="mt-1 text-xs text-gray-400">الصيغ المقبولة: PNG, JPG, WEBP</p>
                 </div>
               )}
+
+
 
             </div>{/* end RIGHT */}
           </div>{/* end grid */}

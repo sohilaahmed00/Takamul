@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
-import { FileText, Download, Printer, Share2, Search, Calendar, Filter } from 'lucide-react';
+import { FileText, Download, Printer, Share2, Search, Calendar } from 'lucide-react';
 
 export default function LedgerStatement() {
   const { direction } = useLanguage();

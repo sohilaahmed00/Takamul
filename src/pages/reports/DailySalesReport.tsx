@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, FileText, ChevronLeft, ChevronRight, Printer, X, Grid } from 'lucide-react';
+import { Calendar as CalendarIcon, FileText, Printer, X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 

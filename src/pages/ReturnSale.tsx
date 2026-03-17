@@ -1,9 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    X, Search, Upload, Trash2, Plus, Bold, Italic,
-    Underline, List, AlignLeft, AlignCenter, AlignRight,
-    Link as LinkIcon, CheckCircle, AlertCircle,
+    X, Search, Upload, Trash2, Plus, Bold, Italic, List, CheckCircle, AlertCircle,
     RotateCcw, FileText, DollarSign // تم إضافة الأيقونات الناقصة هنا
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';

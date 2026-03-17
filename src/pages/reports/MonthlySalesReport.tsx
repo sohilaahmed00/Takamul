@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, FileText, ChevronLeft, ChevronRight, Grid } from 'lucide-react';
+import { Calendar as CalendarIcon, FileText } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { cn } from '@/lib/utils';
 
 export default function MonthlySalesReport() {
   const { direction } = useLanguage();

@@ -3,9 +3,8 @@ import { useLanguage } from '@/context/LanguageContext';
 import { 
   Calendar, Search, Printer, Download, Share2, 
   Filter, ChevronRight, ChevronLeft, MoreHorizontal,
-  Clock, User, Phone, CheckCircle2, XCircle, AlertCircle
+  Clock, User, Phone, CheckCircle2, XCircle
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface Reservation {
   id: string;

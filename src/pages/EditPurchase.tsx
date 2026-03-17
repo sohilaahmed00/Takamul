@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Calendar, Hash, FileText, CheckCircle2, Building2, Upload, UserPlus, Eye, Plus, Search, Barcode, Trash2, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List as ListIcon, Link as LinkIcon, PlusCircle, ChevronDown } from "lucide-react";
+import { CheckCircle2, Upload, UserPlus, Plus, Barcode, Trash2, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, List as ListIcon, Link as LinkIcon, ChevronDown } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useProducts, type Product } from "@/context/ProductsContext";
 import { useSuppliers } from "@/context/SuppliersContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
 import { useNavigate, useParams } from "react-router-dom";
 import { initialPurchases } from "@/data";
 import { PaymentStatus } from "@/types";

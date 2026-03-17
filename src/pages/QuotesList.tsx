@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { FileText, Search, ChevronDown, Menu, LayoutGrid, List as ListIcon, ArrowUp, ArrowDown, PlusCircle, Printer, Link as LinkIcon, Heart, Star, Mail, Edit2, Trash2, RefreshCw, X } from "lucide-react";
+import { FileText, Search, PlusCircle, Edit2, Trash2 } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { cn } from "../lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
@@ -10,7 +9,6 @@ import EmailQuoteModal from "@/components/modals/EmailQuoteModal";
 import MobileDataCard from "@/components/MobileDataCard";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 
-import Pagination from "../components/Pagination";
 import AddQuoteModal from "@/components/modals/AddQuoteModal";
 
 import { useQuotes, type QuoteRecord } from "../context/QuotesContext";

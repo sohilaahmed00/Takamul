@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useDeliveryCompanies } from '../context/DeliveryCompaniesContext';
-import { Plus, Search, Trash2, Edit2, X, ChevronRight, ChevronLeft, Truck } from 'lucide-react';
+import { Plus, Trash2, Edit2, X, ChevronRight, ChevronLeft, Truck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '../lib/utils';
 import MobileDataCard from '../components/MobileDataCard';
 
 const DeliveryCompanies: React.FC = () => {

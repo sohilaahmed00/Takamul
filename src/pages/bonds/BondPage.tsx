@@ -7,7 +7,6 @@ import { useBanks } from "@/context/BanksContext";
 import ResponsiveModal from "@/components/modals/ResponsiveModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import MobileDataCard from "@/components/MobileDataCard";
-import { motion, AnimatePresence } from "framer-motion";
 import type { Bond } from "@/types";
 
 interface BondPageProps {

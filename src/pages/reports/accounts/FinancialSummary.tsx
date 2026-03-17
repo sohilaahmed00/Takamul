@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '@/context/LanguageContext';
-import { FileText, Download, Printer, Share2, DollarSign, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { Download, Printer, DollarSign, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 
 export default function FinancialSummary() {
   const { direction } = useLanguage();

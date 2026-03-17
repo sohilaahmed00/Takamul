@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { useWarehouses } from "@/context/WarehousesContext";
 import { useProducts, type Product } from "@/context/ProductsContext";
 import { useCustomers } from "@/context/CustomersContext";
-import { Search, Trash2, Plus, X, Camera, LayoutGrid, List, Save, Printer, ChevronRight, ChevronLeft, User, Phone, Hash, Clock, Calendar, Building, CreditCard, DollarSign } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Search, Trash2, X, LayoutGrid, Save, Printer, User, Clock, Calendar, Building, CreditCard } from "lucide-react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface InvoiceItem {

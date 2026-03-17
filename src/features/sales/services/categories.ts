@@ -1,5 +1,4 @@
 import { httpClient } from "@/api/httpClient";
-import type { CreateResponse, PaginationMeta } from "@/types/common";
 import type { GetAllSalesOrderResponse } from "../types/categories.types";
 
 // ===================

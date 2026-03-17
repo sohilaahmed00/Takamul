@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, FileSpreadsheet, Printer, Search, Grid, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
+import { FileText, FileSpreadsheet, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { cn } from '@/lib/utils';
 
 export default function StagnantItemsReport() {
   const { direction } = useLanguage();
