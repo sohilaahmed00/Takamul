@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.tsx";
 import "./index.css";
+
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { GroupsProvider } from "@/context/GroupsContext";
@@ -33,11 +34,15 @@ import { DelegatesProvider } from "@/context/DelegatesContext";
 import { TablesProvider } from "@/context/TablesContext";
 import { AdditionsProvider } from "@/context/AdditionsContext";
 import { WarehousesProvider } from "@/context/WarehousesContext";
+
 import QueryProvider from "./providers/query-provider.tsx";
+
 import "primereact/resources/themes/lara-light-blue/theme.css";
 import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
+
 import { DirectionProvider } from "@/components/ui/direction";
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <DirectionProvider dir="rtl" direction="rtl">
@@ -53,45 +58,47 @@ createRoot(document.getElementById("root")!).render(
                         <ExpensesProvider>
                           <SalesProvider>
                             <PurchasesProvider>
-                              <ExpenseCategoriesProvider>
-                                <QuotesProvider>
-                                  <UsersProvider>
-                                    <BanksProvider>
-                                      <TransfersProvider>
-                                        <PromotionsProvider>
-                                          <PaymentCompaniesProvider>
-                                            <PaymentMethodsProvider>
-                                              <LogoProvider>
-                                                <CurrenciesProvider>
-                                                  <CustomerGroupsProvider>
-                                                    <UserGroupsProvider>
-                                                      <CategoriesProvider>
-                                                        <DeliveryCompaniesProvider>
-                                                          <DelegatesProvider>
-                                                            <TablesProvider>
-                                                              <AdditionsProvider>
-                                                                <WarehousesProvider>
-                                                                  <PriceGroupsProvider>
-                                                                    <App />
-                                                                  </PriceGroupsProvider>
-                                                                </WarehousesProvider>
-                                                              </AdditionsProvider>
-                                                            </TablesProvider>
-                                                          </DelegatesProvider>
-                                                        </DeliveryCompaniesProvider>
-                                                      </CategoriesProvider>
-                                                    </UserGroupsProvider>
-                                                  </CustomerGroupsProvider>
-                                                </CurrenciesProvider>
-                                              </LogoProvider>
-                                            </PaymentMethodsProvider>
-                                          </PaymentCompaniesProvider>
-                                        </PromotionsProvider>
-                                      </TransfersProvider>
-                                    </BanksProvider>
-                                  </UsersProvider>
-                                </QuotesProvider>
-                              </ExpenseCategoriesProvider>
+                              <CustomersProvider>
+                                <ExpenseCategoriesProvider>
+                                  <QuotesProvider>
+                                    <UsersProvider>
+                                      <BanksProvider>
+                                        <TransfersProvider>
+                                          <PromotionsProvider>
+                                            <PaymentCompaniesProvider>
+                                              <PaymentMethodsProvider>
+                                                <LogoProvider>
+                                                  <CurrenciesProvider>
+                                                    <CustomerGroupsProvider>
+                                                      <UserGroupsProvider>
+                                                        <CategoriesProvider>
+                                                          <DeliveryCompaniesProvider>
+                                                            <DelegatesProvider>
+                                                              <TablesProvider>
+                                                                <AdditionsProvider>
+                                                                  <WarehousesProvider>
+                                                                    <PriceGroupsProvider>
+                                                                      <App />
+                                                                    </PriceGroupsProvider>
+                                                                  </WarehousesProvider>
+                                                                </AdditionsProvider>
+                                                              </TablesProvider>
+                                                            </DelegatesProvider>
+                                                          </DeliveryCompaniesProvider>
+                                                        </CategoriesProvider>
+                                                      </UserGroupsProvider>
+                                                    </CustomerGroupsProvider>
+                                                  </CurrenciesProvider>
+                                                </LogoProvider>
+                                              </PaymentMethodsProvider>
+                                            </PaymentCompaniesProvider>
+                                          </PromotionsProvider>
+                                        </TransfersProvider>
+                                      </BanksProvider>
+                                    </UsersProvider>
+                                  </QuotesProvider>
+                                </ExpenseCategoriesProvider>
+                              </CustomersProvider>
                             </PurchasesProvider>
                           </SalesProvider>
                         </ExpensesProvider>
@@ -105,5 +112,5 @@ createRoot(document.getElementById("root")!).render(
         </BrowserRouter>
       </QueryProvider>
     </DirectionProvider>
-  </StrictMode>,
+  </StrictMode>
 );
