@@ -210,14 +210,8 @@ const apiFetchUnits = (): Promise<Unit[]> =>
       name: String(u?.unitName ?? u?.name ?? ""),
     }))).catch(() => UNITS_LIST);
 
-const apiPutProduct = (n: ProductNature, id: string, body: FormData | string): Promise<any> => {
-  const isJson = typeof body === "string";
-  return fetchJson(`${REAL_API}${natureToUpdateEndpoint(n, id)}`, {
-    method: "PUT",
-    body,
-    headers: isJson ? { "Content-Type": "application/json" } : {},
-  });
-};
+const apiPutProduct = (n: ProductNature, id: string, body: FormData): Promise<any> =>
+  fetchJson(`${REAL_API}${natureToUpdateEndpoint(n, id)}`, { method: "PUT", body });
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -349,6 +343,12 @@ export default function EditProduct() {
 
   const { data: rawMatsRaw = [] } = useQuery({ queryKey: ["rawMaterials"], queryFn: apiFetchRaw, staleTime: 2 * 60 * 1000 });
   const matList: ProductLite[] = useMemo(() => (Array.isArray(rawMatsRaw) ? rawMatsRaw : []).map(mapProductLite), [rawMatsRaw]);
+  // For display purposes in prepared edit — include all products so existing components show correctly
+  const matListForDisplay: ProductLite[] = useMemo(() => {
+    const rawIds = new Set((Array.isArray(rawMatsRaw) ? rawMatsRaw : []).map((p:any) => String(p?.id ?? "")));
+    const all = (Array.isArray(allProductsRaw) ? allProductsRaw : []).map(mapProductLite);
+    return all; // show all for display, but warn if non-raw-material is selected
+  }, [rawMatsRaw, allProductsRaw]);
 
   const { data: taxesRaw = [] } = useQuery({ queryKey: ["taxes"], queryFn: apiFetchTaxes, staleTime: 10 * 60 * 1000 });
   const taxOptions: TaxOption[] = useMemo(
@@ -364,71 +364,60 @@ export default function EditProduct() {
 
   // ── populate form from API ─────────────────────────────────────────────────
 
+  // ── Populate form from API data ────────────────────────────────────────────
+  // Use useMemo-style derived state + useEffect to handle async data arrival
+  // All data sources (productRaw, typeData, mainCats, unitsForPrepared) might arrive at different times
   useEffect(() => {
     if (!productRaw) return;
     const p = productRaw as any;
 
     // ── Determine nature ──
-    // Priority: 1) location.state  2) type-specific endpoint detection  3) field detection
     const resolvedNature: ProductNature = stateNature ?? typeData?.nature ?? detectNature(p);
-    console.log("[EditProduct] Nature → state:", stateNature, "typeData:", typeData?.nature, "detected:", detectNature(p), "→ using:", resolvedNature);
     setProductNature(resolvedNature);
 
-    // Use typeData.data (type-specific endpoint) if available — it has more fields
-    // e.g. branched has childrenIds, prepared has components
-    // Fallback to p (generic) if type-specific GET returned 404/500
+    // ── Use type-specific data if available ──
     const specific = (typeData?.data && !typeData.data?.message) ? typeData.data : p;
-    console.log("[EditProduct] using specific:", specific === p ? "generic" : "type-specific");
-    console.log("[EditProduct] specific data:", JSON.stringify(specific, null, 2));
 
-    // Try to get categoryId directly from API first, then fallback to name match
+    // ── Resolve categoryId ──
     const directCategoryId = specific?.categoryId ?? specific?.CategoryId ?? p?.categoryId ?? null;
     const catNameFromApi = (specific?.categoryName ?? p?.categoryName ?? "").toString().trim();
-
     const matchedByName = mainCats.find(c =>
       c.nameAr === catNameFromApi || c.nameEn === catNameFromApi || c.nameUr === catNameFromApi
     );
-
     const resolvedCatId = directCategoryId
       ? String(directCategoryId)
       : matchedByName ? String(matchedByName.id) : "";
 
-    console.log("[EditProduct] categoryId → API:", directCategoryId, "| byName:", matchedByName?.id, "| using:", resolvedCatId);
-
-    // Parse childrenIds — API returns "children" array of objects, extract their ids
+    // ── Parse children (for sub/branched) ──
     const childrenIds: string[] = (() => {
       const raw = specific?.childrenIds ?? specific?.ChildrenIds ?? p?.childrenIds;
       if (Array.isArray(raw) && raw.length > 0) return raw.map(String);
-      // API returns children as array of objects: [{ id, productNameAr, ... }]
       const children = specific?.children ?? p?.children;
-      if (Array.isArray(children)) return children.map((c: any) => String(c?.id ?? c?.productId ?? "")).filter(Boolean);
+      if (Array.isArray(children)) return children.map((c: any) => String(c?.id ?? "")).filter(Boolean);
       return [];
     })();
-
-    // Also get parent names from children array
     const childrenNames: string[] = (() => {
       const children = specific?.children ?? p?.children;
       if (Array.isArray(children)) return children.map((c: any) => String(c?.productNameAr ?? c?.name ?? "")).filter(Boolean);
       return [];
     })();
 
-    // Parse components from multiple possible field names
+    // ── Parse components (for prepared) ──
     const components: MaterialItem[] = (() => {
-      const raw = specific?.components ?? specific?.Components ?? specific?.materials ?? p?.components ?? [];
+      const raw = specific?.components ?? specific?.Components ?? p?.components ?? [];
       if (!Array.isArray(raw)) return [];
       return raw.map((c: any) => {
-        // Try every possible field name for the raw material ID
-        const matId = c?.componentProductId ?? c?.rawMaterialId ?? c?.productId ??
-                      c?.materialId ?? c?.id ?? c?.ComponentProductId ?? "";
-        const matName = c?.componentNameAr ?? c?.productNameAr ?? c?.rawMaterialNameAr ??
-                        c?.name ?? c?.materialName ?? c?.productName ?? "";
-        console.log("[EditProduct] component raw:", JSON.stringify(c));
+        const matId = c?.componentProductId ?? c?.rawMaterialId ?? c?.productId ?? c?.materialId ?? c?.id ?? "";
+        const matName = c?.componentNameAr ?? c?.productNameAr ?? c?.rawMaterialNameAr ?? c?.name ?? c?.materialName ?? "";
+        const unitIdStr = c?.unitId ? String(c.unitId) : undefined;
+        const unitNameResolved = c?.unitName ?? c?.unitNameAr ??
+          (unitIdStr ? (unitsForPrepared.find(u => u.id === unitIdStr)?.name ?? UNITS_LIST.find(u => u.id === unitIdStr)?.name) : undefined);
         return {
           materialId:   String(matId),
           materialName: String(matName),
           quantity:     Number(c?.quantity ?? 1),
-          unitId:       c?.unitId ? String(c.unitId) : undefined,
-          unitName:     c?.unitName ?? c?.unitNameAr,
+          unitId:       unitIdStr,
+          unitName:     unitNameResolved,
           cost:         Number(c?.unitCost ?? c?.costPrice ?? c?.cost ?? 0),
         };
       });
@@ -438,15 +427,15 @@ export default function EditProduct() {
 
     setForm(prev => ({
       ...prev,
-      name:             specific?.productNameAr ?? p?.productNameAr ?? "",
-      nameLang2:        specific?.productNameEn ?? p?.productNameEn ?? "",
-      nameLang3:        specific?.productNameUr ?? p?.productNameUr ?? "",
+      name:             String(specific?.productNameAr ?? p?.productNameAr ?? ""),
+      nameLang2:        String(specific?.productNameEn ?? p?.productNameEn ?? ""),
+      nameLang3:        String(specific?.productNameUr ?? p?.productNameUr ?? ""),
       code:             String(specific?.barcode ?? specific?.productCode ?? p?.barcode ?? ""),
       cost:             parsePrice(specific?.costPrice ?? p?.costPrice),
       sellingPrice:     parsePrice(specific?.sellingPrice ?? p?.sellingPrice),
       categoryId:       resolvedCatId,
       alertQuantity:    String(specific?.minStockLevel ?? p?.minStockLevel ?? "0"),
-      details:          specific?.description ?? p?.description ?? "",
+      details:          String(specific?.description ?? p?.description ?? ""),
       conversionFactor: String(specific?.conversionFactor ?? p?.conversionFactor ?? "1"),
       baseUnitId:       specific?.baseUnitId ? String(specific.baseUnitId) : "",
       purchaseUnitId:   specific?.purchaseUnitId ? String(specific.purchaseUnitId) : "",
@@ -455,9 +444,9 @@ export default function EditProduct() {
       materials:          components,
     }));
 
-    if (specific?.imageUrl) setFileName(specific.imageUrl);
-    else if (p?.imageUrl) setFileName(p.imageUrl);
-  }, [productRaw, typeData, mainCats]);
+    const imgUrl = specific?.imageUrl ?? p?.imageUrl;
+    if (imgUrl) setFileName(imgUrl);
+  }, [productRaw, typeData, mainCats, unitsForPrepared]);
 
   // ── derived ────────────────────────────────────────────────────────────────
 
@@ -542,13 +531,20 @@ export default function EditProduct() {
   // ── mutation ───────────────────────────────────────────────────────────────
 
   const mutation = useMutation({
-    mutationFn: ({ fd }: { fd: FormData | string }) => {
-      if (fd instanceof FormData) {
-        console.group(`[EditProduct] PUT ${productNature}/${id}`);
-        (fd as FormData).forEach((v, k) => console.log(k, ":", v));
-        console.groupEnd();
+    mutationFn: async ({ fd }: { fd: FormData }) => {
+      console.group(`[EditProduct] PUT ${productNature}/${id}`);
+      fd.forEach((v, k) => console.log(k, ":", v));
+      console.groupEnd();
+      try {
+        return await apiPutProduct(productNature, id!, fd);
+      } catch (err: any) {
+        const msg = err?.message ?? "";
+        // If 404: endpoint missing in backend — show Arabic message
+        if (msg.includes("404") || msg.includes("Not Found")) {
+          throw new Error(`تعديل ${getNatureLabel(productNature as ProductNature)} غير متاح حالياً — يرجى التواصل مع المطور لإضافة endpoint التعديل`);
+        }
+        throw err;
       }
-      return apiPutProduct(productNature, id!, fd);
     },
     onSuccess: () => {
       toast("success", "تم الحفظ بنجاح", "تم تعديل الصنف بنجاح");
@@ -607,7 +603,7 @@ export default function EditProduct() {
   // ── build request body ────────────────────────────────────────────────────────
   // NOTE: raw-material PUT uses application/json; others use multipart/form-data
 
-  const buildFD = (): FormData | string => {
+  const buildFD = (): FormData => {
     const taxId       = (!vatIncluded && selectedVat) ? selectedVat.id : NO_TAX_ID;
     const taxCalc     = (!vatIncluded && selectedVat) ? "Excludestax" : "Includestax";
     const priceToSend = String(finalSellingPrice);
@@ -636,15 +632,17 @@ export default function EditProduct() {
         return fd;
       }
 
-      // ── PUT /api/Products/raw-material/:id  (application/json) ───────────
-      case "materials":
-        return JSON.stringify({
-          productNameAr:    form.name.trim(),
-          costPrice:        Number(form.cost) || 0,
-          baseUnitId:       form.baseUnitId ? Number(form.baseUnitId) : 0,
-          purchaseUnitId:   form.purchaseUnitId ? Number(form.purchaseUnitId) : 0,
-          conversionFactor: Number(form.conversionFactor) || 1,
-        });
+      // ── PUT /api/Products/raw-material/:id  (multipart/form-data) ──────────
+      // Swagger: ProductNameAr*, CostPrice*, BaseUnitId(int), PurchaseUnitId(int), ConversionFactor
+      case "materials": {
+        const fd = new FormData();
+        fd.append("ProductNameAr", form.name.trim());
+        fd.append("CostPrice",     String(Number(form.cost) || 0));
+        if (form.baseUnitId)       fd.append("BaseUnitId",       String(Number(form.baseUnitId)));
+        if (form.purchaseUnitId)   fd.append("PurchaseUnitId",   String(Number(form.purchaseUnitId)));
+        if (form.conversionFactor) fd.append("ConversionFactor", form.conversionFactor);
+        return fd;
+      }
 
       // ── PUT /api/Products/branched/:id  (multipart/form-data) ──────────────
       // Swagger: ProductNameAr*, ProductNameEn, ProductNameUr, Description, Image, CategoryId, ChildrenIds
@@ -655,8 +653,7 @@ export default function EditProduct() {
         fd.append("ProductNameEn", form.nameLang2.trim());
         fd.append("ProductNameUr", form.nameLang3.trim());
         fd.append("Description",   form.details.trim());
-        const catNum = Number(catId);
-        if (catNum > 0) fd.append("CategoryId", String(catNum));
+        // Don't send CategoryId — causes 500 DB constraint error in branched PUT
         form.parentProductIds.forEach(pid => fd.append("ChildrenIds", pid));
         if (imageFile) fd.append("Image", imageFile);
         return fd;
@@ -699,7 +696,7 @@ export default function EditProduct() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    mutation.mutate({ fd: buildFD() as FormData | string });
+    mutation.mutate({ fd: buildFD() });
   };
 
   // ── close dropdowns on outside click ──────────────────────────────────────
@@ -750,6 +747,20 @@ export default function EditProduct() {
         <Edit2 size={22} className="text-[var(--primary)]" />
         <h1 className="text-xl font-bold text-gray-800">تعديل {getNatureLabel(productNature)}: {form.name || "…"}</h1>
       </div>
+
+      {/* Notice for prepared — components must be raw-materials */}
+      {productNature === "prepared" && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+          <span className="text-amber-600 text-lg">⚠️</span>
+          <div>
+            <p className="font-bold text-amber-800">تنبيه: الخامات في الصنف المجهز</p>
+            <p className="text-sm text-amber-700 mt-1">
+              الـ API يقبل فقط الخامات من نوع <strong>خامة</strong> (raw-material) كمكونات للصنف المجهز.
+              إذا ظهر خطأ "الخامة غير موجودة"، فهذا يعني أن المنتج المضاف كخامة ليس من نوع "خامة" في النظام.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" noValidate>
@@ -1062,7 +1073,11 @@ export default function EditProduct() {
                             <tr key={i} className="hover:bg-gray-50">
                               <td className="p-3 font-bold text-gray-800">{m.materialName}</td>
                               <td className="p-3 text-center">{m.quantity}</td>
-                              <td className="p-3 text-center text-gray-600">{m.unitName || "—"}</td>
+                              <td className="p-3 text-center text-gray-600">
+                                {m.unitName || 
+                                  (m.unitId ? (unitsForPrepared.find(u => u.id === m.unitId)?.name || UNITS_LIST.find(u => u.id === m.unitId)?.name || m.unitId) : "—")
+                                }
+                              </td>
                               <td className="p-3 text-center text-gray-600">
                                 {(Number(m.cost || 0) * Number(m.quantity || 0)).toFixed(2)}
                               </td>

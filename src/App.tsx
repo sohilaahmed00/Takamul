@@ -47,8 +47,6 @@ import AddSimplifiedTaxInvoice from "@/pages/AddSimplifiedTaxInvoice";
 import ImportSales from "@/pages/ImportSales";
 import ImportPurchases from "@/pages/ImportPurchases";
 
-
-
 export default function App() {
   return (
     <Routes>
@@ -57,7 +55,6 @@ export default function App() {
       <Route path="/verify-otp" element={<VerifyOTP />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Protected Routes with Layout */}
       <Route
         path="/dashboard"
         element={
@@ -66,6 +63,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/products"
         element={
@@ -74,6 +72,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/products/create"
         element={
@@ -82,7 +81,7 @@ export default function App() {
           </Layout>
         }
       />
-      {/* ✅ Edit Product Route */}
+
       <Route
         path="/products/edit/:id"
         element={
@@ -91,6 +90,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/products/import"
         element={
@@ -99,6 +99,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/products/barcode"
         element={
@@ -107,6 +108,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/a4-invoices"
         element={
@@ -115,6 +117,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/add-tax-invoice"
         element={
@@ -123,6 +126,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/add-simplified-tax-invoice"
         element={
@@ -131,6 +135,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/import-csv"
         element={
@@ -139,6 +144,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/create"
         element={
@@ -156,6 +162,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/pos-invoices"
         element={
@@ -164,6 +171,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/pos-invoices/:id"
         element={
@@ -172,6 +180,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/pos-invoices/return/:id"
         element={
@@ -180,6 +189,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/gift-cards"
         element={
@@ -188,6 +198,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/quotes"
         element={
@@ -196,6 +207,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/quotes/create"
         element={
@@ -204,6 +216,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/quotes/view/:id"
         element={
@@ -212,6 +225,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/create-from-quote"
         element={
@@ -220,6 +234,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/return/:id"
         element={
@@ -228,6 +243,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/pos"
         element={
@@ -236,6 +252,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/sales/deliveries"
         element={
@@ -244,6 +261,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/purchases"
         element={
@@ -252,6 +270,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/purchases/create"
         element={
@@ -260,6 +279,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/purchases/edit/:id"
         element={
@@ -268,6 +288,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/purchases/import-csv"
         element={
@@ -276,6 +297,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/customers"
         element={
@@ -284,6 +306,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/suppliers"
         element={
@@ -292,6 +315,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/expenses"
         element={
@@ -300,6 +324,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/products/groups"
         element={
@@ -317,6 +342,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/products/quantity-adjustments"
         element={
@@ -325,6 +351,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/products/quantity-adjustments/create"
         element={
@@ -333,6 +360,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/products/quantity-adjustments/import"
         element={
@@ -341,6 +369,7 @@ export default function App() {
           </Layout>
         }
       />
+
       <Route
         path="/products/quantity-adjustments/edit/:id"
         element={
