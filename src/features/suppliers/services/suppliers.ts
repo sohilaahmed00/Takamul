@@ -31,6 +31,6 @@ export const deleteSupplier = (id: number) =>
     method: "DELETE",
   });
 
-export function getCustomerById(id: number) {
-  return httpClient<Supplier>(`/Customer/${id}`);
+export function getSupplierById(id: number) {
+  return httpClient<Supplier>(`/Suppliers/${id}`);
 }

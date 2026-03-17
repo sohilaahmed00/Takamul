@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { customersKeys } from "../keys/customers.keys";
 import { getCustomerById } from "../services/customers";
-import type { Customer } from "@/context/CustomersContext";
+import type { Customer } from "../types/customers.types";
 
 export const useGetCustomerById = (id?: number) =>
   useQuery<Customer>({

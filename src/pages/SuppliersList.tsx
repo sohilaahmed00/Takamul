@@ -7,6 +7,9 @@ import Pagination from "@/components/Pagination";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
+import { Button } from "@/components/ui/button";
+import { useGetSupplierById } from "@/features/suppliers/hooks/useGetSupplierById";
+import AddParnterModal from "@/components/modals/AddParnterModal";
 
 // ===================== TYPES =====================
 interface Supplier {
@@ -59,7 +62,7 @@ export default function SuppliersList() {
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSuppliers, setSelectedSuppliers] = useState<number[]>([]);
+  const [selectedSupplier, setSelectedSupplier] = useState<number>();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
@@ -69,7 +72,8 @@ export default function SuppliersList() {
 
   const [supplierToDelete, setSupplierToDelete] = useState<number | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const { data } = useGetAllSuppliers();
+  const { data, refetch, isFetching } = useGetAllSuppliers();
+  const { data: supplierData } = useGetSupplierById(selectedSupplier);
 
   // ===================== FETCH =====================
   const fetchSuppliers = useCallback(async () => {
@@ -96,101 +100,6 @@ export default function SuppliersList() {
   const filteredSuppliers = data?.filter((s) => (s.supplierName || "").toLowerCase().includes(searchTerm.toLowerCase()) || (s.email || "").toLowerCase().includes(searchTerm.toLowerCase()) || (s.phone || "").includes(searchTerm) || (s.taxNumber || "").includes(searchTerm));
   //   const totalPages = Math.max(1, Math.ceil(filteredSuppliers.length / entriesPerPage));
 
-  // ===================== MODAL =====================
-  const openAdd = () => {
-    setEditingSupplier(null);
-    setForm(emptyForm);
-    setFormError(null);
-    setIsModalOpen(true);
-  };
-  const openEdit = (s: Supplier) => {
-    setEditingSupplier(s);
-    setForm({
-      supplierName: s.supplierName || "",
-      email: s.email || "",
-      phone: s.phone || "",
-      mobile: s.mobile || "",
-      taxNumber: s.taxNumber || "",
-      address: s.address || "",
-      city: s.city || "",
-      state: s.state || "",
-      country: s.country || "",
-      postalCode: s.postalCode || "",
-      paymentTerms: String(s.paymentTerms ?? 30),
-    });
-    setFormError(null);
-    setIsModalOpen(true);
-  };
-
-  const handleFormSubmit = async () => {
-    if (!form.supplierName.trim()) {
-      setFormError("اسم المورد مطلوب");
-      return;
-    }
-    setFormLoading(true);
-    setFormError(null);
-    try {
-      const payload = {
-        supplierName: form.supplierName,
-        email: form.email || "",
-        phone: form.phone || "",
-        mobile: form.mobile || "",
-        taxNumber: form.taxNumber || "",
-        address: form.address || "",
-        city: form.city || "",
-        state: form.state || "",
-        country: form.country || "",
-        postalCode: form.postalCode || "",
-        paymentTerms: Number(form.paymentTerms) || 0,
-      };
-
-      if (editingSupplier) {
-        const res = await fetch(API.update(editingSupplier.id), {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: editingSupplier.id, ...payload }),
-        });
-        if (!res.ok) {
-          const errBody = await res.text().catch(() => "");
-          throw new Error(`HTTP ${res.status}: ${errBody}`);
-        }
-      } else {
-        const res = await fetch(API.create, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) {
-          const errBody = await res.text().catch(() => "");
-          throw new Error(`HTTP ${res.status}: ${errBody}`);
-        }
-      }
-      setIsModalOpen(false);
-      fetchSuppliers();
-    } catch (err: any) {
-      setFormError("فشل الحفظ: " + err.message);
-    } finally {
-      setFormLoading(false);
-    }
-  };
-
-  // ===================== DELETE =====================
-  const confirmDelete = async () => {
-    if (supplierToDelete === null) return;
-    setDeleteLoading(true);
-    try {
-      const res = await fetch(API.delete(supplierToDelete), { method: "DELETE" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      setSupplierToDelete(null);
-      fetchSuppliers();
-    } catch (err: any) {
-      setError("فشل الحذف: " + err.message);
-      setSupplierToDelete(null);
-    } finally {
-      setDeleteLoading(false);
-    }
-  };
-
   // ===================== RENDER =====================
   return (
     <div className="p-4 space-y-4" dir={direction}>
@@ -200,21 +109,26 @@ export default function SuppliersList() {
         <span className="text-[var(--text-main)] font-medium">{t("suppliers")}</span>
       </div>
 
-      <div className="bg-[var(--bg-card)] p-4 rounded-t-2xl border border-[var(--border)] border-b-0 shadow-sm">
+      <div className="bg-white p-4 rounded-lg   ">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
             <Users size={20} className="text-[var(--primary)]" />
             {t("suppliers")}
           </h1>
           <div className="flex gap-2">
-            <button onClick={fetchSuppliers} className="p-2 border border-[var(--border)] rounded-lg text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-gray-50 transition-colors" title="تحديث">
-              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+            <button onClick={() => refetch()} className="p-2 border border-[var(--border)] rounded-lg text-[var(--text-muted)] hover:text-[var(--primary)] hover:bg-gray-50 transition-colors" title="تحديث">
+              <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
             </button>
-            <button onClick={openAdd} className="btn-primary">
+            <Button onClick={() => setIsModalOpen(true)} variant="default" size={"xl"}>
               <Plus size={20} />
               {t("add_supplier")}
-            </button>
+            </Button>
           </div>
+
+          {/* <button onClick={() => setIsAddModalOpen(true)} className="btn-primary">
+            <Plus size={20} />
+            {t("add_customer")}
+          </button> */}
         </div>
         <p className="text-sm text-[var(--text-muted)] mt-1">{t("customize_report_below")}</p>
       </div>
@@ -284,12 +198,12 @@ export default function SuppliersList() {
 
               <Column
                 header={t("actions")}
-                body={(customer) => (
+                body={(supplier) => (
                   <>
                     <button
                       onClick={async () => {
-                        // setSelectedCustomer(customer?.id);
-                        // setIsAddModalOpen(true);
+                        setSelectedSupplier(supplier?.id);
+                        setIsModalOpen(true);
                       }}
                       className="btn-minimal-action btn-compact-action"
                     >
@@ -403,105 +317,15 @@ export default function SuppliersList() {
             </div> */}
 
       {/* ADD / EDIT MODAL */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
-          <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()} dir="rtl">
-            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-[var(--primary)]/5 shrink-0">
-              <h2 className="text-lg font-bold text-[var(--text-main)] flex items-center gap-2">
-                <Users size={20} className="text-[var(--primary)]" />
-                {editingSupplier ? "تعديل مورد" : "إضافة مورد"}
-              </h2>
-              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-gray-100">
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="p-6 space-y-4 overflow-y-auto">
-              {formError && (
-                <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg px-3 py-2 text-sm flex justify-between">
-                  <span>{formError}</span>
-                  <button onClick={() => setFormError(null)}>
-                    <X size={14} />
-                  </button>
-                </div>
-              )}
-
-              {/* Row 1 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">
-                    اسم المورد <span className="text-red-500">*</span>
-                  </label>
-                  <input type="text" value={form.supplierName} onChange={(e) => setForm((f) => ({ ...f, supplierName: e.target.value }))} placeholder="اسم المورد" className="takamol-input" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">البريد الإلكتروني</label>
-                  <input type="email" value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} placeholder="example@email.com" className="takamol-input" />
-                </div>
-              </div>
-
-              {/* Row 2 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">هاتف</label>
-                  <input type="tel" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} placeholder="01xxxxxxxxx" className="takamol-input" dir="ltr" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">موبايل</label>
-                  <input type="tel" value={form.mobile} onChange={(e) => setForm((f) => ({ ...f, mobile: e.target.value }))} placeholder="01xxxxxxxxx" className="takamol-input" dir="ltr" />
-                </div>
-              </div>
-
-              {/* Row 3 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">الرقم الضريبي</label>
-                  <input type="text" value={form.taxNumber} onChange={(e) => setForm((f) => ({ ...f, taxNumber: e.target.value }))} placeholder="xxx-xxx-xxx" className="takamol-input" />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-1.5">شروط الدفع (يوم)</label>
-                  <input type="number" value={form.paymentTerms} onChange={(e) => setForm((f) => ({ ...f, paymentTerms: e.target.value }))} placeholder="30" className="takamol-input" />
-                </div>
-              </div>
-
-              {/* Row 4 */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-1.5">العنوان</label>
-                <input type="text" value={form.address} onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))} placeholder="العنوان بالتفصيل" className="takamol-input" />
-              </div>
-
-              {/* Row 5 */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">المدينة</label>
-                  <input type="text" value={form.city} onChange={(e) => setForm((f) => ({ ...f, city: e.target.value }))} placeholder="القاهرة" className="takamol-input !text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">المحافظة</label>
-                  <input type="text" value={form.state} onChange={(e) => setForm((f) => ({ ...f, state: e.target.value }))} placeholder="القاهرة" className="takamol-input !text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">الدولة</label>
-                  <input type="text" value={form.country} onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))} placeholder="مصر" className="takamol-input !text-sm" />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">الرمز البريدي</label>
-                  <input type="text" value={form.postalCode} onChange={(e) => setForm((f) => ({ ...f, postalCode: e.target.value }))} placeholder="12345" className="takamol-input !text-sm" />
-                </div>
-              </div>
-            </div>
-
-            <div className="px-6 pb-6 pt-2 flex gap-3 shrink-0 border-t border-gray-100">
-              <button onClick={() => setIsModalOpen(false)} className="flex-1 py-2.5 bg-gray-100 rounded-xl font-bold hover:bg-gray-200 transition-colors">
-                إلغاء
-              </button>
-              <button onClick={handleFormSubmit} disabled={formLoading} className="flex-1 py-2.5 bg-[var(--primary)] text-white rounded-xl font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2">
-                {formLoading ? <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" /> : editingSupplier ? "حفظ التعديلات" : "إضافة"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AddParnterModal
+        partner={supplierData}
+        isOpen={isModalOpen}
+        type={"supplier"}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedSupplier(undefined);
+        }}
+      />
 
       {/* DELETE MODAL */}
       {supplierToDelete !== null && (
