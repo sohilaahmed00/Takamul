@@ -12,7 +12,7 @@ import { Toast } from "primereact/toast";
 import { cn } from "@/lib/utils";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL;
-const REAL_API  = "http://takamulerp.runasp.net"; // categories endpoint
+const REAL_API  = "https://takamulerp.runasp.net"; // categories endpoint
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
