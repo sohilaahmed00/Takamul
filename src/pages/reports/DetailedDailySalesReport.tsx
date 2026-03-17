@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, FileSpreadsheet, Printer, Search, Grid, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
+import { FileText, FileSpreadsheet, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 

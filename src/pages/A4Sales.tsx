@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { FileText, Search, Eye, Edit2, RotateCcw, Trash2, ArrowRight, ArrowLeft, Download, Printer, ChevronDown, Menu, LayoutGrid, List as ListIcon, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileCheck, Truck, FileSpreadsheet, Mail, MessageCircle, Copy, Info, UserCog, FileMinus, FileJson } from "lucide-react";
+import { FileText, Search, Edit2, RotateCcw, Trash2, ArrowRight, ArrowLeft, Download, Printer, ChevronDown, Menu, LayoutGrid, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileCheck, Truck, FileSpreadsheet, Mail, MessageCircle, Copy, Info, UserCog, FileMinus, FileJson } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSales } from "@/context/SalesContext";
 import { cn } from "@/lib/utils";
 import { AnimatePresence } from "framer-motion";
 import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
-import Pagination from "@/components/Pagination";
-import MobileDataCard from "@/components/MobileDataCard";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 
 // واجهات البيانات

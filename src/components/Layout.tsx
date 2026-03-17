@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, FileDown, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, FileUp, Plus, DollarSign, RefreshCw, UserPlus, Monitor, User, Truck, Landmark, Banknote, Briefcase, FileMinus, Minus, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, FileDown, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, FileUp, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, FileMinus, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";

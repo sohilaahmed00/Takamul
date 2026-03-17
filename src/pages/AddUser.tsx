@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { UserPlus, ChevronDown } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useUsers } from '@/context/UsersContext';
 import { useUserGroups } from '@/context/UserGroupsContext';
 import { useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 
 export default function AddUser() {
   const { t, direction } = useLanguage();

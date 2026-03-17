@@ -3,8 +3,6 @@ import { Coins, Search, Edit2, Trash2, Plus } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCurrencies, type Currency,  } from "@/context/CurrenciesContext";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
-import Pagination from "@/components/Pagination";
 import MobileDataCard from "@/components/MobileDataCard";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import AddCurrencyModal from "@/components/modals/AddCurrencyModal";

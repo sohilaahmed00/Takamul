@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, FileSpreadsheet, Printer, Search, Grid, Edit, Settings } from 'lucide-react';
+import { FileText, FileSpreadsheet, Edit, Settings } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { cn } from '@/lib/utils';
 
 export default function ListItemsReport() {
   const { direction } = useLanguage();

@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Printer, FileText, FileDown, LayoutGrid, ChevronRight, ChevronLeft, MoreVertical, Calendar, Filter, ArrowUpDown, CheckSquare, Square, ExternalLink, Plus, Edit2, Trash2, Copy } from "lucide-react";
-import { motion } from "framer-motion";
+import { Search, FileText, LayoutGrid, ChevronRight, ChevronLeft, Filter, ArrowUpDown, CheckSquare, Square, Plus, Edit2, Trash2, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PurchaseStatus, PaymentStatus } from "@/types";
 import { usePurchases } from "@/context/PurchasesContext";

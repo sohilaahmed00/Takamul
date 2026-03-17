@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useSettings, type SystemSettings } from '@/context/SettingsContext';
 import { 

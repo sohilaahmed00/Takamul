@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
-import { FileText, Search, ChevronDown, List as ListIcon, FileSpreadsheet, Truck, X, Edit, Trash2, Download, Printer } from 'lucide-react';
+import { FileText, ChevronDown, List as ListIcon, FileSpreadsheet, Truck, X, Edit, Trash2, Download, Printer } from 'lucide-react';
 
 interface DeliveryRecord {
   id: string;

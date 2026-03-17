@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
-import { FileText, FileDown, Upload, FileSpreadsheet } from 'lucide-react';
-import Layout from '@/components/Layout';
+import { FileDown, Upload, FileSpreadsheet } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function ImportProducts() {

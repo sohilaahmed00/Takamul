@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Plus, Search, Edit2, Trash2, Users, ChevronLeft, ChevronRight, MoreVertical, Link as LinkIcon } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Users, ChevronLeft, ChevronRight, Link as LinkIcon } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCustomerGroups, type CustomerGroup,  } from "@/context/CustomerGroupsContext";
 import CustomerGroupsModal from "@/components/modals/CustomerGroupsModal";

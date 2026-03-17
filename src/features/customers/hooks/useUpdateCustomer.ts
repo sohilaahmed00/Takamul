@@ -1,6 +1,6 @@
 "use client";
 
-import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateCustomer } from "../services/customers";
 import { customersKeys } from "../keys/customers.keys";
 import type { createCustomer } from "../types/customers.types";

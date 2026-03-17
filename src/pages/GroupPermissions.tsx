@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGroups, defaultPermissions, type ModulePermissions } from "@/context/GroupsContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { Shield, Save, ArrowRight, CheckSquare, Square, ChevronRight, ChevronLeft, ChevronDown } from "lucide-react";
+import { CheckSquare, Square, ChevronRight, ChevronLeft, ChevronDown } from "lucide-react";
 
 const GroupPermissions = () => {
   const { id } = useParams<{ id: string }>();

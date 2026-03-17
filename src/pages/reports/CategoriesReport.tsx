@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, FileSpreadsheet, Printer, Search, Grid, Network, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { FileText, FileSpreadsheet, Network, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { cn } from '@/lib/utils';
 
 export default function CategoriesReport() {
   const { direction } = useLanguage();

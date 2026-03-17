@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Users, Search, Edit2, Trash2, Plus, X, RefreshCw } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { cn } from "@/lib/utils";
-import MobileDataCard from "@/components/MobileDataCard";
-import Pagination from "@/components/Pagination";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
@@ -74,7 +71,29 @@ export default function SuppliersList() {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const { data, refetch, isFetching } = useGetAllSuppliers();
   const { data: supplierData } = useGetSupplierById(selectedSupplier);
+const confirmDelete = async () => {
+  if (supplierToDelete === null) return;
 
+  try {
+    setDeleteLoading(true);
+
+    const res = await fetch(API.delete(supplierToDelete), {
+      method: "DELETE",
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}`);
+    }
+
+    setSupplierToDelete(null);
+    fetchSuppliers();
+    refetch();
+  } catch (err: any) {
+    setError("فشل حذف المورد: " + err.message);
+  } finally {
+    setDeleteLoading(false);
+  }
+};
   // ===================== FETCH =====================
   const fetchSuppliers = useCallback(async () => {
     setLoading(true);
@@ -177,7 +196,7 @@ export default function SuppliersList() {
           </div>
           {/* Table - Desktop */}
           <div className="overflow-x-auto rounded-xl border border-gray-100">
-            <DataTable responsiveLayout="stack" className="custom-green-table custom-compact-table" value={filteredSuppliers} paginator rows={entriesPerPage} first={(currentPage - 1) * entriesPerPage} onPage={(e) => setCurrentPage(e.page + 1)} dataKey="id" stripedRows={false} /* في هذا التصميم، من الأفضل إيقاف stripedRows للحفاظ على البساطة */>
+            <DataTable responsiveLayout="stack" className="custom-green-table custom-compact-table" value={filteredSuppliers} paginator rows={entriesPerPage} first={(currentPage - 1) * entriesPerPage} onPage={(e) => setCurrentPage(e.page! + 1 )} dataKey="id" stripedRows={false} /* في هذا التصميم، من الأفضل إيقاف stripedRows للحفاظ على البساطة */>
               {/* <Column selectionMode="multiple" headerStyle={{ width: "2rem" }}></Column> */}
 
               <Column field="supplierCode" body={(supplier) => <span className="">{supplier.supplierCode ? supplier?.supplierCode : "-"}</span>} header={t("code")} sortable />

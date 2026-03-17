@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User as UserIcon, Mail, Lock, Image as ImageIcon, Edit3, Check } from 'lucide-react';
+import { Mail, Image as ImageIcon, Edit3 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useUsers } from '@/context/UsersContext';
 import { useUserGroups } from '@/context/UserGroupsContext';

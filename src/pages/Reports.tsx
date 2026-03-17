@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { 
   Barcode, Rocket, ArrowDown, AlertTriangle, Calendar, RefreshCw, 
   Layers, FileText, DollarSign, Sparkles, Layout, XCircle, 
   Hammer, LineChart, Network, Grid, Clock, List, Users, 
   UserCheck, Percent, Search, FileCheck, Calculator, ShoppingCart,
   PieChart, BarChart3, TrendingUp, Settings2, ArrowLeftRight, 
-  Wallet, Landmark, UserPlus, BookOpen, Scale, FileSpreadsheet,
+  Wallet, Landmark, UserPlus, Scale, FileSpreadsheet,
   ChevronLeft
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom';
 
 interface ReportCard {
   title: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   category: string;
   path?: string;
 }
@@ -26,7 +26,6 @@ interface Category {
 
 export default function Reports() {
   const { t, direction } = useLanguage();
-  const isRtl = direction === 'rtl';
   const [activeCategory, setActiveCategory] = useState('items');
 
   const categories: Category[] = [

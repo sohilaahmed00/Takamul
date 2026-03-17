@@ -3,16 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { 
   DollarSign, 
   ShoppingBag, 
-  Wallet, 
   Loader2, 
   TrendingUp, 
-  CreditCard,
-  LayoutGrid,
-  ShoppingCart,
-  List,
-  Package
+  CreditCard
 } from 'lucide-react';
-import Layout from '@/components/Layout';
 
 import RecentTransactions from '@/components/RecentTransactions';
 import { motion } from 'framer-motion';

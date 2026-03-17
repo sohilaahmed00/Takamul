@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { usePromotions } from '../context/PromotionsContext';
-import { Plus, Search, Trash2, Edit2, FileText, ChevronRight, ChevronLeft, LayoutGrid, Tag } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Search, Trash2, Edit2,  LayoutGrid } from 'lucide-react';
 import { cn } from '../lib/utils';
 import MobileDataCard from '@/components/MobileDataCard';
 

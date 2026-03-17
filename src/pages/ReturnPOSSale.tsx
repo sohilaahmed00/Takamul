@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, Search, Trash2, Upload, Plus, X, FileText, Barcode, Printer, DollarSign } from "lucide-react";
+import { RotateCcw, Trash2, Upload, Plus, X, Barcode } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { cn } from "../lib/utils";
 

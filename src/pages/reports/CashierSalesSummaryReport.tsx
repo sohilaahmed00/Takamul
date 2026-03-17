@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, FileSpreadsheet, Printer, Search, Grid, User, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
+import { FileText, FileSpreadsheet, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { cn } from '@/lib/utils';
 
 export default function CashierSalesSummaryReport() {
   const { direction } = useLanguage();

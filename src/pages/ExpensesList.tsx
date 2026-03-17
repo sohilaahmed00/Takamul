@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DollarSign, Search, Link as LinkIcon, ChevronDown, Edit2, Trash2 } from 'lucide-react';
+import { DollarSign, Search, Link as LinkIcon } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import DeleteConfirmationModal from '@/components/DeleteConfirmationModal';

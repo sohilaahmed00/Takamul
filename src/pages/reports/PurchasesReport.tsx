@@ -6,8 +6,6 @@ import {
   Download, 
   ChevronDown, 
   ChevronUp,
-  Filter,
-  Calendar,
   ArrowRight,
   ArrowLeft,
   Star

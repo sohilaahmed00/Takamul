@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
-import { Calendar, Search, Download, Printer, Share2, FileText, Filter } from 'lucide-react';
+import { Calendar, Search, Download, Printer, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Pagination from '@/components/Pagination';
 

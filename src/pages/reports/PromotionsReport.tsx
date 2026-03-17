@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, FileSpreadsheet, Printer, Search, Grid } from 'lucide-react';
+import { FileText, FileSpreadsheet, Printer, Grid } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { cn } from '@/lib/utils';
 
 export default function PromotionsReport() {
   const { direction } = useLanguage();

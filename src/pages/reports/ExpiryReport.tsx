@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { FileText, FileSpreadsheet, Printer, Search, Grid, Camera, Calendar, Landmark } from 'lucide-react';
+import { Camera, Calendar, Landmark } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { cn } from '@/lib/utils';
 import { useLocation } from 'react-router-dom';
 
 export default function ExpiryReport() {

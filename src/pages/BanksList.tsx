@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useBanks } from "@/context/BanksContext";
-import { Edit2, Trash2, Search, List as ListIcon, Plus, Building2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Edit2, Trash2, Search, Plus, Building2 } from "lucide-react";
 import EditBankModal from "@/components/modals/EditBankModal";
 import AddBankModal from "@/components/modals/AddBankModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";

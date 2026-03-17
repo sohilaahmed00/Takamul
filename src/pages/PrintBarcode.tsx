@@ -1,7 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
-    FileText, Printer, Trash2, Plus, Minus, Palette,
-    Type, Calendar, DollarSign, Search, Barcode
+import  { useState, useRef, useEffect } from 'react';
+import { Printer, Trash2, Plus, Minus, Palette,
+    Type, Calendar, DollarSign, Barcode
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useProducts } from '../context/ProductsContext';
