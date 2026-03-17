@@ -249,5 +249,7 @@
   "enable_glasses": "تفعيل النظارات",
   "print_sizes_on_invoice": "طباعة المقاسات في الفاتورة",
   "map": "خريطة",
-  "update_branch_data": "تعديل بيانات الفرع"
+  "update_branch_data": "تعديل بيانات الفرع",
+  "no_results_found": "لا توجد نتائج",
+  "description": "الوصف"
 }

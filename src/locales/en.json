@@ -251,5 +251,8 @@
   "enable_glasses": "Enable Glasses",
   "print_sizes_on_invoice": "Print Sizes on Invoice",
   "map": "Map",
-  "update_branch_data": "Update Branch Data"
+  "update_branch_data": "Update Branch Data",
+  "no_results_found": "No results found",
+  "description": "Description"
+
 }
