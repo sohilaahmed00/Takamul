@@ -12,8 +12,11 @@ export interface SalesOrder {
   orderStatus: "UnConfirmed" | "Confirmed";
 }
 export type CreateCategory = {
-  name: string;
+  CategoryNameAr: string;
+  CategoryNameEn: string;
+  CategoryNameUr: string;
   description: string;
+  ParentCategoryId: number;
 };
 
 export type GetAllSalesOrderResponse = SalesOrder[];

@@ -42,7 +42,6 @@ export default function CustomersList() {
     }
   }, [activeActionMenu]);
 
-  // Close menu on scroll or resize
   useEffect(() => {
     const handleScroll = () => setActiveActionMenu(null);
     window.addEventListener("scroll", handleScroll, true);
@@ -60,22 +59,6 @@ export default function CustomersList() {
       return c.customerName?.toLowerCase().includes(term) || c.phone?.includes(term) || String(c.customerCode)?.includes(term);
     })
     ?.sort((a, b) => b.id - a.id);
-
-  // const toggleSelectAll = () => {
-  //   if (selectedCustomers.length === paginatedCustomers?.length) {
-  //     setSelectedCustomers([]);
-  //   } else {
-  //     setSelectedCustomers(paginatedCustomers?.map((c) => c?.id));
-  //   }
-  // };
-
-  // const toggleSelectCustomer = (id: number) => {
-  //   if (selectedCustomers.includes(id)) {
-  //     setSelectedCustomers(selectedCustomers.filter((sid) => sid !== id));
-  //   } else {
-  //     setSelectedCustomers([...selectedCustomers, id]);
-  //   }
-  // };
 
   return (
     <div className="p-4 space-y-4" dir={direction}>

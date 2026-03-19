@@ -16,7 +16,6 @@ import { useSettings } from '@/context/SettingsContext';
 import { useSales } from '@/context/SalesContext';
 import { usePurchases } from '@/context/PurchasesContext';
 import { useExpenses } from '@/context/ExpensesContext';
-import { useCustomers } from '@/context/CustomersContext';
 import { formatCurrency } from '@/lib/format';
 
 const StatCard = ({ title, value, icon: Icon, colorClass, bgClass, delay, onClick }: any) => {
@@ -53,7 +52,6 @@ export default function Dashboard() {
   const { sales } = useSales();
   const { purchases } = usePurchases();
   const { expenses } = useExpenses();
-  const { customers } = useCustomers();
   const navigate = useNavigate();
 
   const totalSalesValue = sales.reduce((sum, s) => sum + s.grandTotal, 0);

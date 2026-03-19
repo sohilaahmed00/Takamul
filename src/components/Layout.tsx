@@ -196,7 +196,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 <SubmenuItem label={t("products_list")} icon={List} path="/products" />
                 <SubmenuItem label={t("add_product")} icon={PlusCircle} path="/products/create" />
-                <SubmenuItem label={t("import_products")} icon={FileDown} path="/products/import" />
+                {/* <SubmenuItem label={t("import_products")} icon={FileDown} path="/products/import" /> */}
                 <SubmenuItem label={t("print_barcode")} icon={Tag} path="/products/barcode" />
                 <SubmenuItem label={t("quantity_adjustments")} icon={SlidersHorizontal} path="/products/quantity-adjustments" />
                 <SubmenuItem label={t("groups")} icon={Folder} path="/products/groups" />
