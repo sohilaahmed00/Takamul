@@ -171,7 +171,8 @@ export default function QuantityAdjustments() {
           </div>
         </div>
 
-        <div className="hidden md:block overflow-visible pb-20">
+        {/* ── Desktop Table ── */}
+        <div className="hidden md:block overflow-visible pb-4">
           <div className="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
             <table className="takamol-table mb-0">
               <thead>
@@ -184,52 +185,63 @@ export default function QuantityAdjustments() {
               </thead>
               <tbody>
                 {isLoading ? (
-                  <tr>
-                    <td colSpan={4} className="text-center py-8 text-gray-500 font-bold">جاري التحميل...</td>
-                  </tr>
+                  <tr><td colSpan={4} className="text-center py-8 text-gray-500 font-bold">جاري التحميل...</td></tr>
                 ) : isError ? (
-                  <tr>
-                    <td colSpan={4} className="text-center py-8 text-red-500 font-bold">فشل تحميل البيانات</td>
-                  </tr>
+                  <tr><td colSpan={4} className="text-center py-8 text-red-500 font-bold">فشل تحميل البيانات</td></tr>
                 ) : filteredAdjustments.length > 0 ? (
                   filteredAdjustments.map((adj) => (
                     <tr key={adj.id}>
-                      <td className="text-gray-800 font-bold whitespace-nowrap">
-                        {formatDate(adj.operationDate)}
-                      </td>
-                      <td className="text-gray-600 font-medium">
-                        {/* ✅ Resolve UUID to username from JWT/localStorage */}
-                        {getPerformedByName(adj.performedBy)}
-                      </td>
+                      <td className="text-gray-800 font-bold whitespace-nowrap">{formatDate(adj.operationDate)}</td>
+                      <td className="text-gray-600 font-medium">{getPerformedByName(adj.performedBy)}</td>
                       <td className="text-gray-600">{adj.notes || "-"}</td>
                       <td className="text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <button
-                            onClick={() => navigate(`/products/quantity-adjustments/view/${adj.id}`)}
-                            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs font-bold transition-colors shadow-sm"
-                          >
-                            عرض
-                          </button>
-                          <button
-                            onClick={() => navigate(`/products/quantity-adjustments/edit/${adj.id}`)}
-                            className="bg-[#2ecc71] hover:bg-[#27ae60] text-white px-3 py-1.5 rounded-md text-xs font-bold transition-colors shadow-sm"
-                          >
-                            تعديل
-                          </button>
+                          <button onClick={() => navigate(`/products/quantity-adjustments/view/${adj.id}`)} className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-md text-xs font-bold transition-colors shadow-sm">عرض</button>
+                          <button onClick={() => navigate(`/products/quantity-adjustments/edit/${adj.id}`)} className="bg-[#2ecc71] hover:bg-[#27ae60] text-white px-3 py-1.5 rounded-md text-xs font-bold transition-colors shadow-sm">تعديل</button>
                         </div>
                       </td>
                     </tr>
                   ))
                 ) : (
-                  <tr>
-                    <td colSpan={4} className="text-center py-8 text-gray-500 font-bold">
-                      لا توجد سجلات، قم بإضافة تعديل جديد.
-                    </td>
-                  </tr>
+                  <tr><td colSpan={4} className="text-center py-8 text-gray-500 font-bold">لا توجد سجلات، قم بإضافة تعديل جديد.</td></tr>
                 )}
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* ── Mobile Cards ── */}
+        <div className="md:hidden space-y-3">
+          {isLoading ? (
+            <div className="text-center py-8 text-gray-500 font-bold">جاري التحميل...</div>
+          ) : isError ? (
+            <div className="text-center py-8 text-red-500 font-bold">فشل تحميل البيانات</div>
+          ) : filteredAdjustments.length > 0 ? (
+            filteredAdjustments.map((adj) => (
+              <div key={adj.id} className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm space-y-3">
+                <div className="flex justify-between items-start">
+                  <span className="text-xs text-gray-400 font-medium">التاريخ</span>
+                  <span className="text-sm font-bold text-gray-800">{formatDate(adj.operationDate)}</span>
+                </div>
+                <div className="flex justify-between items-center border-t border-gray-100 pt-2">
+                  <span className="text-xs text-gray-400 font-medium">مدخل البيانات</span>
+                  <span className="text-sm font-medium text-gray-600 truncate max-w-[180px]">{getPerformedByName(adj.performedBy)}</span>
+                </div>
+                {adj.notes && (
+                  <div className="flex justify-between items-center border-t border-gray-100 pt-2">
+                    <span className="text-xs text-gray-400 font-medium">مذكرة</span>
+                    <span className="text-sm text-gray-600">{adj.notes}</span>
+                  </div>
+                )}
+                <div className="flex gap-2 pt-2 border-t border-gray-100">
+                  <button onClick={() => navigate(`/products/quantity-adjustments/view/${adj.id}`)} className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg text-sm font-bold transition-colors">عرض</button>
+                  <button onClick={() => navigate(`/products/quantity-adjustments/edit/${adj.id}`)} className="flex-1 bg-[#2ecc71] hover:bg-[#27ae60] text-white py-2 rounded-lg text-sm font-bold transition-colors">تعديل</button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500 font-bold">لا توجد سجلات، قم بإضافة تعديل جديد.</div>
+          )}
         </div>
 
         <div className="flex flex-col md:flex-row justify-between items-center mt-4 gap-4 pt-4">
