@@ -530,7 +530,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Pencil, Eye, Plus, UserPlus, X, FileText, ChevronRight, Save, RotateCcw, DollarSign, Package, Building2, CheckCircle, AlertCircle, Loader2, Search, ShoppingCart, CreditCard, StickyNote, Calendar, Hash, Percent, Receipt, ChevronDown } from "lucide-react";
 
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
-const API_BASE = "http://takamulerp.runasp.net/api";
+const API_BASE = "https://takamulerp.runasp.net/api";
 
 async function apiFetch(path, options = {}) {
   try {

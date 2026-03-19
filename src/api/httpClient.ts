@@ -10,7 +10,10 @@ type HttpClientOptions = {
   responseType?: "json" | "blob";
 };
 
-export async function httpClient<T>(url: string, options?: HttpClientOptions): Promise<T> {
+export async function httpClient<T>(
+  url: string,
+  options?: HttpClientOptions
+): Promise<T> {
   const response = await axiosClient({
     url,
     method: options?.method ?? "GET",

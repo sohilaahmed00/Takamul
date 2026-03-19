@@ -1,359 +1,349 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  Edit,
-  Trash2,
-  Bold,
-  Italic,
-  Underline,
-  List,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Link as LinkIcon,
-  Search,
-  Save,
-  RotateCcw
-} from 'lucide-react';
-import { useLanguage } from '@/context/LanguageContext';
-import { useProducts } from '@/context/ProductsContext';
-import { useAdjustments } from '@/context/AdjustmentsContext';
+  Edit, Trash2, Bold, Italic, Underline, List,
+  AlignLeft, AlignCenter, AlignRight, Search, Save, RotateCcw,
+  CheckCircle, XCircle, AlertCircle,
+} from "lucide-react";
+import axios from "axios";
+import { useLanguage } from "@/context/LanguageContext";
+import { useGetQuantityAdjustmentDetails } from "@/features/quantity-adjustments/hooks/useGetQuantityAdjustmentDetails";
+import { useUpdateQuantityAdjustment } from "@/features/quantity-adjustments/hooks/useUpdateQuantityAdjustment";
+import { useGetStockInventory } from "@/features/quantity-adjustments/hooks/useGetStockInventory";
+import type {
+  QuantityAdjustmentOperationType,
+  QuantityAdjustmentRow,
+} from "@/features/quantity-adjustments/types/adjustments.types";
 
+// ─── Toast ────────────────────────────────────────────────────────────────────
+type ToastType = "success" | "error" | "warning";
+
+function Toast({ message, type, onClose }: { message: string; type: ToastType; onClose: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 3500);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  const styles: Record<ToastType, string> = {
+    success: "bg-green-600 border-green-700",
+    error: "bg-red-600 border-red-700",
+    warning: "bg-yellow-500 border-yellow-600",
+  };
+  const Icon = type === "success" ? CheckCircle : type === "error" ? XCircle : AlertCircle;
+
+  return (
+    <div
+      className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3 text-white px-5 py-3.5 rounded-xl shadow-2xl border ${styles[type]}`}
+      style={{ minWidth: 280 }}
+    >
+      <Icon size={20} className="shrink-0" />
+      <span className="font-bold text-sm">{message}</span>
+      <button onClick={onClose} className="mr-auto opacity-70 hover:opacity-100 transition-opacity text-lg leading-none">×</button>
+    </div>
+  );
+}
+
+// ─── Confirm Modal ─────────────────────────────────────────────────────────────
+function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onConfirm: () => void; onCancel: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 w-80 text-right" dir="rtl">
+        <div className="flex items-center gap-3 mb-4">
+          <AlertCircle size={22} className="text-yellow-500 shrink-0" />
+          <p className="font-bold text-gray-800 text-sm leading-relaxed">{message}</p>
+        </div>
+        <div className="flex gap-2 justify-end">
+          <button onClick={onCancel} className="px-4 py-2 rounded-lg text-sm font-bold border border-gray-300 text-gray-600 hover:bg-gray-50 transition-colors">إلغاء</button>
+          <button onClick={onConfirm} className="px-4 py-2 rounded-lg text-sm font-bold bg-red-600 text-white hover:bg-red-700 transition-colors">تأكيد</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+function normalizeOperationType(value: unknown): QuantityAdjustmentOperationType {
+  if (value === "Add") return "Add";
+  if (value === "Remove") return "Remove";
+  return "Add";
+}
+
+function extractErrorMessage(error: unknown) {
+  if (axios.isAxiosError(error)) {
+    return error.response?.data?.message || error.response?.data?.title || "حدث خطأ أثناء التحديث";
+  }
+  if (error instanceof Error) return error.message;
+  return "حدث خطأ أثناء التحديث";
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
 const EditQuantityAdjustment = () => {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { products } = useProducts();
-  const { adjustments, updateAdjustment } = useAdjustments();
+  const adjustmentId = Number(id);
 
-  const adjustmentId = parseInt(id || '0', 10);
-  const adjustment = adjustments.find((a: any) => a.id === adjustmentId) || adjustments[0];
+  const updateMutation = useUpdateQuantityAdjustment();
+  const { data, isLoading, isError } = useGetQuantityAdjustmentDetails(adjustmentId);
 
   const [formData, setFormData] = useState({
-    date: adjustment?.date || '2026-03-06 09:30:00',
-    refNo: adjustment?.refNo || 'UP0138',
-    branch: adjustment?.branch || 'شركة دقة الحلول',
-    note: adjustment?.note || 'تعديل على الجرد السابق',
-    items: (adjustment?.items || [
-      {
-        id: 1,
-        code: '60990980',
-        name: 'عبايه كريب مع اكمام مموجه',
-        availableQty: '10.00',
-        type: 'إضافة',
-        qty: '5',
-        cost: '150',
-        serial: ''
-      }
-    ]) as any[]
+    date: "",
+    note: "",
+    items: [] as QuantityAdjustmentRow[],
   });
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
+  const seededRef = useRef(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
+  const showToast = useCallback((message: string, type: ToastType) => setToast({ message, type }), []);
+
+  // Load full inventory to get stockInventoryId from productName matching
+  const { data: inventoryResponse } = useGetStockInventory({
+    pageNumber: 1,
+    pageSize: 500,
+    search: "",
+  });
+
+  const inventoryOptions = inventoryResponse?.data ?? [];
+
+  // ✅ Seed form from API data — items now come from bulk-adjustments which includes them
   useEffect(() => {
-    if (adjustment) {
-      setFormData({
-        date: adjustment.date || '2026-03-06 09:30:00',
-        refNo: adjustment.refNo || '',
-        branch: adjustment.branch || 'شركة دقة الحلول',
-        note: adjustment.note || '',
-        items: adjustment.items || []
-      });
-    }
-  }, [adjustment]);
+    if (!data || seededRef.current) return;
+    // Wait for inventory to load so we can match stockInventoryId
+    if (inventoryOptions.length === 0) return;
+    seededRef.current = true;
+
+    setFormData({
+      date: data.operationDate
+        ? new Date(data.operationDate).toLocaleString("en-GB").replace(",", "")
+        : new Date().toLocaleString("en-GB").replace(",", ""),
+      note: data.notes ?? "",
+      items: (data.items ?? []).map((item) => {
+        // Match by productName to get stockInventoryId since API doesn't return it in items
+        const match = inventoryOptions.find(
+          (inv) => inv.productName === item.productName
+        );
+
+        return {
+          stockInventoryId: Number(match?.id ?? item.id ?? 0),
+          productId: match?.productId,
+          productName: item.productName ?? "",
+          warehouseId: item.warehouseId ?? match?.warehouseId,
+          warehouseName: match?.warehouseName ?? "",
+          quantityAvailable: Number(match?.quantityAvailable ?? item.quantity ?? 0),
+          operationType: normalizeOperationType(item.operationType),
+          quantityChanged: Number(item.quantityChanged ?? 0),
+        };
+      }),
+    });
+  }, [data, inventoryOptions]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowDropdown(false);
-      }
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setShowDropdown(false);
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredProducts = products.filter(
-    (p: any) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.code.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredProducts = useMemo(() => {
+    if (!searchTerm.trim()) return inventoryOptions;
+    return inventoryOptions.filter((p) =>
+      `${p.productName} ${p.productId ?? ""}`.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [inventoryOptions, searchTerm]);
 
-  const handleReset = () => {
-    if (window.confirm('هل أنت متأكد من إعادة تعيين التعديلات؟')) {
-      setFormData({
-        date: adjustment?.date || '2026-03-06 09:30:00',
-        refNo: adjustment?.refNo || '',
-        branch: adjustment?.branch || 'شركة دقة الحلول',
-        note: adjustment?.note || '',
-        items: adjustment?.items || []
-      });
-    }
+  const handleReset = () => setConfirmReset(true);
+  const doReset = () => {
+    setFormData((prev) => ({ ...prev, items: [], note: "" }));
+    setConfirmReset(false);
   };
 
-  const handleSave = () => {
-    if (!adjustment) {
-      alert('لم يتم العثور على التعديل');
-      return;
-    }
-
+  const handleSave = async () => {
     if (formData.items.length === 0) {
-      alert('يرجى إضافة أصناف أولاً');
+      showToast("يرجى إضافة أصناف أولاً", "warning");
       return;
     }
-
-    updateAdjustment(adjustment.id, {
-      refNo: formData.refNo,
-      note: formData.note,
-      items: formData.items
-    });
-
-    alert('تم حفظ البيانات بنجاح!');
-    navigate('/products/quantity-adjustments');
+    try {
+      setSubmitError("");
+      await updateMutation.mutateAsync({
+        id: adjustmentId,
+        payload: {
+          notes: formData.note || undefined,
+          items: formData.items.map((item) => ({
+            stockInventoryId: item.stockInventoryId,
+            operationType: item.operationType,
+            quantity: item.quantityChanged,
+          })),
+        },
+      });
+      showToast("تم حفظ البيانات بنجاح!", "success");
+      setTimeout(() => navigate(`/products/quantity-adjustments/view/${adjustmentId}`), 1500);
+    } catch (error) {
+      setSubmitError(extractErrorMessage(error));
+    }
   };
 
   const handleAddItem = (product: any) => {
-    const existingItem = formData.items.find((item: any) => item.id === product.id);
-
-    if (existingItem) {
-      setFormData((prev) => ({
-        ...prev,
-        items: prev.items.map((item: any) =>
-          item.id === product.id
-            ? { ...item, qty: (parseInt(item.qty, 10) + 1).toString() }
-            : item
-        )
-      }));
-    } else {
-      const newItem = {
-        id: product.id,
-        code: product.code,
-        name: product.name,
-        availableQty: product.quantity?.toString() || '10.00',
-        type: 'إضافة',
-        qty: '1',
-        cost: product.cost?.toString() || '150',
-        serial: ''
-      };
-
-      setFormData((prev) => ({
-        ...prev,
-        items: [...prev.items, newItem]
-      }));
-    }
-
-    setSearchTerm('');
+    if (formData.items.find((i) => i.stockInventoryId === product.id)) return;
+    setFormData((prev) => ({
+      ...prev,
+      items: [
+        ...prev.items,
+        {
+          stockInventoryId: Number(product.id),
+          productId: Number(product.productId ?? 0),
+          productName: product.productName,
+          warehouseId: product.warehouseId,
+          warehouseName: product.warehouseName,
+          quantityAvailable: Number(product.quantityAvailable ?? 0),
+          operationType: "Add" as QuantityAdjustmentOperationType,
+          quantityChanged: 1,
+        },
+      ],
+    }));
+    setSearchTerm("");
     setShowDropdown(false);
   };
 
-  const handleItemChange = (itemId: number, field: string, value: string) => {
+  const handleItemChange = (stockInventoryId: number, field: keyof QuantityAdjustmentRow, value: string) => {
     setFormData((prev) => ({
       ...prev,
-      items: prev.items.map((item: any) =>
-        item.id === itemId ? { ...item, [field]: value } : item
-      )
+      items: prev.items.map((item) =>
+        item.stockInventoryId === stockInventoryId
+          ? {
+              ...item,
+              [field]:
+                field === "quantityChanged" ? Number(value)
+                : field === "operationType" ? (value as QuantityAdjustmentOperationType)
+                : value,
+            }
+          : item
+      ),
     }));
   };
 
-  const handleRemoveItem = (itemId: number) => {
-    setFormData((prev) => ({
-      ...prev,
-      items: prev.items.filter((item: any) => item.id !== itemId)
-    }));
+  const handleRemoveItem = (stockInventoryId: number) => {
+    setFormData((prev) => ({ ...prev, items: prev.items.filter((i) => i.stockInventoryId !== stockInventoryId) }));
   };
+
+  if (isLoading) return <div className="p-6 font-bold text-gray-500">جاري التحميل...</div>;
+  if (isError) return <div className="p-6 font-bold text-red-500">فشل تحميل البيانات</div>;
 
   return (
     <div className="space-y-4 text-black" dir={direction}>
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {confirmReset && (
+        <ConfirmModal
+          message="هل أنت متأكد من إعادة تعيين التعديلات؟"
+          onConfirm={doReset}
+          onCancel={() => setConfirmReset(false)}
+        />
+      )}
+
       <div className="text-sm text-gray-500 flex items-center gap-1 font-medium px-2">
-        <span>{t('home')}</span> / <span>{t('products')}</span> /{' '}
-        <span className="text-gray-800">تعديل تعديل كميات</span>
+        <span>{t("home")}</span> / <span>{t("products")}</span> /{" "}
+        <span className="text-gray-800">تعديل التعديل الكمي</span>
       </div>
 
       <div className="bg-white p-4 rounded-t-xl border-b border-gray-200">
         <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-          <Edit size={20} className="text-primary" />
-          تعديل التعديل الكمي
+          <Edit size={20} className="text-primary" /> تعديل التعديل الكمي
         </h1>
-        <p className="text-sm text-gray-500 mt-1 font-medium">
-          برجاء ادخال المعلومات أدناه. الحقول التي تحمل علامة{' '}
-          <span className="text-red-500">*</span> إجبارية.
-        </p>
+        <p className="text-sm text-gray-500 mt-1 font-medium">تعديل بيانات العملية</p>
       </div>
 
       <div className="bg-white rounded-b-xl shadow-sm border border-gray-200 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 flex-row-reverse">
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              {t('date')} *
-            </label>
-            <input
-              type="text"
-              value={formData.date}
-              className="takamol-input font-mono text-center bg-gray-50"
-              readOnly
-            />
-          </div>
 
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              {t('ref_no')}
-            </label>
-            <input
-              type="text"
-              value={formData.refNo}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, refNo: e.target.value }))
-              }
-              className="takamol-input text-center font-bold text-[var(--primary)]"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">
-              {t('branch')} *
-            </label>
-            <select
-              value={formData.branch}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, branch: e.target.value }))
-              }
-              className="takamol-input font-bold"
-            >
-              <option>شركة دقة الحلول</option>
-              <option>الفرع الرئيسي</option>
-            </select>
-          </div>
+        {/* Date */}
+        <div className="mb-6">
+          <label className="block text-sm font-bold text-gray-700 mb-2">{t("date")} *</label>
+          <input type="text" value={formData.date} className="takamol-input font-mono text-center bg-gray-50" readOnly />
         </div>
 
+        {/* Search */}
         <div className="mb-6">
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            {t('products')} *
-          </label>
+          <label className="block text-sm font-bold text-gray-700 mb-2">{t("products")} *</label>
           <div className="relative" ref={searchRef}>
             <div className="relative">
               <input
                 type="text"
                 placeholder="الرجاء إضافة الأصناف..."
                 value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setShowDropdown(true);
-                }}
+                onChange={(e) => { setSearchTerm(e.target.value); setShowDropdown(true); }}
                 onFocus={() => setShowDropdown(true)}
                 className="takamol-input !pr-10"
               />
-              <Search
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             </div>
-
             {showDropdown && searchTerm && (
               <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 shadow-lg z-10 mt-1 rounded-md overflow-y-auto max-h-60">
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map((product: any) => (
-                    <button
-                      key={product.id}
-                      type="button"
-                      onClick={() => handleAddItem(product)}
-                      className="w-full p-3 text-right hover:bg-gray-50 text-sm border-b border-gray-100 last:border-0 font-bold"
-                    >
-                      {product.code} - {product.name}
-                    </button>
-                  ))
-                ) : (
-                  <div className="p-3 text-center text-sm text-gray-500 font-bold">
-                    لا توجد نتائج
-                  </div>
-                )}
+                {filteredProducts.length > 0
+                  ? filteredProducts.map((p) => (
+                      <button key={p.id} onClick={() => handleAddItem(p)}
+                        className="w-full p-3 text-right hover:bg-gray-50 text-sm border-b border-gray-100 last:border-0 font-bold">
+                        {p.productName} - {p.productId}
+                      </button>
+                    ))
+                  : <div className="p-3 text-center text-sm text-gray-500 font-bold">لا توجد نتائج</div>
+                }
               </div>
             )}
           </div>
         </div>
 
+        {/* Table */}
         <div className="overflow-hidden border border-gray-200 rounded-xl shadow-sm">
           <table className="w-full text-sm text-right text-black border-collapse">
             <thead className="bg-[#2ecc71] text-white">
               <tr>
                 <th className="p-3 w-12 text-center border-l border-white/20">حذف</th>
-                <th className="p-3 border-l border-white/20">اسم الصنف (كود الصنف)</th>
-                <th className="p-3 text-center border-l border-white/20">
-                  الكمية المتاحة
-                </th>
+                <th className="p-3 border-l border-white/20">اسم الصنف</th>
+                <th className="p-3 text-center border-l border-white/20">كود الصنف</th>
+                <th className="p-3 text-center border-l border-white/20">الكمية المتاحة</th>
                 <th className="p-3 text-center border-l border-white/20">نوع</th>
-                <th className="p-3 text-center border-l border-white/20">كمية</th>
-                <th className="p-3 text-center border-l border-white/20">التكلفة</th>
-                <th className="p-3">رقم السيريال</th>
+                <th className="p-3 text-center">كمية</th>
               </tr>
             </thead>
             <tbody className="bg-white">
               {formData.items.length === 0 ? (
                 <tr>
-                  <td
-                    colSpan={7}
-                    className="p-8 text-center text-gray-400 italic bg-gray-50 font-bold"
-                  >
-                    لا توجد أصناف مضافة
+                  <td colSpan={6} className="p-8 text-center text-gray-400 italic bg-gray-50 font-bold">
+                    لا توجد أصناف مضافة — ابحث عن صنف وأضفه
                   </td>
                 </tr>
               ) : (
-                formData.items.map((item: any) => (
-                  <tr
-                    key={item.id}
-                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-                  >
+                formData.items.map((item) => (
+                  <tr key={item.stockInventoryId} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="p-3 text-center border-l border-gray-100">
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors mx-auto block"
-                      >
+                      <button onClick={() => handleRemoveItem(item.stockInventoryId)}
+                        className="text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors mx-auto block">
                         <Trash2 size={18} />
                       </button>
                     </td>
-                    <td className="p-3 font-bold border-l border-gray-100">
-                      {item.code} - {item.name}
-                    </td>
-                    <td
-                      className="p-3 text-center font-mono border-l border-gray-100"
-                      dir="ltr"
-                    >
-                      {item.availableQty}
-                    </td>
+                    <td className="p-3 font-bold border-l border-gray-100">{item.productName}</td>
+                    <td className="p-3 text-center border-l border-gray-100">{item.productId ?? "-"}</td>
+                    <td className="p-3 text-center font-mono border-l border-gray-100" dir="ltr">{item.quantityAvailable}</td>
                     <td className="p-3 text-center border-l border-gray-100">
                       <select
-                        value={item.type}
-                        onChange={(e) =>
-                          handleItemChange(item.id, 'type', e.target.value)
-                        }
+                        value={item.operationType}
+                        onChange={(e) => handleItemChange(item.stockInventoryId, "operationType", e.target.value)}
                         className="border border-gray-300 rounded px-2 py-1.5 text-sm bg-white outline-none focus:border-[#2ecc71] font-bold"
                       >
-                        <option>طرح</option>
-                        <option>إضافة</option>
+                        <option value="Remove">طرح</option>
+                        <option value="Add">إضافة</option>
                       </select>
                     </td>
-                    <td className="p-3 text-center border-l border-gray-100">
+                    <td className="p-3 text-center">
                       <input
-                        type="text"
-                        value={item.qty}
-                        onChange={(e) =>
-                          handleItemChange(item.id, 'qty', e.target.value)
-                        }
+                        type="number" min={1} value={item.quantityChanged}
+                        onChange={(e) => handleItemChange(item.stockInventoryId, "quantityChanged", e.target.value)}
                         className="border border-gray-300 rounded px-2 py-1.5 text-sm w-16 text-center outline-none focus:border-[#2ecc71] font-bold"
-                      />
-                    </td>
-                    <td className="p-3 text-center font-bold border-l border-gray-100">
-                      {item.cost}
-                    </td>
-                    <td className="p-3">
-                      <input
-                        type="text"
-                        value={item.serial}
-                        onChange={(e) =>
-                          handleItemChange(item.id, 'serial', e.target.value)
-                        }
-                        className="border border-gray-300 rounded px-2 py-1.5 text-sm w-full outline-none focus:border-[#2ecc71]"
                       />
                     </td>
                   </tr>
@@ -363,64 +353,45 @@ const EditQuantityAdjustment = () => {
           </table>
         </div>
 
+        {/* Note */}
         <div className="mt-6">
-          <label className="block text-sm font-bold text-gray-700 mb-2">
-            {t('note')}
-          </label>
+          <label className="block text-sm font-bold text-gray-700 mb-2">{t("note")}</label>
           <div className="border border-gray-300 rounded-lg overflow-hidden">
-            <div
-              className="bg-gray-50 border-b border-gray-300 p-2 flex gap-1 justify-end"
-              dir="ltr"
-            >
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600">
-                <Bold size={16} />
-              </button>
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600">
-                <Italic size={16} />
-              </button>
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600">
-                <Underline size={16} />
-              </button>
-              <div className="w-px bg-gray-300 h-5 mx-2 my-auto"></div>
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600">
-                <AlignLeft size={16} />
-              </button>
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600">
-                <AlignCenter size={16} />
-              </button>
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600">
-                <AlignRight size={16} />
-              </button>
-              <div className="w-px bg-gray-300 h-5 mx-2 my-auto"></div>
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600">
-                <List size={16} />
-              </button>
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600">
-                <LinkIcon size={16} />
-              </button>
+            <div className="bg-gray-50 border-b border-gray-300 p-2 flex gap-1 justify-end" dir="ltr">
+              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><Bold size={16} /></button>
+              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><Italic size={16} /></button>
+              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><Underline size={16} /></button>
+              <div className="w-px bg-gray-300 h-5 mx-2 my-auto" />
+              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><AlignLeft size={16} /></button>
+              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><AlignCenter size={16} /></button>
+              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><AlignRight size={16} /></button>
+              <div className="w-px bg-gray-300 h-5 mx-2 my-auto" />
+              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><List size={16} /></button>
             </div>
             <textarea
               value={formData.note}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, note: e.target.value }))
-              }
+              onChange={(e) => setFormData((prev) => ({ ...prev, note: e.target.value }))}
               className="w-full p-4 h-24 outline-none text-right bg-white resize-y"
             />
           </div>
         </div>
 
+        {submitError && (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 font-bold">
+            {submitError}
+          </div>
+        )}
+
         <div className="flex items-center gap-3 mt-8 pt-6 border-t border-gray-100">
           <button
-            type="button"
             onClick={handleSave}
-            className="flex items-center justify-center gap-2 bg-[#00a651] text-white px-6 py-2.5 rounded-md font-bold hover:bg-[#008f45] transition-colors shadow-sm text-[15px]"
+            disabled={updateMutation.isPending}
+            className="flex items-center justify-center gap-2 bg-[#00a651] text-white px-6 py-2.5 rounded-md font-bold hover:bg-[#008f45] transition-colors shadow-sm text-[15px] disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <span>حفظ البيانات</span>
+            <span>{updateMutation.isPending ? "جاري الحفظ..." : "حفظ البيانات"}</span>
             <Save size={18} />
           </button>
-
           <button
-            type="button"
             onClick={handleReset}
             className="flex items-center justify-center gap-2 bg-[#e30613] text-white px-6 py-2.5 rounded-md font-bold hover:bg-[#cc0510] transition-colors shadow-sm text-[15px]"
           >
