@@ -10,6 +10,7 @@ type HttpClientOptions = {
   responseType?: "json" | "blob";
 };
 
+<<<<<<< HEAD
 export async function httpClient<T>(
   url: string,
   options?: HttpClientOptions
@@ -25,3 +26,22 @@ export async function httpClient<T>(
 
   return response.data as T;
 }
+=======
+export async function httpClient<T>(url: string, options?: HttpClientOptions): Promise<T> {
+  try {
+    const response = await axiosClient({
+      url,
+      method: options?.method ?? "GET",
+      params: options?.params,
+      data: options?.data,
+      headers: options?.headers,
+      responseType: options?.responseType ?? "json",
+    });
+
+    return response.data as T;
+  } catch (error) {
+    // console.log("API ERROR:", error.response?.data);
+    throw error;
+  }
+}
+>>>>>>> 7e375b1 (Finish Categories & Products & Additions)

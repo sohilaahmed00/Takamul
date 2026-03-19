@@ -4,9 +4,6 @@ const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export const axiosClient = axios.create({
   baseURL: API_BASE,
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 axiosClient.interceptors.request.use((config) => {
@@ -22,5 +19,12 @@ axiosClient.interceptors.request.use((config) => {
 
 axiosClient.interceptors.response.use(
   (response) => response,
+<<<<<<< HEAD
   (error) => Promise.reject(error)
 );
+=======
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+>>>>>>> 7e375b1 (Finish Categories & Products & Additions)

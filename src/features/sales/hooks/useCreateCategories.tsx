@@ -1,5 +1,3 @@
-"use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createCategory } from "../services/categories";
 import type { CreateCategory } from "../types/categories.types";

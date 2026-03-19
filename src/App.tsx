@@ -9,8 +9,6 @@ import ForgotPassword from "@/pages/ForgotPassword";
 import VerifyOTP from "@/pages/VerifyOTP";
 import ResetPassword from "@/pages/ResetPassword";
 import Dashboard from "@/pages/Dashboard";
-import ProductsList from "@/pages/ProductsList";
-import AddProduct from "@/pages/AddProduct";
 import EditProduct from "@/pages/EditProduct";
 import ImportProducts from "@/pages/ImportProducts";
 import PrintBarcode from "@/pages/PrintBarcode";
@@ -21,8 +19,6 @@ import QuotesList from "@/pages/QuotesList";
 import AddQuote from "@/pages/AddQuote";
 import ViewQuote from "@/pages/ViewQuote";
 import CreateSalesInvoice from "@/pages/CreateSalesInvoice";
-import Groups from "@/pages/Groups";
-
 import Units from "@/pages/Units";
 import QuantityAdjustments from "@/pages/QuantityAdjustments";
 import EditQuantityAdjustment from "@/pages/EditQuantityAdjustment";
@@ -46,6 +42,10 @@ import AddSimplifiedTaxInvoice from "@/pages/AddSimplifiedTaxInvoice";
 import ImportSales from "@/pages/ImportSales";
 import ImportPurchases from "@/pages/ImportPurchases";
 import ViewQuantityAdjustment from "@/pages/ViewQuantityAdjustment";
+import CategoriesList from "./pages/CategoriesList";
+import Additions from "./pages/Additions";
+import AddProduct from "./pages/AddProduct";
+
 export default function App() {
   return (
     <Routes>
@@ -59,15 +59,6 @@ export default function App() {
         element={
           <Layout>
             <Dashboard />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/products"
-        element={
-          <Layout>
-            <ProductsList />
           </Layout>
         }
       />
@@ -328,7 +319,7 @@ export default function App() {
         path="/products/groups"
         element={
           <Layout>
-            <Groups />
+            <CategoriesList />
           </Layout>
         }
       />
@@ -342,6 +333,14 @@ export default function App() {
         }
       />
 
+      <Route
+        path="/products/additions"
+        element={
+          <Layout>
+            <Additions />
+          </Layout>
+        }
+      />
       <Route
         path="/products/quantity-adjustments"
         element={
@@ -377,6 +376,5 @@ export default function App() {
         }
       />
     </Routes>
-
   );
 }

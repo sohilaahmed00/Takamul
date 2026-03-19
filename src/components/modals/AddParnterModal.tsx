@@ -160,7 +160,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
       if (isSupplier) {
         payload = {
           supplierName: data.name,
-          email: "ahmed@gmail.com",
+          email: "",
           phone: data.phone,
           mobile: data.mobile,
           address: data.address,
@@ -188,7 +188,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
 
       if (partner) {
         if (isSupplier) {
-          console.log(payload);
           const res = await updateSupplier({ id: partner?.id, data: payload as createSupplier });
           notifySuccess("تم تعديل المورد بنجاح");
         } else {
@@ -446,17 +445,17 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
                       </Field>
                     )}
                   />
-                    <Controller
-                      name="postalCode"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>الرمز البريدي*</FieldLabel>
-                          <Input {...field} placeholder="أدخل الرمز البريدي..." />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
+                  <Controller
+                    name="postalCode"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>الرمز البريدي*</FieldLabel>
+                        <Input {...field} placeholder="أدخل الرمز البريدي..." />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
                 </>
               )}
             </div>
