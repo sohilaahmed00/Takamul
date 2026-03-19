@@ -27,7 +27,6 @@ import Units from "@/pages/Units";
 import QuantityAdjustments from "@/pages/QuantityAdjustments";
 import EditQuantityAdjustment from "@/pages/EditQuantityAdjustment";
 import AddQuantityAdjustment from "@/pages/AddQuantityAdjustment";
-import ImportQuantityAdjustment from "@/pages/ImportQuantityAdjustment";
 import Layout from "@/components/Layout";
 import ReturnSale from "@/pages/ReturnSale";
 import POS from "@/pages/POS";
@@ -46,7 +45,7 @@ import AddTaxInvoice from "@/pages/AddTaxInvoice";
 import AddSimplifiedTaxInvoice from "@/pages/AddSimplifiedTaxInvoice";
 import ImportSales from "@/pages/ImportSales";
 import ImportPurchases from "@/pages/ImportPurchases";
-
+import ViewQuantityAdjustment from "@/pages/ViewQuantityAdjustment";
 export default function App() {
   return (
     <Routes>
@@ -362,15 +361,6 @@ export default function App() {
       />
 
       <Route
-        path="/products/quantity-adjustments/import"
-        element={
-          <Layout>
-            <ImportQuantityAdjustment />
-          </Layout>
-        }
-      />
-
-      <Route
         path="/products/quantity-adjustments/edit/:id"
         element={
           <Layout>
@@ -378,6 +368,15 @@ export default function App() {
           </Layout>
         }
       />
+      <Route
+        path="/products/quantity-adjustments/view/:id"
+        element={
+          <Layout>
+            <ViewQuantityAdjustment />
+          </Layout>
+        }
+      />
     </Routes>
+
   );
 }
