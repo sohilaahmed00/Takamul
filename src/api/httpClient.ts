@@ -10,23 +10,6 @@ type HttpClientOptions = {
   responseType?: "json" | "blob";
 };
 
-<<<<<<< HEAD
-export async function httpClient<T>(
-  url: string,
-  options?: HttpClientOptions
-): Promise<T> {
-  const response = await axiosClient({
-    url,
-    method: options?.method ?? "GET",
-    params: options?.params,
-    data: options?.data,
-    headers: options?.headers,
-    responseType: options?.responseType ?? "json",
-  });
-
-  return response.data as T;
-}
-=======
 export async function httpClient<T>(url: string, options?: HttpClientOptions): Promise<T> {
   try {
     const response = await axiosClient({
@@ -44,4 +27,3 @@ export async function httpClient<T>(url: string, options?: HttpClientOptions): P
     throw error;
   }
 }
->>>>>>> 7e375b1 (Finish Categories & Products & Additions)

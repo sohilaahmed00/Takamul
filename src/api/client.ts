@@ -9,7 +9,6 @@ export const axiosClient = axios.create({
 axiosClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
-
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -19,12 +18,5 @@ axiosClient.interceptors.request.use((config) => {
 
 axiosClient.interceptors.response.use(
   (response) => response,
-<<<<<<< HEAD
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(error),
 );
-=======
-  (error) => {
-    return Promise.reject(error);
-  },
-);
->>>>>>> 7e375b1 (Finish Categories & Products & Additions)
