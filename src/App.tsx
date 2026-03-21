@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -45,6 +45,7 @@ import ViewQuantityAdjustment from "@/pages/ViewQuantityAdjustment";
 import CategoriesList from "./pages/CategoriesList";
 import Additions from "./pages/Additions";
 import AddProduct from "./pages/AddProduct";
+import ProductsList from "./pages/ProductsList";
 
 export default function App() {
   return (
@@ -315,6 +316,14 @@ export default function App() {
         }
       />
 
+      <Route
+        path="/products"
+        element={
+          <Layout>
+            <ProductsList />
+          </Layout>
+        }
+      />
       <Route
         path="/products/groups"
         element={
