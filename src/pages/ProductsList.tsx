@@ -34,7 +34,7 @@ const API_ENDPOINTS = {
 };
 
 // ===================== HELPERS =====================
-const getName = (p: Product) => p.productNameAr  || "-";
+const getName = (p: Product) => p.productNameAr || "-";
 const getCode = (p: Product) => p.productCode?.toString() || p.productCode || "-";
 const getCategory = (p: Product) => p.categoryName || p.categoryName || "-";
 
@@ -214,8 +214,6 @@ export default function ProductsList() {
     }
   };
 
-
-
   return (
     <div className="space-y-6 pb-12" dir={direction || "rtl"}>
       {/* الهيدر */}
@@ -326,7 +324,7 @@ export default function ProductsList() {
                   <Column field="description" header={t("description")} />
                   <Column
                     header={t("actions")}
-                    body={(product:Product) => (
+                    body={(product: Product) => (
                       <>
                         <Link to={`/products/edit/${product?.id}`} className="btn-minimal-action btn-compact-action">
                           <Edit2 size={16} />
