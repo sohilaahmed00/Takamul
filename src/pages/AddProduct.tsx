@@ -778,11 +778,11 @@ export default function AddProduct() {
             </div>
 
             {/* Footer Buttons */}
-            <div className="flex justify-between gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50/50 mt-8">
+            <div className="flex justify-between gap-3 flex-wrap px-6 py-4 border-t border-gray-100 bg-gray-50/50 mt-8">
               <Button size="lg" variant="destructive" type="button" className="px-8 h-12">
                 إلغاء
               </Button>
-              <div className="gap-3 flex items-center">
+              <div className="gap-3 flex items-center flex-wrap">
                 <Button variant="outline" size="lg" type="button" className="px-8 h-12 text-base">
                   حفظ وإضافة آخر
                 </Button>

@@ -29,10 +29,10 @@ export const updateCategory = (id: number, data: FormData) =>
     data,
   });
 
-// export const deleteSupplier = (id: number) =>
-//   httpClient<string>(`/Suppliers/${id}`, {
-//     method: "DELETE",
-//   });
+export const deleteCategory = (id: number) =>
+  httpClient<{ message: string }>(`/ProductCategories/${id}`, {
+    method: "DELETE",
+  });
 
 export function getCategoryById(id: number) {
   return httpClient<Category>(`/ProductCategories/${id}`);

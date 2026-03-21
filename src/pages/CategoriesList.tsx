@@ -26,6 +26,7 @@ import { useGetAllCategories } from "@/features/categories/hooks/useGetAllCatego
 import type { Category } from "@/features/categories/types/categories.types";
 import CategoryModal from "@/components/modals/CategoryModal";
 import { useGetCategoryById } from "@/features/categories/hooks/useGetSupplierById";
+import { useDeleteCategory } from "@/features/categories/hooks/useDeleteCategory";
 
 export default function CategoriesList() {
   const { t, direction } = useLanguage();
@@ -36,8 +37,10 @@ export default function CategoriesList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | undefined>();
-  const { mutateAsync: deleteCustomer } = useDeleteCustomer();
   const { notifyError, notifySuccess } = useToast();
+    const { mutateAsync: deleteCategory } = useDeleteCategory();
+
+  
   // const { data, refetch } = useGetCategoryById(selectedCategory ?? undefined);
 
   const filteredCategories = categories
@@ -142,7 +145,7 @@ export default function CategoriesList() {
                     </button>
                     <button
                       onClick={async () => {
-                        const res = await deleteCustomer(category?.id);
+                        const res = await deleteCategory(category?.id);
                         console.log(res);
                         notifySuccess(res);
                       }}
