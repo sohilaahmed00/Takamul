@@ -1,3 +1,18 @@
+export type Product = {
+  id: number;
+  productCode: number;
+  productNameAr: string;
+  productNameEn: string;
+  productNameUr: string;
+  categoryName: string;
+  barcode: string;
+  description: string | null;
+  sellingPrice: number;
+  costPrice: number;
+  taxCalculation: string;
+  isActive: boolean;
+  image: string;
+};
 export type ProductDirect = {
   id: number;
   productCode: number;
@@ -46,5 +61,9 @@ export interface CreateProduct {
   taxCalculation: string;
   image?: File | string;
 }
+
+export type GetAllProductsResponse = {
+  items: Product[];
+};
 export type GetAllProductDirectResponse = ProductDirect[];
 export type GetAllProductRawMatrialResponse = ProductRawMatrial[];
