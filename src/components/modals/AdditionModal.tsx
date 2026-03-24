@@ -119,10 +119,10 @@ export default function AdditionModal({ isOpen, onClose, addition }: AdditionMod
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                      اسم التصنيف (باللغة العربية) <span className="text-red-500">*</span>
+                      اسم الإضافة (باللغة العربية) <span className="text-red-500">*</span>
                     </FieldLabel>
 
-                    <Input {...field} placeholder="أدخل اسم التصنيف..." />
+                    <Input {...field} placeholder="أدخل اسم الإضافة..." />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
@@ -132,7 +132,7 @@ export default function AdditionModal({ isOpen, onClose, addition }: AdditionMod
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>اسم التصنيف (باللغة الإنجليزية)</FieldLabel>
+                    <FieldLabel>اسم الإضافة (باللغة الإنجليزية)</FieldLabel>
 
                     <Input {...field} placeholder="أدخل اسم التصنيف..." />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -144,7 +144,7 @@ export default function AdditionModal({ isOpen, onClose, addition }: AdditionMod
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>اسم التصنيف (باللغة الاوردو)</FieldLabel>
+                    <FieldLabel>اسم الإضافة (باللغة الاوردو)</FieldLabel>
 
                     <Input {...field} placeholder="أدخل اسم التصنيف..." />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}

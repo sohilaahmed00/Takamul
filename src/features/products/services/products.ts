@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import type { CreateProduct, GetAllProductDirectResponse, GetAllProductRawMatrialResponse } from "../types/products.types";
+import type { CreateProduct, GetAllProductDirectResponse, GetAllProductRawMatrialResponse, GetAllProductsResponse, Product } from "../types/products.types";
 
 // ===================
 // GET
@@ -9,7 +9,7 @@ export const getAllProductsDirect = () => httpClient<GetAllProductDirectResponse
 export const getAllProductsRawMatrial = () => httpClient<GetAllProductRawMatrialResponse>("/Products/raw-material");
 export const getAllProductsBranched = () => httpClient<void>("/Products/branched");
 export const getAllProductsPrepared = () => httpClient<void>("/Products/prepared");
-export const getAllProducts = () => httpClient<void>("/Products");
+export const getAllProducts = () => httpClient<GetAllProductsResponse>("/Products");
 
 // export const getCategoryClient = (idOrSlug: string | number) =>
 //   httpClient<Category>(`/categories/${idOrSlug}`);
@@ -39,17 +39,17 @@ export const createProductsPrepared = (data: FormData) =>
     data,
   });
 
-// export const updateSupplier = (id: number, data: CreateProduct) =>
-//   httpClient<Supplier>(`/Suppliers/${id}`, {
-//     method: "PUT",
-//     data,
-//   });
+export const updateProduct = (id: number, data: FormData) =>
+  httpClient<Product>(`/Products/${id}`, {
+    method: "PUT",
+    data,
+  });
 
 export const deleteSupplier = (id: number) =>
   httpClient<string>(`/Suppliers/${id}`, {
     method: "DELETE",
   });
 
-// export function getSupplierById(id: number) {
-//   return httpClient<Supplier>(`/Suppliers/${id}`);
-// }
+export function getProductById(id: number) {
+  return httpClient<Product>(`/Products/${id}`);
+}

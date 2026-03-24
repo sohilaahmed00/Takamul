@@ -46,9 +46,9 @@ const CategorySchema = z.object({
 });
 
 export default function CategoryModal({ isOpen, onClose, category }: CategoryModalProps) {
-  useEffect(()=>{
-    console.log(category)
-  },[category])
+  useEffect(() => {
+    console.log(category);
+  }, [category]);
   const { t } = useLanguage();
   const { data: categoriesData } = useGetAllCategories();
   const { mutateAsync: createCategory } = useCreateCategory();

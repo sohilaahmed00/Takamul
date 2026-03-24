@@ -1,3 +1,22 @@
+export type Product = {
+  id: number;
+  productCode: number;
+  productNameAr: string;
+  productNameEn: string;
+  productNameUr: string;
+  categoryName: string;
+  categoryId: number;
+  barcode: string;
+  minStockLevel: number;
+  description: string | null;
+  sellingPrice: number;
+  costPrice: number;
+  taxCalculation: string;
+  isActive: boolean;
+  imageUrl: string;
+  parentProductId: number;
+  productType: "Direct" | "Prepared" | "Branched" | "RawMatrial";
+};
 export type ProductDirect = {
   id: number;
   productCode: number;
@@ -45,6 +64,12 @@ export interface CreateProduct {
   taxId?: number;
   taxCalculation: string;
   image?: File | string;
+  //in Update Product
+  ProductType?: "Direct" | "Prepared" | "Branched" | "RawMatrial";
 }
+
+export type GetAllProductsResponse = {
+  items: Product[];
+};
 export type GetAllProductDirectResponse = ProductDirect[];
 export type GetAllProductRawMatrialResponse = ProductRawMatrial[];

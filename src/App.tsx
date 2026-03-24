@@ -49,6 +49,7 @@ import CategoriesList from "./pages/CategoriesList";
 import Additions from "./pages/Additions";
 import AddProduct from "./pages/AddProduct";
 import ProductsList from "./pages/ProductsList";
+import POSPage from "./pages/Pos2";
 
 // ✅ Users
 import AddUser from "@/pages/AddUser";
@@ -148,6 +149,176 @@ import ThermalReceipt from "@/components/ThermalReceipt";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/verify-otp" element={<VerifyOTP />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+
+      <Route
+        path="/dashboard"
+        element={
+          <Layout>
+            <Dashboard />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/products/create"
+        element={
+          <Layout>
+            <AddProduct />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/products/edit/:id"
+        element={
+          <Layout>
+            <AddProduct />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/products/import"
+        element={
+          <Layout>
+            <ImportProducts />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/products/barcode"
+        element={
+          <Layout>
+            <PrintBarcode />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/sales/a4-invoices"
+        element={
+          <Layout>
+            <A4Sales />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/sales/add-tax-invoice"
+        element={
+          <Layout>
+            <AddTaxInvoice />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/sales/add-simplified-tax-invoice"
+        element={
+          <Layout>
+            <AddSimplifiedTaxInvoice />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/sales/import-csv"
+        element={
+          <Layout>
+            <ImportSales />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/sales/create"
+        element={
+          <Layout>
+            <CreateSalesInvoice />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/sales/all"
+        element={
+          <Layout>
+            <AllSales />
+          </Layout>
+        }
+      />
+
+      <Route path="/pos" element={<POSPage />} />
+      <Route
+        path="/sales/pos-invoices"
+        element={
+          <Layout>
+            <POSInvoices />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/sales/pos-invoices/:id"
+        element={
+          <Layout>
+            <POSInvoiceDetails />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/sales/pos-invoices/return/:id"
+        element={
+          <Layout>
+            <ReturnPOSSale />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/sales/gift-cards"
+        element={
+          <Layout>
+            <GiftCards />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/quotes"
+        element={
+          <Layout>
+            <QuotesList />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/quotes/create"
+        element={
+          <Layout>
+            <AddQuote />
+          </Layout>
+        }
+      />
+
+      <Route
+        path="/quotes/view/:id"
+        element={
+          <Layout>
+            <ViewQuote />
+          </Layout>
+        }
+      />
 
   return (
     <>

@@ -1,11 +1,11 @@
 import { httpClient } from "@/api/httpClient";
-import type { GetAllSalesOrderResponse } from "../types/categories.types";
+import type { GetAllWareHousesResponse } from "../types/wareHouse.types";
 
 // ===================
 // GET
 // ===================
 
-export const getAllSalesOrders = () => httpClient<GetAllSalesOrderResponse>("/SalesOrders");
+export const getAllWareHouses = () => httpClient<GetAllWareHousesResponse>("/Warehouse");
 
 // export const getCategoryClient = (idOrSlug: string | number) =>
 //   httpClient<Category>(`/categories/${idOrSlug}`);
@@ -14,8 +14,8 @@ export const getAllSalesOrders = () => httpClient<GetAllSalesOrderResponse>("/Sa
 // MUTATIONS (Dashboard)
 // // ===================
 
-// export const createCategory = (data: CreateCategory) =>
-//   httpClient<GetAllCategoriesResponse>("/blog/category", {
+// export const createSalesOrders = (data: CreateSalesOrder) =>
+//   httpClient<void>("/sales-orders", {
 //     method: "POST",
 //     data,
 //   });

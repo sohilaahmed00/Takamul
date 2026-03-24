@@ -1,13 +1,20 @@
+"use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createCategory } from "../services/categories";
+import { updateCategory } from "../services/categories";
 import type { CreateCategory } from "../types/categories.types";
 import { categoriesKeys } from "../keys/categories.keys";
 
-export function useCreateCategories() {
+type UpdateCategoryPayload = {
+  id: number;
+  data: CreateCategory;
+};
+
+export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: CreateCategory) => createCategory(data),
+    mutationFn: ({ id, data }: UpdateCategoryPayload) => updateCategory(id, data),
     onSuccess: (response) => {
       console.log(response);
       queryClient.invalidateQueries({
@@ -15,7 +22,7 @@ export function useCreateCategories() {
       });
     },
     onError: (error) => {
-      console.error("API ERROR ❌", error);
+      console.error("API ERROR ", error);
     },
   });
 }
