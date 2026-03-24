@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -13,7 +13,7 @@ import EditProduct from "@/pages/EditProduct";
 import ImportProducts from "@/pages/ImportProducts";
 import PrintBarcode from "@/pages/PrintBarcode";
 import A4Sales from "@/pages/A4Sales";
-import CreateA4Invoice from "@/pages/CreateA4Invoice"; // ✅ جديد
+import CreateA4Invoice from "@/pages/CreateA4Invoice";
 
 import AllSales from "@/pages/AllSales";
 import QuotesList from "@/pages/QuotesList";
@@ -24,7 +24,7 @@ import Units from "@/pages/Units";
 import QuantityAdjustments from "@/pages/QuantityAdjustments";
 import EditQuantityAdjustment from "@/pages/EditQuantityAdjustment";
 import AddQuantityAdjustment from "@/pages/AddQuantityAdjustment";
-import ImportQuantityAdjustment from "@/pages/ImportQuantityAdjustment"; // ✅ جديد
+import ImportQuantityAdjustment from "@/pages/ImportQuantityAdjustment";
 import Layout from "@/components/Layout";
 import ReturnSale from "@/pages/ReturnSale";
 import POS from "@/pages/POS";
@@ -36,14 +36,13 @@ import Deliveries from "@/pages/Deliveries";
 import PurchasesList from "@/pages/PurchasesList";
 import AddPurchase from "@/pages/AddPurchase";
 import EditPurchase from "@/pages/EditPurchase";
-import AddPurchaseCSV from "@/pages/AddPurchaseCSV"; // ✅ جديد
+import AddPurchaseCSV from "@/pages/AddPurchaseCSV";
 import CustomersList from "@/pages/CustomersList";
 import SuppliersList from "@/pages/SuppliersList";
 import Expenses from "@/pages/Expenses";
 import AddTaxInvoice from "@/pages/AddTaxInvoice";
 import AddSimplifiedTaxInvoice from "@/pages/AddSimplifiedTaxInvoice";
 import ImportSales from "@/pages/ImportSales";
-import ImportPurchases from "@/pages/ImportPurchases";
 import ViewQuantityAdjustment from "@/pages/ViewQuantityAdjustment";
 import CategoriesList from "./pages/CategoriesList";
 import Additions from "./pages/Additions";
@@ -51,14 +50,14 @@ import AddProduct from "./pages/AddProduct";
 import ProductsList from "./pages/ProductsList";
 import POSPage from "./pages/Pos2";
 
-// ✅ Users
+// Users
 import AddUser from "@/pages/AddUser";
 import EditUser from "@/pages/EditUser";
 import UsersList from "@/pages/UsersList";
 import UserGroups from "@/pages/UserGroups";
 import InvoiceDevices from "@/pages/InvoiceDevices";
 
-// ✅ Settings
+// Settings
 import Groups from "@/pages/Groups";
 import GroupPermissions from "@/pages/GroupPermissions";
 import BanksList from "@/pages/BanksList";
@@ -80,8 +79,7 @@ import Tables from "@/pages/Tables";
 import Warehouses from "@/pages/Warehouses";
 import Branches from "@/pages/Branches";
 
-// ✅ Reports
-import Reports from "@/pages/Reports";
+// Reports
 import ItemsReport from "@/pages/reports/ItemsReport";
 import PromotionsReport from "@/pages/reports/PromotionsReport";
 import LowStockReport from "@/pages/reports/LowStockReport";
@@ -129,7 +127,7 @@ import SearchInvoiceReport from "@/pages/reports/SearchInvoiceReport";
 import UnpaidInvoicesReport from "@/pages/reports/UnpaidInvoicesReport";
 import ReservationsReport from "@/pages/reports/ReservationsReport";
 
-// ✅ Financial Reports
+// Financial Reports
 import BalanceSheet from "@/pages/reports/accounts/BalanceSheet";
 import IncomeStatement from "@/pages/reports/accounts/IncomeStatement";
 import LedgerStatement from "@/pages/reports/accounts/LedgerStatement";
@@ -137,188 +135,18 @@ import TrialBalance from "@/pages/reports/accounts/TrialBalance";
 import SubsidiaryLedger from "@/pages/reports/accounts/SubsidiaryLedger";
 import FinancialSummary from "@/pages/reports/accounts/FinancialSummary";
 
-// ✅ Bonds
+// Bonds
 import ReceiptBonds from "@/pages/bonds/ReceiptBonds";
 import PaymentBonds from "@/pages/bonds/PaymentBonds";
 import DepositBonds from "@/pages/bonds/DepositBonds";
 import WithdrawalBonds from "@/pages/bonds/WithdrawalBonds";
 
-// ✅ Print Context
+// Print Context
 import { PrintProvider, usePrint } from "@/context/PrintContext";
 import ThermalReceipt from "@/components/ThermalReceipt";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
-export default function App() {
-  return (
-    <Routes>
-      <Route path="/" element={<Login />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/verify-otp" element={<VerifyOTP />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-
-      <Route
-        path="/dashboard"
-        element={
-          <Layout>
-            <Dashboard />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/products/create"
-        element={
-          <Layout>
-            <AddProduct />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/products/edit/:id"
-        element={
-          <Layout>
-            <AddProduct />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/products/import"
-        element={
-          <Layout>
-            <ImportProducts />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/products/barcode"
-        element={
-          <Layout>
-            <PrintBarcode />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/sales/a4-invoices"
-        element={
-          <Layout>
-            <A4Sales />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/sales/add-tax-invoice"
-        element={
-          <Layout>
-            <AddTaxInvoice />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/sales/add-simplified-tax-invoice"
-        element={
-          <Layout>
-            <AddSimplifiedTaxInvoice />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/sales/import-csv"
-        element={
-          <Layout>
-            <ImportSales />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/sales/create"
-        element={
-          <Layout>
-            <CreateSalesInvoice />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/sales/all"
-        element={
-          <Layout>
-            <AllSales />
-          </Layout>
-        }
-      />
-
-      <Route path="/pos" element={<POSPage />} />
-      <Route
-        path="/sales/pos-invoices"
-        element={
-          <Layout>
-            <POSInvoices />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/sales/pos-invoices/:id"
-        element={
-          <Layout>
-            <POSInvoiceDetails />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/sales/pos-invoices/return/:id"
-        element={
-          <Layout>
-            <ReturnPOSSale />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/sales/gift-cards"
-        element={
-          <Layout>
-            <GiftCards />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/quotes"
-        element={
-          <Layout>
-            <QuotesList />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/quotes/create"
-        element={
-          <Layout>
-            <AddQuote />
-          </Layout>
-        }
-      />
-
-      <Route
-        path="/quotes/view/:id"
-        element={
-          <Layout>
-            <ViewQuote />
-          </Layout>
-        }
-      />
 
   return (
     <>
@@ -331,7 +159,7 @@ export default function App() {
 
           <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
 
-          {/* ✅ المنتجات */}
+          {/* المنتجات */}
           <Route path="/products" element={<Layout><ProductsList /></Layout>} />
           <Route path="/products/create" element={<Layout><AddProduct /></Layout>} />
           <Route path="/products/edit/:id" element={<Layout><EditProduct /></Layout>} />
@@ -346,7 +174,7 @@ export default function App() {
           <Route path="/products/quantity-adjustments/edit/:id" element={<Layout><EditQuantityAdjustment /></Layout>} />
           <Route path="/products/quantity-adjustments/view/:id" element={<Layout><ViewQuantityAdjustment /></Layout>} />
 
-          {/* ✅ المبيعات */}
+          {/* المبيعات */}
           <Route path="/sales/a4-invoices" element={<Layout><A4Sales /></Layout>} />
           <Route path="/sales/a4-invoices/create" element={<Layout><CreateA4Invoice /></Layout>} />
           <Route path="/sales/add-tax-invoice" element={<Layout><AddTaxInvoice /></Layout>} />
@@ -363,12 +191,15 @@ export default function App() {
           <Route path="/sales/return/:id" element={<Layout><ReturnSale /></Layout>} />
           <Route path="/sales/pos" element={<Layout><POS /></Layout>} />
 
-          {/* ✅ العروض */}
+          {/* نقطة البيع */}
+          <Route path="/pos" element={<POSPage />} />
+
+          {/* العروض */}
           <Route path="/quotes" element={<Layout><QuotesList /></Layout>} />
           <Route path="/quotes/create" element={<Layout><AddQuote /></Layout>} />
           <Route path="/quotes/view/:id" element={<Layout><ViewQuote /></Layout>} />
 
-          {/* ✅ المشتريات */}
+          {/* المشتريات */}
           <Route path="/purchases" element={<Layout><PurchasesList /></Layout>} />
           <Route path="/purchases/create" element={<Layout><AddPurchase /></Layout>} />
           <Route path="/purchases/edit/:id" element={<Layout><EditPurchase /></Layout>} />
@@ -377,17 +208,17 @@ export default function App() {
           <Route path="/suppliers" element={<Layout><SuppliersList /></Layout>} />
           <Route path="/expenses" element={<Layout><Expenses /></Layout>} />
 
-          {/* ✅ العملاء */}
+          {/* العملاء */}
           <Route path="/customers" element={<Layout><CustomersList /></Layout>} />
 
-          {/* ✅ المستخدمين */}
+          {/* المستخدمين */}
           <Route path="/users" element={<Layout><UsersList /></Layout>} />
           <Route path="/users/groups" element={<Layout><UserGroups /></Layout>} />
           <Route path="/users/create" element={<Layout><AddUser /></Layout>} />
           <Route path="/users/edit/:id" element={<Layout><EditUser /></Layout>} />
           <Route path="/users/pos-devices" element={<Layout><InvoiceDevices /></Layout>} />
 
-          {/* ✅ الإعدادات */}
+          {/* الإعدادات */}
           <Route path="/settings/groups" element={<Layout><Groups /></Layout>} />
           <Route path="/settings/group-permissions/:id" element={<Layout><GroupPermissions /></Layout>} />
           <Route path="/banks" element={<Layout><BanksList /></Layout>} />
@@ -409,7 +240,7 @@ export default function App() {
           <Route path="/settings/warehouses" element={<Layout><Warehouses /></Layout>} />
           <Route path="/settings/branches" element={<Layout><Branches /></Layout>} />
 
-          {/* ✅ التقارير */}
+          {/* التقارير */}
           <Route path="/reports/sales-by-category" element={<Layout><SalesByCategoryReport /></Layout>} />
           <Route path="/reports/items" element={<Layout><ItemsReport /></Layout>} />
           <Route path="/reports/promotions" element={<Layout><PromotionsReport /></Layout>} />
@@ -459,7 +290,7 @@ export default function App() {
           <Route path="/reports/unpaid-invoices" element={<Layout><UnpaidInvoicesReport /></Layout>} />
           <Route path="/reports/reservations" element={<Layout><ReservationsReport /></Layout>} />
 
-          {/* ✅ التقارير المالية */}
+          {/* التقارير المالية */}
           <Route path="/reports/balance-sheet" element={<Layout><BalanceSheet /></Layout>} />
           <Route path="/reports/income-statement" element={<Layout><IncomeStatement /></Layout>} />
           <Route path="/reports/ledger-statement" element={<Layout><LedgerStatement /></Layout>} />
@@ -467,7 +298,7 @@ export default function App() {
           <Route path="/reports/subsidiary-ledger" element={<Layout><SubsidiaryLedger /></Layout>} />
           <Route path="/reports/financial-summary" element={<Layout><FinancialSummary /></Layout>} />
 
-          {/* ✅ السندات */}
+          {/* السندات */}
           <Route path="/bonds/receipt" element={<Layout><ReceiptBonds /></Layout>} />
           <Route path="/bonds/payment" element={<Layout><PaymentBonds /></Layout>} />
           <Route path="/bonds/deposit" element={<Layout><DepositBonds /></Layout>} />
@@ -475,7 +306,6 @@ export default function App() {
         </Routes>
       </div>
 
-      {/* ✅ الطباعة */}
       {receiptData && (
         <div className="hidden print:block print:m-0 print:p-0">
           <ThermalReceipt invoiceData={receiptData} />
