@@ -5,13 +5,17 @@ export type Product = {
   productNameEn: string;
   productNameUr: string;
   categoryName: string;
+  categoryId: number;
   barcode: string;
+  minStockLevel: number;
   description: string | null;
   sellingPrice: number;
   costPrice: number;
   taxCalculation: string;
   isActive: boolean;
-  image: string;
+  imageUrl: string;
+  parentProductId: number;
+  productType: "Direct" | "Prepared" | "Branched" | "RawMatrial";
 };
 export type ProductDirect = {
   id: number;
@@ -60,6 +64,8 @@ export interface CreateProduct {
   taxId?: number;
   taxCalculation: string;
   image?: File | string;
+  //in Update Product
+  ProductType?: "Direct" | "Prepared" | "Branched" | "RawMatrial";
 }
 
 export type GetAllProductsResponse = {

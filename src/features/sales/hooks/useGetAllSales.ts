@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import type { GetAllSalesOrderResponse } from "../types/categories.types";
 import { salesKeys } from "../keys/sales.keys";
-import { getAllSalesOrders } from "../services/categories";
+import { getAllSalesOrders } from "../services/sales";
+import type { GetAllSalesOrderResponse } from "../types/sales.types";
 
 export const useGetAllSales = () =>
   useQuery<GetAllSalesOrderResponse>({

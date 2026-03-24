@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import type { CreateProduct, GetAllProductDirectResponse, GetAllProductRawMatrialResponse, GetAllProductsResponse } from "../types/products.types";
+import type { CreateProduct, GetAllProductDirectResponse, GetAllProductRawMatrialResponse, GetAllProductsResponse, Product } from "../types/products.types";
 
 // ===================
 // GET
@@ -39,17 +39,17 @@ export const createProductsPrepared = (data: FormData) =>
     data,
   });
 
-// export const updateSupplier = (id: number, data: CreateProduct) =>
-//   httpClient<Supplier>(`/Suppliers/${id}`, {
-//     method: "PUT",
-//     data,
-//   });
+export const updateProduct = (id: number, data: FormData) =>
+  httpClient<Product>(`/Products/${id}`, {
+    method: "PUT",
+    data,
+  });
 
 export const deleteSupplier = (id: number) =>
   httpClient<string>(`/Suppliers/${id}`, {
     method: "DELETE",
   });
 
-// export function getSupplierById(id: number) {
-//   return httpClient<Supplier>(`/Suppliers/${id}`);
-// }
+export function getProductById(id: number) {
+  return httpClient<Product>(`/Products/${id}`);
+}

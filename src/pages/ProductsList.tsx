@@ -1,7 +1,7 @@
 // src/pages/ProductsList.tsx
 import React, { useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Search, Edit2, Trash2, Plus, Box, Package, Layers, X, Link2, FolderPlus, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn, getProductsApiBase } from "@/lib/utils";
@@ -10,7 +10,7 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import type { Product } from "@/features/products/types/products.types";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 // ===================== TYPES =====================
 
 // ===================== API CONFIG =====================
@@ -34,10 +34,9 @@ const API_ENDPOINTS = {
 };
 
 // ===================== HELPERS =====================
-const getName = (p: Product) => p.productNameAr || p.name || "-";
-const getCode = (p: Product) => p.productCode?.toString() || p.code || "-";
-const getPrice = (p: Product) => Number(p.sellingPrice ?? p.price ?? 0).toFixed(2);
-const getCategory = (p: Product) => p.categoryName || p.category || "-";
+const getName = (p: Product) => p.productNameAr  || "-";
+const getCode = (p: Product) => p.productCode?.toString() || p.productCode || "-";
+const getCategory = (p: Product) => p.categoryName || p.categoryName || "-";
 
 // ===================== COMPONENT =====================
 export default function ProductsList() {
@@ -215,18 +214,7 @@ export default function ProductsList() {
     }
   };
 
-  const getTabIcon = () => {
-    switch (activeTab) {
-      case "basic":
-        return <Box size={22} className="text-[var(--primary)]" />;
-      case "sub":
-        return <Layers size={22} className="text-[var(--primary)]" />;
-      case "prepared":
-        return <Package size={22} className="text-[var(--primary)]" />;
-      case "materials":
-        return <FolderPlus size={22} className="text-[var(--primary)]" />;
-    }
-  };
+
 
   return (
     <div className="space-y-6 pb-12" dir={direction || "rtl"}>
@@ -263,7 +251,7 @@ export default function ProductsList() {
 
       <div className="flex flex-col md:flex-row gap-6">
         {/* السايدبار */}
-        <div className="w-full md:w-1/4 space-y-3">
+        {/* <div className="w-full md:w-1/4 space-y-3">
           {(
             [
               { tab: "basic", icon: <Box size={20} />, label: "الأصناف المباشرة", count: directProducts.length },
@@ -286,11 +274,11 @@ export default function ProductsList() {
               <span className={cn("text-xs px-2 py-0.5 rounded-full font-bold", activeTab === tab ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500")}>{count}</span>
             </button>
           ))}
-        </div>
+        </div> */}
 
         {/* المحتوى الرئيسي */}
-        <div className="w-full md:w-3/4 bg-white rounded-xl  border border-gray-200 p-6">
-          <div className="flex justify-between items-center mb-6">
+        <div className="w-full  bg-white rounded-xl  border border-gray-200 p-6">
+          {/* <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
               {getTabIcon()}
               {getTabTitle()}
@@ -300,58 +288,71 @@ export default function ProductsList() {
               <input type="text" placeholder="ابحث بالاسم أو الكود..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="takamol-input pr-10" />
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             </div>
-          </div>
+          </div> */}
+          <Tabs defaultValue="allProducts" className="w-full">
+            <TabsList className="gap-x-8 h-fit! mb-4">
+              <TabsTrigger className="py-2!" value="allProducts">
+                جميع الأصناف
+              </TabsTrigger>
+              <TabsTrigger className="py-2!" value="directed">
+                الأصناف المباشرة
+              </TabsTrigger>
+              <TabsTrigger className="py-2!" value="branched">
+                الأصناف المتفرعة
+              </TabsTrigger>
+              <TabsTrigger className="py-2!" value="prepared">
+                الأصناف المجهزة
+              </TabsTrigger>
+              <TabsTrigger className="py-2!" value="rawMaterials">
+                الخامات
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="allProducts">
+              {" "}
+              <div className="overflow-x-auto rounded-xl border border-gray-100">
+                <DataTable responsiveLayout="stack" className="custom-green-table custom-compact-table" value={products?.items} paginator rows={entriesPerPage} first={(currentPage - 1) * entriesPerPage} onPage={(e) => setCurrentPage(e.page + 1)} dataKey="id" stripedRows={false} /* في هذا التصميم، من الأفضل إيقاف stripedRows للحفاظ على البساطة */>
+                  {/* <Column selectionMode="multiple" headerStyle={{ width: "2rem" }}></Column> */}
+                  <Column
+                    header={t("name")}
+                    sortable
+                    body={(pro: Product) => (
+                      <div className="cell-data-stack">
+                        {" "}
+                        <span className="customer-name-main">{pro.productNameAr}</span>
+                      </div>
+                    )}
+                  />
+
+                  <Column field="description" header={t("description")} />
+                  <Column
+                    header={t("actions")}
+                    body={(product:Product) => (
+                      <>
+                        <Link to={`/products/edit/${product?.id}`} className="btn-minimal-action btn-compact-action">
+                          <Edit2 size={16} />
+                        </Link>
+                        <button
+                          onClick={async () => {
+                            // const res = await deleteCustomer(category?.id);
+                          }}
+                          className="btn-minimal-action btn-compact-action"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    )}
+                  />
+                </DataTable>
+              </div>
+            </TabsContent>
+            <TabsContent value="password">Change your password here.</TabsContent>
+          </Tabs>
 
           {loading && (
             <div className="flex justify-center py-4">
               <div className="animate-spin rounded-full h-8 w-8 border-4 border-[var(--primary)] border-t-transparent"></div>
             </div>
           )}
-
-          {/* الجدول */}
-          <div className="overflow-x-auto rounded-xl border border-gray-100">
-            <DataTable responsiveLayout="stack" className="custom-green-table custom-compact-table" value={products?.items} paginator rows={entriesPerPage} first={(currentPage - 1) * entriesPerPage} onPage={(e) => setCurrentPage(e.page + 1)} dataKey="id" stripedRows={false} /* في هذا التصميم، من الأفضل إيقاف stripedRows للحفاظ على البساطة */>
-              {/* <Column selectionMode="multiple" headerStyle={{ width: "2rem" }}></Column> */}
-              <Column
-                header={t("name")}
-                sortable
-                body={(pro: Product) => (
-                  <div className="cell-data-stack">
-                    {" "}
-                    <span className="customer-name-main">{pro.productNameAr}</span>
-                  </div>
-                )}
-              />
-
-              <Column field="description" header={t("description")} />
-              <Column
-                header={t("actions")}
-                body={(category) => (
-                  <>
-                    <button
-                      onClick={async () => {
-                        setSelectedCategory(category);
-                        setIsAddModalOpen(true);
-                      }}
-                      className="btn-minimal-action btn-compact-action"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      onClick={async () => {
-                        const res = await deleteCustomer(category?.id);
-                        console.log(res);
-                        notifySuccess(res);
-                      }}
-                      className="btn-minimal-action btn-compact-action"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </>
-                )}
-              />
-            </DataTable>
-          </div>
         </div>
       </div>
 

@@ -46,6 +46,7 @@ import CategoriesList from "./pages/CategoriesList";
 import Additions from "./pages/Additions";
 import AddProduct from "./pages/AddProduct";
 import ProductsList from "./pages/ProductsList";
+import POSPage from "./pages/Pos2";
 
 export default function App() {
   return (
@@ -77,7 +78,7 @@ export default function App() {
         path="/products/edit/:id"
         element={
           <Layout>
-            <EditProduct />
+            <AddProduct />
           </Layout>
         }
       />
@@ -154,6 +155,7 @@ export default function App() {
         }
       />
 
+      <Route path="/pos" element={<POSPage />} />
       <Route
         path="/sales/pos-invoices"
         element={
