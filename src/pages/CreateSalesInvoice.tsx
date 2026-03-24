@@ -66,7 +66,7 @@ const CreateSalesInvoice: React.FC = () => {
   const form = useForm<SalesInvoiceType>({
     resolver: zodResolver(SalesInvoiceSchema),
     defaultValues: {
-      orderDate: "",
+      orderDate: new Date().toISOString().split("T")[0],
       customerId: 0,
       warehouseId: 0,
       orderStatus: "Confirmed",
@@ -389,7 +389,6 @@ const CreateSalesInvoice: React.FC = () => {
                         if (discType === "fixed") itemTotal -= discValue;
                         if (discType === "percentage") itemTotal -= itemTotal * (discValue / 100);
 
-                        
                         return (
                           <div key={item.id} className="grid grid-cols-1 md:grid-cols-[2.5fr_1fr_1.5fr_1.5fr_1.5fr_1fr_1fr_40px] gap-4 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group transition-colors hover:bg-zinc-50/80">
                             <Controller

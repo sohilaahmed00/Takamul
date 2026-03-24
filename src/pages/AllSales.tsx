@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail } from "lucide-react";
+import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSales } from "@/context/SalesContext";
 import { cn } from "@/lib/utils";
@@ -8,41 +8,13 @@ import { AnimatePresence } from "framer-motion";
 import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import { useGetAllSales } from "../features/sales/hooks/useGetAllSales";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import type { SalesOrder } from "@/features/sales/types/sales.types";
-
-interface SaleRecord {
-  id: string;
-  invoiceNo: string;
-  date: string;
-  refNo: string;
-  cashier: string;
-  customer: string;
-  saleStatus: "completed" | "returned";
-  grandTotal: number;
-  paid: number;
-  remaining: number;
-  paymentStatus: "paid" | "partial" | "unpaid";
-  paymentType: "mada" | "cash" | "bank_transfer";
-}
-
-interface Payment {
-  id: string;
-  date: string;
-  refNo: string;
-  amount: number;
-  type: string;
-}
-
-const mockSales: SaleRecord[] = [
-  { id: "1", invoiceNo: "506", date: "23/02/2026 02:59:57", refNo: "SALE/POS2026/02/0611", cashier: "شركة اختيار", customer: "شخص عام", saleStatus: "returned", grandTotal: -500.0, paid: -500.0, remaining: 0.0, paymentStatus: "paid", paymentType: "mada" },
-  { id: "2", invoiceNo: "505", date: "23/02/2026 02:58:48", refNo: "SALE/POS2026/02/0611", cashier: "شركة اختيار", customer: "شخص عام", saleStatus: "completed", grandTotal: 500.0, paid: 500.0, remaining: 0.0, paymentStatus: "paid", paymentType: "mada" },
-  { id: "3", invoiceNo: "504", date: "16/02/2026 20:39:44", refNo: "SALE/POS2026/02/0610", cashier: "شركة اختيار", customer: "شخص عام", saleStatus: "completed", grandTotal: 150.0, paid: 150.0, remaining: 0.0, paymentStatus: "paid", paymentType: "mada" },
-  { id: "4", invoiceNo: "503", date: "16/02/2026 20:39:34", refNo: "SALE/POS2026/02/0609", cashier: "شركة اختيار", customer: "شخص عام", saleStatus: "completed", grandTotal: 400.0, paid: 400.0, remaining: 0.0, paymentStatus: "paid", paymentType: "mada" },
-  { id: "5", invoiceNo: "502", date: "16/02/2026 20:25:58", refNo: "SALE/POS2026/02/0608", cashier: "شركة اختيار", customer: "شخص عام", saleStatus: "completed", grandTotal: 500.0, paid: 500.0, remaining: 0.0, paymentStatus: "paid", paymentType: "mada" },
-];
+import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 export default function AllSales() {
   const { t, direction } = useLanguage();
@@ -53,7 +25,6 @@ export default function AllSales() {
   const [currentPage, setCurrentPage] = useState(1);
   const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
   const { data: salesOrders } = useGetAllSales();
-
   const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
 
   useEffect(() => {
@@ -114,6 +85,41 @@ export default function AllSales() {
         <CardHeader>
           <CardTitle>المبيعات</CardTitle>
           <CardDescription>يمكنك إدارة ، إضافة ، تعديل فواتير البيع الخاصة بك</CardDescription>
+          <CardAction>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline">
+                  <Filter />
+                  فلترة
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-50">
+                <div className="grid gap-4">
+                  <div className="space-y-2">
+                    <h4 className="leading-none font-bold">فلترة حسب</h4>
+                  </div>
+                  <div className="grid gap-2">
+                    <div className="flex flex-col gap-1">
+                      <Label htmlFor="width">رقم الفاتورة</Label>
+                      <Input id="width" defaultValue="100%" className="col-span-2 h-8" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label htmlFor="maxWidth">التاريخ</Label>
+                      <Input id="maxWidth" defaultValue="300px" className="col-span-2 h-8" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label htmlFor="height">الكاشير</Label>
+                      <Input id="height" defaultValue="25px" className="col-span-2 h-8" />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <Label htmlFor="maxHeight">حالة الفاتورة</Label>
+                      <Input id="maxHeight" defaultValue="none" className="col-span-2 h-8" />
+                    </div>
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </CardAction>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto rounded-xl border border-gray-100">

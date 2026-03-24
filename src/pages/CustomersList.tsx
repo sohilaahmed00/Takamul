@@ -2,13 +2,15 @@ import React, { useState, useRef, useEffect } from "react";
 import { Search, Edit2, Trash2, Plus, UserPlus } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
-import { DataTable } from "primereact/datatable";
+import { DataTable, type DataTableFilterMeta } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
 import { useDeleteCustomer } from "@/features/customers/hooks/useDeleteCustomer";
 import useToast from "@/hooks/useToast";
 import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerById";
 import AddParnterModal from "@/components/modals/AddParnterModal";
+import { FilterMatchMode } from "primereact/api";
+import { InputText } from "primereact/inputtext";
 
 export default function CustomersList() {
   const { t, direction } = useLanguage();
@@ -19,38 +21,50 @@ export default function CustomersList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [activeActionMenu, setActiveActionMenu] = useState<number | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDepositModalOpen, setIsDepositModalOpen] = useState(false);
-  const [isDiscountModalOpen, setIsDiscountModalOpen] = useState(false);
-  const [isPaymentsModalOpen, setIsPaymentsModalOpen] = useState(false);
+
   const [selectedCustomer, setSelectedCustomer] = useState<number | undefined>();
   const actionButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, width: 0 });
-  const [customerToDelete, setCustomerToDelete] = useState<number | null>(null);
   const { mutateAsync: deleteCustomer } = useDeleteCustomer();
   const { notifyError, notifySuccess } = useToast();
   const { data, refetch } = useGetCustomerById(selectedCustomer ?? undefined);
+  const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const [filters, setFilters] = useState<DataTableFilterMeta>({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    customerCode: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    customerName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    phone: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    taxNumber: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  });
+  const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    let _filters = { ...filters };
 
-  useEffect(() => {
-    if (activeActionMenu !== null && actionButtonRefs.current[activeActionMenu]) {
-      const rect = actionButtonRefs.current[activeActionMenu]!.getBoundingClientRect();
-      setMenuPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX,
-        width: rect.width,
-      });
-    }
-  }, [activeActionMenu]);
+    // @ts-ignore
+    _filters["global"].value = value;
 
-  useEffect(() => {
-    const handleScroll = () => setActiveActionMenu(null);
-    window.addEventListener("scroll", handleScroll, true);
-    window.addEventListener("resize", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll, true);
-      window.removeEventListener("resize", handleScroll);
-    };
-  }, []);
+    setFilters(_filters);
+    setGlobalFilterValue(value);
+  };
+
+  const renderHeader = () => {
+    return (
+      // <div className="flex justify-end">
+      //   <div className="relative">
+      //     <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="بحث..." className="pl-10" />
+      //     <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+      //   </div>
+      // </div>
+      <div className="flex flex-col md:flex-row gap-4 mb-6 mt-4 relative">
+        <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+          <Search size={18} className="text-gray-400" />
+        </div>
+        <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder") || "البحث برقم الهاتف، الكود، أو الاسم..."} className="placeholder:font-semibold w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 pr-11 pl-4 transition-all outline-none" />{" "}
+      </div>
+    );
+  };
+
+  const header = renderHeader();
 
   const filteredCustomers = customers
     ?.filter((c) => {
@@ -88,45 +102,28 @@ export default function CustomersList() {
         <p className="text-sm text-[var(--text-muted)] mt-1">{t("customize_report_below")}</p>
       </div>
 
-   
-
       {/* Table Container */}
       <div className="bg-white rounded-lg    p-4 min-h-100">
         <div className="space-y-4">
           {/* Table Controls */}
-          <div className="flex flex-col md:flex-row gap-4 mb-6 mt-4">
-            <div className="relative flex-grow">
-              <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                <Search size={18} className="text-gray-400" />
-              </div>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder={t("search_placeholder") || "البحث برقم الهاتف، الكود، أو الاسم..."}
-                className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 pr-11 pl-4 transition-all outline-none"
-              />{" "}
+          <div className="flex flex-col md:flex-row gap-4 mb-6 mt-4 relative">
+            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+              <Search size={18} className="text-gray-400" />
             </div>
-
-            {/* <div className="flex gap-3 shrink-0">
-              <button className="flex items-center gap-2 bg-[#f8fafc] hover:bg-gray-100 text-gray-600 border border-transparent text-sm font-medium rounded-xl px-4 py-3 transition-colors">
-                <SlidersHorizontal size={16} className="text-gray-400" />
-                <span>{t("filters") || "الفلاتر"}</span>
-                <ChevronDown size={16} className="text-gray-400 ml-1" />
-              </button>
-
-              <button className="flex items-center gap-2 bg-[#f8fafc] hover:bg-gray-100 text-gray-600 border border-transparent text-sm font-medium rounded-xl px-4 py-3 transition-colors">
-                <span>{t("recent_customers") || "أحدث العملاء"}</span>
-                <ChevronDown size={16} className="text-gray-400 ml-1" />
-              </button>
-            </div> */}
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder={t("search_placeholder") || "البحث برقم الهاتف، الكود، أو الاسم..."}
+              className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 pr-11 pl-4 transition-all outline-none"
+            />{" "}
           </div>
           {/* Table - Desktop */}
           <div className="overflow-x-auto rounded-xl border border-gray-100">
-            <DataTable responsiveLayout="stack" className="custom-green-table custom-compact-table" value={filteredCustomers} paginator rows={entriesPerPage} first={(currentPage - 1) * entriesPerPage} onPage={(e) => setCurrentPage(e.page + 1)} dataKey="id" stripedRows={false} /* في هذا التصميم، من الأفضل إيقاف stripedRows للحفاظ على البساطة */>
+            <DataTable   filters={filters} filterDisplay="row" responsiveLayout="stack" className="custom-green-table custom-compact-table" value={filteredCustomers} paginator rows={entriesPerPage} first={(currentPage - 1) * entriesPerPage} onPage={(e) => setCurrentPage(e.page + 1)} dataKey="id" stripedRows={false} /* في هذا التصميم، من الأفضل إيقاف stripedRows للحفاظ على البساطة */>
               {/* <Column selectionMode="multiple" headerStyle={{ width: "2rem" }}></Column> */}
 
               <Column field="customerCode" header={t("code")} sortable />
@@ -134,16 +131,17 @@ export default function CustomersList() {
               <Column
                 header={t("name")}
                 sortable
+                style={{ minWidth: "15rem", width: "28%" }}
+                field="customerName"
+                filterPlaceholder={t("search_name")} // إضافة نص مساعد
                 body={(customer) => (
                   <div className="cell-data-stack">
-                    {" "}
                     <span className="customer-name-main">{customer.customerName}</span>
                   </div>
                 )}
               />
 
-              <Column field="phone" header={t("phone")} />
-              <Column field="taxNumber" header={t("tax_number")} />
+              <Column style={{ width: "25%" }}  filterPlaceholder={t("search_phone")} field="phone" header={t("phone")} />
 
               <Column
                 header={t("actions")}
@@ -176,14 +174,14 @@ export default function CustomersList() {
         </div>
       </div>
 
-        <AddParnterModal
-          partner={data}
-          isOpen={isAddModalOpen}
-          onClose={() => {
-            setIsAddModalOpen(false);
-            setSelectedCustomer(undefined);
-          }}
-        />
+      <AddParnterModal
+        partner={data}
+        isOpen={isAddModalOpen}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setSelectedCustomer(undefined);
+        }}
+      />
     </div>
   );
 }

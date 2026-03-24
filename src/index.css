@@ -471,3 +471,47 @@ textarea {
 .custom-compact-table .p-datatable-tbody > tr > td {
   white-space: nowrap;
 }
+
+.p-datatable-header{
+  background-color: transparent;
+  border: none;
+}
+
+
+
+
+
+/* 1. توسيط حاوية الفلتر بالكامل داخل الخلية */
+.custom-green-table .p-column-filter-row {
+    justify-content: center !important;
+    padding: 0.5rem 0;
+}
+
+/* 2. تنسيق مربع الإدخال (Input) */
+.custom-green-table .p-column-filter-element-container {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.custom-green-table .p-column-filter-row .p-inputtext {
+    font-size: 14px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+/* 3. تأثير عند التركيز (Focus) باللون الأخضر */
+.custom-green-table .p-column-filter-row .p-inputtext:focus {
+    border-color: #22c55e; /* لون أخضر */
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+    outline: none;
+}
+
+/* 4. إخفاء زر الـ Clear الصغير إذا كنت تريد شكلاً أبسط */
+.custom-green-table .p-column-filter-clear-button {
+    display: none !important;
+}
+
+/* 5. توسيط عناوين الأعمدة لتتماشى مع الفلاتر */
