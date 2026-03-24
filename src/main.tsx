@@ -50,6 +50,7 @@ createRoot(document.getElementById("root")!).render(
           <ThemeProvider>
             <SettingsProvider>
               <LanguageProvider>
+                <ProductsProvider>  {/* ✅ تمت الإضافة هنا */}
                   <AdjustmentsProvider>
                     <SuppliersProvider>
                       <ExpensesProvider>
@@ -101,6 +102,7 @@ createRoot(document.getElementById("root")!).render(
                       </ExpensesProvider>
                     </SuppliersProvider>
                   </AdjustmentsProvider>
+                </ProductsProvider>  {/* ✅ */}
               </LanguageProvider>
             </SettingsProvider>
           </ThemeProvider>
