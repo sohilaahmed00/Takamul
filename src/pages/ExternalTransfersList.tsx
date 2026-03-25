@@ -228,7 +228,7 @@ export default function ExternalTransfersList() {
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 py-3">
                 <Button onClick={handleSearch} variant="default" size="xl" className="w-full sm:w-auto">
                   <Search size={18} />
                   عرض
