@@ -10,7 +10,6 @@ import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasury
 import { useDeleteTreasury } from "@/features/treasurys/hooks/useDeleteTreasury";
 import TreasuryModal from "@/components/modals/TreasuryModal";
 
-
 export default function TreasurysList() {
   const { t, direction } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
@@ -19,7 +18,7 @@ export default function TreasurysList() {
   const { mutateAsync: deleteTreasury } = useDeleteTreasury();
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [entriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTreasuryId, setSelectedTreasuryId] = useState<number | undefined>();
@@ -50,6 +49,10 @@ export default function TreasurysList() {
     } catch (error: any) {
       notifyError(error?.message || t("something_went_wrong"));
     }
+  };
+
+  const formatNumber = (value?: number) => {
+    return Number(value ?? 0).toLocaleString("en-US");
   };
 
   return (
@@ -104,60 +107,181 @@ export default function TreasurysList() {
             />
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-gray-100">
-            <DataTable
-              value={filteredTreasurys}
-              paginator
-              rows={entriesPerPage}
-              first={(currentPage - 1) * entriesPerPage}
-              onPage={(e) => setCurrentPage(e.page + 1)}
-              dataKey="id"
-              responsiveLayout="stack"
-              className="custom-green-table custom-compact-table"
-              stripedRows={false}
-            >
-              <Column field="id" header="كود الخزينة" sortable />
+          {/* Desktop Table */}
+          <div className="hidden lg:block rounded-xl border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <DataTable
+                value={filteredTreasurys}
+                paginator
+                rows={entriesPerPage}
+                first={(currentPage - 1) * entriesPerPage}
+                onPage={(e) => setCurrentPage(e.page + 1)}
+                dataKey="id"
+                className="custom-green-table custom-compact-table"
+                stripedRows={false}
+                emptyMessage="لا توجد بيانات"
+              >
+                <Column
+                  field="id"
+                  header="كود الخزينة"
+                  sortable
+                  style={{ minWidth: "10rem", whiteSpace: "nowrap" }}
+                />
 
-              <Column
-                field="name"
-                header="اسم الخزينة"
-                sortable
-                style={{ minWidth: "16rem", width: "35%" }}
-                body={(row) => (
-                  <div className="cell-data-stack">
-                    <span className="customer-name-main">{row.name}</span>
+                <Column
+                  field="name"
+                  header="اسم الخزينة"
+                  sortable
+                  style={{ minWidth: "16rem", width: "35%" }}
+                  body={(row) => (
+                    <div className="cell-data-stack">
+                      <span className="customer-name-main">{row.name}</span>
+                    </div>
+                  )}
+                />
+
+                <Column
+                  field="openingBalance"
+                  header="الرصيد الافتتاحي"
+                  sortable
+                  style={{ minWidth: "10rem", whiteSpace: "nowrap" }}
+                  body={(row) => formatNumber(row.openingBalance)}
+                />
+
+                <Column
+                  header={t("actions")}
+                  style={{ minWidth: "8rem", whiteSpace: "nowrap" }}
+                  body={(row) => (
+                    <>
+                      <button
+                        onClick={() => handleEdit(row.id)}
+                        className="btn-minimal-action btn-compact-action"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+
+                      <button
+                        onClick={() => handleDelete(row.id)}
+                        className="btn-minimal-action btn-compact-action"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </>
+                  )}
+                />
+              </DataTable>
+            </div>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="lg:hidden space-y-3">
+            {filteredTreasurys.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
+                لا توجد بيانات
+              </div>
+            ) : (
+              filteredTreasurys
+                .slice(
+                  (currentPage - 1) * entriesPerPage,
+                  currentPage * entriesPerPage
+                )
+                .map((row) => (
+                  <div
+                    key={row.id}
+                    className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] border-b border-gray-100">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="h-9 w-9 rounded-xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center shrink-0">
+                          <Wallet size={18} className="text-[var(--primary)]" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs text-[var(--text-muted)]">
+                            اسم الخزينة
+                          </p>
+                          <p className="text-sm font-bold text-[var(--text-main)] break-words">
+                            {row.name}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">
+                        #{row.id}
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-3">
+                      <div className="rounded-xl bg-[#f8fafc] p-3">
+                        <p className="text-xs text-[var(--text-muted)] mb-1">
+                          كود الخزينة
+                        </p>
+                        <p className="text-sm font-semibold text-[var(--text-main)]">
+                          {row.id}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-[#f8fafc] p-3">
+                        <p className="text-xs text-[var(--text-muted)] mb-1">
+                          الرصيد الافتتاحي
+                        </p>
+                        <p className="text-sm font-semibold text-[var(--text-main)]">
+                          {formatNumber(row.openingBalance)}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1">
+                        <button
+                          onClick={() => handleEdit(row.id)}
+                          className="btn-minimal-action btn-compact-action"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(row.id)}
+                          className="btn-minimal-action btn-compact-action"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                )}
-              />
+                ))
+            )}
 
-              <Column
-                field="openingBalance"
-                header="الرصيد الافتتاحي"
-                sortable
-                body={(row) => Number(row.openingBalance ?? 0).toLocaleString("en-US")}
-              />
+            {filteredTreasurys.length > 0 && (
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  السابق
+                </button>
 
-              <Column
-                header={t("actions")}
-                body={(row) => (
-                  <>
-                    <button
-                      onClick={() => handleEdit(row.id)}
-                      className="btn-minimal-action btn-compact-action"
-                    >
-                      <Edit2 size={16} />
-                    </button>
+                <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
+                  {currentPage}
+                </div>
 
-                    <button
-                      onClick={() => handleDelete(row.id)}
-                      className="btn-minimal-action btn-compact-action"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </>
-                )}
-              />
-            </DataTable>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      prev < Math.ceil(filteredTreasurys.length / entriesPerPage)
+                        ? prev + 1
+                        : prev
+                    )
+                  }
+                  disabled={
+                    currentPage >= Math.ceil(filteredTreasurys.length / entriesPerPage)
+                  }
+                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  التالي
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
