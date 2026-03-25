@@ -21,13 +21,10 @@ export default function CustomersList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [activeActionMenu, setActiveActionMenu] = useState<number | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
   const [selectedCustomer, setSelectedCustomer] = useState<number | undefined>();
-  const actionButtonRefs = useRef<{ [key: number]: HTMLButtonElement | null }>({});
-  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0, width: 0 });
   const { mutateAsync: deleteCustomer } = useDeleteCustomer();
   const { notifyError, notifySuccess } = useToast();
-  const { data, refetch } = useGetCustomerById(selectedCustomer ?? undefined);
+  const { data } = useGetCustomerById(selectedCustomer ?? undefined);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState<DataTableFilterMeta>({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -49,12 +46,6 @@ export default function CustomersList() {
 
   const renderHeader = () => {
     return (
-      // <div className="flex justify-end">
-      //   <div className="relative">
-      //     <InputText value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="بحث..." className="pl-10" />
-      //     <i className="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-      //   </div>
-      // </div>
       <div className="flex flex-col md:flex-row gap-4 mb-6 mt-4 relative">
         <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
           <Search size={18} className="text-gray-400" />
@@ -123,7 +114,7 @@ export default function CustomersList() {
           </div>
           {/* Table - Desktop */}
           <div className="overflow-x-auto rounded-xl border border-gray-100">
-            <DataTable   filters={filters} filterDisplay="row" responsiveLayout="stack" className="custom-green-table custom-compact-table" value={filteredCustomers} paginator rows={entriesPerPage} first={(currentPage - 1) * entriesPerPage} onPage={(e) => setCurrentPage(e.page + 1)} dataKey="id" stripedRows={false} /* في هذا التصميم، من الأفضل إيقاف stripedRows للحفاظ على البساطة */>
+            <DataTable filters={filters} filterDisplay="row" responsiveLayout="stack" className="custom-green-table custom-compact-table" value={filteredCustomers} paginator rows={entriesPerPage} first={(currentPage - 1) * entriesPerPage} onPage={(e) => setCurrentPage(e.page + 1)} dataKey="id" stripedRows={false} /* في هذا التصميم، من الأفضل إيقاف stripedRows للحفاظ على البساطة */>
               {/* <Column selectionMode="multiple" headerStyle={{ width: "2rem" }}></Column> */}
 
               <Column field="customerCode" header={t("code")} sortable />
@@ -141,7 +132,7 @@ export default function CustomersList() {
                 )}
               />
 
-              <Column style={{ width: "25%" }}  filterPlaceholder={t("search_phone")} field="phone" header={t("phone")} />
+              <Column style={{ width: "25%" }} filterPlaceholder={t("search_phone")} field="phone" header={t("phone")} />
 
               <Column
                 header={t("actions")}

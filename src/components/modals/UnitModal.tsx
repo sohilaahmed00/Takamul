@@ -29,66 +29,54 @@ import type { Category } from "@/features/categories/types/categories.types";
 import { useGetAllCategories } from "@/features/categories/hooks/useGetAllCategories";
 import { useCreateCategory } from "@/features/categories/hooks/useCreateCategory";
 import { useUpdateCategory } from "@/features/categories/hooks/useUpdateCategory";
-import type { Addition, createAddition } from "@/features/Additions/types/additions.types";
-import { useCreateAddition } from "@/features/Additions/hooks/useCreateAddition";
-import { updateAddition } from "@/features/Additions/services/additions";
-import { useUpdateAddition } from "@/features/Additions/hooks/useUpdateAddition";
+import { Textarea } from "../ui/textarea";
+import type { Unit } from "@/features/units/types/units.types";
+import { useUpdateUnit } from "@/features/units/hooks/useUpdateUnit";
+import { useCreateUnit } from "@/features/units/hooks/useCreateUnit";
 
-interface AdditionModalProps {
+interface UnitModalModalProps {
   isOpen: boolean;
   onClose: () => void;
-  addition: Addition | undefined;
+  unit?: Unit;
 }
 
-const AdditionSchema = z.object({
-  additionNameAr: z.string().min(3, "الاسم يجب أن يكون 3 أحرف على الأقل"),
-  additionNameEn: z.string().optional(),
-  additionNameUr: z.string().optional(),
+const UnitSchema = z.object({
+  name: z.string().min(3, "الاسم يجب أن يكون 3 أحرف على الأقل"),
+  description: z.string().optional(),
 });
 
-export default function AdditionModal({ isOpen, onClose, addition }: AdditionModalProps) {
+export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps) {
   const { t } = useLanguage();
   const { data: categoriesData } = useGetAllCategories();
-  const { mutateAsync: createAddition } = useCreateAddition();
-  const { mutateAsync: updateAddition } = useUpdateAddition();
+  const { mutateAsync: createUnit } = useCreateUnit();
+  const { mutateAsync: updateUpdateUnit } = useUpdateUnit();
 
-  const form = useForm<z.infer<typeof AdditionSchema>>({
-    resolver: zodResolver(AdditionSchema),
+  const form = useForm<z.infer<typeof UnitSchema>>({
+    resolver: zodResolver(UnitSchema),
     defaultValues: {
-      additionNameAr: "",
-      additionNameEn: "",
-      additionNameUr: "",
+      name: "",
+      description: "",
     },
   });
   useEffect(() => {
     if (!isOpen) return;
-    if (addition) {
+    if (unit) {
       form.reset({
-        additionNameAr: addition?.additionNameAr ?? "",
-        additionNameEn: addition?.additionNameEn ?? "",
-        additionNameUr: addition?.categoryNameUr ?? "",
+        name: unit?.name ?? "",
+        description: unit.description ?? "",
       });
     } else {
-      form.reset({
-        additionNameAr: "",
-        additionNameEn: "",
-        additionNameUr: "",
-      });
+      form.reset();
     }
-  }, [addition, isOpen]);
+  }, [unit, isOpen]);
 
-  const onSubmit = async (data: z.infer<typeof AdditionSchema>) => {
+  const onSubmit = async (data: z.infer<typeof UnitSchema>) => {
     try {
-      const payload: createAddition = {
-        additionNameAr: data.additionNameAr,
-        additionNameEn: data.additionNameEn || "",
-        additionNameUr: data.additionNameUr || "",
-      };
       // console.log([...formData.entries()]);
-      if (!addition) {
-        await createAddition(payload);
+      if (!unit) {
+        await createUnit(data);
       } else {
-        await updateAddition({ id: addition?.id, data: payload });
+        await updateUpdateUnit({ id: Number(unit?.id), data });
       }
     } catch (error) {
       // if (axios.isAxiosError(error)) {
@@ -107,46 +95,33 @@ export default function AdditionModal({ isOpen, onClose, addition }: AdditionMod
           <DialogHeader className="py-3">
             <DialogTitle className="flex items-center gap-2 text-[#2ecc71]">
               <UserPlus size={20} />
-              {addition?.id ? "تعديل إضافة" : " إضافة جديدة"}
+              {unit ? "تعديل وحدة" : " إضافة وحدة"}
             </DialogTitle>
           </DialogHeader>
 
           <form id="addCustomerForm" onSubmit={form.handleSubmit(onSubmit)} className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-2">
+            <div className="grid grid-cols-1 gap-5 p-2">
               <Controller
-                name="additionNameAr"
+                name="name"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                      اسم الإضافة (باللغة العربية) <span className="text-red-500">*</span>
+                      اسم الوحدة <span className="text-red-500">*</span>
                     </FieldLabel>
 
-                    <Input {...field} placeholder="أدخل اسم الإضافة..." />
+                    <Input {...field} placeholder="أدخل اسم الوحدة..." />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
               />
               <Controller
-                name="additionNameEn"
+                name="description"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>اسم الإضافة (باللغة الإنجليزية)</FieldLabel>
-
-                    <Input {...field} placeholder="أدخل اسم التصنيف..." />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-              <Controller
-                name="additionNameUr"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>اسم الإضافة (باللغة الاوردو)</FieldLabel>
-
-                    <Input {...field} placeholder="أدخل اسم التصنيف..." />
+                    <FieldLabel>الوصف</FieldLabel>
+                    <Textarea {...field} placeholder="ادخل الوصف" rows={4} />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
@@ -156,7 +131,7 @@ export default function AdditionModal({ isOpen, onClose, addition }: AdditionMod
 
           <DialogFooter>
             <Button form="addCustomerForm" className="h-12 px-6 text-base" type="submit">
-              {addition?.id ? "تعديل إضافة" : " إضافة جديدة"}
+              {unit ? "تعديل وحدة" : " إضافة وحدة"}
             </Button>
           </DialogFooter>
         </DialogContent>

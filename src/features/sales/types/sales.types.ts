@@ -1,3 +1,5 @@
+import type { PaginationMeta } from "@/types";
+
 export interface SalesOrder {
   id: number;
   orderNumber: string;
@@ -33,6 +35,6 @@ export type CreateSalesOrder = {
   }[];
 };
 
-export type GetAllSalesOrderResponse = {
+export interface GetAllSalesOrderResponse extends PaginationMeta {
   items: SalesOrder[];
-};
+}

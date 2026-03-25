@@ -1,3 +1,5 @@
+import type { PaginationMeta } from "@/types";
+
 export type Product = {
   id: number;
   productCode: number;
@@ -36,6 +38,19 @@ export type ProductDirect = {
   taxCalculation: "Excludestax" | "Includestax" | string;
   isActive: boolean;
 };
+export type ProductBranch = {
+  id: number;
+  productCode: number;
+  productNameAr: string;
+  productNameEn: string;
+  productNameUr: string;
+  description: string | null;
+  categoryName: string;
+  parentCategoryId: number;
+  imageUrl: string | null;
+  isActive: boolean;
+  children: Product[];
+};
 export type ProductRawMatrial = {
   id: number;
   productCode: number;
@@ -50,6 +65,25 @@ export type ProductRawMatrial = {
   purchaseUnitName: string;
   conversionFactor: number;
   isActive: boolean;
+};
+export type ProductPrepared = {
+  id: number;
+  productCode: number;
+  productNameAr: string;
+  productNameEn: string;
+  productNameUr: string;
+  barcode: string;
+  description: string;
+  categoryName: string;
+  costPrice: number;
+  parentCategoryId: number;
+  sellingPrice: number;
+  priceBeforeTax: number;
+  taxAmount: number;
+  taxName: string | null;
+  taxCalculation: number;
+  isActive: boolean;
+  components: any[];
 };
 export interface CreateProduct {
   barcode?: string;
@@ -68,8 +102,18 @@ export interface CreateProduct {
   ProductType?: "Direct" | "Prepared" | "Branched" | "RawMatrial";
 }
 
-export type GetAllProductsResponse = {
+export interface GetAllProductsResponse extends PaginationMeta {
   items: Product[];
-};
-export type GetAllProductDirectResponse = ProductDirect[];
-export type GetAllProductRawMatrialResponse = ProductRawMatrial[];
+}
+export interface GetAllProductDirectResponse extends PaginationMeta {
+  items: ProductDirect[];
+}
+export interface GetAllProductBranchedResponse extends PaginationMeta {
+  items: ProductBranch[];
+}
+export interface GetAllProductPreparedResponse extends PaginationMeta {
+  items: ProductPrepared[];
+}
+export interface GetAllProductRawMatrialResponse extends PaginationMeta {
+  items: ProductRawMatrial[];
+}

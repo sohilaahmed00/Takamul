@@ -1,3 +1,5 @@
+import type { PaginationMeta } from "@/types";
+
 export type QuantityAdjustmentOperationType = "Add" | "Remove";
 
 export interface QuantityAdjustmentRow {
@@ -17,7 +19,7 @@ export interface QuantityAdjustmentApiItem {
   productName?: string;
   warehouseId?: number | null;
   quantity?: number;
-  operationType: QuantityAdjustmentOperationType | string | number;
+  operationType: QuantityAdjustmentOperationType;
   quantityChanged: number;
   notes?: string | null;
   operationDate?: string;
@@ -31,12 +33,8 @@ export interface QuantityAdjustment {
   items: QuantityAdjustmentApiItem[];
 }
 
-export interface QuantityAdjustmentListResponse {
-  data: QuantityAdjustment[];
-  totalCount: number;
-  pageNumber: number;
-  pageSize: number;
-  totalPages?: number;
+export interface QuantityAdjustmentListResponse extends PaginationMeta {
+  items: QuantityAdjustment[];
 }
 
 export interface CreateQuantityAdjustmentPayload {

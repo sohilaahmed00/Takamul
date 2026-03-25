@@ -1,14 +1,13 @@
+import type { PaginationMeta } from "@/types";
+
 export interface Unit {
   id: number;
   name: string;
   description?: string;
 }
 
-export interface UnitsResponse {
-  data: Unit[];
-  totalCount: number;
-  pageNumber: number;
-  pageSize: number;
+export interface UnitsResponse extends PaginationMeta {
+  items: Unit[];
 }
 
 export interface GetAllUnitsParams {
@@ -23,7 +22,7 @@ export interface CreateUnitPayload {
 }
 
 export interface UpdateUnitPayload {
-  id: number;
+  id?: number;
   name: string;
   description?: string;
 }

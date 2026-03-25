@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, FileDown, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, FileUp, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, FileMinus, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check, ArrowLeftRight, ArrowUpRight } from "lucide-react";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
+import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, FileDown, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, FileUp, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, FileMinus, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,7 +42,7 @@ const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarO
   );
 };
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -101,7 +101,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   const SubmenuItem = ({ label, icon: Icon, path, state, onClick }: SubmenuItemProps) => {
-    const isActive = path ? location.pathname === path || location.pathname.startsWith(path + "/") : false;
+    const isActive = path ? location.pathname === path : false;
 
     return (
       <button
@@ -109,7 +109,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           if (onClick) {
             onClick();
           } else if (path) {
-            navigate(path, { state });
+            navigate(path);
           }
           if (isMobile) setIsMobileMenuOpen(false);
         }}
@@ -270,40 +270,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             )}
           </AnimatePresence>
 
-          <SidebarItem
-            icon={Landmark}
-            label="الخزائن"
-            hasSubmenu
-            isSidebarOpen={showSidebarContent}
-            isOpen={openSubmenu === "treasurys"}
-            onClick={() => toggleSubmenu("treasurys")}
-          />
-
+          <SidebarItem icon={Landmark} label={t("banks")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "banks"} onClick={() => toggleSubmenu("banks")} />
           <AnimatePresence>
-            {openSubmenu === "treasurys" && showSidebarContent && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className={cn(
-                  "overflow-hidden space-y-1 pr-2",
-                  direction === "rtl"
-                    ? "mr-4 border-r border-gray-100"
-                    : "ml-4 border-l border-gray-100 pl-2 pr-0"
-                )}
-              >
-                <SubmenuItem label="قائمة الخزائن" icon={List} path="/treasurys" />
-                <SubmenuItem
-                  label="كشف حساب خزينة"
-                  icon={ArrowUpRight}
-                  path="/treasury/external-transfers"
-                />
-                <SubmenuItem
-                  label="تحويلات داخلية"
-                  icon={ArrowLeftRight}
-                  path="/treasury/internal-transfers"
-                />
-
+            {openSubmenu === "banks" && showSidebarContent && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
+                <SubmenuItem label={t("banks_list")} icon={List} path="/banks" />
+                <SubmenuItem label={t("external_transfers")} icon={List} path="/banks/external-transfers" />
+                <SubmenuItem label={t("internal_transfers")} icon={List} path="/banks/internal-transfers" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -632,7 +605,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
           {location.pathname === "/dashboard" && <WelcomeBanner />}
-          {children}
+          <Outlet   />
         </main>
       </div>
 

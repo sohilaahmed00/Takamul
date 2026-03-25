@@ -3,19 +3,15 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App.tsx";
 import "./index.css";
-
 import { ThemeProvider } from "@/context/ThemeContext";
 import { LanguageProvider } from "@/context/LanguageContext";
-import { ProductsProvider } from "@/context/ProductsContext";
 import { AdjustmentsProvider } from "@/context/AdjustmentsContext";
-import { SuppliersProvider } from "@/context/SuppliersContext";
 import { ExpensesProvider } from "@/context/ExpensesContext";
 import { SalesProvider } from "@/context/SalesContext";
 import { PurchasesProvider } from "@/context/PurchasesContext";
-import { CustomersProvider } from "@/context/CustomersContext";
 import { QuotesProvider } from "@/context/QuotesContext";
 import { UsersProvider } from "@/context/UsersContext";
-import { TreasurysProvider } from "@/context/TreasurysContext";
+import { BanksProvider } from "@/context/BanksContext";
 import { TransfersProvider } from "@/context/TransfersContext";
 import { PromotionsProvider } from "@/context/PromotionsContext";
 import { PaymentCompaniesProvider } from "@/context/PaymentCompaniesContext";
@@ -50,59 +46,55 @@ createRoot(document.getElementById("root")!).render(
           <ThemeProvider>
             <SettingsProvider>
               <LanguageProvider>
-                <ProductsProvider>  {/* ✅ تمت الإضافة هنا */}
-                  <AdjustmentsProvider>
-                    <SuppliersProvider>
-                      <ExpensesProvider>
-                        <SalesProvider>
-                          <PurchasesProvider>
-                            <CustomersProvider>
-                              <ExpenseCategoriesProvider>
-                                <QuotesProvider>
-                                  <UsersProvider>
-                                    <TreasurysProvider>
-                                      <TransfersProvider>
-                                        <PromotionsProvider>
-                                          <PaymentCompaniesProvider>
-                                            <PaymentMethodsProvider>
-                                              <LogoProvider>
-                                                <CurrenciesProvider>
-                                                  <CustomerGroupsProvider>
-                                                    <UserGroupsProvider>
-                                                      <CategoriesProvider>
-                                                        <DeliveryCompaniesProvider>
-                                                          <DelegatesProvider>
-                                                            <TablesProvider>
-                                                              <AdditionsProvider>
-                                                                <WarehousesProvider>
-                                                                  <PriceGroupsProvider>
-                                                                    <App />
-                                                                  </PriceGroupsProvider>
-                                                                </WarehousesProvider>
-                                                              </AdditionsProvider>
-                                                            </TablesProvider>
-                                                          </DelegatesProvider>
-                                                        </DeliveryCompaniesProvider>
-                                                      </CategoriesProvider>
-                                                    </UserGroupsProvider>
-                                                  </CustomerGroupsProvider>
-                                                </CurrenciesProvider>
-                                              </LogoProvider>
-                                            </PaymentMethodsProvider>
-                                          </PaymentCompaniesProvider>
-                                        </PromotionsProvider>
-                                      </TransfersProvider>
-                                    </TreasurysProvider>
-                                  </UsersProvider>
-                                </QuotesProvider>
-                              </ExpenseCategoriesProvider>
-                            </CustomersProvider>
-                          </PurchasesProvider>
-                        </SalesProvider>
-                      </ExpensesProvider>
-                    </SuppliersProvider>
-                  </AdjustmentsProvider>
-                </ProductsProvider>  {/* ✅ */}
+                {" "}
+                <AdjustmentsProvider>
+                  <ExpensesProvider>
+                    <SalesProvider>
+                      <PurchasesProvider>
+                        <ExpenseCategoriesProvider>
+                          <QuotesProvider>
+                            <UsersProvider>
+                              <BanksProvider>
+                                <TransfersProvider>
+                                  <PromotionsProvider>
+                                    <PaymentCompaniesProvider>
+                                      <PaymentMethodsProvider>
+                                        <LogoProvider>
+                                          <CurrenciesProvider>
+                                            <CustomerGroupsProvider>
+                                              <UserGroupsProvider>
+                                                <CategoriesProvider>
+                                                  <DeliveryCompaniesProvider>
+                                                    <DelegatesProvider>
+                                                      <TablesProvider>
+                                                        <AdditionsProvider>
+                                                          <WarehousesProvider>
+                                                            <PriceGroupsProvider>
+                                                              <App />
+                                                            </PriceGroupsProvider>
+                                                          </WarehousesProvider>
+                                                        </AdditionsProvider>
+                                                      </TablesProvider>
+                                                    </DelegatesProvider>
+                                                  </DeliveryCompaniesProvider>
+                                                </CategoriesProvider>
+                                              </UserGroupsProvider>
+                                            </CustomerGroupsProvider>
+                                          </CurrenciesProvider>
+                                        </LogoProvider>
+                                      </PaymentMethodsProvider>
+                                    </PaymentCompaniesProvider>
+                                  </PromotionsProvider>
+                                </TransfersProvider>
+                              </BanksProvider>
+                            </UsersProvider>
+                          </QuotesProvider>
+                        </ExpenseCategoriesProvider>
+                      </PurchasesProvider>
+                    </SalesProvider>
+                  </ExpensesProvider>
+                </AdjustmentsProvider>
+                {/* ✅ */}
               </LanguageProvider>
             </SettingsProvider>
           </ThemeProvider>
