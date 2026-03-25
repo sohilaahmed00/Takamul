@@ -7,8 +7,8 @@ export const getAllUnits = async (params?: GetAllUnitsParams): Promise<UnitsResp
   const response = await httpClient<UnitsResponse>(BASE_URL, {
     method: "GET",
     params: {
-      PageNumber: params?.page ?? 1,
-      PageSize: params?.size ?? 10,
+      PageNumber: params?.page,
+      PageSize: params?.size,
     },
   });
 

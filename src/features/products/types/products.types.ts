@@ -17,6 +17,7 @@ export type Product = {
   isActive: boolean;
   imageUrl: string;
   parentProductId: number;
+  parentCategoryId: number;
   productType: "Direct" | "Prepared" | "Branched" | "RawMatrial";
 };
 export type ProductDirect = {

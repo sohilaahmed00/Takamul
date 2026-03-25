@@ -2,6 +2,8 @@ import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query"
 import type { CreateProduct } from "../types/products.types";
 import { updateProduct } from "../services/products";
 import { productsKeys } from "../keys/products.keys";
+import { handleApiError } from "@/lib/handleApiError";
+import useToast from "@/hooks/useToast";
 
 type UpdateProductPayload = {
   id: number;
@@ -10,15 +12,15 @@ type UpdateProductPayload = {
 
 export function useUpdateProduct() {
   const queryClient = useQueryClient();
+  const { notifyError, notifySuccess } = useToast();
   return useMutation({
     mutationFn: ({ id, data }: UpdateProductPayload) => updateProduct(id, data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: productsKeys.list(),
+        queryKey: productsKeys.all,
       });
+      notifySuccess(response?.message);
     },
-    // onError: (error) => {
-    //   console.error("API ERROR ", error);
-    // },
+    onError: (error) => handleApiError(error, notifyError),
   });
 }

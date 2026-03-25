@@ -5,6 +5,7 @@ import type { CreateSalesOrder } from "../types/sales.types";
 import { salesKeys } from "../keys/sales.keys";
 import axios from "axios";
 import useToast from "@/hooks/useToast";
+import { handleApiError } from "@/lib/handleApiError";
 
 export function useCreateSalesOrders() {
   const queryClient = useQueryClient();
@@ -19,22 +20,8 @@ export function useCreateSalesOrders() {
       });
       notifySuccess(response?.message)
     },
-    onError: (error) => {
-      if (axios.isAxiosError(error)) {
-        const res = error?.response?.data;
-        console.log(res);
-        if (res?.errors) {
-          Object.values(res.errors)
-            .flat()
-            .forEach((message) => {
-              notifyError(String(message));
-            });
-        } else if (res) {
-          notifyError(res);
-        } else {
-          notifyError("حدث خطأ غير متوقع");
-        }
-      }
-    },
+       onError: (error) => handleApiError(error, notifyError),
+
+   
   });
 }

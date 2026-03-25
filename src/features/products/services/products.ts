@@ -33,7 +33,7 @@ export const getAllProducts = async (page: number, limit: number, SearchTerm?: s
 // // ===================
 
 export const createProductDirect = (data: FormData) =>
-  httpClient<void>("/Products/direct", {
+  httpClient<string>("/Products/direct", {
     method: "POST",
     data,
   });
@@ -54,13 +54,13 @@ export const createProductsPrepared = (data: FormData) =>
   });
 
 export const updateProduct = (id: number, data: FormData) =>
-  httpClient<Product>(`/Products/${id}`, {
+  httpClient<{ message: string }>(`/Products/${id}`, {
     method: "PUT",
     data,
   });
 
-export const deleteSupplier = (id: number) =>
-  httpClient<string>(`/Suppliers/${id}`, {
+export const deleteProduct = (id: number) =>
+  httpClient<{ message: string }>(`/Products/${id}`, {
     method: "DELETE",
   });
 

@@ -24,28 +24,11 @@ export async function httpClient<T>(url: string, options?: HttpClientOptions): P
 
     return response.data as T;
   } catch (error) {
-  if (axios.isAxiosError(error)) {
-    const data = error.response?.data;
-
-    // لو Validation Error
-    if (data?.errors) {
-      throw {
-        type: "validation",
-        message: data.title,
-        errors: data.errors,
-        status: data.status,
-      };
+    if (axios.isAxiosError(error)) {
+      const data = error.response?.data;
+      throw data;
     }
 
-    // Error عادي
-    throw {
-      type: "api",
-      message: data?.message || data?.title || "API Error",
-      data,
-      status: error.response?.status,
-    };
+    throw error;
   }
-
-  throw error;
-}
 }

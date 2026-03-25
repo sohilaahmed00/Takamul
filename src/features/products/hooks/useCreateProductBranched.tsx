@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { productsKeys } from "../keys/products.keys";
 import { createProductBranched } from "../services/products";
 import useToast from "@/hooks/useToast";
+import { handleApiError } from "@/lib/handleApiError";
 
 export function useCreateProductBranched() {
   const queryClient = useQueryClient();
@@ -10,23 +11,9 @@ export function useCreateProductBranched() {
     mutationFn: (data: FormData) => createProductBranched(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: productsKeys.list(),
+        queryKey: productsKeys.all,
       });
     },
-    onError: (error: any) => {
-      const res = error?.response?.data;
-      console.log(res);
-      if (res?.errors) {
-        Object.values(res.errors)
-          .flat()
-          .forEach((message) => {
-            notifyError(String(message));
-          });
-      } else if (res) {
-        notifyError(res);
-      } else {
-        notifyError("حدث خطأ غير متوقع");
-      }
-    },
+    onError: (error) => handleApiError(error, notifyError),
   });
 }

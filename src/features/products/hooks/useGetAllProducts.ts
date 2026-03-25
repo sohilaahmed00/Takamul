@@ -1,9 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { productsKeys } from "../keys/products.keys";
-import { getAllProducts, getAllProductsDirect } from "../services/products";
+import { getAllProducts } from "../services/products";
 import type { GetAllProductsResponse } from "../types/products.types";
 
-export const useGetAllProducts = ({ page, limit, SearchTerm }: { page: number; limit: number; SearchTerm?: string }) =>
+type Params = {
+  page: number;
+  limit: number;
+  SearchTerm?: string;
+};
+
+type QueryOptions = Omit<UseQueryOptions<GetAllProductsResponse>, "queryKey" | "queryFn">;
+
+export const useGetAllProducts = ({ page, limit, SearchTerm }: Params, options?: QueryOptions) =>
   useQuery<GetAllProductsResponse>({
     queryKey: productsKeys.list({ page, limit, SearchTerm }),
     queryFn: async () => {
@@ -21,4 +29,6 @@ export const useGetAllProducts = ({ page, limit, SearchTerm }: { page: number; l
         throw err;
       }
     },
+    placeholderData: keepPreviousData,
+    ...options,
   });

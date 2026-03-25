@@ -8,11 +8,7 @@ interface UseGetAllUnitsParams {
   search?: string;
 }
 
-export const useGetAllUnits = ({
-  page = 1,
-  size = 10,
-  search = "",
-}: UseGetAllUnitsParams) => {
+export const useGetAllUnits = ({ page, size, search = "" }: UseGetAllUnitsParams) => {
   return useQuery({
     queryKey: unitsKeys.list({ page, size, search }),
     queryFn: () => getAllUnits({ page, size, search }),

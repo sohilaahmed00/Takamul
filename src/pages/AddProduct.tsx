@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { PlusCircle, Upload, Barcode, X, Trash2, Plus } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
-import { Controller, FormProvider, useFieldArray, useForm } from "react-hook-form";
+import { Controller, FormProvider, useFieldArray, useForm, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
@@ -35,7 +35,7 @@ export const createProductSchema = z.object({
   Barcode: z.string().min(1, "الباركود مطلوب"),
   ProductNameAr: z.string().min(1, "اسم المنتج بالعربي مطلوب"),
   ProductNameEn: z.string().min(1, "اسم المنتج بالإنجليزي مطلوب"),
-  ProductNameUr: z.string().optional().or(z.literal("")),
+  ProductNameUr: z.string().min(1, "اسم المنتج بالأوردو مطلوب"),
   Description: z.string().optional().or(z.literal("")),
   CategoryId: z.number().min(1, "التصنيف مطلوب"),
   CostPrice: z.number().min(0, "سعر التكلفة يجب أن يكون أكبر من أو يساوي صفر"),
@@ -60,11 +60,20 @@ export const createPreparedProductSchema = createProductSchema.extend({
     )
     .min(1, "يجب إضافة خامة واحدة على الأقل للصنف المجهز"),
 });
-export const createRawMaterialSchema = createProductSchema.extend({
-  BaseUnitId: z.number().min(1, "وحدة الأساس مطلوبة"),
-  PurchaseUnitId: z.number().min(1, "وحدة الشراء مطلوبة"),
-  ConversionFactor: z.number().min(0.01, "معامل التحويل يجب أن يكون أكبر من صفر"),
-});
+export const createRawMaterialSchema = createProductSchema
+  .omit({
+    Barcode: true,
+    CategoryId: true,
+    TaxId: true,
+    TaxCalculation: true,
+    SellingPrice: true,
+    MinStockLevel: true,
+  })
+  .extend({
+    BaseUnitId: z.number().min(1, "وحدة الأساس مطلوبة"),
+    PurchaseUnitId: z.number().min(1, "وحدة الشراء مطلوبة"),
+    ConversionFactor: z.number().min(0.01, "معامل التحويل يجب أن يكون أكبر من صفر"),
+  });
 
 type FormValues = z.infer<typeof createProductSchema> & {
   ChildrenIds?: number[];
@@ -118,10 +127,11 @@ export default function AddProduct() {
   const { data: mainCategories } = useGetAllMainCategories();
   const { data: subCategories, refetch } = useGetAllSubCategoriesWidthParentId(mainCategoryId as number);
   const { data: productsDirect } = useGetAllProductsDirect({ page: 1, limit: 100 });
-  const { mutateAsync: createProductDirect } = useCreateProductDirect();
-  const { mutateAsync: createProductBranched } = useCreateProductBranched();
-  const { mutateAsync: createProductPrepared } = useCreateProductPrepared();
-  const { mutateAsync: createRawMaterial } = useCreateProductRawMaterial();
+  const { mutateAsync: createProductDirect, isPending: isDirectLoading } = useCreateProductDirect();
+  const { mutateAsync: createProductBranched, isPending: isBranchedLoading } = useCreateProductBranched();
+  const { mutateAsync: createProductPrepared, isPending: isPreparedLoading } = useCreateProductPrepared();
+  const { mutateAsync: createRawMaterial, isPending: isRawLoading } = useCreateProductRawMaterial();
+  const isLoading = isDirectLoading || isBranchedLoading || isPreparedLoading || isRawLoading;
   const { data: productRawMatrial } = useGetAllProductsRawMatrial({ page: 1, limit: 100 });
   const { data: units } = useGetAllUnits({ page: 1, size: 1000000 });
   const anchor = useComboboxAnchor();
@@ -131,7 +141,7 @@ export default function AddProduct() {
 
   const activeSchema = productType === "branched" ? createBranchedProductSchema : productType === "prepared" ? createPreparedProductSchema : productType === "raw" ? createRawMaterialSchema : createProductSchema;
   const methods = useForm<FormValues>({
-    resolver: zodResolver(activeSchema),
+    resolver: zodResolver(activeSchema) as Resolver<FormValues>,
     defaultValues: baseDefaultValues,
     mode: "onChange",
   });
@@ -140,7 +150,24 @@ export default function AddProduct() {
 
   useEffect(() => {
     if (productData && id) {
+      setMainCategoryId(productData?.parentCategoryId);
       console.log(productData);
+      switch (productData?.productType) {
+        case "Direct":
+          setProductType("direct");
+          break;
+        case "Branched":
+          setProductType("branched");
+          break;
+        case "Prepared":
+          setProductType("prepared");
+          break;
+        case "RawMatrial":
+          setProductType("raw");
+          break;
+        default:
+          setProductType("direct");
+      }
       reset({
         ProductNameAr: productData.productNameAr,
         ProductNameEn: productData.productNameEn,
@@ -157,6 +184,11 @@ export default function AddProduct() {
       });
     }
   }, [productData, reset, id]);
+  useEffect(() => {
+    if (productData?.categoryId && subCategories && subCategories.length > 0) {
+      setValue("CategoryId", productData.categoryId, { shouldValidate: true });
+    }
+  }, [subCategories, productData?.categoryId, setValue]);
 
   const {
     fields: rawMaterialFields,
@@ -216,8 +248,9 @@ export default function AddProduct() {
 
     if (productType === "raw") {
       formData.append("ProductNameAr", data.ProductNameAr);
+      formData.append("ProductNameEN", data.ProductNameEn);
+      formData.append("ProductNameUr", data?.ProductNameUr);
       formData.append("CostPrice", String(data.CostPrice));
-
       if (data.BaseUnitId) formData.append("BaseUnitId", String(data.BaseUnitId));
       if (data.PurchaseUnitId) formData.append("PurchaseUnitId", String(data.PurchaseUnitId));
       if (data.ConversionFactor) formData.append("ConversionFactor", String(data.ConversionFactor));
@@ -262,6 +295,7 @@ export default function AddProduct() {
         } else {
           await createProductDirect(formData);
         }
+        navigate("/products");
       }
     } catch (error) {}
   };
@@ -845,8 +879,8 @@ export default function AddProduct() {
                   <Button variant="outline" size="lg" type="button" className="w-full lg:w-auto px-8 h-12 text-base">
                     حفظ وإضافة آخر
                   </Button>
-                  <Button size="lg" type="submit" className="w-full lg:w-auto px-8 h-12 text-base">
-                    حفظ البيانات
+                  <Button size="lg" type="submit" disabled={isLoading} className="w-full lg:w-auto px-8 h-12 text-base">
+                    {isLoading ? "جاري الحفظ..." : "حفظ البيانات"}
                   </Button>
                 </div>
               </div>
