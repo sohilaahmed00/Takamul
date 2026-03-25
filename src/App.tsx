@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -60,7 +60,6 @@ import InvoiceDevices from "@/pages/InvoiceDevices";
 // Settings
 import Groups from "@/pages/Groups";
 import GroupPermissions from "@/pages/GroupPermissions";
-import BanksList from "@/pages/BanksList";
 import ExternalTransfersList from "@/pages/ExternalTransfersList";
 import InternalTransfersList from "@/pages/InternalTransfersList";
 import SystemSettings from "@/pages/SystemSettings";
@@ -144,6 +143,7 @@ import WithdrawalBonds from "@/pages/bonds/WithdrawalBonds";
 // Print Context
 import { PrintProvider, usePrint } from "@/context/PrintContext";
 import ThermalReceipt from "@/components/ThermalReceipt";
+import TreasurysList from "./pages/TreasurysList";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
@@ -220,9 +220,9 @@ function AppRoutes() {
           {/* الإعدادات */}
           <Route path="/settings/groups" element={<Groups />} />
           <Route path="/settings/group-permissions/:id" element={<GroupPermissions />} />
-          <Route path="/banks" element={<BanksList />} />
-          <Route path="/banks/external-transfers" element={<ExternalTransfersList />} />
-          <Route path="/banks/internal-transfers" element={<InternalTransfersList />} />
+          <Route path="/treasurys" element={<TreasurysList />} />
+          <Route path="/treasury/external-transfers" element={<ExternalTransfersList />} />
+          <Route path="/treasury/internal-transfers" element={<InternalTransfersList />} />
           <Route path="/settings/system" element={<SystemSettings />} />
           <Route path="/promotions" element={<Promotions />} />
           <Route path="/settings/payment-companies" element={<PaymentCompanies />} />

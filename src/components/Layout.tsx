@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, FileDown, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, FileUp, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, FileMinus, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, FileDown, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, FileUp, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, FileMinus, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check, ArrowUpRight, ArrowLeftRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -270,13 +270,14 @@ export default function Layout() {
             )}
           </AnimatePresence>
 
-          <SidebarItem icon={Landmark} label={t("banks")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "banks"} onClick={() => toggleSubmenu("banks")} />
+          <SidebarItem icon={Landmark} label="الخزائن" hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "treasurys"} onClick={() => toggleSubmenu("treasurys")} />
+
           <AnimatePresence>
-            {openSubmenu === "banks" && showSidebarContent && (
+            {openSubmenu === "treasurys" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                <SubmenuItem label={t("banks_list")} icon={List} path="/banks" />
-                <SubmenuItem label={t("external_transfers")} icon={List} path="/banks/external-transfers" />
-                <SubmenuItem label={t("internal_transfers")} icon={List} path="/banks/internal-transfers" />
+                <SubmenuItem label="قائمة الخزائن" icon={List} path="/treasurys" />
+                <SubmenuItem label="كشف حساب خزينة" icon={ArrowUpRight} path="/treasury/external-transfers" />
+                <SubmenuItem label="تحويلات داخلية" icon={ArrowLeftRight} path="/treasury/internal-transfers" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -605,7 +606,7 @@ export default function Layout() {
 
         <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
           {location.pathname === "/dashboard" && <WelcomeBanner />}
-          <Outlet   />
+          <Outlet />
         </main>
       </div>
 
