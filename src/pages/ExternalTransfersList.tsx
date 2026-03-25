@@ -1,209 +1,511 @@
-import React, { useState } from 'react';
-import { useLanguage } from '@/context/LanguageContext';
-import { useTransfers } from '@/context/TransfersContext';
-import { useBanks } from '@/context/BanksContext';
-import { Trash2, List as ListIcon, Plus } from 'lucide-react';
-import AddExternalTransferModal from '@/components/modals/AddExternalTransferModal';
-import DeleteConfirmationModal from '@/components/modals/DeleteConfirmationModal';
-import MobileDataCard from '@/components/MobileDataCard';
+import React, { useMemo, useState } from "react";
+import {
+  Search,
+  WalletCards,
+  CalendarDays,
+  ReceiptText,
+  UserRound,
+  CreditCard,
+} from "lucide-react";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/context/LanguageContext";
+
+import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
+import { useGetTreasuryStatement } from "@/features/treasury-statement/hooks/useGetTreasuryStatement";
+
+type FilterState = {
+  treasuryId?: number;
+  from: string;
+  to: string;
+};
+
+type StatementRow = {
+  rowId: string;
+  date: string;
+  type: string;
+  number: string;
+  debit: number;
+  credit: number;
+  balance: number;
+  partyName: string;
+  paymentMethod: string | null;
+};
 
 export default function ExternalTransfersList() {
-  const { t, direction, language } = useLanguage();
-  const { externalTransfers, addExternalTransfer, deleteExternalTransfer } = useTransfers();
-  const { banks } = useBanks();
-  
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { t, direction } = useLanguage();
 
-  const filteredTransfers = externalTransfers.filter(transfer => {
-    const bank = banks.find(b => b.id === transfer.bankId);
-    return (
-      bank?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      bank?.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transfer.notes?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  const { data: treasurys } = useGetAllTreasurys();
+
+  const [entriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const [filters, setFilters] = useState<FilterState>({
+    treasuryId: undefined,
+    from: "",
+    to: "",
   });
 
-  const handleDelete = (id: string) => {
-    setSelectedId(id);
-    setIsDeleteModalOpen(true);
+  const [submittedFilters, setSubmittedFilters] = useState<FilterState>({
+    treasuryId: undefined,
+    from: "",
+    to: "",
+  });
+
+  const statementParams = useMemo(() => {
+    if (!submittedFilters.treasuryId) return null;
+
+    const params: {
+      treasuryId: number;
+      from?: string;
+      to?: string;
+    } = {
+      treasuryId: submittedFilters.treasuryId,
+    };
+
+    if (submittedFilters.from) params.from = submittedFilters.from;
+    if (submittedFilters.to) params.to = submittedFilters.to;
+
+    return params;
+  }, [submittedFilters]);
+
+  const { data: statementData, isFetching } =
+    useGetTreasuryStatement(statementParams);
+
+  const rows: StatementRow[] = useMemo(() => {
+    return (statementData ?? []).map((item, index) => ({
+      ...item,
+      partyName: item.partyName ?? "-",
+      paymentMethod: item.paymentMethod ?? null,
+      rowId: `${item.number}-${item.date}-${index}`,
+    }));
+  }, [statementData]);
+
+  const handleSearch = () => {
+    setSubmittedFilters(filters);
+    setCurrentPage(1);
   };
 
-  const confirmDelete = () => {
-    if (selectedId) {
-      deleteExternalTransfer(selectedId);
-      setIsDeleteModalOpen(false);
-      setSelectedId(null);
-    }
+  const handleClear = () => {
+    const resetState: FilterState = {
+      treasuryId: undefined,
+      from: "",
+      to: "",
+    };
+
+    setFilters(resetState);
+    setSubmittedFilters(resetState);
+    setCurrentPage(1);
   };
+
+  const formatDate = (value?: string) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString("en-GB");
+  };
+
+  const formatNumber = (value?: number) => {
+    return Number(value ?? 0).toLocaleString("en-US");
+  };
+
+  const selectedTreasuryName =
+    treasurys?.find((item) => item.id === submittedFilters.treasuryId)?.name ||
+    "";
 
   return (
-    <div className="p-6 space-y-6" dir={direction}>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[var(--text-main)] flex items-center gap-2">
-          <ListIcon className="w-6 h-6" />
-          {t('external_transfers_list')}
-        </h1>
-        <button 
-          onClick={() => setIsAddModalOpen(true)}
-          className="bg-[var(--primary)] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[var(--primary-hover)] transition-colors shadow-sm"
-        >
-          <Plus size={20} />
-          {t('add_external_transfer')}
-        </button>
+    <div className="p-4 space-y-4" dir={direction}>
+      <style>
+        {`
+          .treasury-statement-table .p-datatable-table {
+            width: 100% !important;
+            table-layout: fixed !important;
+          }
+
+          .treasury-statement-table .p-datatable-wrapper {
+            overflow-x: hidden !important;
+          }
+
+          .treasury-statement-table .p-datatable-thead > tr > th,
+          .treasury-statement-table .p-datatable-tbody > tr > td {
+            white-space: normal !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+            vertical-align: middle;
+          }
+        `}
+      </style>
+
+      <div className="text-sm text-[var(--text-muted)] flex items-center gap-1">
+        <span>{t("home")}</span>
+        <span>/</span>
+        <span className="text-[var(--text-main)] font-medium">
+          كشف حساب خزينة
+        </span>
       </div>
 
-      <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] p-6">
-        <div className="mb-4">
-          <p className="text-sm text-[var(--text-muted)] mb-4">
-            الرجاء استخدام الجدول أدناه للتنقل أو تصفية النتائج.
-          </p>
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <span className="text-sm text-[var(--text-muted)]">إظهار</span>
-              <select className="border border-[var(--border)] rounded px-2 py-1 bg-[var(--input-bg)] text-[var(--text-main)]">
-                <option>10</option>
-                <option>25</option>
-                <option>50</option>
-                <option>100</option>
-              </select>
-              <span className="text-sm text-[var(--text-muted)]">سجلات</span>
-            </div>
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <span className="text-sm text-[var(--text-muted)]">بحث</span>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="border border-[var(--border)] rounded px-3 py-1 bg-[var(--input-bg)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] w-full md:w-64"
-              />
-            </div>
-          </div>
+      <div className="bg-white p-4 rounded-lg">
+        <div className="flex justify-between items-center">
+          <h1 className="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
+            <WalletCards size={20} className="text-[var(--primary)]" />
+            كشف حساب خزينة
+          </h1>
         </div>
 
-        {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-sm text-left" dir={direction}>
-            <thead className="text-xs text-white uppercase bg-[var(--table-header)]">
-              <tr>
-                <th className="px-6 py-3 text-center">{t('date')}</th>
-                <th className="px-6 py-3 text-center">{t('bank_code')}</th>
-                <th className="px-6 py-3 text-center">{t('bank_name')}</th>
-                <th className="px-6 py-3 text-center">{t('paid_amount')}</th>
-                <th className="px-6 py-3 text-center">{t('notes')}</th>
-                <th className="px-6 py-3 text-center">{t('actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTransfers.map((transfer) => {
-                const bank = banks.find(b => b.id === transfer.bankId);
-                return (
-                  <tr key={`desktop-${transfer.id}`} className="border-b border-[var(--border)] hover:bg-[var(--bg-main)]">
-                    <td className="px-6 py-4 text-center">{transfer.date}</td>
-                    <td className="px-6 py-4 text-center">{bank?.code || '-'}</td>
-                    <td className="px-6 py-4 text-center">{bank?.name || '-'}</td>
-                    <td className="px-6 py-4 text-center font-bold">{transfer.amount}</td>
-                    <td className="px-6 py-4 text-center">{transfer.notes || '-'}</td>
-                    <td className="px-6 py-4 text-center">
-                      <button 
-                        onClick={() => handleDelete(transfer.id)}
-                        className="text-emerald-600 hover:text-emerald-800 transition-colors"
-                        title={t('delete')}
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-              {filteredTransfers.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-[var(--text-muted)]">
-                    لا توجد بيانات في الجدول
-                  </td>
-                </tr>
-              )}
-            </tbody>
-            <tfoot className="bg-gray-50 text-[var(--text-muted)] text-xs">
-              <tr>
-                <th className="px-6 py-3 text-center">[{t('date')}]</th>
-                <th className="px-6 py-3 text-center">[{t('bank_code')}]</th>
-                <th className="px-6 py-3 text-center">[{t('bank_name')}]</th>
-                <th className="px-6 py-3 text-center">[{t('paid_amount')}]</th>
-                <th className="px-6 py-3 text-center">[{t('notes')}]</th>
-                <th className="px-6 py-3 text-center">{t('actions')}</th>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+        <p className="text-sm text-[var(--text-muted)] mt-1">
+          {t("customize_report_below")}
+        </p>
+      </div>
 
-        {/* Mobile Cards */}
-        <div className="md:hidden space-y-4">
-          {filteredTransfers.map((transfer) => {
-            const bank = banks.find(b => b.id === transfer.bankId);
-            return (
-              <MobileDataCard
-                key={`mobile-${transfer.id}`}
-                title={bank?.name || '-'}
-                subtitle={transfer.date}
-                fields={[
-                  { label: t('bank_code'), value: bank?.code || '-' },
-                  { label: t('paid_amount'), value: transfer.amount, isBold: true },
-                  { label: t('notes'), value: transfer.notes || '-' }
-                ]}
-                actions={
-                  <button 
-                    onClick={() => handleDelete(transfer.id)}
-                    className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+      <div className="bg-white rounded-lg p-4 min-h-100">
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6 mt-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[var(--text-main)]">
+                الخزينة
+              </label>
+              <select
+                value={filters.treasuryId ?? ""}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    treasuryId: e.target.value
+                      ? Number(e.target.value)
+                      : undefined,
+                  }))
                 }
-              />
-            );
-          })}
-          {filteredTransfers.length === 0 && (
-            <div className="text-center py-8 text-[var(--text-muted)] bg-[var(--bg-main)] rounded-xl">
-              لا توجد بيانات
+                className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
+              >
+                <option value="">اختار الخزينة</option>
+                {(treasurys ?? []).map((treasury) => (
+                  <option key={treasury.id} value={treasury.id}>
+                    {treasury.name}
+                  </option>
+                ))}
+              </select>
             </div>
-          )}
-        </div>
 
-        <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[var(--text-muted)]">
-          <div>
-            عرض 1 إلى {filteredTransfers.length} من {filteredTransfers.length} سجلات
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[var(--text-main)]">
+                من تاريخ
+              </label>
+              <input
+                type="date"
+                value={filters.from}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, from: e.target.value }))
+                }
+                className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[var(--text-main)]">
+                إلى تاريخ
+              </label>
+              <input
+                type="date"
+                value={filters.to}
+                onChange={(e) =>
+                  setFilters((prev) => ({ ...prev, to: e.target.value }))
+                }
+                className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
+              <Button onClick={handleSearch} variant="default" size="xl">
+                <Search size={18} />
+                عرض
+              </Button>
+
+              <Button onClick={handleClear} variant="outline" size="xl">
+                مسح
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-1">
-            <button className="px-3 py-1 border border-[var(--border)] rounded hover:bg-[var(--bg-main)]">
-              السابق
-            </button>
-            <button className="px-3 py-1 bg-[var(--primary)] text-white rounded">
-              1
-            </button>
-            <button className="px-3 py-1 border border-[var(--border)] rounded hover:bg-[var(--bg-main)]">
-              التالي
-            </button>
+
+          <div className="hidden lg:block rounded-xl border border-gray-100 overflow-hidden">
+            <DataTable
+              value={rows}
+              paginator
+              rows={entriesPerPage}
+              first={(currentPage - 1) * entriesPerPage}
+              onPage={(e) => setCurrentPage(e.page + 1)}
+              dataKey="rowId"
+              className="custom-green-table custom-compact-table treasury-statement-table"
+              stripedRows={false}
+              loading={isFetching}
+              emptyMessage="لا توجد بيانات"
+            >
+              <Column
+                field="type"
+                header="نوع الحركة"
+                sortable
+                style={{ width: "13%" }}
+                body={(rowData) => (
+                  <span className="text-sm break-words">{rowData.type}</span>
+                )}
+              />
+
+              <Column
+                field="date"
+                header="التاريخ"
+                sortable
+                style={{ width: "12%" }}
+                body={(rowData) => (
+                  <span className="text-sm whitespace-nowrap">
+                    {formatDate(rowData.date)}
+                  </span>
+                )}
+              />
+
+              <Column
+                field="number"
+                header="رقم المستند"
+                sortable
+                style={{ width: "16%" }}
+                body={(rowData) => (
+                  <span className="text-sm break-all">{rowData.number}</span>
+                )}
+              />
+
+              <Column
+                field="partyName"
+                header="اسم الجهة"
+                sortable
+                style={{ width: "16%" }}
+                body={(rowData) => (
+                  <span className="text-sm break-words">{rowData.partyName}</span>
+                )}
+              />
+
+              <Column
+                field="paymentMethod"
+                header="طريقة الدفع"
+                sortable
+                style={{ width: "14%" }}
+                body={(rowData) => (
+                  <span className="text-sm break-words">
+                    {rowData.paymentMethod || "-"}
+                  </span>
+                )}
+              />
+
+              <Column
+                field="debit"
+                header="مدين"
+                sortable
+                style={{ width: "10%" }}
+                body={(rowData) => (
+                  <span className="text-sm whitespace-nowrap">
+                    {formatNumber(rowData.debit)}
+                  </span>
+                )}
+              />
+
+              <Column
+                field="credit"
+                header="دائن"
+                sortable
+                style={{ width: "9%" }}
+                body={(rowData) => (
+                  <span className="text-sm whitespace-nowrap">
+                    {formatNumber(rowData.credit)}
+                  </span>
+                )}
+              />
+
+              <Column
+                field="balance"
+                header="الرصيد"
+                sortable
+                style={{ width: "10%" }}
+                body={(rowData) => (
+                  <span className="text-sm whitespace-nowrap">
+                    {formatNumber(rowData.balance)}
+                  </span>
+                )}
+              />
+            </DataTable>
+          </div>
+
+          <div className="lg:hidden space-y-3">
+            {isFetching ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="rounded-2xl border border-gray-100 bg-white p-4 animate-pulse"
+                  >
+                    <div className="h-4 w-32 bg-gray-100 rounded mb-4" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="h-12 bg-gray-100 rounded-xl" />
+                      <div className="h-12 bg-gray-100 rounded-xl" />
+                      <div className="h-12 bg-gray-100 rounded-xl" />
+                      <div className="h-12 bg-gray-100 rounded-xl" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : rows.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
+                لا توجد بيانات
+              </div>
+            ) : (
+              rows
+                .slice(
+                  (currentPage - 1) * entriesPerPage,
+                  currentPage * entriesPerPage
+                )
+                .map((row) => (
+                  <div
+                    key={row.rowId}
+                    className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] border-b border-gray-100">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="h-9 w-9 rounded-xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center shrink-0">
+                          <ReceiptText
+                            size={18}
+                            className="text-[var(--primary)]"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs text-[var(--text-muted)]">
+                            نوع الحركة
+                          </p>
+                          <p className="text-sm font-bold text-[var(--text-main)] truncate">
+                            {row.type}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">
+                        {selectedTreasuryName || "الخزينة"}
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-xs text-[var(--text-muted)] mb-1">
+                            رقم المستند
+                          </p>
+                          <p className="text-sm font-semibold text-[var(--text-main)] break-all">
+                            {row.number}
+                          </p>
+                        </div>
+
+                        <div className="shrink-0 text-left">
+                          <div className="flex items-center gap-1 text-[var(--text-muted)] text-xs mb-1">
+                            <CalendarDays size={14} />
+                            <span>التاريخ</span>
+                          </div>
+                          <p className="text-sm font-medium text-[var(--text-main)]">
+                            {formatDate(row.date)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl bg-[#f8fafc] p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <UserRound
+                            size={14}
+                            className="text-[var(--text-muted)]"
+                          />
+                          <p className="text-xs text-[var(--text-muted)]">
+                            اسم الجهة
+                          </p>
+                        </div>
+                        <p className="text-sm font-semibold text-[var(--text-main)] break-words">
+                          {row.partyName}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-[#f8fafc] p-3">
+                        <div className="flex items-center gap-2 mb-1">
+                          <CreditCard
+                            size={14}
+                            className="text-[var(--text-muted)]"
+                          />
+                          <p className="text-xs text-[var(--text-muted)]">
+                            طريقة الدفع
+                          </p>
+                        </div>
+                        <p className="text-sm font-semibold text-[var(--text-main)] break-words">
+                          {row.paymentMethod || "-"}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="rounded-xl bg-[#f8fafc] p-3 text-center">
+                          <p className="text-xs text-[var(--text-muted)] mb-1">
+                            مدين
+                          </p>
+                          <p className="text-sm font-bold text-[var(--text-main)]">
+                            {formatNumber(row.debit)}
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl bg-[#f8fafc] p-3 text-center">
+                          <p className="text-xs text-[var(--text-muted)] mb-1">
+                            دائن
+                          </p>
+                          <p className="text-sm font-bold text-[var(--text-main)]">
+                            {formatNumber(row.credit)}
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl bg-[rgba(49,201,110,0.08)] p-3 text-center border border-[rgba(49,201,110,0.14)]">
+                          <p className="text-xs text-[var(--text-muted)] mb-1">
+                            الرصيد
+                          </p>
+                          <p className="text-sm font-bold text-[var(--primary)]">
+                            {formatNumber(row.balance)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+            )}
+
+            {!isFetching && rows.length > 0 && (
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  السابق
+                </button>
+
+                <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
+                  {currentPage}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      prev < Math.ceil(rows.length / entriesPerPage)
+                        ? prev + 1
+                        : prev
+                    )
+                  }
+                  disabled={currentPage >= Math.ceil(rows.length / entriesPerPage)}
+                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  التالي
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
-
-      <AddExternalTransferModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSave={addExternalTransfer}
-      />
-
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setSelectedId(null);
-        }}
-        onConfirm={confirmDelete}
-        itemName={language === 'ar' ? 'هذا التحويل' : 'this transfer'}
-      />
     </div>
   );
 }

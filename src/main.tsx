@@ -15,7 +15,7 @@ import { PurchasesProvider } from "@/context/PurchasesContext";
 import { CustomersProvider } from "@/context/CustomersContext";
 import { QuotesProvider } from "@/context/QuotesContext";
 import { UsersProvider } from "@/context/UsersContext";
-import { BanksProvider } from "@/context/BanksContext";
+import { TreasurysProvider } from "@/context/TreasurysContext";
 import { TransfersProvider } from "@/context/TransfersContext";
 import { PromotionsProvider } from "@/context/PromotionsContext";
 import { PaymentCompaniesProvider } from "@/context/PaymentCompaniesContext";
@@ -60,7 +60,7 @@ createRoot(document.getElementById("root")!).render(
                               <ExpenseCategoriesProvider>
                                 <QuotesProvider>
                                   <UsersProvider>
-                                    <BanksProvider>
+                                    <TreasurysProvider>
                                       <TransfersProvider>
                                         <PromotionsProvider>
                                           <PaymentCompaniesProvider>
@@ -92,7 +92,7 @@ createRoot(document.getElementById("root")!).render(
                                           </PaymentCompaniesProvider>
                                         </PromotionsProvider>
                                       </TransfersProvider>
-                                    </BanksProvider>
+                                    </TreasurysProvider>
                                   </UsersProvider>
                                 </QuotesProvider>
                               </ExpenseCategoriesProvider>

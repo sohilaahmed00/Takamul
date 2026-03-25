@@ -15,13 +15,11 @@ export const PaymentStatus = {
 
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus];
 
-export interface Bank {
-  id: string;
-  code: string;
+export interface Treasury {
+  id: number;
   name: string;
   openingBalance: number;
-  currentBalance: number;
-  notes?: string;
+  currentBalance?: number;
 }
 
 export interface ExternalTransfer {
@@ -178,7 +176,7 @@ export interface Bond {
   date: string;
   beneficiary?: string;
   branch: string;
-  bank?: string;
+  treasury?: string;
   amount: number;
   notes?: string;
 }
