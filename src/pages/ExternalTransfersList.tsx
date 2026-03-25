@@ -6,10 +6,19 @@ import {
   ReceiptText,
   UserRound,
   CreditCard,
+  Filter,
+  RotateCcw,
 } from "lucide-react";
-import { DataTable } from "primereact/datatable";
+import { DataTable, type DataTablePageEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
 
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
@@ -115,7 +124,7 @@ export default function ExternalTransfersList() {
     "";
 
   return (
-    <div className="p-4 space-y-4" dir={direction}>
+    <div dir={direction}>
       <style>
         {`
           .treasury-statement-table .p-datatable-table {
@@ -137,94 +146,122 @@ export default function ExternalTransfersList() {
         `}
       </style>
 
-      <div className="text-sm text-[var(--text-muted)] flex items-center gap-1">
-        <span>{t("home")}</span>
-        <span>/</span>
-        <span className="text-[var(--text-main)] font-medium">
-          كشف حساب خزينة
-        </span>
-      </div>
-
-      <div className="bg-white p-4 rounded-lg">
-        <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
             <WalletCards size={20} className="text-[var(--primary)]" />
             كشف حساب خزينة
-          </h1>
-        </div>
+          </CardTitle>
 
-        <p className="text-sm text-[var(--text-muted)] mt-1">
-          {t("customize_report_below")}
-        </p>
-      </div>
+          <CardDescription>
+            {t("customize_report_below") || "يمكنك تخصيص التقرير من خلال الفلاتر بالأسفل"}
+          </CardDescription>
+        </CardHeader>
 
-      <div className="bg-white rounded-lg p-4 min-h-100">
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6 mt-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-main)]">
-                الخزينة
-              </label>
-              <select
-                value={filters.treasuryId ?? ""}
-                onChange={(e) =>
-                  setFilters((prev) => ({
-                    ...prev,
-                    treasuryId: e.target.value
-                      ? Number(e.target.value)
-                      : undefined,
-                  }))
-                }
-                className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
-              >
-                <option value="">اختار الخزينة</option>
-                {(treasurys ?? []).map((treasury) => (
-                  <option key={treasury.id} value={treasury.id}>
-                    {treasury.name}
-                  </option>
-                ))}
-              </select>
+        <CardContent className="space-y-5">
+          <div className="rounded-2xl border border-gray-100 bg-white p-4 md:p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="h-10 w-10 rounded-2xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center">
+                <Filter size={18} className="text-[var(--primary)]" />
+              </div>
+              <div>
+                <h3 className="text-sm md:text-base font-bold text-[var(--text-main)]">
+                  فلاتر التقرير
+                </h3>
+                <p className="text-xs md:text-sm text-[var(--text-muted)]">
+                  اختر الخزينة والفترة الزمنية لعرض كشف الحساب
+                </p>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-main)]">
-                من تاريخ
-              </label>
-              <input
-                type="date"
-                value={filters.from}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, from: e.target.value }))
-                }
-                className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
-              />
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[var(--text-main)]">
+                  الخزينة
+                </label>
+                <select
+                  value={filters.treasuryId ?? ""}
+                  onChange={(e) =>
+                    setFilters((prev) => ({
+                      ...prev,
+                      treasuryId: e.target.value
+                        ? Number(e.target.value)
+                        : undefined,
+                    }))
+                  }
+                  className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
+                >
+                  <option value="">اختار الخزينة</option>
+                  {(treasurys ?? []).map((treasury) => (
+                    <option key={treasury.id} value={treasury.id}>
+                      {treasury.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[var(--text-main)]">
-                إلى تاريخ
-              </label>
-              <input
-                type="date"
-                value={filters.to}
-                onChange={(e) =>
-                  setFilters((prev) => ({ ...prev, to: e.target.value }))
-                }
-                className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
-              />
-            </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[var(--text-main)]">
+                  من تاريخ
+                </label>
+                <input
+                  type="date"
+                  value={filters.from}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, from: e.target.value }))
+                  }
+                  className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
+                />
+              </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
-              <Button onClick={handleSearch} variant="default" size="xl">
-                <Search size={18} />
-                عرض
-              </Button>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[var(--text-main)]">
+                  إلى تاريخ
+                </label>
+                <input
+                  type="date"
+                  value={filters.to}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, to: e.target.value }))
+                  }
+                  className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
+                />
+              </div>
 
-              <Button onClick={handleClear} variant="outline" size="xl">
-                مسح
-              </Button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
+                <Button onClick={handleSearch} variant="default" size="xl" className="w-full sm:w-auto">
+                  <Search size={18} />
+                  عرض
+                </Button>
+
+                <Button onClick={handleClear} variant="outline" size="xl" className="w-full sm:w-auto">
+                  <RotateCcw size={16} />
+                  مسح
+                </Button>
+              </div>
             </div>
           </div>
+
+          {submittedFilters.treasuryId && (
+            <div className="rounded-2xl border border-gray-100 bg-[#f8fafc] px-4 py-3 flex flex-wrap items-center gap-2">
+              <span className="text-xs text-[var(--text-muted)]">الخزينة المختارة:</span>
+              <span className="rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">
+                {selectedTreasuryName || "الخزينة"}
+              </span>
+
+              {submittedFilters.from && (
+                <span className="rounded-full px-3 py-1 text-xs font-medium bg-white border border-gray-200 text-[var(--text-main)]">
+                  من: {submittedFilters.from}
+                </span>
+              )}
+
+              {submittedFilters.to && (
+                <span className="rounded-full px-3 py-1 text-xs font-medium bg-white border border-gray-200 text-[var(--text-main)]">
+                  إلى: {submittedFilters.to}
+                </span>
+              )}
+            </div>
+          )}
 
           <div className="hidden lg:block rounded-xl border border-gray-100 overflow-hidden">
             <DataTable
@@ -232,18 +269,21 @@ export default function ExternalTransfersList() {
               paginator
               rows={entriesPerPage}
               first={(currentPage - 1) * entriesPerPage}
-              onPage={(e) => setCurrentPage(e.page + 1)}
+              onPage={(e: DataTablePageEvent) => {
+                if (e.page === undefined) return;
+                setCurrentPage(e.page + 1);
+              }}
               dataKey="rowId"
               className="custom-green-table custom-compact-table treasury-statement-table"
-              stripedRows={false}
               loading={isFetching}
               emptyMessage="لا توجد بيانات"
+              responsiveLayout="stack"
             >
               <Column
                 field="type"
                 header="نوع الحركة"
                 sortable
-                style={{ width: "13%" }}
+                style={{ minWidth: "12rem" }}
                 body={(rowData) => (
                   <span className="text-sm break-words">{rowData.type}</span>
                 )}
@@ -253,7 +293,7 @@ export default function ExternalTransfersList() {
                 field="date"
                 header="التاريخ"
                 sortable
-                style={{ width: "12%" }}
+                style={{ minWidth: "10rem" }}
                 body={(rowData) => (
                   <span className="text-sm whitespace-nowrap">
                     {formatDate(rowData.date)}
@@ -265,7 +305,7 @@ export default function ExternalTransfersList() {
                 field="number"
                 header="رقم المستند"
                 sortable
-                style={{ width: "16%" }}
+                style={{ minWidth: "12rem" }}
                 body={(rowData) => (
                   <span className="text-sm break-all">{rowData.number}</span>
                 )}
@@ -275,7 +315,7 @@ export default function ExternalTransfersList() {
                 field="partyName"
                 header="اسم الجهة"
                 sortable
-                style={{ width: "16%" }}
+                style={{ minWidth: "12rem" }}
                 body={(rowData) => (
                   <span className="text-sm break-words">{rowData.partyName}</span>
                 )}
@@ -285,7 +325,7 @@ export default function ExternalTransfersList() {
                 field="paymentMethod"
                 header="طريقة الدفع"
                 sortable
-                style={{ width: "14%" }}
+                style={{ minWidth: "11rem" }}
                 body={(rowData) => (
                   <span className="text-sm break-words">
                     {rowData.paymentMethod || "-"}
@@ -297,7 +337,7 @@ export default function ExternalTransfersList() {
                 field="debit"
                 header="مدين"
                 sortable
-                style={{ width: "10%" }}
+                style={{ minWidth: "8rem" }}
                 body={(rowData) => (
                   <span className="text-sm whitespace-nowrap">
                     {formatNumber(rowData.debit)}
@@ -309,7 +349,7 @@ export default function ExternalTransfersList() {
                 field="credit"
                 header="دائن"
                 sortable
-                style={{ width: "9%" }}
+                style={{ minWidth: "8rem" }}
                 body={(rowData) => (
                   <span className="text-sm whitespace-nowrap">
                     {formatNumber(rowData.credit)}
@@ -321,9 +361,9 @@ export default function ExternalTransfersList() {
                 field="balance"
                 header="الرصيد"
                 sortable
-                style={{ width: "10%" }}
+                style={{ minWidth: "8rem" }}
                 body={(rowData) => (
-                  <span className="text-sm whitespace-nowrap">
+                  <span className="text-sm font-semibold text-[var(--primary)] whitespace-nowrap">
                     {formatNumber(rowData.balance)}
                   </span>
                 )}
@@ -367,11 +407,9 @@ export default function ExternalTransfersList() {
                     <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] border-b border-gray-100">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="h-9 w-9 rounded-xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center shrink-0">
-                          <ReceiptText
-                            size={18}
-                            className="text-[var(--primary)]"
-                          />
+                          <ReceiptText size={18} className="text-[var(--primary)]" />
                         </div>
+
                         <div className="min-w-0">
                           <p className="text-xs text-[var(--text-muted)]">
                             نوع الحركة
@@ -411,10 +449,7 @@ export default function ExternalTransfersList() {
 
                       <div className="rounded-xl bg-[#f8fafc] p-3">
                         <div className="flex items-center gap-2 mb-1">
-                          <UserRound
-                            size={14}
-                            className="text-[var(--text-muted)]"
-                          />
+                          <UserRound size={14} className="text-[var(--text-muted)]" />
                           <p className="text-xs text-[var(--text-muted)]">
                             اسم الجهة
                           </p>
@@ -426,10 +461,7 @@ export default function ExternalTransfersList() {
 
                       <div className="rounded-xl bg-[#f8fafc] p-3">
                         <div className="flex items-center gap-2 mb-1">
-                          <CreditCard
-                            size={14}
-                            className="text-[var(--text-muted)]"
-                          />
+                          <CreditCard size={14} className="text-[var(--text-muted)]" />
                           <p className="text-xs text-[var(--text-muted)]">
                             طريقة الدفع
                           </p>
@@ -504,8 +536,8 @@ export default function ExternalTransfersList() {
               </div>
             )}
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

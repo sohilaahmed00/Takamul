@@ -781,7 +781,12 @@ const translations: Record<Language, Record<string, string>> = {
     deleted_successfully: "تم الحذف بنجاح",
     something_went_wrong: "حدث خطأ ما",
     no_data: "لا توجد بيانات",
-  
+    treasury_current_balance: "الرصيد الحالي",
+    delete_treasury_title: "تأكيد الحذف",
+    delete_treasury_message: "هل أنت متأكد أنك تريد حذف هذه الخزينة؟",
+    confirm_delete: "تأكيد الحذف",
+    
+
   },
   en: {
     confirm_delete_title: "Confirm Delete",
@@ -1549,7 +1554,12 @@ const translations: Record<Language, Record<string, string>> = {
     deleted_successfully: "Deleted successfully",
     something_went_wrong: "Something went wrong",
     no_data: "No data",
-   
+    treasury_current_balance: "Current Balance",
+    delete_treasury_title: "Confirm Deletion",
+    delete_treasury_message: "Are you sure you want to delete this treasury? This action cannot be undone.",
+    confirm_delete: "Confirm Delete",
+    
+
   },
 };
 

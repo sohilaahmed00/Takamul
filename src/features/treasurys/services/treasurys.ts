@@ -19,9 +19,12 @@ export const createTreasury = (data: CreateTreasuryPayload) =>
   });
 
 export const updateTreasury = (data: UpdateTreasuryPayload) =>
-  httpClient<Treasury>("/Treasurys", {
+  httpClient<Treasury>(`/Treasurys/${data.id}`, {
     method: "PUT",
-    data,
+    data: {
+      name: data.name,
+      openingBalance: data.openingBalance ?? 0,
+    },
   });
 
 export const deleteTreasury = (id: number) =>

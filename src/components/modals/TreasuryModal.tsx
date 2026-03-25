@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { X, Wallet } from "lucide-react";
+import { Loader2, Wallet, X } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 
@@ -19,7 +19,7 @@ export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
 
   const isEdit = !!treasuryId;
 
-  const { data: treasury } = useGetTreasuryById(treasuryId);
+  const { data: treasury, isLoading: isTreasuryLoading } = useGetTreasuryById(treasuryId);
   const { mutateAsync: createTreasury, isPending: isCreating } = useCreateTreasury();
   const { mutateAsync: updateTreasury, isPending: isUpdating } = useUpdateTreasury();
 
@@ -38,7 +38,10 @@ export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
     }
   }, [isOpen, isEdit, treasury]);
 
-  const isSubmitting = useMemo(() => isCreating || isUpdating, [isCreating, isUpdating]);
+  const isSubmitting = useMemo(
+    () => isCreating || isUpdating,
+    [isCreating, isUpdating]
+  );
 
   if (!isOpen) return null;
 
@@ -73,64 +76,94 @@ export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4">
       <div
-        className="w-full max-w-3xl bg-white rounded-[28px] overflow-hidden shadow-2xl"
+        className="w-full max-w-2xl bg-white rounded-[28px] overflow-hidden shadow-2xl"
         dir={direction}
       >
-        <div className="flex items-center justify-between px-8 py-6 border-b">
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-slate-500 hover:text-slate-700 transition"
-          >
-            <X size={30} />
-          </button>
-
-          <h2 className="text-[20px] font-bold text-[var(--text-main)] flex items-center gap-2">
-            <Wallet size={22} className="text-[var(--primary)]" />
-            {isEdit ? "تعديل خزينة" : "إضافة خزينة"}
-          </h2>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="px-10 py-8 space-y-6">
-            <p className="text-center text-[15px] text-[var(--text-muted)]">
-              يرجى إدخال المعلومات أدناه. تسميات الحقول التي تحمل علامة * هي حقول إجبارية.
-            </p>
-
-            <div className="space-y-2">
-              <label className="block text-lg font-medium text-[var(--text-main)]">
-                اسم الخزينة *
-              </label>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="أدخل اسم الخزينة..."
-                className="w-full h-14 rounded-2xl border border-gray-200 px-5 outline-none focus:border-[var(--primary)] transition"
-              />
+        <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <div className="h-11 w-11 rounded-2xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center">
+              <Wallet size={22} className="text-[var(--primary)]" />
             </div>
-
-            <div className="space-y-2">
-              <label className="block text-lg font-medium text-[var(--text-main)]">
-                الرصيد الافتتاحي
-              </label>
-              <input
-                type="number"
-                value={openingBalance}
-                onChange={(e) => setOpeningBalance(e.target.value)}
-                className="w-full h-14 rounded-2xl border border-gray-200 px-5 outline-none focus:border-[var(--primary)] transition"
-              />
+            <div>
+              <h2 className="text-lg md:text-xl font-bold text-[var(--text-main)]">
+                {isEdit ? "تعديل خزينة" : "إضافة خزينة"}
+              </h2>
+              <p className="text-sm text-[var(--text-muted)]">
+                {isEdit
+                  ? "يمكنك تعديل اسم الخزينة والرصيد الافتتاحي"
+                  : "أدخل بيانات الخزينة الجديدة"}
+              </p>
             </div>
           </div>
 
-          <div className="px-8 py-6 border-t">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-10 w-10 rounded-xl hover:bg-gray-100 flex items-center justify-center text-slate-500 hover:text-slate-700 transition"
+          >
+            <X size={22} />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="px-6 md:px-8 py-6 md:py-8 space-y-5">
+            {isEdit && isTreasuryLoading ? (
+              <div className="py-10 flex items-center justify-center">
+                <Loader2 className="animate-spin text-[var(--primary)]" size={26} />
+              </div>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-[var(--text-main)]">
+                    اسم الخزينة <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="أدخل اسم الخزينة"
+                    className="w-full h-12 md:h-14 rounded-2xl border border-gray-200 bg-white px-4 md:px-5 outline-none focus:border-[var(--primary)] transition"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-semibold text-[var(--text-main)]">
+                    الرصيد الافتتاحي
+                  </label>
+                  <input
+                    type="number"
+                    value={openingBalance}
+                    onChange={(e) => setOpeningBalance(e.target.value)}
+                    placeholder="0"
+                    className="w-full h-12 md:h-14 rounded-2xl border border-gray-200 bg-white px-4 md:px-5 outline-none focus:border-[var(--primary)] transition"
+                  />
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="px-6 md:px-8 py-5 border-t border-gray-100 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSubmitting}
+              className="h-11 md:h-12 px-5 rounded-2xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-60"
+            >
+              إلغاء
+            </button>
+
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="min-w-[200px] h-14 rounded-2xl bg-[#31C96E] text-white text-2xl font-bold hover:opacity-90 transition disabled:opacity-60"
+              disabled={isSubmitting || (isEdit && isTreasuryLoading)}
+              className="min-w-[160px] h-11 md:h-12 px-5 rounded-2xl bg-[#31C96E] text-white text-sm md:text-base font-bold hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2"
             >
-              {isSubmitting ? "جارٍ الحفظ..." : isEdit ? "حفظ التعديلات" : "إضافة خزينة"}
+              {isSubmitting && <Loader2 size={18} className="animate-spin" />}
+              {isSubmitting
+                ? "جارٍ الحفظ..."
+                : isEdit
+                ? "حفظ التعديلات"
+                : "إضافة خزينة"}
             </button>
           </div>
         </form>
