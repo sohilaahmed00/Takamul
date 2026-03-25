@@ -144,6 +144,7 @@ import WithdrawalBonds from "@/pages/bonds/WithdrawalBonds";
 import { PrintProvider, usePrint } from "@/context/PrintContext";
 import ThermalReceipt from "@/components/ThermalReceipt";
 import TreasurysList from "./pages/TreasurysList";
+import CreateQuote from "./pages/CreateQuote";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
@@ -161,7 +162,7 @@ function AppRoutes() {
           {/* المنتجات */}
           <Route path="/products" element={<ProductsList />} />
           <Route path="/products/create" element={<AddProduct />} />
-          <Route path="/products/edit/:id" element={<EditProduct />} />
+          <Route path="/products/edit/:id" element={<AddProduct />} />
           <Route path="/products/import" element={<ImportProducts />} />
           <Route path="/products/barcode" element={<PrintBarcode />} />
           <Route path="/products/units" element={<Units />} />
@@ -195,7 +196,7 @@ function AppRoutes() {
 
           {/* العروض */}
           <Route path="/quotes" element={<QuotesList />} />
-          <Route path="/quotes/create" element={<AddQuote />} />
+          <Route path="/quotes/create" element={<CreateQuote />} />
           <Route path="/quotes/view/:id" element={<ViewQuote />} />
 
           {/* المشتريات */}

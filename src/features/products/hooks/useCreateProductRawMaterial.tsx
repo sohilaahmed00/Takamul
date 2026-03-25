@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { productsKeys } from "../keys/products.keys";
 import { createProductsPrepared, createProductsRawMatrial } from "../services/products";
 import useToast from "@/hooks/useToast";
+import { handleApiError } from "@/lib/handleApiError";
 
 export function useCreateProductRawMaterial() {
   const queryClient = useQueryClient();
@@ -10,24 +11,10 @@ export function useCreateProductRawMaterial() {
     mutationFn: (data: FormData) => createProductsRawMatrial(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: productsKeys.list(),
+        queryKey: productsKeys.all,
       });
       notifySuccess(response);
     },
-    onError: (error: any) => {
-      const res = error?.response?.data;
-      console.log(res);
-      if (res?.errors) {
-        Object.values(res.errors)
-          .flat()
-          .forEach((message) => {
-            notifyError(String(message));
-          });
-      } else if (res) {
-        notifyError(res);
-      } else {
-        notifyError("حدث خطأ غير متوقع");
-      }
-    },
+    onError: (error) => handleApiError(error, notifyError),
   });
 }

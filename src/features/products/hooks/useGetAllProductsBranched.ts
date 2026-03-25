@@ -1,9 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { productsKeys } from "../keys/products.keys";
-import { getAllProductsBranched, getAllProductsDirect } from "../services/products";
+import { getAllProductsBranched } from "../services/products";
 import type { GetAllProductBranchedResponse } from "../types/products.types";
 
-export const useGetAllProductsBranched = ({ page, limit, SearchTerm }: { page: number; limit: number; SearchTerm?: string }) =>
+type Params = {
+  page: number;
+  limit: number;
+  SearchTerm?: string;
+};
+
+type QueryOptions = Omit<UseQueryOptions<GetAllProductBranchedResponse>, "queryKey" | "queryFn">;
+
+export const useGetAllProductsBranched = ({ page, limit, SearchTerm }: Params, options?: QueryOptions) =>
   useQuery<GetAllProductBranchedResponse>({
     queryKey: productsKeys.branch({ page, limit, SearchTerm }),
     queryFn: async () => {
@@ -21,4 +29,7 @@ export const useGetAllProductsBranched = ({ page, limit, SearchTerm }: { page: n
         throw err;
       }
     },
+    placeholderData: keepPreviousData,
+
+    ...options,
   });

@@ -11,6 +11,18 @@ export interface SalesOrder {
   discountAmount: number;
   grandTotal: number;
   orderStatus: "UnConfirmed" | "Confirmed";
+  items: {
+    productId: number;
+    unitId: number;
+    quantity: number;
+    discountPercentage: number;
+    discountValue: number;
+  }[];
+  payments: {
+    amount: number;
+    paymentMethod: "Cash" | "Visa" | "CreditCard" | "DebitCard" | "BankTransfer" | "Check" | "MobilePayment" | "OnlinePayment" | "Other";
+    notes: string;
+  }[];
 }
 export type CreateSalesOrder = {
   customerId: number;

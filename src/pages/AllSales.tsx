@@ -14,6 +14,7 @@ import { FilterMatchMode } from "primereact/api";
 import type { SalesOrder } from "@/features/sales/types/sales.types";
 
 export default function AllSales() {
+  type Payment = SalesOrder["payments"][number];
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -102,8 +103,8 @@ export default function AllSales() {
             <Column header={"الكاشير"} sortable field="createdBy" />
             <Column header={"حالة الفاتورة"} sortable field="orderStatus" />
             <Column header={"المجموع الكلي"} sortable field="grandTotal" />
-            <Column header={"المدفوع"} sortable field="" />
-            <Column header={"المبلغ المتبقي"} sortable field="" />
+            <Column header={"المدفوع"} sortable field="payments" body={(rowData) => rowData.payments?.reduce((sum: number, p: Payment) => sum + p.amount, 0) ?? 0} />
+            {/* <Column header={"المبلغ المتبقي"} sortable field="" /> */}
             <Column
               header={t("actions")}
               body={(row) => (

@@ -1,9 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { productsKeys } from "../keys/products.keys";
 import { getAllProductsRawMatrial } from "../services/products";
 import type { GetAllProductRawMatrialResponse } from "../types/products.types";
 
-export const useGetAllProductsRawMatrial = ({ page, limit, SearchTerm }: { page: number; limit: number; SearchTerm?: string }) =>
+type Params = {
+  page: number;
+  limit: number;
+  SearchTerm?: string;
+};
+
+type QueryOptions = Omit<UseQueryOptions<GetAllProductRawMatrialResponse>, "queryKey" | "queryFn">;
+
+export const useGetAllProductsRawMatrial = ({ page, limit, SearchTerm }: Params, options?: QueryOptions) =>
   useQuery<GetAllProductRawMatrialResponse>({
     queryKey: productsKeys.rawMatrial({ page, limit, SearchTerm }),
     queryFn: async () => {
@@ -21,4 +29,6 @@ export const useGetAllProductsRawMatrial = ({ page, limit, SearchTerm }: { page:
         throw err;
       }
     },
+    placeholderData: keepPreviousData,
+    ...options,
   });

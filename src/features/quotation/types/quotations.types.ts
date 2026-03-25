@@ -33,13 +33,17 @@ export type CreateQuotation = {
   discountAmount: number;
   shippingCost: number;
   notes: string;
+  globalDiscountValue: number;
+  globalDiscountPercentage: number;
   items: {
     productId: number;
+    unitId: number;
+    taxPercentage: number;
     quantity: number;
     unitPrice: number;
     discountPercentage: number;
-    taxPercentage: number;
-  };
+    discountValue: number;
+  }[];
 };
 
 export type GetAllQuotationsResponse = Quotation[];

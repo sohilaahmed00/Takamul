@@ -17,49 +17,68 @@ import { useGetAllProductsDirect } from "@/features/products/hooks/useGetAllProd
 import { useGetAllProductsBranched } from "@/features/products/hooks/useGetAllProductsBranched";
 import { useGetAllProductsRawMatrial } from "@/features/products/hooks/useGetAllProductsRawMatrial";
 import { useGetAllProductsPrepared } from "@/features/products/hooks/useGetAllProductsPrepared";
+import { useDeleteProduct } from "@/features/products/hooks/useDeleteCustomer";
 
 export default function ProductsList() {
   const { direction, t } = useLanguage();
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
-  const {
-    data: products,
-    isLoading: isProductsLoading,
-    isFetching: isProductsFetching,
-    error,
-  } = useGetAllProducts({
-    page: currentPage,
-    limit: entriesPerPage,
-    SearchTerm: globalFilterValue,
-  });
-
-  const { data: productsDirect } = useGetAllProductsDirect({
-    page: currentPage,
-    limit: entriesPerPage,
-    SearchTerm: globalFilterValue,
-  });
-
-  const {
-    data: productsBranched,
-  } = useGetAllProductsBranched({
-    page: currentPage,
-    limit: entriesPerPage,
-    SearchTerm: globalFilterValue,
-  });
-
-  const { data: productsPrepared } = useGetAllProductsPrepared({
-    page: currentPage,
-    limit: entriesPerPage,
-    SearchTerm: globalFilterValue,
-  });
-
-  const { data: productsRawMaterials } = useGetAllProductsRawMatrial({
-    page: currentPage,
-    limit: entriesPerPage,
-    SearchTerm: globalFilterValue,
-  });
   const [activeTab, setActiveTab] = useState("allProducts");
+  const { mutateAsync: deleteProduct } = useDeleteProduct();
+  const { data: products, isLoading } = useGetAllProducts(
+    {
+      page: currentPage,
+      limit: entriesPerPage,
+      SearchTerm: globalFilterValue,
+    },
+    {
+      enabled: activeTab === "allProducts",
+    },
+  );
+
+  const { data: productsDirect } = useGetAllProductsDirect(
+    {
+      page: currentPage,
+      limit: entriesPerPage,
+      SearchTerm: globalFilterValue,
+    },
+    {
+      enabled: activeTab === "direct",
+    },
+  );
+
+  const { data: productsBranched } = useGetAllProductsBranched(
+    {
+      page: currentPage,
+      limit: entriesPerPage,
+      SearchTerm: globalFilterValue,
+    },
+    {
+      enabled: activeTab === "branched",
+    },
+  );
+  const { data: productsPrepared } = useGetAllProductsPrepared(
+    {
+      page: currentPage,
+      limit: entriesPerPage,
+      SearchTerm: globalFilterValue,
+    },
+    {
+      enabled: activeTab === "prepared",
+    },
+  );
+
+  const { data: productsRawMaterials } = useGetAllProductsRawMatrial(
+    {
+      page: currentPage,
+      limit: entriesPerPage,
+      SearchTerm: globalFilterValue,
+    },
+    {
+      enabled: activeTab === "rawMaterials",
+    },
+  );
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setGlobalFilterValue(value);
@@ -136,33 +155,29 @@ export default function ProductsList() {
         </CardAction>
       </CardHeader>
       <CardContent>
-       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="flex w-full overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit! mb-4 pb-1 [&::-webkit-scrollbar]:hidden">
+            <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
+              جميع الأصناف
+            </TabsTrigger>
 
-  <TabsList className="flex w-full overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit! mb-4 pb-1 [&::-webkit-scrollbar]:hidden">
-    
-   
-    <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
-      جميع الأصناف
-    </TabsTrigger>
-    
-    <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="direct">
-      الأصناف المباشرة
-    </TabsTrigger>
-    
-    <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="branched">
-      الأصناف المتفرعة
-    </TabsTrigger>
-    
-    <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="prepared">
-      الأصناف المجهزة
-    </TabsTrigger>
-    
-    <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="rawMaterials">
-      الخامات
-    </TabsTrigger>
-    
-  </TabsList>
-</Tabs>
+            <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="direct">
+              الأصناف المباشرة
+            </TabsTrigger>
+
+            <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="branched">
+              الأصناف المتفرعة
+            </TabsTrigger>
+
+            <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="prepared">
+              الأصناف المجهزة
+            </TabsTrigger>
+
+            <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="rawMaterials">
+              الخامات
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         <DataTable
           value={currentTableData.items}
@@ -192,7 +207,12 @@ export default function ProductsList() {
                 <Link to={`/products/edit/${product?.id}`} className="btn-minimal-action btn-compact-action">
                   <Edit2 size={16} />
                 </Link>
-                <button onClick={async () => {}} className="btn-minimal-action btn-compact-action">
+                <button
+                  onClick={async () => {
+                    await deleteProduct(product?.id);
+                  }}
+                  className="btn-minimal-action btn-compact-action"
+                >
                   <Trash2 size={16} />
                 </button>
               </>
