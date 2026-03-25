@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Loader2, Wallet, X } from "lucide-react";
+import { Loader2, Wallet } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 
@@ -7,21 +7,39 @@ import { useCreateTreasury } from "@/features/treasurys/hooks/useCreateTreasury"
 import { useGetTreasuryById } from "@/features/treasurys/hooks/useGetTreasuryById";
 import { useUpdateTreasury } from "@/features/treasurys/hooks/useUpdateTreasury";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Field, FieldLabel } from "@/components/ui/field";
+
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   treasuryId?: number;
 };
 
-export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
+export default function TreasuryModal({
+  isOpen,
+  onClose,
+  treasuryId,
+}: Props) {
   const { direction } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
 
   const isEdit = !!treasuryId;
 
-  const { data: treasury, isLoading: isTreasuryLoading } = useGetTreasuryById(treasuryId);
-  const { mutateAsync: createTreasury, isPending: isCreating } = useCreateTreasury();
-  const { mutateAsync: updateTreasury, isPending: isUpdating } = useUpdateTreasury();
+  const { data: treasury, isLoading: isTreasuryLoading } =
+    useGetTreasuryById(treasuryId);
+  const { mutateAsync: createTreasury, isPending: isCreating } =
+    useCreateTreasury();
+  const { mutateAsync: updateTreasury, isPending: isUpdating } =
+    useUpdateTreasury();
 
   const [name, setName] = useState("");
   const [openingBalance, setOpeningBalance] = useState("0");
@@ -42,8 +60,6 @@ export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
     () => isCreating || isUpdating,
     [isCreating, isUpdating]
   );
-
-  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,87 +92,69 @@ export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4">
-      <div
-        className="w-full max-w-2xl bg-white rounded-[28px] overflow-hidden shadow-2xl"
+    <Dialog open={isOpen} onOpenChange={() => onClose()}>
+      <DialogContent
         dir={direction}
+        className="sm:max-w-[620px] lg:max-w-[680px] p-0 overflow-hidden"
       >
-        <div className="flex items-center justify-between px-6 md:px-8 py-5 border-b border-gray-100">
-          <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center">
-              <Wallet size={22} className="text-[var(--primary)]" />
+        <DialogHeader className="px-6 py-4 border-b border-gray-100">
+          <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-xl">
+            <Wallet size={20} />
+            {isEdit ? "تعديل خزينة" : "إضافة خزينة"}
+          </DialogTitle>
+          <p className="text-sm text-gray-500">
+            {isEdit
+              ? "يمكنك تعديل اسم الخزينة والرصيد الافتتاحي"
+              : "أدخل بيانات الخزينة الجديدة"}
+          </p>
+        </DialogHeader>
+
+        <form
+          id="treasuryForm"
+          onSubmit={handleSubmit}
+          className="max-h-[70vh] overflow-y-auto px-6 py-5"
+        >
+          {isEdit && isTreasuryLoading ? (
+            <div className="py-12 flex items-center justify-center">
+              <Loader2 className="animate-spin text-[var(--primary)]" size={26} />
             </div>
-            <div>
-              <h2 className="text-lg md:text-xl font-bold text-[var(--text-main)]">
-                {isEdit ? "تعديل خزينة" : "إضافة خزينة"}
-              </h2>
-              <p className="text-sm text-[var(--text-muted)]">
-                {isEdit
-                  ? "يمكنك تعديل اسم الخزينة والرصيد الافتتاحي"
-                  : "أدخل بيانات الخزينة الجديدة"}
-              </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-5">
+              <Field>
+                <FieldLabel>
+                  اسم الخزينة <span className="text-red-500">*</span>
+                </FieldLabel>
+                <Input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="أدخل اسم الخزينة"
+                />
+              </Field>
+
+              <Field>
+                <FieldLabel>الرصيد الافتتاحي</FieldLabel>
+                <Input
+                  type="number"
+                  value={openingBalance}
+                  onChange={(e) => setOpeningBalance(e.target.value)}
+                  placeholder="0"
+                />
+              </Field>
             </div>
-          </div>
+          )}
+        </form>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-10 w-10 rounded-xl hover:bg-gray-100 flex items-center justify-center text-slate-500 hover:text-slate-700 transition"
-          >
-            <X size={22} />
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div className="px-6 md:px-8 py-6 md:py-8 space-y-5">
-            {isEdit && isTreasuryLoading ? (
-              <div className="py-10 flex items-center justify-center">
-                <Loader2 className="animate-spin text-[var(--primary)]" size={26} />
-              </div>
-            ) : (
-              <>
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-[var(--text-main)]">
-                    اسم الخزينة <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="أدخل اسم الخزينة"
-                    className="w-full h-12 md:h-14 rounded-2xl border border-gray-200 bg-white px-4 md:px-5 outline-none focus:border-[var(--primary)] transition"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-[var(--text-main)]">
-                    الرصيد الافتتاحي
-                  </label>
-                  <input
-                    type="number"
-                    value={openingBalance}
-                    onChange={(e) => setOpeningBalance(e.target.value)}
-                    placeholder="0"
-                    className="w-full h-12 md:h-14 rounded-2xl border border-gray-200 bg-white px-4 md:px-5 outline-none focus:border-[var(--primary)] transition"
-                  />
-                </div>
-              </>
-            )}
-          </div>
-
-          <div className="px-6 md:px-8 py-5 border-t border-gray-100 flex items-center justify-end gap-3">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSubmitting}
-              className="h-11 md:h-12 px-5 rounded-2xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-60"
-            >
+        <DialogFooter className="px-8 py-8 border-t border-gray-100">
+          <div className="flex items-center justify-end gap-3 w-full">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               إلغاء
-            </button>
+            </Button>
 
-            <button
+            <Button
+              form="treasuryForm"
               type="submit"
               disabled={isSubmitting || (isEdit && isTreasuryLoading)}
-              className="min-w-[160px] h-11 md:h-12 px-5 rounded-2xl bg-[#31C96E] text-white text-sm md:text-base font-bold hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2"
+              className="min-w-[160px]"
             >
               {isSubmitting && <Loader2 size={18} className="animate-spin" />}
               {isSubmitting
@@ -164,10 +162,10 @@ export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
                 : isEdit
                 ? "حفظ التعديلات"
                 : "إضافة خزينة"}
-            </button>
+            </Button>
           </div>
-        </form>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
