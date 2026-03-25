@@ -164,6 +164,7 @@ export default function IncomingCollections() {
                 isOpen={!!editingTransaction}
                 onClose={() => setEditingTransaction(null)}
                 transaction={editingTransaction}
+                
             />
         </div>
     );
