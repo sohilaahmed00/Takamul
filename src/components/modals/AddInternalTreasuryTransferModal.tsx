@@ -104,11 +104,11 @@ export default function AddInternalTreasuryTransferModal({
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
       <DialogContent
         dir={direction}
-        className="sm:max-w-[680px] lg:max-w-[700px] p-0 overflow-hidden"
+        className="w-full sm:max-w-[760px] p-0 overflow-hidden rounded-2xl"
       >
         <DialogHeader className="px-6 py-4 border-b border-gray-100">
-          <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-xl">
-            <ArrowLeftRight size={20} />
+          <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold">
+            <ArrowLeftRight size={18} />
             إضافة تحويل داخلي
           </DialogTitle>
           <p className="text-sm text-gray-500">
@@ -119,122 +119,121 @@ export default function AddInternalTreasuryTransferModal({
         <form
           id="addInternalTransferForm"
           onSubmit={handleSubmit}
-          className="max-h-[65vh] overflow-y-auto px-6 py-5"
+          className="px-6 py-4 space-y-4"
         >
-          <div className="grid grid-cols-1 gap-5">
-            <Field>
-              <FieldLabel>تاريخ الحركة</FieldLabel>
-              <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-              />
-            </Field>
+          <Field>
+            <FieldLabel>تاريخ الحركة</FieldLabel>
+            <Input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="h-10"
+            />
+          </Field>
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Wallet size={18} className="text-[#2ecc71]" />
-                <h3 className="text-base font-bold text-gray-800">من خزينة</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field>
-                  <FieldLabel>اختر الخزينة</FieldLabel>
-                  <select
-                    value={fromTreasuryId ?? ""}
-                    onChange={(e) =>
-                      setFromTreasuryId(
-                        e.target.value ? Number(e.target.value) : undefined
-                      )
-                    }
-                    className="w-full h-11 rounded-xl border border-gray-200 bg-white px-4 outline-none focus:border-[#2ecc71]"
-                  >
-                    <option value="">اختر الخزينة</option>
-                    {(treasurys ?? []).map((treasury) => (
-                      <option key={treasury.id} value={treasury.id}>
-                        {treasury.name}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field>
-                  <FieldLabel>الرصيد الحالي</FieldLabel>
-                  <Input
-                    readOnly
-                    value={formatNumber(fromTreasury?.currentBalance)}
-                    className="bg-gray-50"
-                  />
-                </Field>
-              </div>
+          <div className="rounded-2xl border border-gray-200 bg-white p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Wallet size={16} className="text-[#2ecc71]" />
+              <h3 className="text-sm font-semibold text-gray-800">من خزينة</h3>
             </div>
 
-            <div className="rounded-2xl border border-gray-200 bg-white p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Wallet size={18} className="text-[#2ecc71]" />
-                <h3 className="text-base font-bold text-gray-800">إلى خزينة</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field>
-                  <FieldLabel>اختر الخزينة</FieldLabel>
-                  <select
-                    value={toTreasuryId ?? ""}
-                    onChange={(e) =>
-                      setToTreasuryId(
-                        e.target.value ? Number(e.target.value) : undefined
-                      )
-                    }
-                    className="w-full h-11 rounded-xl border border-gray-200 bg-white px-4 outline-none focus:border-[#2ecc71]"
-                  >
-                    <option value="">اختر الخزينة</option>
-                    {(treasurys ?? []).map((treasury) => (
-                      <option key={treasury.id} value={treasury.id}>
-                        {treasury.name}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-
-                <Field>
-                  <FieldLabel>الرصيد الحالي</FieldLabel>
-                  <Input
-                    readOnly
-                    value={formatNumber(toTreasury?.currentBalance)}
-                    className="bg-gray-50"
-                  />
-                </Field>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
-                <FieldLabel>مبلغ التحويل</FieldLabel>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="0"
-                />
+                <FieldLabel>اختر الخزينة</FieldLabel>
+                <select
+                  value={fromTreasuryId ?? ""}
+                  onChange={(e) =>
+                    setFromTreasuryId(
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
+                  className="w-full h-10 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]"
+                >
+                  <option value="">اختر الخزينة</option>
+                  {(treasurys ?? []).map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
               </Field>
 
               <Field>
-                <FieldLabel>البيان</FieldLabel>
+                <FieldLabel>الرصيد الحالي</FieldLabel>
                 <Input
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="اكتب ملاحظات أو بيان التحويل"
+                  readOnly
+                  value={formatNumber(fromTreasury?.currentBalance)}
+                  className="h-10 bg-gray-50 text-center"
                 />
               </Field>
             </div>
           </div>
+
+          <div className="rounded-2xl border border-gray-200 bg-white p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Wallet size={16} className="text-[#2ecc71]" />
+              <h3 className="text-sm font-semibold text-gray-800">إلى خزينة</h3>
+            </div>
+
+            <div className="grid grid-cols-[2fr_1fr] gap-3">
+              <Field>
+                <FieldLabel>اختر الخزينة</FieldLabel>
+                <select
+                  value={toTreasuryId ?? ""}
+                  onChange={(e) =>
+                    setToTreasuryId(
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
+                  }
+                  className="w-full h-10 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]"
+                >
+                  <option value="">اختر الخزينة</option>
+                  {(treasurys ?? []).map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field>
+                <FieldLabel>الرصيد الحالي</FieldLabel>
+                <Input
+                  readOnly
+                  value={formatNumber(toTreasury?.currentBalance)}
+                  className="h-10 bg-gray-50 text-center"
+                />
+              </Field>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field>
+              <FieldLabel>مبلغ التحويل</FieldLabel>
+              <Input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0"
+                className="h-10"
+              />
+            </Field>
+
+            <Field>
+              <FieldLabel>البيان</FieldLabel>
+              <Input
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="اكتب ملاحظات أو بيان التحويل"
+                className="h-10"
+              />
+            </Field>
+          </div>
         </form>
 
-        <DialogFooter className="px-8 py-8 border-t border-gray-100">
-          <div className="flex items-center justify-end gap-3 w-full">
-            <Button type="button" variant="outline" onClick={onClose}>
+        <DialogFooter className="px-6 py-4 border-t border-gray-100">
+          <div className="flex justify-end gap-2 w-full">
+            <Button type="button" variant="outline" onClick={onClose} className="h-10">
               إلغاء
             </Button>
 
@@ -242,9 +241,9 @@ export default function AddInternalTreasuryTransferModal({
               form="addInternalTransferForm"
               type="submit"
               disabled={isPending}
-              className="min-w-[160px]"
+              className="min-w-[140px] h-10"
             >
-              {isPending && <Loader2 size={18} className="animate-spin" />}
+              {isPending && <Loader2 size={16} className="animate-spin" />}
               {isPending ? "جارٍ الحفظ..." : "حفظ التحويل"}
             </Button>
           </div>
