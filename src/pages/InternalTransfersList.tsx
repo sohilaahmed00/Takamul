@@ -1,203 +1,296 @@
-import React, { useState } from 'react';
-import { useLanguage } from '@/context/LanguageContext';
-import { useTransfers } from '@/context/TransfersContext';
-import { Trash2, List as ListIcon, Plus } from 'lucide-react';
-import AddInternalTransferModal from '@/components/modals/AddInternalTransferModal';
-import DeleteConfirmationModal from '@/components/modals/DeleteConfirmationModal';
-import MobileDataCard from '@/components/MobileDataCard';
+import React, { useMemo, useState } from "react";
+import { ArrowLeftRight, Plus, Search } from "lucide-react";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/context/LanguageContext";
+import AddInternalTreasuryTransferModal from "@/components/modals/AddInternalTreasuryTransferModal";
+import { useGetAllInternalTreasuryTransfers } from "@/features/internal-treasury-transfers/hooks/useGetAllInternalTreasuryTransfers";
+import type { InternalTreasuryTransferRow } from "@/features/internal-treasury-transfers/types/internalTreasuryTransfers.types";
 
 export default function InternalTransfersList() {
-  const { t, direction, language } = useLanguage();
-  const { internalTransfers, addInternalTransfer, deleteInternalTransfer } = useTransfers();
-  
-  const [searchTerm, setSearchTerm] = useState('');
+  const { t, direction } = useLanguage();
+
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [entriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredTransfers = internalTransfers.filter(transfer => 
-    transfer.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    transfer.to.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    transfer.notes?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const { data, isFetching } = useGetAllInternalTreasuryTransfers();
 
-  const handleDelete = (id: string) => {
-    setSelectedId(id);
-    setIsDeleteModalOpen(true);
+  const transfers: InternalTreasuryTransferRow[] = useMemo(() => {
+    return (data ?? []).map((item) => ({
+      id: item.id,
+      fromTreasuryId: item.fromTreasuryId,
+      toTreasuryId: item.toTreasuryId,
+      fromTreasuryName: item.fromTreasuryName,
+      toTreasuryName: item.toTreasuryName,
+      amount: item.amount,
+      date: item.date,
+      notes: item.notes || "",
+    }));
+  }, [data]);
+
+  const filteredTransfers = useMemo(() => {
+    const term = searchTerm.toLowerCase();
+
+    return transfers
+      .filter((transfer) => {
+        return (
+          transfer.fromTreasuryName.toLowerCase().includes(term) ||
+          transfer.toTreasuryName.toLowerCase().includes(term) ||
+          transfer.notes?.toLowerCase().includes(term) ||
+          String(transfer.amount).includes(term)
+        );
+      })
+      .sort((a, b) => {
+        const aDate = new Date(a.date).getTime();
+        const bDate = new Date(b.date).getTime();
+        return bDate - aDate;
+      });
+  }, [transfers, searchTerm]);
+
+  const formatDate = (value?: string) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString("en-GB");
   };
 
-  const confirmDelete = () => {
-    if (selectedId) {
-      deleteInternalTransfer(selectedId);
-      setIsDeleteModalOpen(false);
-      setSelectedId(null);
-    }
-  };
+  const formatNumber = (value?: number) =>
+    Number(value ?? 0).toLocaleString("en-US");
 
   return (
-    <div className="p-6 space-y-6" dir={direction}>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-[var(--text-main)] flex items-center gap-2">
-          <ListIcon className="w-6 h-6" />
-          {t('internal_transfers_list')}
-        </h1>
-        <button 
-          onClick={() => setIsAddModalOpen(true)}
-          className="bg-[var(--primary)] text-white px-4 py-2 rounded-lg flex items-center gap-2 hover:bg-[var(--primary-hover)] transition-colors shadow-sm"
-        >
-          <Plus size={20} />
-          {t('add_internal_transfer')}
-        </button>
+    <div className="p-4 space-y-4" dir={direction}>
+      <div className="text-sm text-[var(--text-muted)] flex items-center gap-1">
+        <span>{t("home")}</span>
+        <span>/</span>
+        <span className="text-[var(--text-main)] font-medium">
+          تحويلات داخلية
+        </span>
       </div>
 
-      <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] p-6">
-        <div className="mb-4">
-          <p className="text-sm text-[var(--text-muted)] mb-4">
-            الرجاء استخدام الجدول أدناه للتنقل أو تصفية النتائج.
-          </p>
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <span className="text-sm text-[var(--text-muted)]">إظهار</span>
-              <select className="border border-[var(--border)] rounded px-2 py-1 bg-[var(--input-bg)] text-[var(--text-main)]">
-                <option>10</option>
-                <option>25</option>
-                <option>50</option>
-                <option>100</option>
-              </select>
-              <span className="text-sm text-[var(--text-muted)]">سجلات</span>
-            </div>
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <span className="text-sm text-[var(--text-muted)]">بحث</span>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="border border-[var(--border)] rounded px-3 py-1 bg-[var(--input-bg)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] w-full md:w-64"
-              />
-            </div>
-          </div>
+      <div className="bg-white p-4 rounded-lg">
+        <div className="flex justify-between items-center gap-3">
+          <h1 className="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
+            <ArrowLeftRight size={20} className="text-[var(--primary)]" />
+            تحويلات داخلية
+          </h1>
+
+          <Button onClick={() => setIsAddModalOpen(true)} variant="default" size="xl">
+            <Plus size={20} />
+            إضافة تحويل داخلي
+          </Button>
         </div>
 
-        {/* Desktop Table */}
-        <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-sm text-left" dir={direction}>
-            <thead className="text-xs text-white uppercase bg-[var(--table-header)]">
-              <tr>
-                <th className="px-6 py-3 text-center">{t('date')}</th>
-                <th className="px-6 py-3 text-center">{t('transfer_type')}</th>
-                <th className="px-6 py-3 text-center">{t('transfer_from')}</th>
-                <th className="px-6 py-3 text-center">{t('transfer_to')}</th>
-                <th className="px-6 py-3 text-center">{t('paid_amount')}</th>
-                <th className="px-6 py-3 text-center">{t('notes')}</th>
-                <th className="px-6 py-3 text-center">{t('actions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTransfers.map((transfer) => (
-                <tr key={`desktop-${transfer.id}`} className="border-b border-[var(--border)] hover:bg-[var(--bg-main)]">
-                  <td className="px-6 py-4 text-center">{transfer.date}</td>
-                  <td className="px-6 py-4 text-center">
-                    {transfer.type === 'fund_to_bank' ? t('transfer_from_fund') : t('transfer_to_fund')}
-                  </td>
-                  <td className="px-6 py-4 text-center">{transfer.from}</td>
-                  <td className="px-6 py-4 text-center">{transfer.to}</td>
-                  <td className="px-6 py-4 text-center font-bold">{transfer.amount}</td>
-                  <td className="px-6 py-4 text-center">{transfer.notes || '-'}</td>
-                  <td className="px-6 py-4 text-center">
-                    <button 
-                      onClick={() => handleDelete(transfer.id)}
-                      className="text-emerald-600 hover:text-emerald-800 transition-colors"
-                      title={t('delete')}
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {filteredTransfers.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="px-6 py-4 text-center text-[var(--text-muted)]">
-                    لا توجد بيانات في الجدول
-                  </td>
-                </tr>
-              )}
-            </tbody>
-            <tfoot className="bg-gray-50 text-[var(--text-muted)] text-xs">
-              <tr>
-                <th className="px-6 py-3 text-center">[{t('date')}]</th>
-                <th className="px-6 py-3 text-center">[{t('transfer_type')}]</th>
-                <th className="px-6 py-3 text-center">[{t('transfer_from')}]</th>
-                <th className="px-6 py-3 text-center">[{t('transfer_to')}]</th>
-                <th className="px-6 py-3 text-center">[{t('paid_amount')}]</th>
-                <th className="px-6 py-3 text-center">[{t('notes')}]</th>
-                <th className="px-6 py-3 text-center">{t('actions')}</th>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+        <p className="text-sm text-[var(--text-muted)] mt-1">
+          {t("customize_report_below")}
+        </p>
+      </div>
 
-        {/* Mobile Cards */}
-        <div className="md:hidden space-y-4">
-          {filteredTransfers.map((transfer) => (
-            <MobileDataCard
-              key={`mobile-${transfer.id}`}
-              title={transfer.type === 'fund_to_bank' ? t('transfer_from_fund') : t('transfer_to_fund')}
-              subtitle={transfer.date}
-              fields={[
-                { label: t('transfer_from'), value: transfer.from },
-                { label: t('transfer_to'), value: transfer.to },
-                { label: t('paid_amount'), value: transfer.amount, isBold: true },
-                { label: t('notes'), value: transfer.notes || '-' }
-              ]}
-              actions={
-                <button 
-                  onClick={() => handleDelete(transfer.id)}
-                  className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                >
-                  <Trash2 size={18} />
-                </button>
-              }
+      <div className="bg-white rounded-lg p-4 min-h-100">
+        <div className="space-y-4">
+          <div className="flex flex-col md:flex-row gap-4 mb-6 mt-4 relative">
+            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+              <Search size={18} className="text-gray-400" />
+            </div>
+
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="ابحث باسم الخزينة أو البيان أو المبلغ..."
+              className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 pr-11 pl-4 transition-all outline-none"
             />
-          ))}
-          {filteredTransfers.length === 0 && (
-            <div className="text-center py-8 text-[var(--text-muted)] bg-[var(--bg-main)] rounded-xl">
-              لا توجد بيانات
-            </div>
-          )}
-        </div>
-
-        <div className="mt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-[var(--text-muted)]">
-          <div>
-            عرض 1 إلى {filteredTransfers.length} من {filteredTransfers.length} سجلات
           </div>
-          <div className="flex gap-1">
-            <button className="px-3 py-1 border border-[var(--border)] rounded hover:bg-[var(--bg-main)]">
-              السابق
-            </button>
-            <button className="px-3 py-1 bg-[var(--primary)] text-white rounded">
-              1
-            </button>
-            <button className="px-3 py-1 border border-[var(--border)] rounded hover:bg-[var(--bg-main)]">
-              التالي
-            </button>
+
+          <div className="hidden lg:block rounded-xl border border-gray-100 overflow-hidden">
+            <div className="overflow-x-auto">
+              <DataTable
+                value={filteredTransfers}
+                paginator
+                rows={entriesPerPage}
+                first={(currentPage - 1) * entriesPerPage}
+                onPage={(e) => setCurrentPage(e.page + 1)}
+                dataKey="id"
+                className="custom-green-table custom-compact-table"
+                stripedRows={false}
+                loading={isFetching}
+                emptyMessage="لا توجد بيانات"
+              >
+                <Column
+                  field="date"
+                  header="التاريخ"
+                  sortable
+                  style={{ minWidth: "9rem", whiteSpace: "nowrap" }}
+                  body={(rowData) => formatDate(rowData.date)}
+                />
+
+                <Column
+                  field="fromTreasuryName"
+                  header="من خزينة"
+                  sortable
+                  style={{ minWidth: "12rem", whiteSpace: "nowrap" }}
+                />
+
+                <Column
+                  field="toTreasuryName"
+                  header="إلى خزينة"
+                  sortable
+                  style={{ minWidth: "12rem", whiteSpace: "nowrap" }}
+                />
+
+                <Column
+                  field="amount"
+                  header="المبلغ"
+                  sortable
+                  style={{ minWidth: "8rem", whiteSpace: "nowrap" }}
+                  body={(rowData) => formatNumber(rowData.amount)}
+                />
+
+                <Column
+                  field="notes"
+                  header="البيان"
+                  style={{ minWidth: "16rem" }}
+                  body={(rowData) => rowData.notes || "-"}
+                />
+              </DataTable>
+            </div>
+          </div>
+
+          <div className="lg:hidden space-y-3">
+            {isFetching ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="rounded-2xl border border-gray-100 bg-white p-4 animate-pulse"
+                  >
+                    <div className="h-4 w-32 bg-gray-100 rounded mb-4" />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="h-12 bg-gray-100 rounded-xl" />
+                      <div className="h-12 bg-gray-100 rounded-xl" />
+                      <div className="h-12 bg-gray-100 rounded-xl" />
+                      <div className="h-12 bg-gray-100 rounded-xl" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredTransfers.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
+                لا توجد بيانات
+              </div>
+            ) : (
+              filteredTransfers
+                .slice(
+                  (currentPage - 1) * entriesPerPage,
+                  currentPage * entriesPerPage
+                )
+                .map((row) => (
+                  <div
+                    key={row.id}
+                    className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+                  >
+                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] border-b border-gray-100">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="h-9 w-9 rounded-xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center shrink-0">
+                          <ArrowLeftRight
+                            size={18}
+                            className="text-[var(--primary)]"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs text-[var(--text-muted)]">
+                            تحويل داخلي
+                          </p>
+                          <p className="text-sm font-bold text-[var(--text-main)]">
+                            {formatDate(row.date)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="shrink-0 rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">
+                        {formatNumber(row.amount)}
+                      </div>
+                    </div>
+
+                    <div className="p-4 space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="rounded-xl bg-[#f8fafc] p-3">
+                          <p className="text-xs text-[var(--text-muted)] mb-1">
+                            من خزينة
+                          </p>
+                          <p className="text-sm font-semibold text-[var(--text-main)] break-words">
+                            {row.fromTreasuryName}
+                          </p>
+                        </div>
+
+                        <div className="rounded-xl bg-[#f8fafc] p-3">
+                          <p className="text-xs text-[var(--text-muted)] mb-1">
+                            إلى خزينة
+                          </p>
+                          <p className="text-sm font-semibold text-[var(--text-main)] break-words">
+                            {row.toTreasuryName}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-xl bg-[#f8fafc] p-3">
+                        <p className="text-xs text-[var(--text-muted)] mb-1">
+                          البيان
+                        </p>
+                        <p className="text-sm text-[var(--text-main)] break-words">
+                          {row.notes || "-"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))
+            )}
+
+            {!isFetching && filteredTransfers.length > 0 && (
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  السابق
+                </button>
+
+                <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
+                  {currentPage}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      prev < Math.ceil(filteredTransfers.length / entriesPerPage)
+                        ? prev + 1
+                        : prev
+                    )
+                  }
+                  disabled={
+                    currentPage >= Math.ceil(filteredTransfers.length / entriesPerPage)
+                  }
+                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  التالي
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      <AddInternalTransferModal
+      <AddInternalTreasuryTransferModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onSave={addInternalTransfer}
-      />
-
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => {
-          setIsDeleteModalOpen(false);
-          setSelectedId(null);
-        }}
-        onConfirm={confirmDelete}
-        itemName={language === 'ar' ? 'هذا التحويل' : 'this transfer'}
       />
     </div>
   );

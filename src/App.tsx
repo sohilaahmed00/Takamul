@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -60,7 +60,7 @@ import InvoiceDevices from "@/pages/InvoiceDevices";
 // Settings
 import Groups from "@/pages/Groups";
 import GroupPermissions from "@/pages/GroupPermissions";
-import BanksList from "@/pages/BanksList";
+import TreasuryList from "@/pages/TreasurysList";
 import ExternalTransfersList from "@/pages/ExternalTransfersList";
 import InternalTransfersList from "@/pages/InternalTransfersList";
 import SystemSettings from "@/pages/SystemSettings";
@@ -143,6 +143,9 @@ import WithdrawalBonds from "@/pages/bonds/WithdrawalBonds";
 
 // Print Context
 import { PrintProvider, usePrint } from "@/context/PrintContext";
+import { BanksProvider } from "@/context/BanksContext";
+import { TransfersProvider } from "@/context/TransfersContext";
+import { TreasurysProvider } from "@/context/TreasurysContext";
 import ThermalReceipt from "@/components/ThermalReceipt";
 
 function AppRoutes() {
@@ -221,9 +224,9 @@ function AppRoutes() {
           {/* الإعدادات */}
           <Route path="/settings/groups" element={<Layout><Groups /></Layout>} />
           <Route path="/settings/group-permissions/:id" element={<Layout><GroupPermissions /></Layout>} />
-          <Route path="/banks" element={<Layout><BanksList /></Layout>} />
-          <Route path="/banks/external-transfers" element={<Layout><ExternalTransfersList /></Layout>} />
-          <Route path="/banks/internal-transfers" element={<Layout><InternalTransfersList /></Layout>} />
+          <Route path="/treasurys" element={<Layout><TreasuryList /></Layout>} />
+          <Route path="/treasury/external-transfers" element={<Layout><ExternalTransfersList /></Layout>} />
+          <Route path="/treasury/internal-transfers" element={<Layout><InternalTransfersList /></Layout>} />
           <Route path="/settings/system" element={<Layout><SystemSettings /></Layout>} />
           <Route path="/promotions" element={<Layout><Promotions /></Layout>} />
           <Route path="/settings/payment-companies" element={<Layout><PaymentCompanies /></Layout>} />
@@ -317,8 +320,14 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <PrintProvider>
-      <AppRoutes />
-    </PrintProvider>
+    <BanksProvider>
+      <TransfersProvider>
+        <TreasurysProvider>
+          <PrintProvider>
+            <AppRoutes />
+          </PrintProvider>
+        </TreasurysProvider>
+      </TransfersProvider>
+    </BanksProvider>
   );
 }
