@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { ArrowLeftRight, X } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { ArrowLeftRight, CalendarDays, Loader2, Wallet, X } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { Button } from "@/components/ui/button";
-import useToast from "@/hooks/useToast";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useCreateInternalTreasuryTransfer } from "@/features/internal-treasury-transfers/hooks/useCreateInternalTreasuryTransfer";
-import type { CreateInternalTreasuryTransferPayload } from "@/features/internal-treasury-transfers/types/internalTreasuryTransfers.types";
+import useToast from "@/hooks/useToast";
 
 type Props = {
   isOpen: boolean;
@@ -17,46 +15,54 @@ export default function AddInternalTreasuryTransferModal({
   onClose,
 }: Props) {
   const { direction } = useLanguage();
-  const { notifyError, notifySuccess } = useToast();
+  const { notifySuccess, notifyError } = useToast();
 
   const { data: treasurys } = useGetAllTreasurys();
   const { mutateAsync: createTransfer, isPending } =
     useCreateInternalTreasuryTransfer();
 
-  const [date, setDate] = useState("");
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [fromTreasuryId, setFromTreasuryId] = useState<number | undefined>();
   const [toTreasuryId, setToTreasuryId] = useState<number | undefined>();
-  const [amount, setAmount] = useState("0");
+  const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
 
-  useEffect(() => {
-    if (isOpen) {
-      const today = new Date().toISOString().slice(0, 10);
-      setDate(today);
-      setFromTreasuryId(undefined);
-      setToTreasuryId(undefined);
-      setAmount("0");
-      setNotes("");
-    }
-  }, [isOpen]);
+  const fromTreasury = useMemo(
+    () => treasurys?.find((item) => item.id === fromTreasuryId),
+    [treasurys, fromTreasuryId]
+  );
 
-  if (!isOpen) return null;
+  const toTreasury = useMemo(
+    () => treasurys?.find((item) => item.id === toTreasuryId),
+    [treasurys, toTreasuryId]
+  );
+
+  const formatNumber = (value?: number) =>
+    Number(value ?? 0).toLocaleString("en-US");
+
+  const resetForm = () => {
+    setDate(new Date().toISOString().slice(0, 10));
+    setFromTreasuryId(undefined);
+    setToTreasuryId(undefined);
+    setAmount("");
+    setNotes("");
+  };
+
+  const handleClose = () => {
+    resetForm();
+    onClose();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!date) {
-      notifyError("تاريخ الحركة مطلوب");
-      return;
-    }
-
     if (!fromTreasuryId) {
-      notifyError("يرجى اختيار الخزينة المحول منها");
+      notifyError("اختار الخزينة المحول منها");
       return;
     }
 
     if (!toTreasuryId) {
-      notifyError("يرجى اختيار الخزينة المحول إليها");
+      notifyError("اختار الخزينة المحول إليها");
       return;
     }
 
@@ -65,146 +71,217 @@ export default function AddInternalTreasuryTransferModal({
       return;
     }
 
-    const amountNumber = Number(amount || 0);
-    if (!amountNumber || amountNumber <= 0) {
-      notifyError("مبلغ التحويل يجب أن يكون أكبر من صفر");
+    if (!amount || Number(amount) <= 0) {
+      notifyError("أدخل مبلغ تحويل صحيح");
       return;
     }
 
-    const payload: CreateInternalTreasuryTransferPayload = {
-      fromTreasuryId,
-      toTreasuryId,
-      amount: amountNumber,
-      date: new Date(date).toISOString(),
-      notes: notes.trim() || undefined,
-    };
-
     try {
-      const result = await createTransfer(payload);
+      await createTransfer({
+        fromTreasuryId,
+        toTreasuryId,
+        amount: Number(amount),
+        date,
+        notes,
+      });
 
-      notifySuccess(
-        typeof result === "string" ? result : "تمت إضافة التحويل بنجاح"
-      );
-
-      onClose();
+      notifySuccess("تم حفظ التحويل بنجاح");
+      handleClose();
     } catch (error: any) {
       notifyError(error?.message || "حدث خطأ أثناء حفظ التحويل");
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4">
       <div
-        className="w-full max-w-2xl bg-white rounded-[20px] shadow-2xl overflow-hidden"
         dir={direction}
-      >
-        <div className="flex items-center justify-between px-5 py-4 border-b">
-          <h2 className="text-lg font-bold flex items-center gap-2 text-[var(--text-main)]">
-            <ArrowLeftRight size={18} className="text-[var(--primary)]" />
-            إضافة تحويل داخلي
-          </h2>
+        className="w-full max-w-2xl bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">          <div className="flex items-center gap-3">
+          <div className="h-11 w-11 rounded-2xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center">
+            <ArrowLeftRight size={22} className="text-[var(--primary)]" />
+          </div>
+          <div>
+            <h2 className="text-lg md:text-xl font-bold text-[var(--text-main)]">
+              إضافة تحويل داخلي
+            </h2>
+            <p className="text-sm text-[var(--text-muted)]">
+              قم بتحويل رصيد بين الخزائن الداخلية
+            </p>
+          </div>
+        </div>
 
           <button
             type="button"
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            onClick={handleClose}
+            className="h-10 w-10 rounded-xl hover:bg-gray-100 flex items-center justify-center text-slate-500 hover:text-slate-700 transition"
           >
             <X size={22} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="px-5 py-5 space-y-5">
-            <div>
-              <label className="text-sm text-[var(--text-muted)] mb-1 block">
+          <div className="px-5 py-5 space-y-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-semibold text-[var(--text-main)]">
                 تاريخ الحركة
               </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full h-11 rounded-xl border border-gray-200 px-3 outline-none focus:border-[var(--primary)]"
-              />
+              <div className="relative">
+                <input
+                  type="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full h-12 md:h-11 rounded-2xl border border-gray-200 bg-white px-4 md:px-5 outline-none focus:border-[var(--primary)] transition"
+                />
+                {/* <CalendarDays
+                  size={18}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                /> */}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              <div className="rounded-2xl border border-gray-100 p-4 space-y-4 bg-[#fcfcfc]">
+                <div className="flex items-center gap-2">
+                  <Wallet size={18} className="text-[var(--primary)]" />
+                  <h3 className="text-sm font-bold text-[var(--text-main)]">
+                    من خزينة
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-[var(--text-main)]">
+                      اختر الخزينة
+                    </label>
+                    <select
+                      value={fromTreasuryId ?? ""}
+                      onChange={(e) =>
+                        setFromTreasuryId(
+                          e.target.value ? Number(e.target.value) : undefined
+                        )
+                      }
+                      className="w-full h-12 rounded-2xl border border-gray-200 bg-white px-4 outline-none focus:border-[var(--primary)] transition"
+                    >
+                      <option value="">اختر الخزينة</option>
+                      {(treasurys ?? []).map((treasury) => (
+                        <option key={treasury.id} value={treasury.id}>
+                          {treasury.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-[var(--text-main)]">
+                      الرصيد الحالي
+                    </label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={formatNumber(fromTreasury?.currentBalance)}
+                      className="w-full h-12 rounded-2xl border border-gray-200 bg-[#f8fafc] px-4 text-gray-600 cursor-not-allowed outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-gray-100 p-4 space-y-4 bg-[#fcfcfc]">
+                <div className="flex items-center gap-2">
+                  <Wallet size={18} className="text-[var(--primary)]" />
+                  <h3 className="text-sm font-bold text-[var(--text-main)]">
+                    إلى خزينة
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-[var(--text-main)]">
+                      اختر الخزينة
+                    </label>
+                    <select
+                      value={toTreasuryId ?? ""}
+                      onChange={(e) =>
+                        setToTreasuryId(
+                          e.target.value ? Number(e.target.value) : undefined
+                        )
+                      }
+                      className="w-full h-12 rounded-2xl border border-gray-200 bg-white px-4 outline-none focus:border-[var(--primary)] transition"
+                    >
+                      <option value="">اختر الخزينة</option>
+                      {(treasurys ?? []).map((treasury) => (
+                        <option key={treasury.id} value={treasury.id}>
+                          {treasury.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-[var(--text-main)]">
+                      الرصيد الحالي
+                    </label>
+                    <input
+                      type="text"
+                      readOnly
+                      value={formatNumber(toTreasury?.currentBalance)}
+                      className="w-full h-12 rounded-2xl border border-gray-200 bg-[#f8fafc] px-4 text-gray-600 cursor-not-allowed outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-[var(--text-muted)] mb-1 block">
-                  من خزينة
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-[var(--text-main)]">
+                  مبلغ التحويل
                 </label>
-                <select
-                  value={fromTreasuryId ?? ""}
-                  onChange={(e) =>
-                    setFromTreasuryId(
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
-                  className="w-full h-11 rounded-xl border border-gray-200 px-3 outline-none focus:border-[var(--primary)] bg-white"
-                >
-                  <option value="">اختر الخزينة</option>
-                  {(treasurys ?? []).map((treasury) => (
-                    <option key={treasury.id} value={treasury.id}>
-                      {treasury.name}
-                    </option>
-                  ))}
-                </select>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  placeholder="0"
+                  className="w-full h-12 md:h-11 rounded-2xl border border-gray-200 bg-white px-4 md:px-5 outline-none focus:border-[var(--primary)] transition"
+                />
               </div>
 
-              <div>
-                <label className="text-sm text-[var(--text-muted)] mb-1 block">
-                  إلى خزينة
+              <div className="space-y-2">
+                <label className="block text-sm font-semibold text-[var(--text-main)]">
+                  البيان
                 </label>
-                <select
-                  value={toTreasuryId ?? ""}
-                  onChange={(e) =>
-                    setToTreasuryId(
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
-                  className="w-full h-11 rounded-xl border border-gray-200 px-3 outline-none focus:border-[var(--primary)] bg-white"
-                >
-                  <option value="">اختر الخزينة</option>
-                  {(treasurys ?? []).map((treasury) => (
-                    <option key={treasury.id} value={treasury.id}>
-                      {treasury.name}
-                    </option>
-                  ))}
-                </select>
+                <input
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="اكتب ملاحظات أو بيان التحويل"
+                  className="w-full h-12 md:h-11 rounded-2xl border border-gray-200 bg-white px-4 md:px-5 outline-none focus:border-[var(--primary)] transition"
+                />
               </div>
-            </div>
-
-            <div>
-              <label className="text-sm text-[var(--text-muted)] mb-1 block">
-                مبلغ التحويل
-              </label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="w-full h-11 rounded-xl border border-gray-200 px-3 outline-none focus:border-[var(--primary)]"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm text-[var(--text-muted)] mb-1 block">
-                بيان
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                placeholder="اكتب ملاحظات..."
-                className="w-full rounded-xl border border-gray-200 px-3 py-2 outline-none focus:border-[var(--primary)] resize-none"
-              />
             </div>
           </div>
 
-          <div className="px-5 py-4 border-t flex justify-end">
-            <Button type="submit" variant="default" size="lg" disabled={isPending}>
-              حفظ التحويل
-            </Button>
+          <div className="px-6 md:px-8 py-5 border-t border-gray-100 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={handleClose}
+              disabled={isPending}
+              className="h-11 md:h-12 px-5 rounded-2xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-60"
+            >
+              إلغاء
+            </button>
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="min-w-[160px] h-11 md:h-12 px-5 rounded-2xl bg-[#31C96E] text-white text-sm md:text-base font-bold hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2"
+            >
+              {isPending && <Loader2 size={18} className="animate-spin" />}
+              {isPending ? "جارٍ الحفظ..." : "حفظ التحويل"}
+            </button>
           </div>
         </form>
       </div>

@@ -3,6 +3,14 @@ import { ArrowLeftRight, Plus, Search } from "lucide-react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
 import AddInternalTreasuryTransferModal from "@/components/modals/AddInternalTreasuryTransferModal";
 import { useGetAllInternalTreasuryTransfers } from "@/features/internal-treasury-transfers/hooks/useGetAllInternalTreasuryTransfers";
@@ -60,53 +68,49 @@ export default function InternalTransfersList() {
   const formatNumber = (value?: number) =>
     Number(value ?? 0).toLocaleString("en-US");
 
-  return (
-    <div className="p-4 space-y-4" dir={direction}>
-      <div className="text-sm text-[var(--text-muted)] flex items-center gap-1">
-        <span>{t("home")}</span>
-        <span>/</span>
-        <span className="text-[var(--text-main)] font-medium">
-          تحويلات داخلية
-        </span>
-      </div>
-
-      <div className="bg-white p-4 rounded-lg">
-        <div className="flex justify-between items-center gap-3">
-          <h1 className="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
-            <ArrowLeftRight size={20} className="text-[var(--primary)]" />
-            تحويلات داخلية
-          </h1>
-
-          <Button onClick={() => setIsAddModalOpen(true)} variant="default" size="xl">
-            <Plus size={20} />
-            إضافة تحويل داخلي
-          </Button>
+  const header = (
+    <div className="flex flex-col md:flex-row gap-4 items-center">
+      <div className="relative flex-1 w-full">
+        <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+          <Search size={18} className="text-gray-400" />
         </div>
 
-        <p className="text-sm text-[var(--text-muted)] mt-1">
-          {t("customize_report_below")}
-        </p>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          placeholder="ابحث باسم الخزينة أو البيان أو المبلغ..."
+          className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none"
+        />
       </div>
+    </div>
+  );
 
-      <div className="bg-white rounded-lg p-4 min-h-100">
-        <div className="space-y-4">
-          <div className="flex flex-col md:flex-row gap-4 mb-6 mt-4 relative">
-            <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-              <Search size={18} className="text-gray-400" />
-            </div>
+  return (
+    <div dir={direction}>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ArrowLeftRight size={20} className="text-[var(--primary)]" />
+            تحويلات داخلية
+          </CardTitle>
 
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="ابحث باسم الخزينة أو البيان أو المبلغ..."
-              className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 pr-11 pl-4 transition-all outline-none"
-            />
-          </div>
+          <CardDescription>
+            {t("customize_report_below") || "يمكنك تخصيص التقرير من خلال الخيارات بالأسفل"}
+          </CardDescription>
 
+          <CardAction>
+            <Button onClick={() => setIsAddModalOpen(true)} variant="default">
+              <Plus size={18} />
+              إضافة تحويل داخلي
+            </Button>
+          </CardAction>
+        </CardHeader>
+
+        <CardContent>
           <div className="hidden lg:block rounded-xl border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
               <DataTable
@@ -114,12 +118,14 @@ export default function InternalTransfersList() {
                 paginator
                 rows={entriesPerPage}
                 first={(currentPage - 1) * entriesPerPage}
-                onPage={(e) => setCurrentPage(e.page + 1)}
+                onPage={(e) => setCurrentPage((e.page ?? 0) + 1)}
                 dataKey="id"
                 className="custom-green-table custom-compact-table"
                 stripedRows={false}
                 loading={isFetching}
                 emptyMessage="لا توجد بيانات"
+                header={header}
+                responsiveLayout="stack"
               >
                 <Column
                   field="date"
@@ -250,43 +256,9 @@ export default function InternalTransfersList() {
                   </div>
                 ))
             )}
-
-            {!isFetching && filteredTransfers.length > 0 && (
-              <div className="flex items-center justify-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  السابق
-                </button>
-
-                <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
-                  {currentPage}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCurrentPage((prev) =>
-                      prev < Math.ceil(filteredTransfers.length / entriesPerPage)
-                        ? prev + 1
-                        : prev
-                    )
-                  }
-                  disabled={
-                    currentPage >= Math.ceil(filteredTransfers.length / entriesPerPage)
-                  }
-                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  التالي
-                </button>
-              </div>
-            )}
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       <AddInternalTreasuryTransferModal
         isOpen={isAddModalOpen}
