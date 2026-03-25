@@ -14,7 +14,7 @@ type Props = {
 };
 
 export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
-  const { t, direction } = useLanguage();
+  const { direction } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
 
   const isEdit = !!treasuryId;
@@ -27,14 +27,16 @@ export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
   const [openingBalance, setOpeningBalance] = useState("0");
 
   useEffect(() => {
+    if (!isOpen) return;
+
     if (isEdit && treasury) {
       setName(treasury.name ?? "");
       setOpeningBalance(String(treasury.openingBalance ?? 0));
-    } else if (!isEdit) {
+    } else {
       setName("");
       setOpeningBalance("0");
     }
-  }, [isEdit, treasury, isOpen]);
+  }, [isOpen, isEdit, treasury]);
 
   const isSubmitting = useMemo(() => isCreating || isUpdating, [isCreating, isUpdating]);
 
@@ -44,7 +46,7 @@ export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
     e.preventDefault();
 
     if (!name.trim()) {
-      notifyError(t("treasury_name_required"));
+      notifyError("اسم الخزينة مطلوب");
       return;
     }
 
@@ -55,18 +57,18 @@ export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
           name: name.trim(),
           openingBalance: Number(openingBalance || 0),
         });
-        notifySuccess(t("treasury_updated_success"));
+        notifySuccess("تم تعديل الخزينة بنجاح");
       } else {
         await createTreasury({
           name: name.trim(),
           openingBalance: Number(openingBalance || 0),
         });
-        notifySuccess(t("treasury_added_success"));
+        notifySuccess("تمت إضافة الخزينة بنجاح");
       }
 
       onClose();
     } catch (error: any) {
-      notifyError(error?.message || t("something_went_wrong"));
+      notifyError(error?.message || "حدث خطأ أثناء الحفظ");
     }
   };
 
@@ -87,31 +89,31 @@ export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
 
           <h2 className="text-[20px] font-bold text-[var(--text-main)] flex items-center gap-2">
             <Wallet size={22} className="text-[var(--primary)]" />
-            {isEdit ? t("treasury_modal_title_edit") : t("treasury_modal_title_add")}
+            {isEdit ? "تعديل خزينة" : "إضافة خزينة"}
           </h2>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="px-10 py-8 space-y-6">
             <p className="text-center text-[15px] text-[var(--text-muted)]">
-              {t("treasury_required_fields")}
+              يرجى إدخال المعلومات أدناه. تسميات الحقول التي تحمل علامة * هي حقول إجبارية.
             </p>
 
             <div className="space-y-2">
               <label className="block text-lg font-medium text-[var(--text-main)]">
-                {t("treasury_name_label")} *
+                اسم الخزينة *
               </label>
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder={t("treasury_name_placeholder")}
+                placeholder="أدخل اسم الخزينة..."
                 className="w-full h-14 rounded-2xl border border-gray-200 px-5 outline-none focus:border-[var(--primary)] transition"
               />
             </div>
 
             <div className="space-y-2">
               <label className="block text-lg font-medium text-[var(--text-main)]">
-                {t("treasury_opening_balance")}
+                الرصيد الافتتاحي
               </label>
               <input
                 type="number"
@@ -128,7 +130,7 @@ export default function TreasuryModal({ isOpen, onClose, treasuryId }: Props) {
               disabled={isSubmitting}
               className="min-w-[200px] h-14 rounded-2xl bg-[#31C96E] text-white text-2xl font-bold hover:opacity-90 transition disabled:opacity-60"
             >
-              {isSubmitting ? t("saving") : isEdit ? t("edit_treasury_save_btn") : t("add_treasury_btn")}
+              {isSubmitting ? "جارٍ الحفظ..." : isEdit ? "حفظ التعديلات" : "إضافة خزينة"}
             </button>
           </div>
         </form>
