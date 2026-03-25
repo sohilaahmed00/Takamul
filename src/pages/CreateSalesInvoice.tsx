@@ -424,7 +424,7 @@ const CreateSalesInvoice: React.FC = () => {
                                       <SelectValue placeholder="الوحدة" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {units?.data?.map((c) => (
+                                      {units?.items?.map((c) => (
                                         <SelectItem key={c?.id} value={String(c?.id)}>
                                           {c?.name}
                                         </SelectItem>
