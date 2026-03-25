@@ -117,13 +117,13 @@ export default function AddProduct() {
   const { data: taxesData } = useGetAllTaxes();
   const { data: mainCategories } = useGetAllMainCategories();
   const { data: subCategories, refetch } = useGetAllSubCategoriesWidthParentId(mainCategoryId as number);
-  const { data: productsDirect } = useGetAllProductsDirect();
+  const { data: productsDirect } = useGetAllProductsDirect({ page: 1, limit: 1000000 });
   const { mutateAsync: createProductDirect } = useCreateProductDirect();
   const { mutateAsync: createProductBranched } = useCreateProductBranched();
   const { mutateAsync: createProductPrepared } = useCreateProductPrepared();
   const { mutateAsync: createRawMaterial } = useCreateProductRawMaterial();
-  const { data: productRawMatrial } = useGetAllProductsRawMatrial();
-  const { data: units } = useGetAllUnits({ page: 1, size: 1000000});
+  const { data: productRawMatrial } = useGetAllProductsRawMatrial({ page: 1, limit: 1000000 });
+  const { data: units } = useGetAllUnits({ page: 1, size: 1000000 });
   const anchor = useComboboxAnchor();
   const { id } = useParams();
   const { data: productData } = useGetProductById(Number(id));
@@ -657,7 +657,7 @@ export default function AddProduct() {
                             </FieldLabel>
                             <Combobox
                               multiple
-                              items={productsDirect || []}
+                              items={productsDirect?.items || []}
                               value={selectedValues}
                               onValueChange={(val) => {
                                 const numberArray = Array.isArray(val) ? val.map(Number) : [];
@@ -669,7 +669,7 @@ export default function AddProduct() {
                                   {(values: string[]) => (
                                     <React.Fragment>
                                       {values.map((valueId: string) => {
-                                        const product = productsDirect?.find((p) => String(p.id) === valueId);
+                                        const product = productsDirect?.items?.find((p) => String(p.id) === valueId);
                                         return <ComboboxChip key={valueId}>{product ? product.productNameAr : valueId}</ComboboxChip>;
                                       })}
                                       <ComboboxChipsInput placeholder="ابحث في الاصناف المباشرة..." />
@@ -726,7 +726,7 @@ export default function AddProduct() {
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectGroup>
-                                      {productRawMatrial?.map((raw) => (
+                                      {productRawMatrial?.items?.map((raw) => (
                                         <SelectItem value={String(raw?.id)}>{raw?.productNameAr}</SelectItem>
                                       ))}
                                     </SelectGroup>
