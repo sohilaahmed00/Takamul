@@ -1,18 +1,10 @@
 import { httpClient } from "@/api/httpClient";
-import type {
-  CreateUnitPayload,
-  GetAllUnitsParams,
-  UpdateUnitPayload,
-  Unit,
-  UnitsResponse,
-} from "../types/units.types";
+import type { CreateUnitPayload, GetAllUnitsParams, UpdateUnitPayload, Unit, UnitsResponse } from "../types/units.types";
 
 const BASE_URL = "/UnitOfMeasure";
 
-export const getAllUnits = async (
-  params?: GetAllUnitsParams
-): Promise<UnitsResponse> => {
-  const response = await httpClient<any>(BASE_URL, {
+export const getAllUnits = async (params?: GetAllUnitsParams): Promise<UnitsResponse> => {
+  const response = await httpClient<UnitsResponse>(BASE_URL, {
     method: "GET",
     params: {
       PageNumber: params?.page ?? 1,
@@ -20,20 +12,7 @@ export const getAllUnits = async (
     },
   });
 
-  const serverData = Array.isArray(response?.data)
-    ? response.data
-    : Array.isArray(response?.items)
-      ? response.items
-      : Array.isArray(response)
-        ? response
-        : [];
-
-  return {
-    data: serverData,
-    totalCount: response?.totalCount ?? serverData.length,
-    pageNumber: response?.pageNumber ?? params?.page ?? 1,
-    pageSize: response?.pageSize ?? params?.size ?? 10,
-  };
+  return response;
 };
 
 export const getUnitById = async (id: number): Promise<Unit> => {
@@ -42,9 +21,7 @@ export const getUnitById = async (id: number): Promise<Unit> => {
   });
 };
 
-export const createUnit = async (
-  payload: CreateUnitPayload
-): Promise<unknown> => {
+export const createUnit = async (payload: CreateUnitPayload): Promise<unknown> => {
   return httpClient(BASE_URL, {
     method: "POST",
     data: {
@@ -54,18 +31,15 @@ export const createUnit = async (
   });
 };
 
-export const updateUnit = async (
-  payload: UpdateUnitPayload
-): Promise<unknown> => {
+export const updateUnit = async ({ id, data }: { id: number; data: UpdateUnitPayload }): Promise<unknown> => {
   return httpClient(BASE_URL, {
     method: "PUT",
     params: {
-      id: payload.id,
+      id: id,
     },
     data: {
-      id: payload.id,
-      name: payload.name,
-      description: payload.description ?? "",
+      name: data.name,
+      description: data.description ?? "",
     },
   });
 };

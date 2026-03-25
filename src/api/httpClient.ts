@@ -1,3 +1,4 @@
+import axios from "axios";
 import { axiosClient } from "./client";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -23,7 +24,28 @@ export async function httpClient<T>(url: string, options?: HttpClientOptions): P
 
     return response.data as T;
   } catch (error) {
-    // console.log("API ERROR:", error.response?.data);
-    throw error;
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data;
+
+    // لو Validation Error
+    if (data?.errors) {
+      throw {
+        type: "validation",
+        message: data.title,
+        errors: data.errors,
+        status: data.status,
+      };
+    }
+
+    // Error عادي
+    throw {
+      type: "api",
+      message: data?.message || data?.title || "API Error",
+      data,
+      status: error.response?.status,
+    };
   }
+
+  throw error;
+}
 }

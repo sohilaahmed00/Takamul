@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { PlusCircle, Save, Trash2, FileText, CreditCard, Box, Plus, Eye, X } from "lucide-react";
+import { PlusCircle, Save, Trash2, FileText, CreditCard, Box, Plus, Eye, X, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import z from "zod";
@@ -17,11 +17,9 @@ import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHou
 import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
 import { useWatch } from "react-hook-form";
 import type { CreateSalesOrder } from "@/features/sales/types/sales.types";
-import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList, ComboboxValue } from "@/components/ui/combobox";
-import type { Product } from "@/features/products/types/products.types";
-import type { Customer } from "@/features/customers/types/customers.types";
-import type { WareHouse } from "@/features/wareHouse/types/wareHouse.types";
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
+import { Link } from "react-router-dom";
 const SalesInvoiceSchema = z
   .object({
     orderDate: z.string().min(1, "التاريخ مطلوب"),
@@ -93,17 +91,10 @@ const CreateSalesInvoice: React.FC = () => {
     },
   });
 
-  const [customerId, setCustomerId] = useState("");
-  const [employeeId, setEmployeeId] = useState("");
-  const [poNumber, setPoNumber] = useState("");
-  const [shippingAddress, setShippingAddress] = useState("");
   const { data: customers } = useGetAllCustomers();
-  const { data: products } = useGetAllProducts();
-  const { mutateAsync: createSalesorders } = useCreateSalesOrders();
+  const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({ page: 1, size: 100 });
-  const [showPreview, setShowPreview] = useState(false);
-
   const { mutateAsync: createSalesOrders } = useCreateSalesOrders();
   const {
     fields: itemFields,
@@ -122,10 +113,7 @@ const CreateSalesInvoice: React.FC = () => {
     control: form.control,
     name: "payments",
   });
-  // --- States عامة ---
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState<"success" | "error">("success");
-  const [showToast, setShowToast] = useState(false);
+
   const discountType = useWatch({
     control: form.control,
     name: "invoiceDiscountType",
@@ -181,7 +169,6 @@ const CreateSalesInvoice: React.FC = () => {
 
   const remaining = finalTotal - totalPaid;
 
-  // --- دوال التحكم في الأصناف ---
   const handleAddItem = () => {
     appendItem({
       productId: 0,
@@ -193,7 +180,6 @@ const CreateSalesInvoice: React.FC = () => {
     });
   };
 
-  // --- دوال التحكم في المدفوعات ---
   const handleAddPayment = () => {
     appendPayment({ amount: 0, paymentMethod: "Cash" });
   };
@@ -241,33 +227,22 @@ const CreateSalesInvoice: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      {/* <Toast isOpen={showToast} message={toastMessage} type={toastType} onClose={() => setShowToast(false)} /> */}
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3 text-[#2ecc71]">
-            <div className="p-3 bg-[#2ecc71]/10 rounded-xl">
-              <FileText size={28} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">{"إضافة فاتورة مبيعات"}</h1>
-              <p className="text-sm text-gray-500">{t("invoice_desc") || "قم بإدخال بيانات الفاتورة، الأصناف، وتفاصيل الدفع"}</p>
-            </div>
-          </div>
-          <button className="w-full sm:w-auto bg-[#00a65a] text-white px-8 py-3 rounded-lg font-bold hover:bg-[#008d4c] transition-colors shadow-md disabled:opacity-60 flex items-center justify-center gap-2">
-            <Save size={20} />
-            ddd
-            {/* {submitting ? t("saving") || "جارٍ الحفظ..." : t("save_invoice") || "حفظ الفاتورة"} */}
-          </button>
-        </div>
-
-        <form
-          onSubmit={form.handleSubmit(handleSubmit, (errors) => {
-            console.log("❌ Errors:", errors);
-          })}
-          className="space-y-6"
-        >
+    <Card>
+      <CardHeader className="">
+        <CardTitle>{"إضافة فاتورة مبيعات"}</CardTitle>
+        {/* <CardDescription>Card Description</CardDescription> */}
+        <CardAction>
+          <Button variant={"outline"} asChild>
+            <Link to={"/sales/all"}>
+              {" "}
+              الرجوع لقائمة المبيعات
+              <ArrowLeft size={16} />
+            </Link>
+          </Button>
+        </CardAction>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={form.handleSubmit(handleSubmit, (errors) => {})} className="space-y-6">
           <div className="bg-white p-6 rounded-sm border border-gray-100">
             <h2 className="text-lg font-bold  text-gray-800 mb-6 ">{"البيانات الأساسية"}</h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -576,7 +551,6 @@ const CreateSalesInvoice: React.FC = () => {
                       />
                     </div>
 
-                    {/* زر الحذف */}
                     <div className="pt-5 shrink-0">
                       <button type="button" onClick={() => removePayment(index)} disabled={paymentFields.length === 1} className="p-2 text-red-500 hover:bg-red-50 rounded-md disabled:opacity-30 transition-colors border border-transparent hover:border-red-100" title="حذف الدفعة">
                         <Trash2 size={18} />
@@ -645,33 +619,16 @@ const CreateSalesInvoice: React.FC = () => {
             </div>
           </div>
           <div className="bg-white p-5 sm:p-6 rounded-sm border border-gray-100 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
-            {/* الجزء الأيمن: زر الإلغاء والرجوع */}
-            <Button
-              type="button"
-              variant={"destructive"}
-              className="h-12 px-4"
-              onClick={() => {
-                // ضيف كود الرجوع هنا، مثلاً: router.back()
-              }}
-            >
+            <Button type="button" variant={"destructive"} className="h-12 px-4" onClick={() => {}}>
               إلغاء والعودة
             </Button>
-            <Button
-              type="submit"
-              className="h-12 px-4"
-              // disabled={isSubmitting} // لو عندك حالة تحميل
-            >
+            <Button type="submit" className="h-12 px-4">
               حفظ وإصدار الفاتورة
             </Button>
           </div>
-
-          {/* الجزء الأيسر: الإجراءات الأساسية */}
-          {/* زر المعاينة (Secondary Action) */}
-
-          {/* زر الحفظ (Primary Action) */}
-        </form>
-      </motion.div>
-    </div>
+        </form>{" "}
+      </CardContent>
+    </Card>
   );
 };
 

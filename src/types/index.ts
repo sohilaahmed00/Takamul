@@ -53,7 +53,7 @@ export interface PaymentMethod {
   image?: string;
   code: string;
   name: string;
-  status: 'available' | 'unavailable';
+  status: "available" | "unavailable";
 }
 
 export interface SpecialPromotion {
@@ -107,12 +107,12 @@ export interface Sale {
   refNo: string;
   cashier: string;
   customer: string;
-  saleStatus: 'completed' | 'returned';
+  saleStatus: "completed" | "returned";
   grandTotal: number;
   paid: number;
   remaining: number;
-  paymentStatus: 'paid' | 'partial' | 'unpaid';
-  paymentType: 'mada' | 'cash' | 'bank_transfer';
+  paymentStatus: "paid" | "partial" | "unpaid";
+  paymentType: "mada" | "cash" | "bank_transfer";
   items?: SaleItem[];
 }
 
@@ -134,12 +134,12 @@ export interface User {
   id: string;
   firstName: string;
   lastName: string;
-  gender: 'male' | 'female';
+  gender: "male" | "female";
   company: string;
   phone: string;
   email: string;
   usernameEmail: string;
-  status: 'active' | 'inactive';
+  status: "active" | "inactive";
   group: string;
   defaultPaymentMethod: string;
   defaultPaymentCompany: string;
@@ -174,11 +174,17 @@ export interface Delegate {
 
 export interface Bond {
   id: string;
-  type: 'receipt' | 'payment' | 'deposit' | 'withdrawal';
+  type: "receipt" | "payment" | "deposit" | "withdrawal";
   date: string;
   beneficiary?: string;
   branch: string;
   bank?: string;
   amount: number;
   notes?: string;
+}
+
+export interface PaginationMeta {
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
 }

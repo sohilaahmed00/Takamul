@@ -280,96 +280,6 @@ textarea {
   margin-inline-end: 0.75rem;
 }
 
-.custom-green-table {
-  font-family: "Cairo", sans-serif;
-  background: #ffffff;
-  border-radius: 8px;
-}
-
-.custom-green-table .p-datatable-thead > tr > th {
-  background-color: #f9fafc !important;
-  color: #9ca3af !important;
-  font-weight: 600;
-  font-size: 14px;
-  padding: 0.7rem 1.5rem;
-  border: none;
-  border-bottom: 1px solid #f3f4f6;
-  text-align: right !important;
-}
-
-.custom-green-table .p-datatable-thead > tr > th .p-column-header-content {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 0.5rem;
-}
-/* .custom-green-table .p-datatable-thead > tr > th:first-child .p-column-header-content {
-  gap: 0 !important;
-  justify-content: center !important;
-} */
-
-.custom-green-table .p-datatable-tbody > tr > td {
-  background-color: #ffffff;
-  color: #4b5563;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 0.8rem 1.5rem;
-  border: none;
-  border-bottom: 1px solid #f3f4f6;
-  text-align: center !important;
-}
-
-.custom-green-table .p-datatable-tbody > tr:last-child > td {
-  border-bottom: none;
-}
-
-.custom-green-table .p-datatable-tbody > tr:hover > td {
-  background-color: color-mix(in srgb, var(--primary) 8%, white) !important;
-}
-
-.btn-minimal-action {
-  background: transparent;
-  border: none;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transition: color 0.2s;
-}
-
-.btn-minimal-action:hover {
-  color: #10b981;
-}
-.btn-minimal-action:last-child:hover {
-  color: red;
-}
-
-.custom-green-table .p-sortable-column-icon {
-  width: 12px;
-  height: 12px;
-  color: #d1d5db !important;
-}
-
-.custom-green-table .p-checkbox .p-checkbox-box {
-  border: 1.5px solid #d1d5db;
-  border-radius: 4px;
-  width: 18px;
-  height: 18px;
-  transition: all 0.2s ease;
-}
-
-.custom-green-table .p-checkbox .p-checkbox-box.p-highlight {
-  border-color: #10b981 !important;
-  background-color: #10b981 !important;
-}
-
-.custom-green-table .p-datatable-tbody > tr > td:first-child,
-.custom-green-table .p-datatable-thead > tr > th:first-child {
-  padding-right: 1.5rem !important;
-}
-
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -457,6 +367,114 @@ textarea {
     @apply font-sans;
   }
 }
+.custom-green-table {
+  font-family: "Cairo", sans-serif;
+}
+
+.custom-green-table .p-datatable-wrapper {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.custom-green-table .p-datatable-thead > tr > th {
+  background-color: white;
+  color: #9ca3af !important;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 0.7rem 1.5rem;
+  border: none;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: center !important;
+}
+
+.custom-green-table .p-datatable-thead > tr:hover > th {
+  background-color: #f7f9fc !important;
+  transition: background-color 0.2s ease;
+}
+.custom-green-table .p-datatable-thead > tr > th .p-column-header-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+/* .custom-green-table .p-datatable-thead > tr > th:first-child .p-column-header-content {
+  gap: 0 !important;
+  justify-content: center !important;
+} */
+
+.custom-green-table .p-datatable-tbody > tr > td {
+  background-color: #ffffff;
+  color: #4b5563;
+  font-size: 14px;
+  font-weight: 600;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: center !important;
+}
+
+.custom-green-table .p-datatable-tbody > tr:last-child > td {
+  border-bottom: none;
+}
+
+.custom-green-table .p-datatable-tbody > tr:hover > td {
+  background-color: #f7f9fc;
+}
+
+/* الأساسي لكل الأزرار (زي ما هو عندك) */
+.btn-minimal-action {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+/* 1. هوفر زرار الاستعراض (أزرق) */
+.btn-minimal-action.btn-view:hover {
+  color: #3b82f6; /* لون أزرق */
+  background-color: #eff6ff; /* خلفية زرقاء فاتحة جداً */
+}
+
+/* 2. هوفر زرار التعديل (أخضر) */
+.btn-minimal-action.btn-edit:hover {
+  color: #10b981; /* اللون الأخضر بتاعك */
+  background-color: #ecfdf5; /* خلفية خضراء فاتحة */
+}
+
+/* 3. هوفر زرار الحذف (أحمر) */
+.btn-minimal-action.btn-delete:hover {
+  color: #ef4444; /* لون أحمر */
+  background-color: #fef2f2; /* خلفية حمراء فاتحة */
+}
+.custom-green-table .p-sortable-column-icon {
+  width: 12px;
+  height: 12px;
+  color: #d1d5db !important;
+}
+
+.custom-green-table .p-checkbox .p-checkbox-box {
+  border: 1.5px solid #d1d5db;
+  border-radius: 4px;
+  width: 18px;
+  height: 18px;
+  transition: all 0.2s ease;
+}
+
+.custom-green-table .p-checkbox .p-checkbox-box.p-highlight {
+  border-color: #10b981 !important;
+  background-color: #10b981 !important;
+}
+
+.custom-green-table .p-datatable-tbody > tr > td:first-child,
+.custom-green-table .p-datatable-thead > tr > th:first-child {
+  padding-right: 1.5rem !important;
+}
 
 .p-paginator-bottom.p-paginator.p-component {
   direction: ltr !important;
@@ -472,46 +490,45 @@ textarea {
   white-space: nowrap;
 }
 
-.p-datatable-header{
+.p-datatable-header {
   background-color: transparent;
-  border: none;
+  border: 1px solid #e2e8f0;
+  padding-inline: 10px;
+  margin-bottom: 10px;
+  border-radius: 10px;
 }
-
-
-
-
 
 /* 1. توسيط حاوية الفلتر بالكامل داخل الخلية */
 .custom-green-table .p-column-filter-row {
-    justify-content: center !important;
-    padding: 0.5rem 0;
+  justify-content: center !important;
+  padding: 0.5rem 0;
 }
 
 /* 2. تنسيق مربع الإدخال (Input) */
 .custom-green-table .p-column-filter-element-container {
-    display: flex;
-    justify-content: center;
-    width: 100%;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .custom-green-table .p-column-filter-row .p-inputtext {
-    font-size: 14px;
-    border-radius: 8px;
-    border: 1px solid #e2e8f0;
-    transition: all 0.2s;
-    text-align: center;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.2s;
+  text-align: center;
 }
 
 /* 3. تأثير عند التركيز (Focus) باللون الأخضر */
 .custom-green-table .p-column-filter-row .p-inputtext:focus {
-    border-color: #22c55e; /* لون أخضر */
-    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
-    outline: none;
+  border-color: #22c55e; /* لون أخضر */
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2);
+  outline: none;
 }
 
 /* 4. إخفاء زر الـ Clear الصغير إذا كنت تريد شكلاً أبسط */
 .custom-green-table .p-column-filter-clear-button {
-    display: none !important;
+  display: none !important;
 }
 
 /* 5. توسيط عناوين الأعمدة لتتماشى مع الفلاتر */

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, FileDown, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, FileUp, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, FileMinus, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -42,7 +42,7 @@ const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarO
   );
 };
 
-export default function Layout({ children }: { children: React.ReactNode }) {
+export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -101,7 +101,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   };
 
   const SubmenuItem = ({ label, icon: Icon, path, state, onClick }: SubmenuItemProps) => {
-    const isActive = path ? location.pathname === path || location.pathname.startsWith(path + "/") : false;
+    const isActive = path ? location.pathname === path : false;
 
     return (
       <button
@@ -109,7 +109,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           if (onClick) {
             onClick();
           } else if (path) {
-            navigate(path, { state });
+            navigate(path);
           }
           if (isMobile) setIsMobileMenuOpen(false);
         }}
@@ -605,7 +605,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
           {location.pathname === "/dashboard" && <WelcomeBanner />}
-          {children}
+          <Outlet   />
         </main>
       </div>
 

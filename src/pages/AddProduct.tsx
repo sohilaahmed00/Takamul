@@ -26,11 +26,11 @@ import type { ProductDirect } from "@/features/products/types/products.types";
 import { useCreateProductBranched } from "@/features/products/hooks/useCreateProductBranched";
 import { useCreateProductPrepared } from "@/features/products/hooks/useCreateProductPrepared";
 import { useGetAllProductsRawMatrial } from "@/features/products/hooks/useGetAllProductsRawMatrial";
-import { useGetAllUnits } from "@/features/untis/hooks/useGetAllUnits";
 import { useCreateProductRawMaterial } from "@/features/products/hooks/useCreateProductRawMaterial";
 import { useGetProductById } from "@/features/products/hooks/useGetProductById";
 import { useUpdateProduct } from "@/features/products/hooks/useUpdateProduct";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
 export const createProductSchema = z.object({
   Barcode: z.string().min(1, "الباركود مطلوب"),
   ProductNameAr: z.string().min(1, "اسم المنتج بالعربي مطلوب"),
@@ -123,7 +123,7 @@ export default function AddProduct() {
   const { mutateAsync: createProductPrepared } = useCreateProductPrepared();
   const { mutateAsync: createRawMaterial } = useCreateProductRawMaterial();
   const { data: productRawMatrial } = useGetAllProductsRawMatrial();
-  const { data: units } = useGetAllUnits();
+  const { data: units } = useGetAllUnits({ page: 1, size: 1000000});
   const anchor = useComboboxAnchor();
   const { id } = useParams();
   const { data: productData } = useGetProductById(Number(id));

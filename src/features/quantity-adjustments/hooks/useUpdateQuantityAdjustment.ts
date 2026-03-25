@@ -7,23 +7,17 @@ export function useUpdateQuantityAdjustment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      id,
-      payload,
-    }: {
-      id: number;
-      payload: UpdateQuantityAdjustmentPayload;
-    }) => updateQuantityAdjustment(id, payload),
+    mutationFn: ({ id, payload }: { id: number; payload: UpdateQuantityAdjustmentPayload }) => updateQuantityAdjustment(id, payload),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: quantityAdjustmentKeys.all,
       });
-      queryClient.invalidateQueries({
-        queryKey: quantityAdjustmentKeys.detail(variables.id),
-      });
-      queryClient.invalidateQueries({
-        queryKey: quantityAdjustmentKeys.stockInventories,
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: quantityAdjustmentKeys.detail(variables.id),
+      // });
+      // queryClient.invalidateQueries({
+      //   queryKey: quantityAdjustmentKeys.stockInventories,
+      // });
     },
   });
 }

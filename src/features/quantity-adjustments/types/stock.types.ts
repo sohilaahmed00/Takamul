@@ -1,3 +1,5 @@
+import type { PaginationMeta } from "@/types";
+
 export interface StockInventoryOption {
   id: number;
   productId?: number;
@@ -6,13 +8,8 @@ export interface StockInventoryOption {
   warehouseName?: string;
   quantityAvailable?: number;
   lastUpdated?: string;
-  displayName?: string;
 }
 
-export interface StockInventoryListResponse {
-  data: StockInventoryOption[];
-  totalCount: number;
-  pageNumber: number;
-  pageSize: number;
-  totalPages?: number;
+export interface StockInventoryListResponse extends PaginationMeta {
+  items: StockInventoryOption[];
 }

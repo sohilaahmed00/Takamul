@@ -1,76 +1,59 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useMemo } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { useSales } from "@/context/SalesContext";
-import { cn } from "@/lib/utils";
-import { AnimatePresence } from "framer-motion";
 import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import { useGetAllSales } from "../features/sales/hooks/useGetAllSales";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { DataTable } from "primereact/datatable";
+import { DataTable, type DataTableFilterMeta, type DataTablePageEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
+import { FilterMatchMode } from "primereact/api";
+import type { SalesOrder } from "@/features/sales/types/sales.types";
 
 export default function AllSales() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
-  const salesContext = useSales() || {};
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showCount, setShowCount] = useState(10);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
-  const { data: salesOrders } = useGetAllSales();
-  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (!target.closest(".action-menu-container")) {
-        setActiveActionMenu(null);
-      }
-    };
-    window.addEventListener("click", handleClickOutside);
-    return () => window.removeEventListener("click", handleClickOutside);
-  }, []);
-
-  const [showInvoiceDetails, setShowInvoiceDetails] = useState<any | null>(null);
-  const [showFilters, setShowFilters] = useState(true);
-
-  const [filters, setFilters] = useState({
-    refNo: "",
-    invoiceNo: "",
-    customer: "",
-    branch: "",
-    fromDate: "",
-    toDate: "",
-    grandTotal: "",
-    deliveryCompany: "all",
+  const { data: salesOrders } = useGetAllSales(currentPage, entriesPerPage);
+  const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const [filters, setFilters] = useState<DataTableFilterMeta>({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    orderNumber: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    orderDate: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    customerName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    createdBy: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    orderStatus: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    grandTotal: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    phone: { value: null, matchMode: FilterMatchMode.CONTAINS },
+    taxNumber: { value: null, matchMode: FilterMatchMode.CONTAINS },
   });
+  const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    let _filters = { ...filters };
 
-  const filteredSalesOrders = salesOrders?.items
-    .filter((c) => {
-      const term = searchTerm.toLowerCase();
+    // @ts-ignore
+    _filters["global"].value = value;
 
-      return c.customerName?.toLowerCase().includes(term) || c.orderNumber?.includes(term) || String(c.grandTotal)?.includes(term);
-    })
-    ?.sort((a, b) => b.id - a.id);
-
-  // const duplicateSale = (sale: any) => {
-  //   const { id, ...saleData } = sale;
-  //   const newSale = {
-  //     ...saleData,
-  //     invoiceNo: (parseInt(safeSales[0]?.invoiceNo || "0") + 1).toString(),
-  //     date: new Date().toLocaleString("en-GB"),
-  //   };
-  //   addSale(newSale);
-  //   setActiveActionMenu(null);
-  // };
-
+    setFilters(_filters);
+    setGlobalFilterValue(value);
+  };
+  const renderHeader = () => {
+    return (
+      <div className="flex flex-col md:flex-row gap-4 items-center">
+        <div className="relative flex-1 w-full">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+            <Search size={18} className="text-gray-400" />
+          </div>
+          <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder") || "البحث..."} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
+        </div>
+      </div>
+    );
+  };
+  const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
   return (
     <div className="space-y-4 pb-12" dir={direction}>
       <div className="text-sm text-gray-500 flex items-center gap-1 font-medium px-2">
@@ -82,163 +65,64 @@ export default function AllSales() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="">
           <CardTitle>المبيعات</CardTitle>
           <CardDescription>يمكنك إدارة ، إضافة ، تعديل فواتير البيع الخاصة بك</CardDescription>
           <CardAction>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline">
-                  <Filter />
-                  فلترة
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-50">
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <h4 className="leading-none font-bold">فلترة حسب</h4>
-                  </div>
-                  <div className="grid gap-2">
-                    <div className="flex flex-col gap-1">
-                      <Label htmlFor="width">رقم الفاتورة</Label>
-                      <Input id="width" defaultValue="100%" className="col-span-2 h-8" />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label htmlFor="maxWidth">التاريخ</Label>
-                      <Input id="maxWidth" defaultValue="300px" className="col-span-2 h-8" />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label htmlFor="height">الكاشير</Label>
-                      <Input id="height" defaultValue="25px" className="col-span-2 h-8" />
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <Label htmlFor="maxHeight">حالة الفاتورة</Label>
-                      <Input id="maxHeight" defaultValue="none" className="col-span-2 h-8" />
-                    </div>
-                  </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+            <Button variant={"default"} asChild>
+              <Link to={"/sales/create"}>إضافة فاتورة مبيعات</Link>
+            </Button>
           </CardAction>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-xl border border-gray-100">
-            <DataTable responsiveLayout="stack" className="custom-green-table custom-compact-table" value={filteredSalesOrders} paginator rows={10} onPage={(e) => setCurrentPage(e.page + 1)} dataKey="id" stripedRows={false} /* في هذا التصميم، من الأفضل إيقاف stripedRows للحفاظ على البساطة */>
-              {/* <Column selectionMode="multiple" headerStyle={{ width: "2rem" }}></Column> */}
-              <Column header={"رقم الفاتورة"} sortable field="orderNumber" />
-              <Column header="التاريخ" sortable field="orderDate" body={(row) => new Date(row.orderDate).toLocaleDateString("ar-EG")} /> <Column header={t("name")} sortable field="customerName" />
-              <Column header={"الكاشير"} sortable field="createdBy" />
-              <Column header={"حالة الفاتورة"} sortable field="orderStatus" />
-              <Column header={"المجموع الكلي"} sortable field="grandTotal" />
-              <Column field="phone" header={t("phone")} />
-              <Column field="taxNumber" header={t("tax_number")} />
-              <Column
-                header={t("actions")}
-                body={(customer) => (
-                  <>
-                    <button onClick={async () => {}} className="btn-minimal-action btn-compact-action">
-                      <Edit2 size={16} />
-                    </button>
-                    <button onClick={async () => {}} className="btn-minimal-action btn-compact-action">
-                      <Trash2 size={16} />
-                    </button>
-                  </>
-                )}
-              />
-            </DataTable>
-          </div>{" "}
+          <DataTable
+            value={salesOrders?.items || []}
+            rowsPerPageOptions={[5, 10, 20, 50]}
+            lazy
+            paginator
+            rows={entriesPerPage}
+            first={(currentPage - 1) * entriesPerPage}
+            totalRecords={salesOrders?.totalCount || 0}
+            onPage={(e: DataTablePageEvent) => {
+              if (e.page === undefined) return;
+              setCurrentPage(e.page + 1);
+              setEntriesPerPage(e.rows);
+            }}
+            loading={!salesOrders}
+            filters={filters}
+            header={header}
+            responsiveLayout="stack"
+            className="custom-green-table custom-compact-table"
+            dataKey="id"
+            stripedRows={false}
+          >
+            <Column header={"رقم الفاتورة"} sortable field="orderNumber" />
+            <Column header="التاريخ" sortable field="orderDate" body={(row) => new Date(row.orderDate).toLocaleDateString("ar-EG")} />
+            <Column header={"اسم العميل"} sortable field="customerName" />
+            <Column header={"الكاشير"} sortable field="createdBy" />
+            <Column header={"حالة الفاتورة"} sortable field="orderStatus" />
+            <Column header={"المجموع الكلي"} sortable field="grandTotal" />
+            <Column header={"المدفوع"} sortable field="" />
+            <Column header={"المبلغ المتبقي"} sortable field="" />
+            <Column
+              header={t("actions")}
+              body={(row) => (
+                <div className="flex gap-2">
+                  <button onClick={() => {}} className="btn-minimal-action btn-compact-action">
+                    <Edit2 size={16} />
+                  </button>
+                  <button onClick={() => {}} className="btn-minimal-action btn-compact-action text-red-500">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
+            />
+          </DataTable>
         </CardContent>
         {/* <CardFooter>
           <p>Card Footer</p>
         </CardFooter> */}
       </Card>
-
-      <AnimatePresence>
-        <ResponsiveModal key="invoice-details-modal" isOpen={!!showInvoiceDetails} onClose={() => setShowInvoiceDetails(null)} title={`${t("invoice_details")} ${showInvoiceDetails?.invoiceNo || ""}`} maxWidth="max-w-4xl">
-          {showInvoiceDetails && (
-            <div className="p-8 space-y-8" dir={direction}>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="space-y-2 text-right">
-                  <h3 className="font-bold text-[#00a651]">{t("customer_default")}</h3>
-                  <p className="text-sm text-gray-600">{t("phone")}: 00</p>
-                  <p className="text-sm text-gray-600">{t("email")}: info@posit.sa</p>
-                </div>
-                <div className="flex justify-center">
-                  <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center">
-                    <LayoutGrid size={48} className="text-gray-300" />
-                  </div>
-                </div>
-                <div className="space-y-2 text-right">
-                  <h3 className="font-bold text-[#00a651]">{t("test_company")}</h3>
-                  <p className="text-sm text-gray-600">{t("cr_no")}: 1234123123</p>
-                  <p className="text-sm text-gray-600">{t("vat_no")}: 50608090</p>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div className="text-right space-y-1">
-                  <p className="text-sm font-bold text-[#00a651]">
-                    {t("ref_no")}: {showInvoiceDetails.refNo}
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {t("date")}: {showInvoiceDetails.date}
-                  </p>
-                </div>
-                <div className="text-right space-y-1">
-                  <p className="text-sm font-bold">
-                    {t("sale_status")}: <span className="text-[#00a651]">{t(showInvoiceDetails.saleStatus)}</span>
-                  </p>
-                  <p className="text-sm font-bold">
-                    {t("payment_status")}: <span className="text-[#00a651]">{t(showInvoiceDetails.paymentStatus)}</span>
-                  </p>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto rounded-xl border border-gray-200">
-                <table className="w-full text-sm text-right border-collapse min-w-[800px]">
-                  <thead>
-                    <tr className="bg-[#00a651] text-white">
-                      <th className="p-3 border-l border-white/20">{t("item_no")}</th>
-                      <th className="p-3 border-l border-white/20">{t("description")}</th>
-                      <th className="p-3 border-l border-white/20">{t("quantity")}</th>
-                      <th className="p-3 border-l border-white/20">{t("unit_price")}</th>
-                      <th className="p-3 border-l border-white/20">{t("total_without_vat")}</th>
-                      <th className="p-3 border-l border-white/20">{t("vat")}</th>
-                      <th className="p-3">{t("total_price")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b border-gray-200 bg-white">
-                      <td className="p-3 border-x border-gray-100">1</td>
-                      <td className="p-3 border-x border-gray-100">60990980 - عباية كريب مع اكمام مموجه</td>
-                      <td className="p-3 border-x border-gray-100">-2.00 وحدة</td>
-                      <td className="p-3 border-x border-gray-100">250.00</td>
-                      <td className="p-3 border-x border-gray-100">500.00-</td>
-                      <td className="p-3 border-x border-gray-100">0.00</td>
-                      <td className="p-3 border-x border-gray-100 font-bold">500.00-</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="flex flex-wrap gap-2 justify-center pt-4 border-t border-gray-100">
-                <button className="bg-[#00a651] text-white px-6 py-2 rounded-md flex items-center gap-2 hover:bg-[#008f45] transition-colors">
-                  <Printer size={18} /> {t("print")}
-                </button>
-                <button className="bg-[#00a651] text-white px-6 py-2 rounded-md flex items-center gap-2 hover:bg-[#008f45] transition-colors">
-                  <Download size={18} /> {t("download_pdf")}
-                </button>
-                <button className="bg-[#00a651] text-white px-6 py-2 rounded-md flex items-center gap-2 hover:bg-[#008f45] transition-colors">
-                  <Mail size={18} /> {t("send_email")}
-                </button>
-                <button className="bg-[#00a651] text-white px-6 py-2 rounded-md flex items-center gap-2 hover:bg-[#008f45] transition-colors">
-                  <DollarSign size={18} /> {t("add_payment")}
-                </button>
-              </div>
-            </div>
-          )}
-        </ResponsiveModal>
-      </AnimatePresence>
     </div>
   );
 }

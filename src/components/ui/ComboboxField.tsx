@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ControllerRenderProps, FieldPath, FieldValues } from "react-hook-form";
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList, ComboboxValue } from "@/components/ui/combobox";
 
@@ -8,21 +8,54 @@ interface ComboboxFieldProps<T, TFieldValues extends FieldValues, TName extends 
   valueKey: keyof T;
   labelKey: keyof T;
   placeholder?: string;
-  onValueChange?: (val: string) => void; // ✅ أضف ده
+  onValueChange?: (val: string) => void;
+  disabled?: boolean; // 👈 أضفناها
 }
 
-function ComboboxField<T, TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>({ field, items, valueKey, labelKey, placeholder, onValueChange }: ComboboxFieldProps<T, TFieldValues, TName>) {
-  const [searchValue, setSearchValue] = useState(items?.find((item) => item[valueKey] === field.value)?.[labelKey]?.toString() ?? "");
+function ComboboxField<T, TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>({
+  field,
+  items,
+  valueKey,
+  labelKey,
+  placeholder,
+  onValueChange,
+  disabled = false, // 👈 default
+}: ComboboxFieldProps<T, TFieldValues, TName>) {
+  const [searchValue, setSearchValue] = useState("");
+
+  useEffect(() => {
+    const selectedItem = (items ?? []).find((item) => item[valueKey]?.toString() === field.value?.toString());
+
+    const newLabel = selectedItem?.[labelKey]?.toString() ?? "";
+    setSearchValue(newLabel);
+  }, [field.value, items]);
 
   const handleValueChange = (val: string) => {
-    field.onChange(Number(val));
-    setSearchValue((items ?? []).find((item) => item[valueKey]?.toString() === val)?.[labelKey]?.toString() ?? "");
-    onValueChange?.(val); // ✅ وده
+    if (disabled) return; // 👈 يمنع التغيير
+
+    const selectedItem = (items ?? []).find((item) => item[valueKey]?.toString() === val);
+
+    field.onChange(selectedItem?.[valueKey]);
+    setSearchValue(selectedItem?.[labelKey]?.toString() ?? "");
+
+    onValueChange?.(val);
   };
 
   return (
-    <Combobox value={field.value ? field.value.toString() : ""} onValueChange={handleValueChange} items={items}>
-      <ComboboxInput placeholder={placeholder} value={searchValue} onChange={(e) => setSearchValue(e.target.value)} />
+    <Combobox
+      value={field.value ? field.value.toString() : ""}
+      onValueChange={handleValueChange}
+      items={items}
+      disabled={disabled} // 👈 لو الكومبوننت بيدعمها
+    >
+      <ComboboxInput
+        placeholder={placeholder}
+        value={searchValue}
+        onChange={(e) => !disabled && setSearchValue(e.target.value)}
+        disabled={disabled} // 👈 مهم
+        className={disabled ? "bg-gray-50 cursor-not-allowed" : ""}
+      />
+
       <ComboboxContent>
         <ComboboxEmpty>لا توجد نتائج</ComboboxEmpty>
         <ComboboxList>

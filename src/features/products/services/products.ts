@@ -1,16 +1,30 @@
 import { httpClient } from "@/api/httpClient";
-import type { CreateProduct, GetAllProductDirectResponse, GetAllProductRawMatrialResponse, GetAllProductsResponse, Product } from "../types/products.types";
+import type { CreateProduct, GetAllProductBranchedResponse, GetAllProductDirectResponse, GetAllProductPreparedResponse, GetAllProductRawMatrialResponse, GetAllProductsResponse, Product } from "../types/products.types";
 
 // ===================
 // GET
 // ===================
 
-export const getAllProductsDirect = () => httpClient<GetAllProductDirectResponse>("/Products/direct");
-export const getAllProductsRawMatrial = () => httpClient<GetAllProductRawMatrialResponse>("/Products/raw-material");
-export const getAllProductsBranched = () => httpClient<void>("/Products/branched");
-export const getAllProductsPrepared = () => httpClient<void>("/Products/prepared");
-export const getAllProducts = () => httpClient<GetAllProductsResponse>("/Products");
-
+export const getAllProductsDirect = (page: number, limit: number, SearchTerm?: string) =>
+  httpClient<GetAllProductDirectResponse>("/Products/direct", {
+    params: { Page: page, PageSize: limit, SearchTerm: SearchTerm },
+  });
+export const getAllProductsRawMatrial = (page: number, limit: number, SearchTerm?: string) =>
+  httpClient<GetAllProductRawMatrialResponse>("/Products/raw-material", {
+    params: { Page: page, PageSize: limit, SearchTerm: SearchTerm },
+  });
+export const getAllProductsBranched = (page: number, limit: number, SearchTerm?: string) =>
+  httpClient<GetAllProductBranchedResponse>("/Products/branched", {
+    params: { Page: page, PageSize: limit, SearchTerm: SearchTerm },
+  });
+export const getAllProductsPrepared = (page: number, limit: number, SearchTerm?: string) =>
+  httpClient<GetAllProductPreparedResponse>("/Products/prepared", {
+    params: { Page: page, PageSize: limit, SearchTerm: SearchTerm },
+  });
+export const getAllProducts = async (page: number, limit: number, SearchTerm?: string) =>
+  httpClient<GetAllProductsResponse>("/Products", {
+    params: { Page: page, PageSize: limit, SearchTerm: SearchTerm },
+  });
 // export const getCategoryClient = (idOrSlug: string | number) =>
 //   httpClient<Category>(`/categories/${idOrSlug}`);
 
