@@ -400,18 +400,6 @@ const CreateQuote: React.FC = () => {
                   )}
                 />
 
-                <Controller
-                  name="shippingCost"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>قيمة التوصيل *</FieldLabel>
-                      <Input type="number" value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-
                 <div className="lg:col-span-3">
                   <Controller
                     name="notes"
@@ -435,15 +423,13 @@ const CreateQuote: React.FC = () => {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold text-zinc-500 mb-4">قائمة الأصناف</h2>
                   <div className="w-full overflow-x-auto pb-4">
-                    <div className="hidden md:grid md:grid-cols-[2.5fr_1fr_1.5fr_1.5fr_1fr_1fr_1fr_1fr_40px_36px] gap-3 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
-                      <div>اسم الصنف</div>
+                    <div className="hidden md:grid md:grid-cols-[2.5fr_1fr_1.5fr_1.5fr_1fr_1fr_40px_36px] gap-3 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
+                      <div>اسم الصنف/الكود</div>
                       <div>الكمية</div>
                       <div>الوحدة</div>
-                      <div>السعر</div>
-                      <div className="text-center">قبل الضريبة</div>
-                      <div className="text-center">الضريبة</div>
-                      <div className="text-center">بعد الضريبة</div>
-                      <div className="text-center">الإجمالي</div>
+                      <div>السعر قبل الضريبة</div>
+                      <div className="text-center">ضريبة القيمة المضافة</div>
+                      <div className="text-center">الإجمالي شامل الضريبة</div>
                       <div></div>
                       <div></div>
                     </div>
@@ -466,7 +452,7 @@ const CreateQuote: React.FC = () => {
 
                         return (
                           <div key={item.id}>
-                            <div className="grid grid-cols-1 md:grid-cols-[2.5fr_1fr_1.5fr_1.5fr_1fr_1fr_1fr_1fr_40px_36px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group transition-colors hover:bg-zinc-50/80">
+                            <div className="grid grid-cols-1 md:grid-cols-[2.5fr_1fr_1.5fr_1.5fr_1fr_1fr_40px_36px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group transition-colors hover:bg-zinc-50/80">
                               <Controller
                                 control={form.control}
                                 name={`items.${index}.productId`}
@@ -546,10 +532,6 @@ const CreateQuote: React.FC = () => {
                                 )}
                               />
 
-                              <div className="flex items-center md:justify-center font-medium text-zinc-700 mt-2 md:mt-0 px-2 h-9">
-                                <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">قبل الضريبة:</FieldLabel>
-                                {Math.max(0, beforeTax).toLocaleString()}
-                              </div>
                               <div className="flex items-center md:justify-center font-medium text-amber-600 mt-2 md:mt-0 px-2 h-9">
                                 <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">الضريبة:</FieldLabel>
                                 {Math.max(0, taxAmount).toLocaleString()}
@@ -558,10 +540,7 @@ const CreateQuote: React.FC = () => {
                                 <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">بعد الضريبة:</FieldLabel>
                                 {Math.max(0, afterTax).toLocaleString()}
                               </div>
-                              <div className="flex items-center md:justify-center font-semibold text-zinc-900 mt-2 md:mt-0 px-2 h-9">
-                                <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">الإجمالي:</FieldLabel>
-                                {Math.max(0, afterTax).toLocaleString()}
-                              </div>
+
 
                               <div className="flex justify-end md:justify-center">
                                 <button type="button" onClick={() => removeItem(index)} disabled={items.length === 1} className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors disabled:opacity-30 md:opacity-0 md:group-hover:opacity-100">
@@ -588,7 +567,7 @@ const CreateQuote: React.FC = () => {
                                           <SelectValue placeholder="النوع" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                          <SelectItem value="fixed">قيمة ثابتة</SelectItem>
+                                          <SelectItem value="fixed">قيمة </SelectItem>
                                           <SelectItem value="percentage">نسبة %</SelectItem>
                                         </SelectContent>
                                       </Select>
