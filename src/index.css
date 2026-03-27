@@ -373,7 +373,9 @@ textarea {
 
 .custom-green-table .p-datatable-wrapper {
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 8px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
   overflow: hidden;
 }
 .custom-green-table .p-datatable-thead > tr > th {
@@ -388,7 +390,7 @@ textarea {
 }
 
 .custom-green-table .p-datatable-thead > tr:hover > th {
-  background-color: #f7f9fc !important;
+  background-color: #f7f9fc;
   transition: background-color 0.2s ease;
 }
 .custom-green-table .p-datatable-thead > tr > th .p-column-header-content {
@@ -418,13 +420,15 @@ textarea {
 }
 
 .custom-green-table .p-datatable-tbody > tr:hover > td {
-  background-color: #f7f9fc;
+  background-color: #fafafa;
+}
+.custom-green-table .p-datatable-tbody > tr:hover .btn-minimal-action {
+  background-color: #fff;
 }
 
-/* الأساسي لكل الأزرار (زي ما هو عندك) */
 .btn-minimal-action {
   background: transparent;
-  border: none;
+  border: 1px solid #eaedf2;
   color: #9ca3af;
   cursor: pointer;
   padding: 8px;
@@ -436,21 +440,18 @@ textarea {
 }
 
 /* 1. هوفر زرار الاستعراض (أزرق) */
-.btn-minimal-action.btn-view:hover {
+.custom-green-table .p-datatable-tbody > tr:hover.btn-minimal-action.btn-view:hover {
   color: #3b82f6; /* لون أزرق */
   background-color: #eff6ff; /* خلفية زرقاء فاتحة جداً */
 }
 
-/* 2. هوفر زرار التعديل (أخضر) */
-.btn-minimal-action.btn-edit:hover {
-  color: #10b981; /* اللون الأخضر بتاعك */
-  background-color: #ecfdf5; /* خلفية خضراء فاتحة */
+.custom-green-table .p-datatable-tbody > tr:hover .btn-minimal-action.btn-edit:hover {
+  background: #f0fdf4;
+  color: #16a34a;
 }
-
-/* 3. هوفر زرار الحذف (أحمر) */
-.btn-minimal-action.btn-delete:hover {
-  color: #ef4444; /* لون أحمر */
-  background-color: #fef2f2; /* خلفية حمراء فاتحة */
+.custom-green-table .p-datatable-tbody > tr:hover .btn-minimal-action.btn-delete:hover {
+  background: #fef2f2;
+  color: #dc2626;
 }
 .custom-green-table .p-sortable-column-icon {
   width: 12px;
@@ -492,10 +493,14 @@ textarea {
 
 .p-datatable-header {
   background-color: transparent;
+  border: none;
   border: 1px solid #e2e8f0;
-  padding-inline: 10px;
-  margin-bottom: 10px;
-  border-radius: 10px;
+  border-bottom: none;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  /* padding-inline: 10px; */
+  /* margin-bottom: 10px; */
+  /* border-radius: 10px; */
 }
 
 /* 1. توسيط حاوية الفلتر بالكامل داخل الخلية */

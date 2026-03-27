@@ -1,11 +1,14 @@
 import { httpClient } from "@/api/httpClient";
-import type { CreateSalesOrder, GetAllSalesOrderResponse, SalesOrder } from "../types/sales.types";
+import type { CreatePurchaseOrder, GetAllPurchasesResponse } from "../types/purchase.types";
 
 // ===================
 // GET
 // ===================
 
-export const getAllSalesOrders = (page: number, limit: number) => httpClient<GetAllSalesOrderResponse>(`/sales-orders?page=${page}&pageSize=${limit}`);
+export const getAllPurchases = (page: number, limit: number, searchTerm?: string) =>
+  httpClient<GetAllPurchasesResponse>(`/PurchaseOrder`, {
+    params: { Page: page, PageSize: limit, SearchTerm: searchTerm },
+  });
 // export const getCategoryClient = (idOrSlug: string | number) =>
 //   httpClient<Category>(`/categories/${idOrSlug}`);
 
@@ -13,8 +16,8 @@ export const getAllSalesOrders = (page: number, limit: number) => httpClient<Get
 // MUTATIONS (Dashboard)
 // // ===================
 
-export const createSalesOrders = (data: CreateSalesOrder) =>
-  httpClient<{ message: string }>("/sales-orders", {
+export const createPurchaseOrder = (data: CreatePurchaseOrder) =>
+  httpClient<{ message: string }>("/PurchaseOrder", {
     method: "POST",
     data,
   });
@@ -30,6 +33,6 @@ export const createSalesOrders = (data: CreateSalesOrder) =>
 //     method: "DELETE",
 //   });
 
-export function getSalesOrderById(id: number) {
-  return httpClient<SalesOrder>(`/sales-orders/${id}`);
-}
+// export function getCategoryById(id: string | number) {
+//   return httpClient<Category>(`/blog/category/${id}`);
+// }
