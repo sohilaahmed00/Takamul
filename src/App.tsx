@@ -146,6 +146,8 @@ import ThermalReceipt from "@/components/ThermalReceipt";
 import TreasurysList from "./pages/TreasurysList";
 import CreateQuote from "./pages/CreateQuote";
 import CreatePurchaseInvoice from "./pages/CreatePurchasesInvoice";
+import SupplierPaymentsList from "./pages/SupplierPaymentsList";
+import CustomerCollectionsList from "./pages/CustomerCollectionsList";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
@@ -208,10 +210,12 @@ function AppRoutes() {
           <Route path="/purchases/import-csv" element={<AddPurchaseCSV />} />
           <Route path="/purchases/expenses" element={<Expenses />} />
           <Route path="/suppliers" element={<SuppliersList />} />
+          <Route path="/suppliers/payments" element={<SupplierPaymentsList />} />
           <Route path="/expenses" element={<Expenses />} />
 
           {/* العملاء */}
           <Route path="/customers" element={<CustomersList />} />
+          <Route path="/customers/collections" element={<CustomerCollectionsList />} />
 
           {/* المستخدمين */}
           <Route path="/users" element={<UsersList />} />

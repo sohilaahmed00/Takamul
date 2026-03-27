@@ -1,87 +1,101 @@
-import React from "react";
-import { AlertTriangle, Loader2, Trash2, X } from "lucide-react";
-import { useLanguage } from "@/context/LanguageContext";
+import { X, AlertTriangle, Trash2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
-type Props = {
+type DeleteDialogProps = {
   open: boolean;
-  treasuryName?: string;
+  itemName?: string;
+  itemLabel?: string;
   loading?: boolean;
-  onConfirm: () => void;
   onClose: () => void;
+  onConfirm: () => void;
 };
 
 export default function DeleteTreasuryDialog({
   open,
-  treasuryName,
-  loading = false,
-  onConfirm,
+  itemName,
+  itemLabel = "العنصر",
+  loading,
   onClose,
-}: Props) {
-  const { direction } = useLanguage();
-
-  if (!open) return null;
-
+  onConfirm,
+}: DeleteDialogProps) {
   return (
-    <div className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-[2px] flex items-center justify-center p-4">
-      <div
-        dir={direction}
-        className="w-full max-w-md rounded-[28px] bg-white shadow-2xl overflow-hidden"
-      >
-        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="h-11 w-11 rounded-2xl bg-red-50 flex items-center justify-center">
-              <AlertTriangle className="text-red-500" size={22} />
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Overlay */}
+          <motion.div
+            className="fixed inset-0 bg-black/40 z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+
+          {/* Modal */}
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+          >
+            <div className="w-full max-w-md bg-white rounded-3xl shadow-xl overflow-hidden">
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+                <button
+                  onClick={onClose}
+                  className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-100 hover:bg-gray-200"
+                >
+                  <X size={18} />
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-bold text-gray-800">
+                    تأكيد الحذف
+                  </h2>
+                  <div className="w-9 h-9 flex items-center justify-center rounded-xl bg-red-100">
+                    <AlertTriangle size={18} className="text-red-500" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="px-5 py-4 text-center">
+                <p className="text-sm text-gray-500">
+                  هذا الإجراء لا يمكن التراجع عنه
+                </p>
+              </div>
+
+              {/* Question */}
+              <div className="px-5 pb-4">
+                <div className="bg-gray-50 rounded-2xl px-4 py-3 text-center text-sm text-gray-700">
+                  {itemName
+                    ? `هل أنت متأكد أنك تريد حذف ${itemLabel} ${itemName}؟`
+                    : `هل أنت متأكد أنك تريد حذف ${itemLabel}؟`}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-center gap-3 px-5 pb-5">
+                <button
+                  onClick={onConfirm}
+                  disabled={loading}
+                  className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-xl text-sm font-medium transition disabled:opacity-50"
+                >
+                  <Trash2 size={16} />
+                  {loading ? "جارٍ الحذف..." : "تأكيد الحذف"}
+                </button>
+
+                <button
+                  onClick={onClose}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-5 py-2 rounded-xl text-sm font-medium transition"
+                >
+                  إلغاء
+                </button>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-bold text-[var(--text-main)]">
-                تأكيد الحذف
-              </h3>
-              <p className="text-sm text-[var(--text-muted)]">
-                هذا الإجراء لا يمكن التراجع عنه
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-10 w-10 rounded-xl hover:bg-gray-100 flex items-center justify-center text-gray-500 transition"
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="px-6 py-6">
-          <div className="rounded-2xl bg-[#f8fafc] border border-gray-100 p-4">
-            <p className="text-sm text-[var(--text-muted)] leading-7">
-              هل أنت متأكد أنك تريد حذف الخزينة
-              <span className="font-bold text-[var(--text-main)]"> {treasuryName || ""} </span>
-              ؟
-            </p>
-          </div>
-        </div>
-
-        <div className="px-6 py-5 border-t border-gray-100 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={loading}
-            className="h-11 px-5 rounded-2xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition disabled:opacity-60"
-          >
-            إلغاء
-          </button>
-
-          <button
-            type="button"
-            onClick={onConfirm}
-            disabled={loading}
-            className="h-11 px-5 rounded-2xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition disabled:opacity-60 flex items-center gap-2"
-          >
-            {loading ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-            {loading ? "جارٍ الحذف..." : "تأكيد الحذف"}
-          </button>
-        </div>
-      </div>
-    </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
