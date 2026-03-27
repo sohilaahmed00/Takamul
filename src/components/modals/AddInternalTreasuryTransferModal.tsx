@@ -104,9 +104,10 @@ export default function AddInternalTreasuryTransferModal({
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
       <DialogContent
         dir={direction}
-        className="w-full sm:max-w-[760px] p-0 overflow-hidden rounded-2xl"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        className="w-full sm:max-w-[750px] p-0 overflow-hidden rounded-2xl"
       >
-        <DialogHeader className="px-6 py-4 border-b border-gray-100">
+        <DialogHeader className="px-6  py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold">
             <ArrowLeftRight size={18} />
             إضافة تحويل داخلي
@@ -119,7 +120,7 @@ export default function AddInternalTreasuryTransferModal({
         <form
           id="addInternalTransferForm"
           onSubmit={handleSubmit}
-          className="px-6 py-4 space-y-4"
+          className="px-6  space-y-2"
         >
           <Field>
             <FieldLabel>تاريخ الحركة</FieldLabel>
@@ -207,33 +208,36 @@ export default function AddInternalTreasuryTransferModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field>
-              <FieldLabel>مبلغ التحويل</FieldLabel>
-              <Input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="0"
-                className="h-10"
-              />
-            </Field>
+          <Field>
+            <FieldLabel>مبلغ التحويل</FieldLabel>
+            <Input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0"
+              className="h-10"
+            />
+          </Field>
 
-            <Field>
-              <FieldLabel>البيان</FieldLabel>
-              <Input
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="اكتب ملاحظات أو بيان التحويل"
-                className="h-10"
-              />
-            </Field>
-          </div>
+          <Field>
+            <FieldLabel>البيان</FieldLabel>
+            <Input
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="اكتب ملاحظات أو بيان التحويل"
+              className="h-10"
+            />
+          </Field>
         </form>
 
-        <DialogFooter className="px-6 py-4 border-t border-gray-100">
-          <div className="flex justify-end gap-2 w-full">
-            <Button type="button" variant="outline" onClick={onClose} className="h-10">
+        <DialogFooter className="px-6 py-8 border-t border-gray-100">
+          <div className="flex justify-end gap-3 w-full px-1">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="h-10 px-6"
+            >
               إلغاء
             </Button>
 
@@ -241,7 +245,7 @@ export default function AddInternalTreasuryTransferModal({
               form="addInternalTransferForm"
               type="submit"
               disabled={isPending}
-              className="min-w-[140px] h-10"
+              className="min-w-[150px] h-10 px-6"
             >
               {isPending && <Loader2 size={16} className="animate-spin" />}
               {isPending ? "جارٍ الحفظ..." : "حفظ التحويل"}

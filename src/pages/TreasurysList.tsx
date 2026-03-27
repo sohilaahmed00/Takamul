@@ -338,7 +338,8 @@ export default function TreasurysList() {
 
       <DeleteTreasuryDialog
         open={!!deleteTarget}
-        treasuryName={deleteTarget?.name}
+        itemName={deleteTarget?.name}
+        itemLabel="الخزينة"
         loading={isDeleting}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleConfirmDelete}

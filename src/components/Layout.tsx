@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, FileDown, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, FileUp, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, FileMinus, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check, ArrowUpRight, ArrowLeftRight } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, FileDown, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, FileUp, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, FileMinus, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check, ArrowUpRight, ArrowLeftRight, HandCoins } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -256,6 +256,7 @@ export default function Layout() {
             {openSubmenu === "customers" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 <SubmenuItem label={t("customers_list")} icon={List} path="/customers" />
+                <SubmenuItem label="تحصيل الوارد" icon={HandCoins} path="/customers/collections" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -265,7 +266,8 @@ export default function Layout() {
             {openSubmenu === "suppliers" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 <SubmenuItem label={t("suppliers_list")} icon={LayoutGrid} path="/suppliers" />
-                <SubmenuItem label={t("add_supplier")} icon={PlusCircle} path="/suppliers" />
+                {/* <SubmenuItem label={t("add_supplier")} icon={PlusCircle} path="/suppliers" /> */}
+                <SubmenuItem label="سداد الصادر" icon={Truck} path="/suppliers/payments" />
               </motion.div>
             )}
           </AnimatePresence>
