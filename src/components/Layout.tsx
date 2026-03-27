@@ -234,8 +234,8 @@ export default function Layout() {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 <SubmenuItem label={t("purchases_list")} icon={List} path="/purchases" />
                 <SubmenuItem label={t("add_purchase")} icon={Plus} path="/purchases/create" />
-                <SubmenuItem label={t("add_purchase_csv")} icon={FileUp} path="/purchases/import-csv" />
-                <SubmenuItem label={t("expenses_list")} icon={DollarSign} path="/purchases/expenses" />
+                {/* <SubmenuItem label={t("add_purchase_csv")} icon={FileUp} path="/purchases/import-csv" /> */}
+                {/* <SubmenuItem label={t("expenses_list")} icon={DollarSign} path="/purchases/expenses" /> */}
               </motion.div>
             )}
           </AnimatePresence>

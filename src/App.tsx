@@ -147,6 +147,7 @@ import TreasurysList from "./pages/TreasurysList";
 import CreateQuote from "./pages/CreateQuote";
 import CreatePurchaseInvoice from "./pages/CreatePurchasesInvoice";
 import SupplierPaymentsList from "./pages/SupplierPaymentsList";
+import CustomerCollectionsList from "./pages/CustomerCollectionsList";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
@@ -214,6 +215,7 @@ function AppRoutes() {
 
           {/* العملاء */}
           <Route path="/customers" element={<CustomersList />} />
+          <Route path="/customers/collections" element={<CustomerCollectionsList />} />
 
           {/* المستخدمين */}
           <Route path="/users" element={<UsersList />} />

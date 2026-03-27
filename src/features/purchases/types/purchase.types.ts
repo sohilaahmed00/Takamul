@@ -20,7 +20,6 @@ export type CreatePurchaseOrder = {
   orderDate: string;
   warehouseId: number;
   notes: string;
-  orderStatus: "UnConfirmed" | "Confirmed";
   items: {
     productId: number;
     unitId: number;

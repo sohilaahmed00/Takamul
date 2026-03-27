@@ -27,7 +27,6 @@ const SalesInvoiceSchema = z
     orderDate: z.string().min(1, "التاريخ مطلوب"),
     customerId: z.number().min(1, "العميل مطلوب"),
     warehouseId: z.number().min(1, "المخزن مطلوب"),
-    orderStatus: z.enum(["Confirmed", "UnConfirmed"]),
     notes: z.string().optional(),
     items: z
       .array(
@@ -115,7 +114,6 @@ const CreateSalesInvoice: React.FC = () => {
       orderDate: salesOrder.orderDate?.split("T")[0] ?? new Date().toISOString().split("T")[0],
       customerId: customer?.id ?? 0,
       warehouseId: warehouse?.id ?? 0,
-      orderStatus: salesOrder.orderStatus,
       notes: (salesOrder as any).notes ?? "",
 
       items: salesOrder.items.map((item) => {
@@ -191,7 +189,6 @@ const CreateSalesInvoice: React.FC = () => {
       description: "",
       globalDiscountPercentage: data.invoiceDiscountType === "percentage" ? (data.invoiceDiscountValue ?? 0) : 0,
       globalDiscountValue: data.invoiceDiscountType === "fixed" ? (data.invoiceDiscountValue ?? 0) : 0,
-      orderStatus: data.orderStatus ?? "UnConfirmed",
       items: data.items.map((item) => ({
         productId: item.productId,
         unitId: item.unitId,
@@ -276,33 +273,7 @@ const CreateSalesInvoice: React.FC = () => {
                   );
                 }}
               />
-              <Controller
-                name="orderStatus"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>حالة الفاتورة*</FieldLabel>
-                    <Select
-                      value={field.value ? String(field.value) : ""}
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                      }}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="اختر حالة الفاتورة" />
-                      </SelectTrigger>
-
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="Confirmed">مؤكدة</SelectItem>
-                          <SelectItem value="UnConfirmed">غير مؤكدة</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
+          
               <div className="lg:col-span-3 col-span-1">
                 <Controller
                   name="notes"
@@ -555,8 +526,12 @@ const CreateSalesInvoice: React.FC = () => {
 
                 <div className="space-y-4">
                   <div className="flex justify-between items-center text-zinc-600">
-                    <span className="text-sm font-medium">المجموع الفرعي</span>
+                    <span className="text-sm font-medium">الإجمالي قبل الضريبة</span>
                     <span className="font-semibold text-zinc-900">{invoiceTotal.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-zinc-600">
+                    <span className="text-sm font-medium">ضريبة القيمة المضافة</span>
+                    <span className="font-semibold text-zinc-900">{}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-zinc-600 gap-3">
