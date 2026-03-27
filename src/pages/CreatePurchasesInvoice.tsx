@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { PlusCircle, Save, Trash2, FileText, CreditCard, Box, Plus, Eye, X, ArrowLeft, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
@@ -19,11 +19,12 @@ import { useWatch } from "react-hook-form";
 import type { CreateSalesOrder } from "@/features/sales/types/sales.types";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import type { CreatePurchaseOrder } from "@/features/purchases/types/purchase.types";
 import { useCreatePurchaseOrder } from "@/features/purchases/hooks/useCreatePurchaseOrder";
 import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
 import { useGetAllTaxes } from "@/features/taxes/hooks/useGetAllTaxes";
+import { useGetPurchaseOrderById } from "@/features/purchases/hooks/useGetPurchaseOrderById";
 const PurchasesInvoiceSchema = z.object({
   supplierId: z.number().min(1, "المورد مطلوب"),
   warehouseId: z.number().min(1, "المخزن مطلوب"),
@@ -58,6 +59,9 @@ const CreatePurchaseInvoice: React.FC = () => {
   const { mutateAsync: createPurchaseOrder } = useCreatePurchaseOrder();
   const [discountOpen, setDiscountOpen] = useState<Record<number, boolean>>({});
   const toggleDiscount = (i: number) => setDiscountOpen((prev) => ({ ...prev, [i]: !prev[i] }));
+  const { id } = useParams();
+  const { data: purchaseOrder } = useGetPurchaseOrderById(Number(id));
+
   const form = useForm<PurchaseInvoiceType>({
     resolver: zodResolver(PurchasesInvoiceSchema),
     defaultValues: {
@@ -97,23 +101,30 @@ const CreatePurchaseInvoice: React.FC = () => {
     name: "items",
   });
 
-  // const invoiceTotal = useMemo(() => {
-  //   return (
-  //     items?.reduce((total, item) => {
-  //       let itemTotal = (item.quantity || 0) * (item.price || 0);
+  useEffect(() => {
+    if (!purchaseOrder) return;
+    if (!products?.items || !units?.items) return;
 
-  //       if (item.discountType === "fixed") {
-  //         itemTotal -= item.discountValue || 0;
-  //       }
+    form.reset({
+      supplierId: purchaseOrder.supplierId,
+      orderDate: purchaseOrder.orderDate?.split("T")[0],
+      notes: "",
+      items: purchaseOrder.items.map((item) => {
+        return {
+          productId: item.productId,
+          unitId: item.unitId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
 
-  //       if (item.discountType === "percentage") {
-  //         itemTotal -= itemTotal * ((item.discountValue || 0) / 100);
-  //       }
-
-  //       return total + Math.max(0, itemTotal);
-  //     }, 0) || 0
-  //   );
-  // }, [items]);
+          // discountType: "fixed",
+          // discountValue: 0,
+          // taxType: "percentage",
+          // taxAmount: 0,
+          // subTotal: 0,
+        };
+      }),
+    });
+  }, [purchaseOrder, products, units]);
 
   const handleAddItem = () => {
     appendItem({
@@ -154,6 +165,39 @@ const CreatePurchaseInvoice: React.FC = () => {
 
     const res = await createPurchaseOrder(payload);
   };
+  const summary = useMemo(() => {
+    let beforeTaxTotal = 0;
+    let totalVat = 0;
+
+    items?.forEach((item) => {
+      const qty = item.quantity || 0;
+      const price = item.unitPrice || 0;
+      const discType = item.discountType || "fixed";
+      const discValue = item.discountValue || 0;
+
+      const tax = taxes?.find((t) => t.id === Number(item.taxAmount));
+      const taxRate = tax?.amount || 0;
+
+      const gross = qty * price;
+
+      const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
+
+      const beforeTax = Math.max(0, gross - discount);
+
+      const vat = beforeTax * (taxRate / 100);
+
+      beforeTaxTotal += beforeTax;
+      totalVat += vat;
+    });
+
+    const finalTotal = beforeTaxTotal + totalVat;
+
+    return {
+      beforeTaxTotal,
+      totalVat,
+      finalTotal,
+    };
+  }, [items, taxes]);
 
   return (
     <Card>
@@ -408,6 +452,43 @@ const CreatePurchaseInvoice: React.FC = () => {
                   <Plus size={16} strokeWidth={2} /> إضافة صنف جديد
                 </button>
               </section>
+            </div>
+          </div>
+          <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
+            <h3 className="text-base font-semibold text-gray-800 mb-5">ملخص الفاتورة</h3>
+
+            <div className="space-y-4">
+              {/* قبل الضريبة */}
+              <div className="flex justify-between items-center text-zinc-600">
+                <span className="text-sm font-medium">الإجمالي قبل الضريبة</span>
+                <span className="font-semibold text-zinc-900">
+                  {summary.beforeTaxTotal.toLocaleString("en-EG", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+
+              {/* الضريبة */}
+              <div className="flex justify-between items-center text-zinc-600">
+                <span className="text-sm font-medium">ضريبة القيمة المضافة</span>
+                <span className="font-semibold text-orange-600">
+                  {summary.totalVat.toLocaleString("en-EG", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+
+              <hr className="border-zinc-200" />
+
+              {/* الإجمالي النهائي */}
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-zinc-900">الإجمالي النهائي</span>
+                <span className="text-xl font-black text-green-600">
+                  {summary.finalTotal.toLocaleString("en-EG", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
             </div>
           </div>
 

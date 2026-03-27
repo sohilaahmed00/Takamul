@@ -1,4 +1,4 @@
-export interface GiftCardApi {
+export interface GiftCard {
   id: number;
   code: string;
   initialAmount: number;

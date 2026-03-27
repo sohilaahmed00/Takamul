@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Search, FileText, LayoutGrid, ChevronRight, ChevronLeft, Filter, ArrowUpDown, CheckSquare, Square, Plus, Edit2, Trash2, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PurchaseStatus, PaymentStatus } from "@/types";
@@ -18,12 +18,11 @@ export default function PurchasesList() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   // const { purchases, addPurchase, updatePurchase, deletePurchase } = usePurchases();
-  const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
 
-  const { data: purchases } = useGetAllPurchases({ page: currentPage, limit: entriesPerPage, searchTerm: globalFilterValue          });
+  const { data: purchases } = useGetAllPurchases({ page: currentPage, limit: entriesPerPage, searchTerm: globalFilterValue });
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setGlobalFilterValue(value);
@@ -302,9 +301,9 @@ export default function PurchasesList() {
             header={t("actions")}
             body={(purchase) => (
               <div className="space-x-2">
-                <button onClick={async () => {}} className="btn-minimal-action btn-edit">
+                <Link to={`/purchases/edit/${purchase?.id}`} onClick={async () => {}} className="btn-minimal-action btn-edit">
                   <Edit2 size={16} />
-                </button>
+                </Link>
                 <button onClick={async () => {}} className="btn-minimal-action btn-delete">
                   <Trash2 size={16} />
                 </button>
