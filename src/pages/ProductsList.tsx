@@ -143,83 +143,94 @@ export default function ProductsList() {
     }
   }, [activeTab, products, productsDirect, productsBranched, productsPrepared, productsRawMaterials]);
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>إدارة الاصناف</CardTitle>
-        <CardDescription>إدارة الأصناف المباشرة والمتفرعة والمجهزة والخامات</CardDescription>
-        <CardAction>
-          {" "}
-          <Button variant={"default"} asChild>
-            <Link to={"/products/create"}>إضافة صنف </Link>
-          </Button>
-        </CardAction>
-      </CardHeader>
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="flex w-full overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit! mb-4 pb-1 [&::-webkit-scrollbar]:hidden">
-            <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
-              جميع الأصناف
-            </TabsTrigger>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>إدارة الاصناف</CardTitle>
+          <CardDescription>إدارة الأصناف المباشرة والمتفرعة والمجهزة والخامات</CardDescription>
+          <CardAction>
+            {" "}
+            <Button variant={"default"} asChild>
+              <Link to={"/products/create"}>إضافة صنف </Link>
+            </Button>
+          </CardAction>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="border border-gray-200 rounded-t-md">
+            <TabsList variant={"line"} className="flex   overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit!  pb-1 [&::-webkit-scrollbar]:hidden">
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
+                جميع الأصناف
+              </TabsTrigger>
 
-            <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="direct">
-              الأصناف المباشرة
-            </TabsTrigger>
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="direct">
+                الأصناف المباشرة
+              </TabsTrigger>
 
-            <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="branched">
-              الأصناف المتفرعة
-            </TabsTrigger>
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="branched">
+                الأصناف المتفرعة
+              </TabsTrigger>
 
-            <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="prepared">
-              الأصناف المجهزة
-            </TabsTrigger>
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="prepared">
+                الأصناف المجهزة
+              </TabsTrigger>
 
-            <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="rawMaterials">
-              الخامات
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="rawMaterials">
+                الخامات
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-        <DataTable
-          value={currentTableData.items}
-          totalRecords={currentTableData.total}
-          loading={currentTableData.loading}
-          rowsPerPageOptions={[5, 10, 20, 50]}
-          lazy
-          paginator
-          rows={entriesPerPage}
-          first={(currentPage - 1) * entriesPerPage}
-          onPage={(e: DataTablePageEvent) => {
-            if (e.page === undefined) return;
-            setCurrentPage(e.page + 1);
-            setEntriesPerPage(e.rows);
-          }}
-          header={header}
-          responsiveLayout="stack"
-          className="custom-green-table custom-compact-table"
-          dataKey="id"
-        >
-          <Column header={t("name")} sortable field="productNameAr" />
-          <Column field="description" sortable header={t("description")} />
-          <Column
-            header={t("actions")}
-            body={(product: Product) => (
-              <>
-                <Link to={`/products/edit/${product?.id}`} className="btn-minimal-action btn-compact-action">
-                  <Edit2 size={16} />
-                </Link>
-                <button
-                  onClick={async () => {
-                    await deleteProduct(product?.id);
-                  }}
-                  className="btn-minimal-action btn-compact-action"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </>
-            )}
-          />
-        </DataTable>
-      </CardContent>
-    </Card>
+          <DataTable
+            value={currentTableData.items}
+            totalRecords={currentTableData.total}
+            loading={currentTableData.loading}
+            rowsPerPageOptions={[5, 10, 20, 50]}
+            lazy
+            paginator
+            rows={entriesPerPage}
+            first={(currentPage - 1) * entriesPerPage}
+            onPage={(e: DataTablePageEvent) => {
+              if (e.page === undefined) return;
+              setCurrentPage(e.page + 1);
+              setEntriesPerPage(e.rows);
+            }}
+            header={header}
+            responsiveLayout="stack"
+            className="custom-green-table custom-compact-table"
+            dataKey="id"
+          >
+            <Column header={t("name")} sortable field="productNameAr" />
+            <Column field="description" sortable header={t("description")} />
+            <Column
+              header={t("actions")}
+              body={(product: Product) => (
+                <div className="space-x-2">
+                  <Link to={`/products/edit/${product?.id}`} className="btn-minimal-action btn-edit">
+                    <Edit2 size={16} />
+                  </Link>
+                  <button
+                    onClick={async () => {
+                      await deleteProduct(product?.id);
+                    }}
+                    className="btn-minimal-action btn-delete"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
+            />
+          </DataTable>
+        </CardContent>
+      </Card>
+      <style>
+        {`
+    .p-datatable-header {
+      border-top:none !important;
+       border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+    }
+  `}
+      </style>{" "}
+    </>
   );
 }

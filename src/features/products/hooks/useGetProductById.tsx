@@ -8,4 +8,5 @@ export const useGetProductById = (id?: number) =>
     queryKey: productsKeys.detail(id as number),
     queryFn: () => getProductById(id as number),
     enabled: !!id,
+    
   });

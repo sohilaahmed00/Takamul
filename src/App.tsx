@@ -204,7 +204,7 @@ function AppRoutes() {
 
           {/* المشتريات */}
           <Route path="/purchases" element={<PurchasesList />} />
-          <Route path="/purchases/create" element={<AddPurchase />} />
+          <Route path="/purchases/create" element={<CreatePurchaseInvoice />} />
           <Route path="/purchases/edit/:id" element={<EditPurchase />} />
           <Route path="/purchases/import-csv" element={<AddPurchaseCSV />} />
           <Route path="/purchases/expenses" element={<Expenses />} />
