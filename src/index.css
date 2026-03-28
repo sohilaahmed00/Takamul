@@ -565,4 +565,7 @@ input[type="number"] {
     display: inline !important;
     font-weight: bold;
   }
+  .p-datatable-responsive-stack .p-datatable-tbody > tr {
+    border-bottom: 1px solid #e5e7eb;
+  }
 }
