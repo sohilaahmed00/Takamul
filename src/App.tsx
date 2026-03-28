@@ -159,6 +159,8 @@ function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/pos" element={<POSPage />} />
+
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
 
@@ -196,7 +198,6 @@ function AppRoutes() {
           <Route path="/sales/pos" element={<POS />} />
 
           {/* نقطة البيع */}
-          <Route path="/pos" element={<POSPage />} />
 
           {/* العروض */}
           <Route path="/quotes" element={<QuotesList />} />

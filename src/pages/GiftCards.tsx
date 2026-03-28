@@ -8,12 +8,14 @@ import { useGetGiftCardById } from "@/features/gift-cards/hooks/useGetGiftCardBy
 import { useCreateGiftCard } from "@/features/gift-cards/hooks/useCreateGiftCard";
 import { useUpdateGiftCard } from "@/features/gift-cards/hooks/useUpdateGiftCard";
 import { useDeleteGiftCard } from "@/features/gift-cards/hooks/useDeleteGiftCard";
-import type { GiftCardApi, GiftCardRow } from "@/features/gift-cards/types/giftCard.types";
+import type { GiftCard, GiftCardApi, GiftCardRow } from "@/features/gift-cards/types/giftCard.types";
 import { httpClient } from "@/api/httpClient";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DataTable, type DataTablePageEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
+import { Link } from "react-router-dom";
+import formatDate from "@/lib/formatDate";
 
 interface CustomerApi {
   id: number;
@@ -66,12 +68,6 @@ function ConfirmModal({ message, onConfirm, onCancel }: { message: string; onCon
       </div>
     </div>
   );
-}
-
-function formatDateForDisplay(date?: string | null) {
-  if (!date) return "-";
-  const p = new Date(date);
-  return Number.isNaN(p.getTime()) ? date : p.toLocaleDateString("en-GB");
 }
 
 function toInputDate(date?: string | null) {
@@ -136,10 +132,6 @@ export default function GiftCards() {
       .then((data) => setCustomers(Array.isArray(data) ? data : []))
       .catch(() => setCustomers([]));
   }, []);
-
-  useEffect(() => {
-    setPage(1);
-  }, [searchTerm, itemsPerPage]);
 
   async function handleDelete(id: number) {
     try {
@@ -445,8 +437,8 @@ export default function GiftCards() {
     // </div>
     <Card>
       <CardHeader>
-        <CardTitle>إدارة المشتريات </CardTitle>
-        <CardDescription>إدارة المشتريات </CardDescription>
+        <CardTitle>قائمة كروت الهدايا</CardTitle>
+        <CardDescription>إدارة كروت الهدايا </CardDescription>
         <CardAction>
           <Button variant={"default"}>إضافة فاتورة مشتريات </Button>
         </CardAction>
@@ -471,10 +463,12 @@ export default function GiftCards() {
           className="custom-green-table custom-compact-table"
           dataKey="id"
         >
-          <Column header={"رقم الكارت"} sortable field="" />
-          <Column header={"رقم الفاتورة"} field="purchaseOrderNumber" sortable />
-          <Column header={"اسم المورد"} field="supplierName" sortable />
-          <Column header={"حالة عملية الشراء"} field="orderStatus" sortable />
+          <Column header={"رقم الكارت"} sortable field="code" />
+          <Column header={"القيمة"} field="initialAmount" sortable />
+          <Column header={"المبلغ المتبقي "} field="remainingAmount" sortable />
+          <Column header={"العميل"} body={(raw: GiftCard) => <span>{raw?.customer?.customerName}</span>} sortable />
+          <Column header={"تاريخ الانتهاء"} field="expiryDate" body={(raw: GiftCard) => <span>{formatDate(raw?.expiryDate ?? "")}</span>} sortable />
+          <Column header={"ملاحظات"} field="notes" sortable />
           <Column
             header={t("actions")}
             body={(purchase) => (

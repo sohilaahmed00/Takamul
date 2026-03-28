@@ -22,41 +22,36 @@ import ComboboxField from "@/components/ui/ComboboxField";
 import { Link, useParams } from "react-router-dom";
 import { useGetSalesOrderById } from "@/features/sales/hooks/useGetSalesOrderById";
 
-const SalesInvoiceSchema = z
-  .object({
-    orderDate: z.string().min(1, "التاريخ مطلوب"),
-    customerId: z.number().min(1, "العميل مطلوب"),
-    warehouseId: z.number().min(1, "المخزن مطلوب"),
-    notes: z.string().optional(),
-    items: z
-      .array(
-        z.object({
-          productId: z.number().min(1, "اختر الصنف"),
-          unitId: z.number().min(1, "اختر وحدة الصنف"),
-          quantity: z.number().min(1, "الكمية لازم تكون أكبر من 0"),
-          price: z.number().min(0, "السعر لازم يكون ≥ 0"),
-          discountType: z.enum(["percentage", "fixed"]).default("fixed"),
-          discountValue: z.number().min(0).default(0),
+const SalesInvoiceSchema = z.object({
+  orderDate: z.string().min(1, "التاريخ مطلوب"),
+  customerId: z.number().min(1, "العميل مطلوب"),
+  warehouseId: z.number().min(1, "المخزن مطلوب"),
+  notes: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        productId: z.number().min(1, "اختر الصنف"),
+        unitId: z.number().min(1, "اختر وحدة الصنف"),
+        quantity: z.number().min(1, "الكمية لازم تكون أكبر من 0"),
+        price: z.number().min(0, "السعر لازم يكون ≥ 0"),
+        discountType: z.enum(["percentage", "fixed"]).default("fixed"),
+        discountValue: z.number().min(0).default(0),
+      }),
+    )
+    .min(1, "لازم تضيف صنف واحد على الأقل"),
+  payments: z
+    .array(
+      z.object({
+        amount: z.number().min(1, "المبلغ لازم يكون أكبر من 0"),
+        paymentMethod: z.enum(["Cash", "CreditCard", "DebitCard", "BankTransfer", "Check", "MobilePayment", "OnlinePayment", "Other"], {
+          message: "اختر طريقة الدفع",
         }),
-      )
-      .min(1, "لازم تضيف صنف واحد على الأقل"),
-    payments: z
-      .array(
-        z.object({
-          amount: z.number().min(1, "المبلغ لازم يكون أكبر من 0"),
-          paymentMethod: z.enum(["Cash", "CreditCard", "DebitCard", "BankTransfer", "Check", "MobilePayment", "OnlinePayment", "Other"], {
-            message: "اختر طريقة الدفع",
-          }),
-        }),
-      )
-      .min(1, "لازم تضيف دفعة واحدة على الأقل"),
-    invoiceDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
-    invoiceDiscountValue: z.number().min(0).default(0),
-  })
-  .refine((data) => data.orderStatus !== undefined, {
-    message: "حالة الفاتورة مطلوبة",
-    path: ["orderStatus"],
-  });
+      }),
+    )
+    .min(1, "لازم تضيف دفعة واحدة على الأقل"),
+  invoiceDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
+  invoiceDiscountValue: z.number().min(0).default(0),
+});
 
 type SalesInvoiceType = z.input<typeof SalesInvoiceSchema>;
 
@@ -65,7 +60,12 @@ const CreateSalesInvoice: React.FC = () => {
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const [discountOpen, setDiscountOpen] = useState<{ [key: number]: boolean }>({});
-
+  function calcVat(beforeTax: number, taxRate: number, taxCalculation: string | number) {
+    const calc = Number(taxCalculation);
+    if (calc === 1) return 0;
+    if (calc === 2) return beforeTax - beforeTax / (1 + taxRate / 100);
+    return beforeTax * (taxRate / 100);
+  }
   const toggleDiscount = (index: number) => {
     setDiscountOpen((prev) => ({
       ...prev,
@@ -164,8 +164,6 @@ const CreateSalesInvoice: React.FC = () => {
       }, 0) || 0
     );
   }, [items]);
-  const taxRate = 14;
-
   const totalVat = useMemo(() => {
     return (
       items?.reduce((total, item) => {
@@ -175,17 +173,21 @@ const CreateSalesInvoice: React.FC = () => {
         const discValue = item.discountValue || 0;
 
         const gross = qty * price;
-
         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
-
         const beforeTax = Math.max(0, gross - discount);
 
-        const vat = beforeTax * (taxRate / 100);
+        // ─── ← التعديل الوحيد هنا ───
+        const productId = item.productId;
+        const product = products?.items?.find((p) => p.id === Number(productId));
+        const taxRate = product?.taxAmount || 0;
+        const taxCalc = product?.taxCalculation ?? 3;
+        const vat = calcVat(beforeTax, taxRate, taxCalc);
+        // ─────────────────────────────
 
         return total + vat;
       }, 0) || 0
     );
-  }, [items]);
+  }, [items, products]);
 
   const totalPaid = useMemo(() => {
     return payments?.reduce((total, p) => total + (p.amount || 0), 0) || 0;
@@ -328,7 +330,7 @@ const CreateSalesInvoice: React.FC = () => {
                     <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
                       <div>اسم الصنف</div>
                       <div>الوحدة</div>
-                      <div>السعر</div>
+                      <div>سعر الوحدة</div>
                       <div>الكمية</div>
                       <div>الإجمالي قبل الضريبة</div>
                       <div>ضريبة القيمة المضافة</div>
@@ -344,15 +346,14 @@ const CreateSalesInvoice: React.FC = () => {
                         const discType = form.watch(`items.${index}.discountType`) || "fixed";
                         const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
 
-                        const taxRate = 14;
-
+                        const productId = form.watch(`items.${index}.productId`);
+                        const product = products?.items?.find((p) => p.id === Number(productId));
+                        const taxRate = product?.taxAmount || 0;
+                        const taxCalc = product?.taxCalculation ?? 1;
                         const gross = qty * price;
-
                         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
-
                         const beforeTax = Math.max(0, gross - discount);
-
-                        const vatAmount = beforeTax * (taxRate / 100);
+                        const vatAmount = calcVat(beforeTax, taxRate, taxCalc); 
 
                         const afterTax = beforeTax + vatAmount;
 
@@ -361,7 +362,6 @@ const CreateSalesInvoice: React.FC = () => {
                         return (
                           <div key={item.id}>
                             <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group">
-                              {/* الصنف */}
                               <Controller
                                 control={form.control}
                                 name={`items.${index}.productId`}
