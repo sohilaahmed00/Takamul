@@ -1,35 +1,34 @@
 import { httpClient } from "@/api/httpClient";
-import type { GetAllExpenseResponse } from "../types/expenses.types";
+import type {
+  Expense,
+  ExpensesListResponse,
+  CreateExpensePayload,
+  UpdateExpensePayload,
+} from "../types/expenses.types";
 
-// ===================
-// GET
-// ===================
+export const getAllExpenses = async () => {
+  const response = await httpClient<ExpensesListResponse | Expense[]>("/Expenses");
 
-export const getAllExpense = (page: number, limit: number) => httpClient<GetAllExpenseResponse>(`/Expenses?page=${page}&pageSize=${limit}`);
-// export const getCategoryClient = (idOrSlug: string | number) =>
-//   httpClient<Category>(`/categories/${idOrSlug}`);
+  if (Array.isArray(response)) return response;
+  return response.items ?? [];
+};
 
-// ===================
-// MUTATIONS (Dashboard)
-// // ===================
+export const getExpenseById = (id: number) =>
+  httpClient<Expense>(`/Expenses/${id}`);
 
-// export const createSalesOrders = (data: CreateSalesOrder) =>
-//   httpClient<{ message: string }>("/sales-orders", {
-//     method: "POST",
-//     data,
-//   });
+export const createExpense = (data: CreateExpensePayload) =>
+  httpClient<string>("/Expenses", {
+    method: "POST",
+    data,
+  });
 
-// export const updateCategory = (id: number, data: CreateCategory) =>
-//   httpClient<CreateResponse>(`/blog/category/${id}`, {
-//     method: "PUT",
-//     data,
-//   });
+export const updateExpense = (id: number, data: Omit<UpdateExpensePayload, "id">) =>
+  httpClient<string>(`/Expenses/${id}`, {
+    method: "PUT",
+    data,
+  });
 
-// export const deleteCategory = (id: number) =>
-//   httpClient<void>(`/blog/category/${id}`, {
-//     method: "DELETE",
-//   });
-
-// export function getSalesOrderById(id: number) {
-//   return httpClient<SalesOrder>(`/sales-orders/${id}`);
-// }
+export const deleteExpense = (id: number) =>
+  httpClient<string>(`/Expenses/${id}`, {
+    method: "DELETE",
+  });

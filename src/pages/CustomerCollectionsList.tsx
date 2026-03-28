@@ -86,13 +86,13 @@ export default function CustomerCollectionsList() {
 
     try {
       await deleteTransaction(rowToDelete.id);
-      notifySuccess("تم حذف التحصيل بنجاح");
+      notifySuccess("تم حذف سند القبض بنجاح");
       setRowToDelete(null);
     } catch (error: any) {
       notifyError(
         error?.response?.data?.message ||
         error?.message ||
-        "حدث خطأ أثناء حذف التحصيل"
+        "حدث خطأ أثناء حذف سند القبض"
       );
     }
   };
@@ -146,18 +146,16 @@ export default function CustomerCollectionsList() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <HandCoins size={20} className="text-[var(--primary)]" />
-            تحصيل وارد
-          </CardTitle>
+            سند قبض           </CardTitle>
 
-          <CardDescription>
-            تسجيل وعرض حركات التحصيل الوارد من العملاء
-          </CardDescription>
+          {/* <CardDescription>
+            تسجيل وعرض حركات سند القبض الوارد من العملاء
+          </CardDescription> */}
 
           <CardAction>
             <Button onClick={openAddModal} variant="default">
               <Plus size={18} />
-              إضافة تحصيل وارد
-            </Button>
+              إضافة سند قبض             </Button>
           </CardAction>
         </CardHeader>
 
@@ -377,7 +375,7 @@ export default function CustomerCollectionsList() {
 
       <DeleteTreasuryDialog
         open={!!rowToDelete}
-        itemLabel="حركة التحصيل"
+        itemLabel="حركة سند القبض"
         itemName={rowToDelete?.customerName}
         loading={isDeleting}
         onClose={() => setRowToDelete(null)}

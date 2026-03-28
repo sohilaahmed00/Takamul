@@ -29,7 +29,7 @@ export default function TreasuryModal({
   onClose,
   treasuryId,
 }: Props) {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
 
   const isEdit = !!treasuryId;
@@ -65,7 +65,7 @@ export default function TreasuryModal({
     e.preventDefault();
 
     if (!name.trim()) {
-      notifyError("اسم الخزينة مطلوب");
+      notifyError(t('treasury_name_required') || "اسم الخزينة مطلوب");
       return;
     }
 
@@ -100,7 +100,7 @@ export default function TreasuryModal({
         <DialogHeader className="px-6 py-4 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-xl">
             <Wallet size={20} />
-            {isEdit ? "تعديل خزينة" : "إضافة خزينة"}
+            {isEdit ? t('treasury_modal_title_edit') || "تعديل خزينة" : t('treasury_modal_title_add') || "إضافة خزينة"}
           </DialogTitle>
           <p className="text-sm text-gray-500">
             {isEdit
@@ -122,7 +122,7 @@ export default function TreasuryModal({
             <div className="grid grid-cols-1 gap-5">
               <Field>
                 <FieldLabel>
-                  اسم الخزينة <span className="text-red-500">*</span>
+                  {t('treasury_name_label') || 'اسم الخزينة'} <span className="text-red-500">*</span>
                 </FieldLabel>
                 <Input
                   value={name}
@@ -132,7 +132,7 @@ export default function TreasuryModal({
               </Field>
 
               <Field>
-                <FieldLabel>الرصيد الافتتاحي</FieldLabel>
+                <FieldLabel>{t('treasury_opening_balance') || 'الرصيد الافتتاحي'}</FieldLabel>
                 <Input
                   type="number"
                   value={openingBalance}
@@ -147,7 +147,7 @@ export default function TreasuryModal({
         <DialogFooter className="px-8 py-8 border-t border-gray-100">
           <div className="flex items-center justify-end gap-3 w-full">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              إلغاء
+              {t('cancel') || 'إلغاء'}
             </Button>
 
             <Button
@@ -160,8 +160,8 @@ export default function TreasuryModal({
               {isSubmitting
                 ? "جارٍ الحفظ..."
                 : isEdit
-                ? "حفظ التعديلات"
-                : "إضافة خزينة"}
+                  ? "حفظ التعديلات"
+                  : "إضافة خزينة"}
             </Button>
           </div>
         </DialogFooter>

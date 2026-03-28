@@ -1,4 +1,4 @@
-export type Expense = {
+export type Revenue = {
   id: number;
   name: string;
   amount: number;
@@ -12,14 +12,7 @@ export type Expense = {
   createdAt?: string;
 };
 
-export type ExpensesListResponse = {
-  items: Expense[];
-  totalCount: number;
-  pageNumber: number;
-  pageSize: number;
-};
-
-export type CreateExpensePayload = {
+export type CreateRevenuePayload = {
   name: string;
   amount: number;
   date: string;
@@ -28,7 +21,7 @@ export type CreateExpensePayload = {
   itemId?: number | null;
 };
 
-export type UpdateExpensePayload = {
+export type UpdateRevenuePayload = {
   id: number;
   name: string;
   amount: number;

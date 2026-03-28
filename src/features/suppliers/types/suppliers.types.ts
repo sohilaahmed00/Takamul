@@ -14,6 +14,7 @@ export interface Supplier {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  balance?: number;
 }
 export interface createSupplier {
   supplierName: string;
