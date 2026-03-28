@@ -189,7 +189,7 @@ export default function TreasurysList() {
                   header={t("actions") || "الإجراءات"}
                   style={{ minWidth: "9rem", whiteSpace: "nowrap" }}
                   body={(row: TreasuryRow) => (
-                    <>
+                    <div className="space-x-2">
                       <button
                         onClick={() => handleEdit(row.id)}
                         className="btn-minimal-action btn-compact-action"
@@ -205,7 +205,7 @@ export default function TreasurysList() {
                       >
                         <Trash2 size={16} />
                       </button>
-                    </>
+                    </div>
                   )}
                 />
               </DataTable>
