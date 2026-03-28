@@ -284,6 +284,7 @@ export default function PurchasesList() {
           }}
           header={renderHeader}
           responsiveLayout="stack"
+          breakpoint="9999px"
           className="custom-green-table custom-compact-table"
           dataKey="id"
         >
