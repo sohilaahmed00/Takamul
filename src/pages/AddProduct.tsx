@@ -320,7 +320,7 @@ export default function AddProduct() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="max-md:flex max-md:flex-col">
           <CardTitle>إضافة صنف جديد</CardTitle>
           <CardDescription>يمكنك إضافة صنف جديد بشكل دوري</CardDescription>
         </CardHeader>

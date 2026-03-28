@@ -145,35 +145,30 @@ export default function ProductsList() {
   return (
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="max-md:flex max-md:flex-col">
           <CardTitle>إدارة الاصناف</CardTitle>
           <CardDescription>إدارة الأصناف المباشرة والمتفرعة والمجهزة والخامات</CardDescription>
-          <CardAction>
-            {" "}
+          <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
             <Button variant={"default"} asChild>
-              <Link to={"/products/create"}>إضافة صنف </Link>
+              <Link to={"/products/create"}>إضافة صنف</Link>
             </Button>
           </CardAction>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="border border-gray-200 rounded-t-md">
-            <TabsList variant={"line"} className="flex   overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit!  pb-1 [&::-webkit-scrollbar]:hidden">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="border border-gray-200 rounded-t-md overflow-hidden">
+            <TabsList variant={"line"} className="flex overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit! pb-1 max-lg:w-full [&::-webkit-scrollbar]:hidden">
               <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
                 جميع الأصناف
               </TabsTrigger>
-
               <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="direct">
                 الأصناف المباشرة
               </TabsTrigger>
-
               <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="branched">
                 الأصناف المتفرعة
               </TabsTrigger>
-
               <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="prepared">
                 الأصناف المجهزة
               </TabsTrigger>
-
               <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="rawMaterials">
                 الخامات
               </TabsTrigger>

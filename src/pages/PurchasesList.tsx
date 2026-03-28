@@ -13,6 +13,7 @@ import { Column } from "primereact/column";
 import { useGetAllPurchases } from "@/features/purchases/hooks/useGetAllSales";
 import type { Purchase } from "@/features/purchases/types/purchase.types";
 import { useLanguage } from "@/context/LanguageContext";
+import formatDate from "@/lib/formatDate";
 
 export default function PurchasesList() {
   const navigate = useNavigate();
@@ -259,9 +260,11 @@ export default function PurchasesList() {
     <Card>
       <CardHeader>
         <CardTitle>إدارة المشتريات </CardTitle>
-        <CardDescription>إدارة المشتريات </CardDescription>
+        <CardDescription>تسجيل ومتابعة عمليات الشراء وإدارة الموردين لضمان دقة المخزون والتكاليف</CardDescription>{" "}
         <CardAction>
-          <Button variant={"default"}>إضافة فاتورة مشتريات </Button>
+          <Button variant={"default"} asChild>
+            <Link to={"/purchases/create"}>إضافة فاتورة مشتريات</Link>
+          </Button>
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -284,16 +287,7 @@ export default function PurchasesList() {
           className="custom-green-table custom-compact-table"
           dataKey="id"
         >
-          <Column
-            header={"التاريخ"}
-            sortable
-            body={(purchase: Purchase) => (
-              <div className="cell-data-stack">
-                {" "}
-                <span className="customer-name-main">{purchase.orderDate}</span>
-              </div>
-            )}
-          />
+          <Column header={"التاريخ"} sortable body={(purchase: Purchase) => formatDate(purchase.orderDate)} />
           <Column header={"رقم الفاتورة"} field="purchaseOrderNumber" sortable />
           <Column header={"اسم المورد"} field="supplierName" sortable />
           <Column header={"حالة عملية الشراء"} field="orderStatus" sortable />

@@ -162,10 +162,10 @@ export default function Additions() {
     // </div>
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="max-md:flex max-md:flex-col">
           <CardTitle>إدارة الإضافات</CardTitle>
           <CardDescription>إدارة الإضافات الخاصة بالأصناف مثل الخيارات الإضافية والتعديلات التي يمكن تطبيقها على المنتجات داخل النظام.</CardDescription>{" "}
-          <CardAction>
+          <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
             {" "}
             <Button variant={"default"} onClick={() => setIsAddModalOpen(true)}>
               إضافة جديدة{" "}
@@ -205,7 +205,7 @@ export default function Additions() {
             <Column
               header={t("actions")}
               body={(addition) => (
-                <>
+                <div className="space-x-2">
                   <button
                     onClick={async () => {
                       setSelectedAddition(addition);
@@ -223,7 +223,7 @@ export default function Additions() {
                   >
                     <Trash2 size={16} />
                   </button>
-                </>
+                </div>
               )}
             />
           </DataTable>
