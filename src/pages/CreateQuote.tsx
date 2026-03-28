@@ -541,15 +541,13 @@ const CreateQuote: React.FC = () => {
                                 {Math.max(0, afterTax).toLocaleString()}
                               </div>
 
-
-                              <div className="flex justify-end md:justify-center">
-                                <button type="button" onClick={() => removeItem(index)} disabled={items.length === 1} className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors disabled:opacity-30 md:opacity-0 md:group-hover:opacity-100">
-                                  <Trash2 size={16} strokeWidth={1.5} />
+                              <div className="flex items-center justify-center gap-2">
+                                <button type="button" onClick={() => removeItem(index)} className="p-2 text-zinc-400 hover:text-red-500">
+                                  <Trash2 size={16} />
                                 </button>
-                              </div>
-                              <div className="flex justify-end md:justify-center">
-                                <button type="button" onClick={() => toggleDiscount(index)} title="إضافة خصم" className={`p-2 rounded-md transition-colors ${isDiscOpen ? "text-emerald-600 bg-emerald-50" : "text-zinc-300 hover:text-zinc-500 hover:bg-zinc-50"}`}>
-                                  <Tag size={14} strokeWidth={1.5} />
+
+                                <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-600" : "text-zinc-400"}`}>
+                                  <Tag size={14} />
                                 </button>
                               </div>
                             </div>
