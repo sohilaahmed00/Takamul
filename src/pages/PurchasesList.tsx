@@ -285,7 +285,7 @@ export default function PurchasesList() {
           }}
           header={renderHeader}
           responsiveLayout="stack"
-          className="custom-green-table custom-compact-table"
+          className=""
           dataKey="id"
         >
           <Column header={"التاريخ"} sortable body={(purchase: Purchase) => formatDate(purchase.orderDate)} />
