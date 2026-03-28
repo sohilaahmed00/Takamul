@@ -32,7 +32,6 @@ export type CreateSalesOrder = {
   description: string;
   globalDiscountPercentage: number;
   globalDiscountValue: number;
-  orderStatus: "UnConfirmed" | "Confirmed";
   items: {
     productId: number;
     unitId: number;

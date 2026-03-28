@@ -31,6 +31,7 @@ import { useGetProductById } from "@/features/products/hooks/useGetProductById";
 import { useUpdateProduct } from "@/features/products/hooks/useUpdateProduct";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
+import useToast from "@/hooks/useToast";
 export const createProductSchema = z.object({
   Barcode: z.string().min(1, "الباركود مطلوب"),
   ProductNameAr: z.string().min(1, "اسم المنتج بالعربي مطلوب"),
@@ -136,9 +137,14 @@ export default function AddProduct() {
   const { data: units } = useGetAllUnits({ page: 1, size: 1000000 });
   const anchor = useComboboxAnchor();
   const { id } = useParams();
-  const { data: productData } = useGetProductById(Number(id));
+  const { data: productData, error } = useGetProductById(Number(id));
   const { mutateAsync: updateProduct } = useUpdateProduct();
-
+  const { notifyError, notifySuccess } = useToast();
+  useEffect(() => {
+    if (error && error?.message) {
+      notifyError(String(error?.message));
+    }
+  }, [error]);
   const activeSchema = productType === "branched" ? createBranchedProductSchema : productType === "prepared" ? createPreparedProductSchema : productType === "raw" ? createRawMaterialSchema : createProductSchema;
   const methods = useForm<FormValues>({
     resolver: zodResolver(activeSchema) as Resolver<FormValues>,

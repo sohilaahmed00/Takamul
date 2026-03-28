@@ -143,8 +143,9 @@ import { PrintProvider, usePrint } from "@/context/PrintContext";
 import ThermalReceipt from "@/components/ThermalReceipt";
 import TreasurysList from "./pages/TreasurysList";
 import CreateQuote from "./pages/CreateQuote";
-import CustomerCollectionsList from "@/pages/CustomerCollectionsList";
-import SupplierPaymentsList from "@/pages/SupplierPaymentsList";
+import CreatePurchaseInvoice from "./pages/CreatePurchasesInvoice";
+import SupplierPaymentsList from "./pages/SupplierPaymentsList";
+import CustomerCollectionsList from "./pages/CustomerCollectionsList";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
@@ -181,6 +182,7 @@ function AppRoutes() {
           <Route path="/sales/add-simplified-tax-invoice" element={<AddSimplifiedTaxInvoice />} />
           <Route path="/sales/import-csv" element={<ImportSales />} />
           <Route path="/sales/create" element={<CreateSalesInvoice />} />
+          <Route path="/sales/edit/:id" element={<CreateSalesInvoice />} />
           <Route path="/sales/all" element={<AllSales />} />
           <Route path="/sales/pos-invoices" element={<POSInvoices />} />
           <Route path="/sales/pos-invoices/:id" element={<POSInvoiceDetails />} />
@@ -201,7 +203,7 @@ function AppRoutes() {
 
           {/* المشتريات */}
           <Route path="/purchases" element={<PurchasesList />} />
-          <Route path="/purchases/create" element={<AddPurchase />} />
+          <Route path="/purchases/create" element={<CreatePurchaseInvoice />} />
           <Route path="/purchases/edit/:id" element={<EditPurchase />} />
           <Route path="/purchases/import-csv" element={<AddPurchaseCSV />} />
           <Route path="/purchases/expenses" element={<Expenses />} />

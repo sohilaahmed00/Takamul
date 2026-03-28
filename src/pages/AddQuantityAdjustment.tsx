@@ -54,7 +54,7 @@ export default function AddQuantityAdjustment() {
   const { id, mode } = useParams();
   const { data: stockInventory } = useGetQuantityAdjustmentDetails(Number(id));
   const { mutateAsync: createQuantityAdjustment } = useCreateQuantityAdjustment();
-  const { data: stockInventories } = useGetStockInventory({ pageNumber: 1, pageSize: 1000000000 });
+  const { data: stockInventories } = useGetStockInventory({ pageNumber: 1, pageSize: 10000000 });
   const { mutateAsync: updateQuantityAdjustment } = useUpdateQuantityAdjustment();
   const isView = mode === "view";
   const form = useForm<QuantityAdjustmentType>({

@@ -119,13 +119,13 @@ export default function CategoriesList() {
             <Column
               header={t("actions")}
               body={(category) => (
-                <>
+                <div className="space-x-2">
                   <button
                     onClick={async () => {
                       setSelectedCategory(category);
                       setIsAddModalOpen(true);
                     }}
-                    className="btn-minimal-action btn-compact-action"
+                    className="btn-minimal-action btn-edit"
                   >
                     <Edit2 size={16} />
                   </button>
@@ -133,11 +133,11 @@ export default function CategoriesList() {
                     onClick={async () => {
                       const res = await deleteCategory(category?.id);
                     }}
-                    className="btn-minimal-action btn-compact-action"
+                    className="btn-minimal-action btn-delete"
                   >
                     <Trash2 size={16} />
                   </button>
-                </>
+                </div>
               )}
             />
           </DataTable>
