@@ -10,49 +10,47 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Plus, Search, Truck, Edit2, Trash2 } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, HandCoins } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
-
-import { useGetAllSupplierTransactions } from "@/features/supplier-transactions/hooks/useGetAllSupplierTransactions";
-import { useDeleteSupplierTransaction } from "@/features/supplier-transactions/hooks/useDeleteSupplierTransaction";
-import AddSupplierPaymentModal from "@/components/modals/AddSupplierPaymentModal";
+import { useGetAllRevenues } from "@/features/revenues/hooks/useGetAllRevenues";
+import { useCreateRevenue } from "@/features/revenues/hooks/useCreateRevenue";
+import { useUpdateRevenue } from "@/features/revenues/hooks/useUpdateRevenue";
+import { useDeleteRevenue } from "@/features/revenues/hooks/useDeleteRevenue";
+import AddRevenueModal from "@/components/modals/AddRevenueModal";
 import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
-import type { SupplierTransaction } from "@/features/supplier-transactions/types/supplierTransactions.types";
+import type { Revenue } from "@/features/revenues/types/revenues.types";
 
-export default function SupplierPaymentsList() {
+export default function Revenues() {
   const { direction } = useLanguage();
-  const { notifyError, notifySuccess } = useToast();
+  const { notifyError } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
-  const [selectedRow, setSelectedRow] = useState<SupplierTransaction | null>(
-    null
-  );
-  const [rowToDelete, setRowToDelete] = useState<SupplierTransaction | null>(
-    null
-  );
+  const [selectedRow, setSelectedRow] = useState<Revenue | null>(null);
+  const [rowToDelete, setRowToDelete] = useState<Revenue | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: transactions, isLoading } = useGetAllSupplierTransactions();
-  const { mutateAsync: deleteTransaction, isPending: isDeleting } =
-    useDeleteSupplierTransaction();
+  const { data: revenues, isLoading } = useGetAllRevenues();
+  const { mutateAsync: createRevenue } = useCreateRevenue();
+  const { mutateAsync: updateRevenue } = useUpdateRevenue();
+  const { mutateAsync: deleteRevenue, isPending: isDeleting } = useDeleteRevenue();
 
-  const rows = useMemo(() => transactions ?? [], [transactions]);
+  const rows = useMemo(() => revenues ?? [], [revenues]);
 
   const filteredRows = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-
     return rows.filter((row) => {
       if (!term) return true;
 
       return (
-        row.supplierName?.toLowerCase().includes(term) ||
+        row.name?.toLowerCase().includes(term) ||
         row.treasuryName?.toLowerCase().includes(term) ||
-        row.description?.toLowerCase().includes(term) ||
+        row.itemName?.toLowerCase().includes(term) ||
+        row.notes?.toLowerCase().includes(term) ||
         String(row.amount).includes(term)
       );
     });
@@ -74,53 +72,41 @@ export default function SupplierPaymentsList() {
     setIsModalOpen(true);
   };
 
-  const openEditModal = (row: SupplierTransaction) => {
+  const openEditModal = (row: Revenue) => {
     setSelectedRow(row);
     setModalMode("edit");
     setIsModalOpen(true);
   };
 
-  const openDeleteModal = (row: SupplierTransaction) => {
-    setRowToDelete(row);
-  };
-
   const handleDelete = async () => {
     if (!rowToDelete) return;
-
     try {
-      await deleteTransaction(rowToDelete.id);
-      notifySuccess("تم حذف سند الصرف بنجاح");
+      await deleteRevenue(rowToDelete.id);
       setRowToDelete(null);
     } catch (error: any) {
-      notifyError(
-        error?.response?.data?.message ||
-        error?.message ||
-        "حدث خطأ أثناء حذف سند الصرف"
-      );
+      notifyError(error?.response?.data?.message || error?.message || "حدث خطأ أثناء حذف الإيراد");
     }
   };
 
-  const actionBodyTemplate = (row: SupplierTransaction) => {
-    return (
-      <div className="flex items-center gap-2 justify-center">
-        <button
-          onClick={() => openEditModal(row)}
-          className="btn-minimal-action btn-compact-action"
-          type="button"
-        >
-          <Edit2 size={16} />
-        </button>
+  const actionBodyTemplate = (row: Revenue) => (
+    <div className="flex items-center gap-2 justify-center">
+      <button
+        onClick={() => openEditModal(row)}
+        className="btn-minimal-action btn-compact-action"
+        type="button"
+      >
+        <Edit2 size={16} />
+      </button>
 
-        <button
-          onClick={() => openDeleteModal(row)}
-          className="btn-minimal-action btn-compact-action"
-          type="button"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
-    );
-  };
+      <button
+        onClick={() => setRowToDelete(row)}
+        className="btn-minimal-action btn-compact-action"
+        type="button"
+      >
+        <Trash2 size={16} />
+      </button>
+    </div>
+  );
 
   const header = (
     <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -128,7 +114,6 @@ export default function SupplierPaymentsList() {
         <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
           <Search size={18} className="text-gray-400" />
         </div>
-
         <input
           type="text"
           value={searchTerm}
@@ -136,7 +121,7 @@ export default function SupplierPaymentsList() {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          placeholder="ابحث باسم المورد أو الخزينة أو البيان أو المبلغ..."
+          placeholder="ابحث باسم الحركة أو الخزينة أو البند أو البيان أو المبلغ..."
           className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none"
         />
       </div>
@@ -148,17 +133,19 @@ export default function SupplierPaymentsList() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Truck size={20} className="text-[var(--primary)]" />
-            سند صرف          </CardTitle>
+            <HandCoins size={20} className="text-[var(--primary)]" />
+            الإيرادات
+          </CardTitle>
 
-          {/* <CardDescription>
-            تسجيل وعرض حركات سند الصرف الصادر للموردين
-          </CardDescription> */}
+          <CardDescription>
+            تسجيل وعرض حركات الإيرادات
+          </CardDescription>
 
           <CardAction>
             <Button onClick={openAddModal} variant="default">
               <Plus size={18} />
-              إضافة سند صرف            </Button>
+              إضافة إيراد
+            </Button>
           </CardAction>
         </CardHeader>
 
@@ -183,51 +170,51 @@ export default function SupplierPaymentsList() {
               responsiveLayout="stack"
             >
               <Column
-                field="transactionDate"
+                field="date"
                 header="تاريخ العملية"
                 sortable
-                body={(row) => formatDate(row.transactionDate)}
-                style={{ width: "16%" }}
+                body={(row) => formatDate(row.date)}
+                style={{ width: "14%" }}
                 bodyStyle={{ whiteSpace: "nowrap" }}
               />
-
               <Column
-                field="supplierName"
-                header="اسم المورد"
+                field="name"
+                header="اسم الحركة"
                 sortable
-                style={{ width: "22%" }}
+                style={{ width: "20%" }}
                 bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
               />
-
               <Column
                 field="treasuryName"
                 header="الخزينة"
                 sortable
-                style={{ width: "18%" }}
-                bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
+                body={(row) => row.treasuryName || "-"}
+                style={{ width: "16%" }}
               />
-
+              <Column
+                field="itemName"
+                header="البند"
+                body={(row) => row.itemName || row.name || "-"}
+                style={{ width: "16%" }}
+              />
               <Column
                 field="amount"
                 header="المبلغ"
                 sortable
                 body={(row) => formatNumber(row.amount)}
-                style={{ width: "14%" }}
+                style={{ width: "12%" }}
                 bodyStyle={{ whiteSpace: "nowrap" }}
               />
-
               <Column
-                field="description"
+                field="notes"
                 header="البيان"
-                body={(row) => row.description || "-"}
-                style={{ width: "18%" }}
-                bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
+                body={(row) => row.notes || "-"}
+                style={{ width: "12%" }}
               />
-
               <Column
                 header="الإجراءات"
                 body={actionBodyTemplate}
-                style={{ width: "12%" }}
+                style={{ width: "10%" }}
                 bodyStyle={{ whiteSpace: "nowrap", textAlign: "center" }}
               />
             </DataTable>
@@ -246,61 +233,46 @@ export default function SupplierPaymentsList() {
               </div>
             ) : (
               filteredRows
-                .slice(
-                  (currentPage - 1) * entriesPerPage,
-                  currentPage * entriesPerPage
-                )
+                .slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage)
                 .map((row) => (
                   <div
                     key={row.id}
                     className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
                   >
                     <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] border-b border-gray-100">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="h-9 w-9 rounded-xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center shrink-0">
-                          <Truck size={18} className="text-[var(--primary)]" />
-                        </div>
-
-                        <div className="min-w-0">
-                          <p className="text-xs text-[var(--text-muted)]">
-                            اسم المورد
-                          </p>
-                          <p className="text-sm font-bold text-[var(--text-main)] break-words">
-                            {row.supplierName || "-"}
-                          </p>
-                        </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-[var(--text-main)] break-words">
+                          {row.name || "-"}
+                        </p>
+                        <p className="text-xs text-[var(--text-muted)] mt-1">
+                          {formatDate(row.date)}
+                        </p>
                       </div>
 
                       <div className="shrink-0 rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">
-                        {formatDate(row.transactionDate)}
+                        {formatNumber(row.amount)}
                       </div>
                     </div>
 
                     <div className="p-4 space-y-3">
                       <div className="rounded-xl bg-[#f8fafc] p-3">
-                        <p className="text-xs text-[var(--text-muted)] mb-1">
-                          الخزينة
-                        </p>
+                        <p className="text-xs text-[var(--text-muted)] mb-1">الخزينة</p>
                         <p className="text-sm font-semibold text-[var(--text-main)]">
                           {row.treasuryName || "-"}
                         </p>
                       </div>
 
                       <div className="rounded-xl bg-[#f8fafc] p-3">
-                        <p className="text-xs text-[var(--text-muted)] mb-1">
-                          المبلغ
-                        </p>
+                        <p className="text-xs text-[var(--text-muted)] mb-1">البند</p>
                         <p className="text-sm font-semibold text-[var(--text-main)]">
-                          {formatNumber(row.amount)}
+                          {row.itemName || row.name || "-"}
                         </p>
                       </div>
 
                       <div className="rounded-xl bg-[#f8fafc] p-3">
-                        <p className="text-xs text-[var(--text-muted)] mb-1">
-                          البيان
-                        </p>
+                        <p className="text-xs text-[var(--text-muted)] mb-1">البيان</p>
                         <p className="text-sm font-semibold text-[var(--text-main)] break-words">
-                          {row.description || "-"}
+                          {row.notes || "-"}
                         </p>
                       </div>
 
@@ -314,7 +286,7 @@ export default function SupplierPaymentsList() {
                         </button>
 
                         <button
-                          onClick={() => openDeleteModal(row)}
+                          onClick={() => setRowToDelete(row)}
                           className="btn-minimal-action btn-compact-action"
                           type="button"
                         >
@@ -325,45 +297,11 @@ export default function SupplierPaymentsList() {
                   </div>
                 ))
             )}
-
-            {filteredRows.length > 0 && (
-              <div className="flex items-center justify-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  السابق
-                </button>
-
-                <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
-                  {currentPage}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCurrentPage((prev) =>
-                      prev < Math.ceil(filteredRows.length / entriesPerPage)
-                        ? prev + 1
-                        : prev
-                    )
-                  }
-                  disabled={
-                    currentPage >= Math.ceil(filteredRows.length / entriesPerPage)
-                  }
-                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  التالي
-                </button>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
 
-      <AddSupplierPaymentModal
+      <AddRevenueModal
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
@@ -371,11 +309,33 @@ export default function SupplierPaymentsList() {
         }}
         mode={modalMode}
         editData={selectedRow}
+        onSubmitData={async (payload) => {
+          if (modalMode === "edit" && payload.id) {
+            await updateRevenue({
+              id: payload.id,
+              name: payload.name,
+              amount: payload.amount,
+              date: payload.date,
+              notes: payload.notes,
+              treasuryId: payload.treasuryId,
+              itemId: payload.itemId,
+            });
+          } else {
+            await createRevenue({
+              name: payload.name,
+              amount: payload.amount,
+              date: payload.date,
+              notes: payload.notes,
+              treasuryId: payload.treasuryId,
+              itemId: payload.itemId,
+            });
+          }
+        }}
       />
 
       <DeleteTreasuryDialog
         open={!!rowToDelete}
-        itemLabel="هذا سند الصرف"
+        itemLabel="هذا الإيراد"
         loading={isDeleting}
         onClose={() => setRowToDelete(null)}
         onConfirm={handleDelete}

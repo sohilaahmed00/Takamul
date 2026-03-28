@@ -123,7 +123,7 @@ export default function AddCustomerCollectionModal({
           description: description.trim() || "",
         });
 
-        notifySuccess("تم تعديل التحصيل بنجاح");
+        notifySuccess("تم تعديل سند القبض بنجاح");
       } else {
         await createTransaction({
           customerId,
@@ -133,7 +133,7 @@ export default function AddCustomerCollectionModal({
           description: description.trim() || "",
         });
 
-        notifySuccess("تم إضافة التحصيل بنجاح");
+        notifySuccess("تم إضافة سند القبض بنجاح");
       }
 
       onClose();
@@ -165,17 +165,17 @@ export default function AddCustomerCollectionModal({
         <DialogHeader className="px-5 py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold flex-wrap">
             {isEditMode ? <Pencil size={18} /> : <HandCoins size={18} />}
-            {isEditMode ? "تعديل تحصيل وارد" : "إضافة تحصيل وارد"}
-            <span className="text-xs bg-[#2ecc71]/10 text-[#2ecc71] px-2 py-1 rounded-lg">
-              تحصيل وارد
-            </span>
+            {isEditMode ? "تعديل سند قبض" : "إضافة سند قبض"}
+            {/* <span className="text-xs bg-[#2ecc71]/10 text-[#2ecc71] px-2 py-1 rounded-lg">
+              سند قبض
+            </span> */}
           </DialogTitle>
 
-          <DialogDescription className="text-sm text-gray-500">
+          {/* <DialogDescription className="text-sm text-gray-500">
             {isEditMode
-              ? "تعديل بيانات التحصيل الوارد"
-              : "تسجيل تحصيل وارد من العملاء"}
-          </DialogDescription>
+              ? "تعديل بيانات سند القبض"
+              : "تسجيل سند القبض من العملاء"}
+          </DialogDescription> */}
         </DialogHeader>
 
         <form
@@ -278,7 +278,7 @@ export default function AddCustomerCollectionModal({
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="اكتب ملاحظات أو بيان التحصيل"
+              placeholder="اكتب ملاحظات أو بيان سند القبض"
               className="h-9"
             />
           </Field>
@@ -308,7 +308,7 @@ export default function AddCustomerCollectionModal({
                   : "جارٍ الحفظ..."
                 : isEditMode
                 ? "حفظ التعديلات"
-                : "حفظ التحصيل"}
+                : "حفظ سند القبض"}
             </Button>
           </div>
         </DialogFooter>

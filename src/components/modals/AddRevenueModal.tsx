@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Loader2, Pencil, Wallet, ReceiptText } from "lucide-react";
+import { Loader2, Pencil, Wallet, HandCoins } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
@@ -15,13 +15,13 @@ import {
 } from "@/components/ui/dialog";
 
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
-import type { Expense } from "@/features/expenses/types/expenses.types";
+import type { Revenue } from "@/features/revenues/types/revenues.types";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   mode?: "add" | "edit";
-  editData?: Expense | null;
+  editData?: Revenue | null;
   onSubmitData: (payload: {
     id?: number;
     name: string;
@@ -33,7 +33,7 @@ type Props = {
   }) => Promise<void>;
 };
 
-export default function AddExpenseModal({
+export default function AddRevenueModal({
   isOpen,
   onClose,
   mode = "add",
@@ -85,7 +85,7 @@ export default function AddExpenseModal({
 
   const currentBalance = Number(selectedTreasury?.balance ?? 0);
   const amountNumber = Number(amount || 0);
-  const balanceAfter = currentBalance - amountNumber;
+  const balanceAfter = currentBalance + amountNumber;
 
   const formatNumber = (value?: number) =>
     Number(value ?? 0).toLocaleString("en-US");
@@ -126,7 +126,7 @@ export default function AddExpenseModal({
       });
 
       notifySuccess(
-        isEditMode ? "تم تعديل المصروف بنجاح" : "تم إضافة المصروف بنجاح"
+        isEditMode ? "تم تعديل الإيراد بنجاح" : "تم إضافة الإيراد بنجاح"
       );
       onClose();
     } catch (error: any) {
@@ -156,20 +156,20 @@ export default function AddExpenseModal({
       >
         <DialogHeader className="px-5 py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold flex-wrap">
-            {isEditMode ? <Pencil size={18} /> : <ReceiptText size={18} />}
-            {isEditMode ? "تعديل مصروف" : "إضافة مصروف"}
+            {isEditMode ? <Pencil size={18} /> : <HandCoins size={18} />}
+            {isEditMode ? "تعديل إيراد" : "إضافة إيراد"}
             <span className="text-xs bg-[#2ecc71]/10 text-[#2ecc71] px-2 py-1 rounded-lg">
-              مصروف
+              إيراد
             </span>
           </DialogTitle>
 
           <DialogDescription className="text-sm text-gray-500">
-            {isEditMode ? "تعديل بيانات المصروف" : "تسجيل مصروف جديد"}
+            {isEditMode ? "تعديل بيانات الإيراد" : "تسجيل إيراد جديد"}
           </DialogDescription>
         </DialogHeader>
 
         <form
-          id="expenseForm"
+          id="revenueForm"
           onSubmit={handleSubmit}
           className="px-5 space-y-3"
         >
@@ -253,7 +253,7 @@ export default function AddExpenseModal({
             <Input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="اكتب ملاحظات أو بيان المصروف"
+              placeholder="اكتب ملاحظات أو بيان الإيراد"
               className="h-9"
             />
           </Field>
@@ -271,12 +271,12 @@ export default function AddExpenseModal({
             </Button>
 
             <Button
-              form="expenseForm"
+              form="revenueForm"
               type="submit"
               className="min-w-[150px] h-10 px-6"
             >
               <Loader2 size={16} className="hidden animate-spin" />
-              {isEditMode ? "حفظ التعديلات" : "حفظ المصروف"}
+              {isEditMode ? "حفظ التعديلات" : "حفظ الإيراد"}
             </Button>
           </div>
         </DialogFooter>

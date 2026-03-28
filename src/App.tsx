@@ -39,7 +39,7 @@ import EditPurchase from "@/pages/EditPurchase";
 import AddPurchaseCSV from "@/pages/AddPurchaseCSV";
 import CustomersList from "@/pages/CustomersList";
 import SuppliersList from "@/pages/SuppliersList";
-import Expenses from "@/pages/Expenses";
+
 import AddTaxInvoice from "@/pages/AddTaxInvoice";
 import AddSimplifiedTaxInvoice from "@/pages/AddSimplifiedTaxInvoice";
 import ImportSales from "@/pages/ImportSales";
@@ -134,11 +134,9 @@ import TrialBalance from "@/pages/reports/accounts/TrialBalance";
 import SubsidiaryLedger from "@/pages/reports/accounts/SubsidiaryLedger";
 import FinancialSummary from "@/pages/reports/accounts/FinancialSummary";
 
-// Bonds
-import ReceiptBonds from "@/pages/bonds/ReceiptBonds";
-import PaymentBonds from "@/pages/bonds/PaymentBonds";
-import DepositBonds from "@/pages/bonds/DepositBonds";
-import WithdrawalBonds from "@/pages/bonds/WithdrawalBonds";
+import Revenues from "@/pages/revenues-and-expenses/Revenues";
+import Expenses from "@/pages/revenues-and-expenses/Expenses";
+import Items from "@/pages/revenues-and-expenses/Items";
 
 // Print Context
 import { PrintProvider, usePrint } from "@/context/PrintContext";
@@ -209,7 +207,6 @@ function AppRoutes() {
           <Route path="/purchases/expenses" element={<Expenses />} />
           <Route path="/suppliers" element={<SuppliersList />} />
           <Route path="/suppliers/payments" element={<SupplierPaymentsList />} />
-          <Route path="/expenses" element={<Expenses />} />
 
           {/* العملاء */}
           <Route path="/customers" element={<CustomersList />} />
@@ -302,11 +299,9 @@ function AppRoutes() {
           <Route path="/reports/subsidiary-ledger" element={<SubsidiaryLedger />} />
           <Route path="/reports/financial-summary" element={<FinancialSummary />} />
 
-          {/* السندات */}
-          <Route path="/bonds/receipt" element={<ReceiptBonds />} />
-          <Route path="/bonds/payment" element={<PaymentBonds />} />
-          <Route path="/bonds/deposit" element={<DepositBonds />} />
-          <Route path="/bonds/withdrawal" element={<WithdrawalBonds />} />
+          <Route path="/revenues" element={<Revenues />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/items" element={<Items />} />
         </Route>
       </Routes>
 
