@@ -546,3 +546,23 @@ input::-webkit-inner-spin-button {
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+@media (max-width: 960px) {
+  .p-datatable-responsive-stack .p-datatable-thead > tr > th,
+  .p-datatable-responsive-stack .p-datatable-tfoot > tr > td {
+    display: none !important;
+  }
+
+  .p-datatable-responsive-stack .p-datatable-tbody > tr > td {
+    display: flex !important;
+    width: 100% !important;
+    align-items: center;
+    justify-content: space-between;
+    border: 0 none;
+  }
+
+  .p-datatable-responsive-stack .p-datatable-tbody > tr > td .p-column-title {
+    display: inline !important;
+    font-weight: bold;
+  }
+}
