@@ -168,7 +168,7 @@ export default function AddQuantityAdjustment() {
   };
   return (
     <Card>
-      <CardHeader >
+      <CardHeader className="">
         <CardTitle>اضافة تعديل كميات</CardTitle>
         {/* <CardDescription>Card Description</CardDescription> */}
         <CardAction>
