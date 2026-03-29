@@ -1,9 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-<<<<<<< HEAD
-import { PlusCircle, Save, Trash2, FileText, CreditCard, Box, Plus, Eye, X, ArrowLeft } from "lucide-react";
-=======
 import { PlusCircle, Save, Trash2, FileText, CreditCard, Box, Plus, Eye, X, ArrowLeft, Tag } from "lucide-react";
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import z from "zod";
@@ -26,43 +22,6 @@ import ComboboxField from "@/components/ui/ComboboxField";
 import { Link, useParams } from "react-router-dom";
 import { useGetSalesOrderById } from "@/features/sales/hooks/useGetSalesOrderById";
 
-<<<<<<< HEAD
-const SalesInvoiceSchema = z
-  .object({
-    orderDate: z.string().min(1, "التاريخ مطلوب"),
-    customerId: z.number().min(1, "العميل مطلوب"),
-    warehouseId: z.number().min(1, "المخزن مطلوب"),
-    notes: z.string().optional(),
-    items: z
-      .array(
-        z.object({
-          productId: z.number().min(1, "اختر الصنف"),
-          unitId: z.number().min(1, "اختر وحدة الصنف"),
-          quantity: z.number().min(1, "الكمية لازم تكون أكبر من 0"),
-          price: z.number().min(0, "السعر لازم يكون ≥ 0"),
-          discountType: z.enum(["percentage", "fixed"]).default("fixed"),
-          discountValue: z.number().min(0).default(0),
-        }),
-      )
-      .min(1, "لازم تضيف صنف واحد على الأقل"),
-    payments: z
-      .array(
-        z.object({
-          amount: z.number().min(1, "المبلغ لازم يكون أكبر من 0"),
-          paymentMethod: z.enum(["Cash", "CreditCard", "DebitCard", "BankTransfer", "Check", "MobilePayment", "OnlinePayment", "Other"], {
-            message: "اختر طريقة الدفع",
-          }),
-        }),
-      )
-      .min(1, "لازم تضيف دفعة واحدة على الأقل"),
-    invoiceDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
-    invoiceDiscountValue: z.number().min(0).default(0),
-  })
-  .refine((data) => data.orderStatus !== undefined, {
-    message: "حالة الفاتورة مطلوبة",
-    path: ["orderStatus"],
-  });
-=======
 const SalesInvoiceSchema = z.object({
   orderDate: z.string().min(1, "التاريخ مطلوب"),
   customerId: z.number().min(1, "العميل مطلوب"),
@@ -93,7 +52,6 @@ const SalesInvoiceSchema = z.object({
   invoiceDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
   invoiceDiscountValue: z.number().min(0).default(0),
 });
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 
 type SalesInvoiceType = z.input<typeof SalesInvoiceSchema>;
 
@@ -101,9 +59,6 @@ const CreateSalesInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
   const { id } = useParams();
   const isEditMode = Boolean(id);
-<<<<<<< HEAD
-
-=======
   const [discountOpen, setDiscountOpen] = useState<{ [key: number]: boolean }>({});
   function calcVat(beforeTax: number, taxRate: number, taxCalculation: string | number) {
     const calc = Number(taxCalculation);
@@ -117,7 +72,6 @@ const CreateSalesInvoice: React.FC = () => {
       [index]: !prev[index],
     }));
   };
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683
   const form = useForm<SalesInvoiceType>({
     resolver: zodResolver(SalesInvoiceSchema),
     defaultValues: {
@@ -240,17 +194,11 @@ const CreateSalesInvoice: React.FC = () => {
   }, [payments]);
 
   const finalTotal = useMemo(() => {
-<<<<<<< HEAD
-    let total = invoiceTotal;
-    if (discountType === "fixed") total -= discountValue || 0;
-    if (discountType === "percentage") total -= total * ((discountValue || 0) / 100);
-=======
     let total = invoiceTotal + totalVat;
 
     if (discountType === "fixed") total -= discountValue || 0;
     if (discountType === "percentage") total -= total * ((discountValue || 0) / 100);
 
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683
     return Math.max(0, total);
   }, [invoiceTotal, totalVat, discountType, discountValue]);
 
@@ -313,10 +261,6 @@ const CreateSalesInvoice: React.FC = () => {
       <CardContent>
         {/* ← باقي الفورم بالظبط زي ما هو، مفيش تغيير */}
         <form onSubmit={form.handleSubmit(handleSubmit, (errors) => console.log(errors))} className="space-y-6">
-<<<<<<< HEAD
-          {/* ... كل محتوى الفورم هنا بدون أي تغيير ... */}
-=======
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683
           <div className="bg-white p-6 rounded-sm border border-gray-100">
             <h2 className="text-lg font-bold  text-gray-800 mb-6 ">{"البيانات الأساسية"}</h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -360,10 +304,6 @@ const CreateSalesInvoice: React.FC = () => {
                   );
                 }}
               />
-<<<<<<< HEAD
-          
-=======
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683
               <div className="lg:col-span-3 col-span-1">
                 <Controller
                   name="notes"
@@ -387,14 +327,9 @@ const CreateSalesInvoice: React.FC = () => {
               <section className="mb-4">
                 <h2 className="text-sm font-semibold text-zinc-500 mb-4">قائمة الأصناف</h2>
                 <div className="w-full overflow-x-auto pb-4">
-<<<<<<< HEAD
-                  <div className="">
-                    <div className="hidden md:grid md:grid-cols-[2.5fr_1fr_1.5fr_1.5fr_1.5fr_1fr_1fr_40px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
-=======
                   <div>
                     {/* Header */}
                     <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                       <div>اسم الصنف</div>
                       <div>الوحدة</div>
                       <div>سعر الوحدة</div>
@@ -466,31 +401,6 @@ const CreateSalesInvoice: React.FC = () => {
                                       ))}
                                     </SelectContent>
                                   </Select>
-<<<<<<< HEAD
-                                  {fieldState.invalid && (
-                                    <div className="absolute top-full mt-1 right-0 z-10 w-full">
-                                      <FieldError errors={[fieldState.error]} />
-                                    </div>
-                                  )}{" "}
-                                </Field>
-                              )}
-                            />
-
-                            {/* السعر */}
-                            <div>
-                              <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">السعر</FieldLabel>
-                              <Controller
-                                control={form.control}
-                                name={`items.${index}.price`}
-                                render={({ field, fieldState }) => (
-                                  <Field className="relative" data-invalid={fieldState.invalid}>
-                                    <Input type="number" value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
-                                    <div className="absolute top-full mt-1 right-0 z-10 w-full">
-                                      <FieldError errors={[fieldState.error]} />
-                                    </div>{" "}
-                                  </Field>
-=======
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                                 )}
                               />
 

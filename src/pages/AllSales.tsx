@@ -93,11 +93,7 @@ export default function AllSales() {
               header={t("actions")}
               body={(row) => (
                 <div className="flex gap-2">
-<<<<<<< HEAD
-                  <Link to={`/sales/edit/${row?.id}`}  className="btn-minimal-action btn-compact-action">
-=======
                   <Link to={`/sales/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                     <Edit2 size={16} />
                   </Link>
                   <button onClick={() => {}} className="btn-minimal-action btn-compact-action text-red-500">

@@ -1,9 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-<<<<<<< HEAD
-import type { CreatePurchaseOrder, GetAllPurchasesResponse } from "../types/purchase.types";
-=======
 import type { CreatePurchaseOrder, GetAllPurchasesResponse, Purchase } from "../types/purchase.types";
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 
 // ===================
 // GET
@@ -37,12 +33,6 @@ export const createPurchaseOrder = (data: CreatePurchaseOrder) =>
 //     method: "DELETE",
 //   });
 
-<<<<<<< HEAD
-// export function getCategoryById(id: string | number) {
-//   return httpClient<Category>(`/blog/category/${id}`);
-// }
-=======
 export function getPurchaseOrderById(id: number) {
   return httpClient<Purchase>(`/PurchaseOrder/${id}`);
 }
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683

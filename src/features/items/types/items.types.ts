@@ -24,4 +24,4 @@ export interface CreateItemPayload {
 export interface UpdateItemPayload {
   name: string;
   isActive: boolean;
-}
+} 
