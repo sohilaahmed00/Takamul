@@ -86,13 +86,21 @@ export default function CustomerCollectionsList() {
 
     try {
       await deleteTransaction(rowToDelete.id);
+<<<<<<< HEAD
       notifySuccess("تم حذف سند القبض بنجاح");
+=======
+      notifySuccess("تم حذف التحصيل بنجاح");
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
       setRowToDelete(null);
     } catch (error: any) {
       notifyError(
         error?.response?.data?.message ||
         error?.message ||
+<<<<<<< HEAD
         "حدث خطأ أثناء حذف سند القبض"
+=======
+        "حدث خطأ أثناء حذف التحصيل"
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
       );
     }
   };
@@ -146,16 +154,30 @@ export default function CustomerCollectionsList() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <HandCoins size={20} className="text-[var(--primary)]" />
+<<<<<<< HEAD
             سند قبض           </CardTitle>
 
           {/* <CardDescription>
             تسجيل وعرض حركات سند القبض الوارد من العملاء
           </CardDescription> */}
+=======
+            تحصيل وارد
+          </CardTitle>
+
+          <CardDescription>
+            تسجيل وعرض حركات التحصيل الوارد من العملاء
+          </CardDescription>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 
           <CardAction>
             <Button onClick={openAddModal} variant="default">
               <Plus size={18} />
+<<<<<<< HEAD
               إضافة سند قبض             </Button>
+=======
+              إضافة تحصيل وارد
+            </Button>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
           </CardAction>
         </CardHeader>
 
@@ -375,7 +397,11 @@ export default function CustomerCollectionsList() {
 
       <DeleteTreasuryDialog
         open={!!rowToDelete}
+<<<<<<< HEAD
         itemLabel="حركة سند القبض"
+=======
+        itemLabel="حركة التحصيل"
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
         itemName={rowToDelete?.customerName}
         loading={isDeleting}
         onClose={() => setRowToDelete(null)}

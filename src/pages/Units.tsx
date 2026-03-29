@@ -21,7 +21,6 @@ import { FilterMatchMode } from "primereact/api";
 import UnitModal from "@/components/modals/UnitModal";
 import type { Unit } from "@/features/units/types/units.types";
 
-
 const Units = () => {
   const { t, direction } = useLanguage();
 
@@ -562,7 +561,7 @@ const Units = () => {
       <Card>
         <CardHeader>
           <CardTitle>إدارة الوحدات</CardTitle>
-          <CardDescription>إدارة الوحدات </CardDescription>
+          <CardDescription>إضافة وتعديل وحدات القياس وربطها بالأصناف لضمان دقة العمليات</CardDescription>{" "}
           <CardAction>
             <Button variant={"default"} onClick={() => setIsAddModalOpen(true)}>
               إضافة وحدة
@@ -596,7 +595,7 @@ const Units = () => {
             <Column
               header={t("actions")}
               body={(unit: Unit) => (
-                <>
+                <div className="space-x-2">
                   <button
                     onClick={async () => {
                       setSelectedUnit(unit);
@@ -614,7 +613,7 @@ const Units = () => {
                   >
                     <Trash2 size={16} />
                   </button>
-                </>
+                </div>
               )}
             />
           </DataTable>

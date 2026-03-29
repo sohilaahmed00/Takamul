@@ -21,26 +21,11 @@ export default function AllSales() {
   const [currentPage, setCurrentPage] = useState(1);
   const { data: salesOrders } = useGetAllSales(currentPage, entriesPerPage);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
-  const [filters, setFilters] = useState<DataTableFilterMeta>({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    orderNumber: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    orderDate: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    customerName: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    createdBy: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    orderStatus: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    grandTotal: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    phone: { value: null, matchMode: FilterMatchMode.CONTAINS },
-    taxNumber: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  });
+
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    let _filters = { ...filters };
-
-    // @ts-ignore
-    _filters["global"].value = value;
-
-    setFilters(_filters);
     setGlobalFilterValue(value);
+    setCurrentPage(1);
   };
   const renderHeader = () => {
     return (
@@ -89,8 +74,7 @@ export default function AllSales() {
               setCurrentPage(e.page + 1);
               setEntriesPerPage(e.rows);
             }}
-            loading={!salesOrders}
-            filters={filters}
+            loading={!salesOrders?.items}
             header={header}
             responsiveLayout="stack"
             className="custom-green-table custom-compact-table"
@@ -109,7 +93,11 @@ export default function AllSales() {
               header={t("actions")}
               body={(row) => (
                 <div className="flex gap-2">
+<<<<<<< HEAD
                   <Link to={`/sales/edit/${row?.id}`}  className="btn-minimal-action btn-compact-action">
+=======
+                  <Link to={`/sales/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                     <Edit2 size={16} />
                   </Link>
                   <button onClick={() => {}} className="btn-minimal-action btn-compact-action text-red-500">

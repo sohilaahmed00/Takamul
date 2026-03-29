@@ -230,10 +230,10 @@ export default function QuantityAdjustments() {
     //   </div>
     // </div>
     <Card>
-      <CardHeader>
+      <CardHeader className="max-md:flex max-md:flex-col">
         <CardTitle>تعديلات الكمية</CardTitle>
         <CardDescription>إدارة وتتبع مذكرات تسوية المخزون</CardDescription>
-        <CardAction>
+        <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
           {" "}
           <Button variant={"default"} asChild>
             <Link to={"/products/quantity-adjustments/create"}>إضافة تعديل كمية </Link>
@@ -267,14 +267,14 @@ export default function QuantityAdjustments() {
           <Column
             header={t("actions")}
             body={(product: QuantityAdjustment) => (
-              <>
+              <div className="space-x-2">
                 <Link to={`/products/quantity-adjustments/edit/${product?.id}`} className="btn-minimal-action btn-edit">
                   <Edit2 size={16} />
                 </Link>
                 <Link to={`products/quantity-adjustments/view/${product?.id}`} onClick={async () => {}} className="btn-minimal-action btn-view">
                   <Eye size={16} />
                 </Link>
-              </>
+              </div>
             )}
           />
         </DataTable>

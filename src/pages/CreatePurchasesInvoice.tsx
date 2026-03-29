@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import React, { useState, useMemo } from "react";
+=======
+import React, { useState, useMemo, useEffect } from "react";
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 import { PlusCircle, Save, Trash2, FileText, CreditCard, Box, Plus, Eye, X, ArrowLeft, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
@@ -19,11 +23,19 @@ import { useWatch } from "react-hook-form";
 import type { CreateSalesOrder } from "@/features/sales/types/sales.types";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
+<<<<<<< HEAD
 import { Link } from "react-router-dom";
+=======
+import { Link, useParams } from "react-router-dom";
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 import type { CreatePurchaseOrder } from "@/features/purchases/types/purchase.types";
 import { useCreatePurchaseOrder } from "@/features/purchases/hooks/useCreatePurchaseOrder";
 import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
 import { useGetAllTaxes } from "@/features/taxes/hooks/useGetAllTaxes";
+<<<<<<< HEAD
+=======
+import { useGetPurchaseOrderById } from "@/features/purchases/hooks/useGetPurchaseOrderById";
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 const PurchasesInvoiceSchema = z.object({
   supplierId: z.number().min(1, "المورد مطلوب"),
   warehouseId: z.number().min(1, "المخزن مطلوب"),
@@ -58,6 +70,12 @@ const CreatePurchaseInvoice: React.FC = () => {
   const { mutateAsync: createPurchaseOrder } = useCreatePurchaseOrder();
   const [discountOpen, setDiscountOpen] = useState<Record<number, boolean>>({});
   const toggleDiscount = (i: number) => setDiscountOpen((prev) => ({ ...prev, [i]: !prev[i] }));
+<<<<<<< HEAD
+=======
+  const { id } = useParams();
+  const { data: purchaseOrder } = useGetPurchaseOrderById(Number(id));
+
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
   const form = useForm<PurchaseInvoiceType>({
     resolver: zodResolver(PurchasesInvoiceSchema),
     defaultValues: {
@@ -97,6 +115,7 @@ const CreatePurchaseInvoice: React.FC = () => {
     name: "items",
   });
 
+<<<<<<< HEAD
   // const invoiceTotal = useMemo(() => {
   //   return (
   //     items?.reduce((total, item) => {
@@ -114,6 +133,32 @@ const CreatePurchaseInvoice: React.FC = () => {
   //     }, 0) || 0
   //   );
   // }, [items]);
+=======
+  useEffect(() => {
+    if (!purchaseOrder) return;
+    if (!products?.items || !units?.items) return;
+
+    form.reset({
+      supplierId: purchaseOrder.supplierId,
+      orderDate: purchaseOrder.orderDate?.split("T")[0],
+      notes: "",
+      items: purchaseOrder.items.map((item) => {
+        return {
+          productId: item.productId,
+          unitId: item.unitId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+
+          // discountType: "fixed",
+          // discountValue: 0,
+          // taxType: "percentage",
+          // taxAmount: 0,
+          // subTotal: 0,
+        };
+      }),
+    });
+  }, [purchaseOrder, products, units]);
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 
   const handleAddItem = () => {
     appendItem({
@@ -154,6 +199,42 @@ const CreatePurchaseInvoice: React.FC = () => {
 
     const res = await createPurchaseOrder(payload);
   };
+<<<<<<< HEAD
+=======
+  const summary = useMemo(() => {
+    let beforeTaxTotal = 0;
+    let totalVat = 0;
+
+    items?.forEach((item) => {
+      const qty = item.quantity || 0;
+      const price = item.unitPrice || 0;
+      const discType = item.discountType || "fixed";
+      const discValue = item.discountValue || 0;
+
+      const tax = taxes?.find((t) => t.id === Number(item.taxAmount));
+      const taxRate = tax?.amount || 0;
+
+      const gross = qty * price;
+
+      const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
+
+      const beforeTax = Math.max(0, gross - discount);
+
+      const vat = beforeTax * (taxRate / 100);
+
+      beforeTaxTotal += beforeTax;
+      totalVat += vat;
+    });
+
+    const finalTotal = beforeTaxTotal + totalVat;
+
+    return {
+      beforeTaxTotal,
+      totalVat,
+      finalTotal,
+    };
+  }, [items, taxes]);
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 
   return (
     <Card>
@@ -245,7 +326,11 @@ const CreatePurchaseInvoice: React.FC = () => {
                 <div className="w-full overflow-x-auto pb-4">
                   <div>
                     {/* Header */}
+<<<<<<< HEAD
                     <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.8fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
+=======
+                    <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                       <div>اسم الصنف/الكود</div>
                       <div>الوحدة</div>
                       <div>تكلفة الوحدة</div>
@@ -276,7 +361,11 @@ const CreatePurchaseInvoice: React.FC = () => {
 
                         return (
                           <div key={item.id}>
+<<<<<<< HEAD
                             <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.8fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group">
+=======
+                            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group">
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                               {/* الصنف */}
                               <Controller
                                 control={form.control}
@@ -410,6 +499,46 @@ const CreatePurchaseInvoice: React.FC = () => {
               </section>
             </div>
           </div>
+<<<<<<< HEAD
+=======
+          <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
+            <h3 className="text-base font-semibold text-gray-800 mb-5">ملخص الفاتورة</h3>
+
+            <div className="space-y-4">
+              {/* قبل الضريبة */}
+              <div className="flex justify-between items-center text-zinc-600">
+                <span className="text-sm font-medium">الإجمالي قبل الضريبة</span>
+                <span className="font-semibold text-zinc-900">
+                  {summary.beforeTaxTotal.toLocaleString("en-EG", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+
+              {/* الضريبة */}
+              <div className="flex justify-between items-center text-zinc-600">
+                <span className="text-sm font-medium">ضريبة القيمة المضافة</span>
+                <span className="font-semibold text-orange-600">
+                  {summary.totalVat.toLocaleString("en-EG", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+
+              <hr className="border-zinc-200" />
+
+              {/* الإجمالي النهائي */}
+              <div className="flex justify-between items-center">
+                <span className="font-bold text-zinc-900">الإجمالي النهائي</span>
+                <span className="text-xl font-black text-green-600">
+                  {summary.finalTotal.toLocaleString("en-EG", {
+                    minimumFractionDigits: 2,
+                  })}
+                </span>
+              </div>
+            </div>
+          </div>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 
           <div className="bg-white p-5 sm:p-6 rounded-sm border border-gray-100 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
             <Button type="button" variant={"destructive"} className="h-12 px-4" onClick={() => {}}>

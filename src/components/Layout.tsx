@@ -256,7 +256,11 @@ export default function Layout() {
             {openSubmenu === "customers" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 <SubmenuItem label={t("customers_list")} icon={List} path="/customers" />
+<<<<<<< HEAD
                 <SubmenuItem label="سند قبض نقدية" icon={HandCoins} path="/customers/collections" />
+=======
+                <SubmenuItem label="تحصيل الوارد" icon={HandCoins} path="/customers/collections" />
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
               </motion.div>
             )}
           </AnimatePresence>
@@ -267,7 +271,11 @@ export default function Layout() {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 <SubmenuItem label={t("suppliers_list")} icon={LayoutGrid} path="/suppliers" />
                 {/* <SubmenuItem label={t("add_supplier")} icon={PlusCircle} path="/suppliers" /> */}
+<<<<<<< HEAD
                 <SubmenuItem label=" سند صرف نقدية" icon={Truck} path="/suppliers/payments" />
+=======
+                <SubmenuItem label="سداد الصادر" icon={Truck} path="/suppliers/payments" />
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
               </motion.div>
             )}
           </AnimatePresence>

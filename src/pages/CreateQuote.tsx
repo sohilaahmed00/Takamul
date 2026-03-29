@@ -338,7 +338,11 @@ const CreateQuote: React.FC = () => {
           <CardTitle>إضافة عرض سعر</CardTitle>
           <CardAction>
             <Button variant="outline" asChild>
+<<<<<<< HEAD
               <Link to="/sales/all">
+=======
+              <Link to="/quotes">
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                 الرجوع لقائمة عروض الأسعار
                 <ArrowLeft size={16} />
               </Link>
@@ -423,7 +427,11 @@ const CreateQuote: React.FC = () => {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold text-zinc-500 mb-4">قائمة الأصناف</h2>
                   <div className="w-full overflow-x-auto pb-4">
+<<<<<<< HEAD
                     <div className="hidden md:grid md:grid-cols-[2.5fr_1fr_1.5fr_1.5fr_1fr_1fr_40px_36px] gap-3 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
+=======
+                    <div className="hidden md:grid md:grid-cols-[2fr_0.8fr_1fr_1fr_1fr_1.2fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                       <div>اسم الصنف/الكود</div>
                       <div>الكمية</div>
                       <div>الوحدة</div>
@@ -431,7 +439,10 @@ const CreateQuote: React.FC = () => {
                       <div className="text-center">ضريبة القيمة المضافة</div>
                       <div className="text-center">الإجمالي شامل الضريبة</div>
                       <div></div>
+<<<<<<< HEAD
                       <div></div>
+=======
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                     </div>
 
                     <div className="space-y-1 mt-3">
@@ -452,13 +463,21 @@ const CreateQuote: React.FC = () => {
 
                         return (
                           <div key={item.id}>
+<<<<<<< HEAD
                             <div className="grid grid-cols-1 md:grid-cols-[2.5fr_1fr_1.5fr_1.5fr_1fr_1fr_40px_36px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group transition-colors hover:bg-zinc-50/80">
+=======
+                            <div className="grid grid-cols-1 md:grid-cols-[2fr_0.8fr_1fr_1fr_1fr_1.2fr_60px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group">
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                               <Controller
                                 control={form.control}
                                 name={`items.${index}.productId`}
                                 render={({ field, fieldState }) => (
                                   <Field data-invalid={fieldState.invalid} className="relative">
+<<<<<<< HEAD
                                     <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">الصنف</FieldLabel>
+=======
+                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">اسم الصنف/الكود</FieldLabel>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                                     <ComboboxField
                                       field={field}
                                       items={products?.items}
@@ -523,7 +542,11 @@ const CreateQuote: React.FC = () => {
                                 name={`items.${index}.unitPrice`}
                                 render={({ field, fieldState }) => (
                                   <Field className="relative" data-invalid={fieldState.invalid}>
+<<<<<<< HEAD
                                     <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">السعر</FieldLabel>
+=======
+                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">السعر قبل الضريبة</FieldLabel>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                                     <Input type="number" min={0} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
                                     <div className="absolute top-full mt-1 right-0 z-10 w-full">
                                       <FieldError errors={[fieldState.error]} />
@@ -533,6 +556,7 @@ const CreateQuote: React.FC = () => {
                               />
 
                               <div className="flex items-center md:justify-center font-medium text-amber-600 mt-2 md:mt-0 px-2 h-9">
+<<<<<<< HEAD
                                 <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">الضريبة:</FieldLabel>
                                 {Math.max(0, taxAmount).toLocaleString()}
                               </div>
@@ -550,6 +574,23 @@ const CreateQuote: React.FC = () => {
                               <div className="flex justify-end md:justify-center">
                                 <button type="button" onClick={() => toggleDiscount(index)} title="إضافة خصم" className={`p-2 rounded-md transition-colors ${isDiscOpen ? "text-emerald-600 bg-emerald-50" : "text-zinc-300 hover:text-zinc-500 hover:bg-zinc-50"}`}>
                                   <Tag size={14} strokeWidth={1.5} />
+=======
+                                <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">ضريبة القيمة المضافة:</FieldLabel>
+                                {Math.max(0, taxAmount).toLocaleString()}
+                              </div>
+                              <div className="flex items-center md:justify-center font-medium text-green-700 mt-2 md:mt-0 px-2 h-9">
+                                <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">الإجمالي شامل الضريبة:</FieldLabel>
+                                {Math.max(0, afterTax).toLocaleString()}
+                              </div>
+
+                              <div className="flex items-center justify-center gap-2">
+                                <button type="button" onClick={() => removeItem(index)} className="p-2 text-zinc-400 hover:text-red-500">
+                                  <Trash2 size={16} />
+                                </button>
+
+                                <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-600" : "text-zinc-400"}`}>
+                                  <Tag size={14} />
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                                 </button>
                               </div>
                             </div>
@@ -600,6 +641,7 @@ const CreateQuote: React.FC = () => {
             </div>
 
             {/* Footer */}
+<<<<<<< HEAD
             <div className="bg-white p-5 sm:p-6 rounded-sm border border-gray-100 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
               <Button type="button" variant="destructive" className="h-12 px-4">
                 إلغاء والعودة
@@ -607,6 +649,20 @@ const CreateQuote: React.FC = () => {
               <Button type="submit" disabled={isPending} className="h-12 px-4">
                 {isPending ? "جاري الحفظ..." : "حفظ وإصدار عرض السعر"}
               </Button>
+=======
+            <div className="flex flex-col-reverse lg:flex-row justify-between gap-3   py-4 border-t border-gray-100 bg-gray-50/50 mt-8">
+              <Button size="lg" variant="destructive" type="button" className="w-full lg:w-auto px-8 h-12">
+                إلغاء
+              </Button>
+              <div className="flex flex-col lg:flex-row items-center gap-3 w-full lg:w-auto">
+                <Button variant="outline" size="lg" type="button" className="w-full lg:w-auto px-8 h-12 text-base">
+                  حفظ وإضافة آخر
+                </Button>
+                <Button size="lg" type="submit" disabled={isPending} className="w-full lg:w-auto px-8 h-12 text-base">
+                  {isPending ? "جاري الحفظ..." : "حفظ وإصدار عرض السعر"}
+                </Button>
+              </div>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
             </div>
           </form>
         </CardContent>

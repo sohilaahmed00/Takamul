@@ -1,5 +1,9 @@
 import React, { useState, useMemo, useEffect } from "react";
+<<<<<<< HEAD
 import { PlusCircle, Save, Trash2, FileText, CreditCard, Box, Plus, Eye, X, ArrowLeft } from "lucide-react";
+=======
+import { PlusCircle, Save, Trash2, FileText, CreditCard, Box, Plus, Eye, X, ArrowLeft, Tag } from "lucide-react";
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import z from "zod";
@@ -22,6 +26,7 @@ import ComboboxField from "@/components/ui/ComboboxField";
 import { Link, useParams } from "react-router-dom";
 import { useGetSalesOrderById } from "@/features/sales/hooks/useGetSalesOrderById";
 
+<<<<<<< HEAD
 const SalesInvoiceSchema = z
   .object({
     orderDate: z.string().min(1, "التاريخ مطلوب"),
@@ -57,6 +62,38 @@ const SalesInvoiceSchema = z
     message: "حالة الفاتورة مطلوبة",
     path: ["orderStatus"],
   });
+=======
+const SalesInvoiceSchema = z.object({
+  orderDate: z.string().min(1, "التاريخ مطلوب"),
+  customerId: z.number().min(1, "العميل مطلوب"),
+  warehouseId: z.number().min(1, "المخزن مطلوب"),
+  notes: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        productId: z.number().min(1, "اختر الصنف"),
+        unitId: z.number().min(1, "اختر وحدة الصنف"),
+        quantity: z.number().min(1, "الكمية لازم تكون أكبر من 0"),
+        price: z.number().min(0, "السعر لازم يكون ≥ 0"),
+        discountType: z.enum(["percentage", "fixed"]).default("fixed"),
+        discountValue: z.number().min(0).default(0),
+      }),
+    )
+    .min(1, "لازم تضيف صنف واحد على الأقل"),
+  payments: z
+    .array(
+      z.object({
+        amount: z.number().min(1, "المبلغ لازم يكون أكبر من 0"),
+        paymentMethod: z.enum(["Cash", "CreditCard", "DebitCard", "BankTransfer", "Check", "MobilePayment", "OnlinePayment", "Other"], {
+          message: "اختر طريقة الدفع",
+        }),
+      }),
+    )
+    .min(1, "لازم تضيف دفعة واحدة على الأقل"),
+  invoiceDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
+  invoiceDiscountValue: z.number().min(0).default(0),
+});
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 
 type SalesInvoiceType = z.input<typeof SalesInvoiceSchema>;
 
@@ -64,14 +101,29 @@ const CreateSalesInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
   const { id } = useParams();
   const isEditMode = Boolean(id);
+<<<<<<< HEAD
 
+=======
+  const [discountOpen, setDiscountOpen] = useState<{ [key: number]: boolean }>({});
+  function calcVat(beforeTax: number, taxRate: number, taxCalculation: string | number) {
+    const calc = Number(taxCalculation);
+    if (calc === 1) return 0;
+    if (calc === 2) return beforeTax - beforeTax / (1 + taxRate / 100);
+    return beforeTax * (taxRate / 100);
+  }
+  const toggleDiscount = (index: number) => {
+    setDiscountOpen((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
   const form = useForm<SalesInvoiceType>({
     resolver: zodResolver(SalesInvoiceSchema),
     defaultValues: {
       orderDate: new Date().toISOString().split("T")[0],
       customerId: 0,
       warehouseId: 0,
-      orderStatus: "Confirmed",
       notes: "",
       items: [
         {
@@ -158,17 +210,49 @@ const CreateSalesInvoice: React.FC = () => {
       }, 0) || 0
     );
   }, [items]);
+  const totalVat = useMemo(() => {
+    return (
+      items?.reduce((total, item) => {
+        const qty = item.quantity || 0;
+        const price = item.price || 0;
+        const discType = item.discountType || "fixed";
+        const discValue = item.discountValue || 0;
+
+        const gross = qty * price;
+        const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
+        const beforeTax = Math.max(0, gross - discount);
+
+        // ─── ← التعديل الوحيد هنا ───
+        const productId = item.productId;
+        const product = products?.items?.find((p) => p.id === Number(productId));
+        const taxRate = product?.taxAmount || 0;
+        const taxCalc = product?.taxCalculation ?? 3;
+        const vat = calcVat(beforeTax, taxRate, taxCalc);
+        // ─────────────────────────────
+
+        return total + vat;
+      }, 0) || 0
+    );
+  }, [items, products]);
 
   const totalPaid = useMemo(() => {
     return payments?.reduce((total, p) => total + (p.amount || 0), 0) || 0;
   }, [payments]);
 
   const finalTotal = useMemo(() => {
+<<<<<<< HEAD
     let total = invoiceTotal;
     if (discountType === "fixed") total -= discountValue || 0;
     if (discountType === "percentage") total -= total * ((discountValue || 0) / 100);
+=======
+    let total = invoiceTotal + totalVat;
+
+    if (discountType === "fixed") total -= discountValue || 0;
+    if (discountType === "percentage") total -= total * ((discountValue || 0) / 100);
+
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
     return Math.max(0, total);
-  }, [invoiceTotal, discountType, discountValue]);
+  }, [invoiceTotal, totalVat, discountType, discountValue]);
 
   const remaining = finalTotal - totalPaid;
 
@@ -229,7 +313,10 @@ const CreateSalesInvoice: React.FC = () => {
       <CardContent>
         {/* ← باقي الفورم بالظبط زي ما هو، مفيش تغيير */}
         <form onSubmit={form.handleSubmit(handleSubmit, (errors) => console.log(errors))} className="space-y-6">
+<<<<<<< HEAD
           {/* ... كل محتوى الفورم هنا بدون أي تغيير ... */}
+=======
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
           <div className="bg-white p-6 rounded-sm border border-gray-100">
             <h2 className="text-lg font-bold  text-gray-800 mb-6 ">{"البيانات الأساسية"}</h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -273,7 +360,10 @@ const CreateSalesInvoice: React.FC = () => {
                   );
                 }}
               />
+<<<<<<< HEAD
           
+=======
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
               <div className="lg:col-span-3 col-span-1">
                 <Controller
                   name="notes"
@@ -297,97 +387,86 @@ const CreateSalesInvoice: React.FC = () => {
               <section className="mb-4">
                 <h2 className="text-sm font-semibold text-zinc-500 mb-4">قائمة الأصناف</h2>
                 <div className="w-full overflow-x-auto pb-4">
+<<<<<<< HEAD
                   <div className="">
                     <div className="hidden md:grid md:grid-cols-[2.5fr_1fr_1.5fr_1.5fr_1.5fr_1fr_1fr_40px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
+=======
+                  <div>
+                    {/* Header */}
+                    <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                       <div>اسم الصنف</div>
-                      <div className="">الكمية</div>
-                      <div className="">الوحدة</div>
-                      <div className="">السعر</div>
-                      <div>نوع الخصم</div>
-                      <div className="">الخصم</div>
-                      <div className="text-center">الإجمالي</div>
+                      <div>الوحدة</div>
+                      <div>سعر الوحدة</div>
+                      <div>الكمية</div>
+                      <div>الإجمالي قبل الضريبة</div>
+                      <div>ضريبة القيمة المضافة</div>
+                      <div>الإجمالي النهائي</div>
                       <div></div>
                     </div>
 
                     {/* Items */}
                     <div className="space-y-3 mt-3">
                       {itemFields.map((item, index) => {
-                        const qty = form.watch(`items.${index}.quantity`) || 0;
-                        const price = form.watch(`items.${index}.price`) || 0;
+                        const qty = Number(form.watch(`items.${index}.quantity`) || 0);
+                        const price = Number(form.watch(`items.${index}.price`) || 0);
                         const discType = form.watch(`items.${index}.discountType`) || "fixed";
-                        const discValue = form.watch(`items.${index}.discountValue`) || 0;
+                        const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
 
-                        let itemTotal = qty * price;
-                        if (discType === "fixed") itemTotal -= discValue;
-                        if (discType === "percentage") itemTotal -= itemTotal * (discValue / 100);
+                        const productId = form.watch(`items.${index}.productId`);
+                        const product = products?.items?.find((p) => p.id === Number(productId));
+                        const taxRate = product?.taxAmount || 0;
+                        const taxCalc = product?.taxCalculation ?? 1;
+                        const gross = qty * price;
+                        const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
+                        const beforeTax = Math.max(0, gross - discount);
+                        const vatAmount = calcVat(beforeTax, taxRate, taxCalc); 
+
+                        const afterTax = beforeTax + vatAmount;
+
+                        const isDiscOpen = !!discountOpen[index];
 
                         return (
-                          <div key={item.id} className="grid grid-cols-1 md:grid-cols-[2.5fr_1fr_1.5fr_1.5fr_1.5fr_1fr_1fr_40px] gap-4 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group transition-colors hover:bg-zinc-50/80">
-                            <Controller
-                              control={form.control}
-                              name={`items.${index}.productId`}
-                              render={({ field, fieldState }) => {
-                                return (
-                                  <Field data-invalid={fieldState.invalid} className="relative">
-                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">الصنف</FieldLabel>
-                                    <ComboboxField
-                                      field={field}
-                                      items={products?.items}
-                                      valueKey="id"
-                                      labelKey="productNameAr"
-                                      placeholder="اختر الصنف"
-                                      onValueChange={(val) => {
-                                        const product = products?.items?.find((p) => p.id === Number(val));
-                                        if (product) {
-                                          form.setValue(`items.${index}.price`, product.sellingPrice);
-                                        }
-                                      }}
-                                    />
-
-                                    {fieldState.invalid && (
-                                      <div className="absolute top-full mt-1 right-0 z-10 w-full">
-                                        <FieldError errors={[fieldState.error]} />
-                                      </div>
-                                    )}
-                                  </Field>
-                                );
-                              }}
-                            />
-
-                            {/* الكمية */}
-                            <div>
-                              <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">الكمية</FieldLabel>
+                          <div key={item.id}>
+                            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group">
                               <Controller
                                 control={form.control}
-                                name={`items.${index}.quantity`}
-                                render={({ field, fieldState }) => (
-                                  <Field data-invalid={fieldState.invalid}>
-                                    <Input type="number" min={1} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
-                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                  </Field>
+                                name={`items.${index}.productId`}
+                                render={({ field }) => (
+                                  <ComboboxField
+                                    field={field}
+                                    items={products?.items}
+                                    valueKey="id"
+                                    labelKey="productNameAr"
+                                    placeholder="اختر الصنف"
+                                    onValueChange={(val) => {
+                                      const product = products?.items?.find((p) => p.id === Number(val));
+                                      if (product) {
+                                        form.setValue(`items.${index}.price`, product.sellingPrice);
+                                      }
+                                    }}
+                                  />
                                 )}
                               />
-                            </div>
 
-                            {/* الوحدة */}
-                            <Controller
-                              control={form.control}
-                              name={`items.${index}.unitId`}
-                              render={({ field, fieldState }) => (
-                                <Field className="relative">
-                                  <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">الوحدة</FieldLabel>
+                              {/* الوحدة */}
+                              <Controller
+                                control={form.control}
+                                name={`items.${index}.unitId`}
+                                render={({ field }) => (
                                   <Select value={field.value === 0 ? "" : String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
-                                    <SelectTrigger className="w-full ">
+                                    <SelectTrigger className="w-full">
                                       <SelectValue placeholder="الوحدة" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      {units?.items?.map((c) => (
-                                        <SelectItem key={c?.id} value={String(c?.id)}>
-                                          {c?.name}
+                                      {units?.items?.map((u) => (
+                                        <SelectItem key={u.id} value={String(u.id)}>
+                                          {u.name}
                                         </SelectItem>
                                       ))}
                                     </SelectContent>
                                   </Select>
+<<<<<<< HEAD
                                   {fieldState.invalid && (
                                     <div className="absolute top-full mt-1 right-0 z-10 w-full">
                                       <FieldError errors={[fieldState.error]} />
@@ -410,48 +489,60 @@ const CreateSalesInvoice: React.FC = () => {
                                       <FieldError errors={[fieldState.error]} />
                                     </div>{" "}
                                   </Field>
+=======
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                                 )}
                               />
+
+                              {/* السعر */}
+                              <Controller control={form.control} name={`items.${index}.price`} render={({ field }) => <Input type="number" value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />} />
+
+                              {/* الكمية */}
+                              <Controller control={form.control} name={`items.${index}.quantity`} render={({ field }) => <Input type="number" min={1} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />} />
+
+                              {/* قبل الضريبة */}
+                              <div className="text-center font-medium">{beforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</div>
+
+                              {/* الضريبة */}
+                              <div className="text-center text-orange-600 font-medium">{vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</div>
+
+                              {/* الإجمالي */}
+                              <div className="text-center text-green-600 font-bold">{afterTax.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</div>
+
+                              {/* أزرار */}
+                              <div className="flex items-center justify-center gap-2">
+                                <button type="button" onClick={() => removeItem(index)} disabled={itemFields.length === 1} className="p-2 text-zinc-400 hover:text-red-500">
+                                  <Trash2 size={16} />
+                                </button>
+
+                                <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-600" : "text-zinc-400"}`}>
+                                  <Tag size={14} />
+                                </button>
+                              </div>
                             </div>
 
-                            {/* نوع الخصم */}
-                            <div>
-                              <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">نوع الخصم</FieldLabel>
-                              <Controller
-                                control={form.control}
-                                name={`items.${index}.discountType`}
-                                render={({ field }) => (
-                                  <Select value={field.value || "fixed"} onValueChange={field.onChange}>
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="النوع" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="fixed">قيمة</SelectItem>
-                                      <SelectItem value="percentage">نسبة %</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                )}
-                              />
-                            </div>
+                            {/* الخصم (Expandable) */}
+                            {isDiscOpen && (
+                              <div className="grid grid-cols-2 gap-3 px-2 py-3 bg-emerald-50 border rounded-lg">
+                                <Controller
+                                  control={form.control}
+                                  name={`items.${index}.discountType`}
+                                  render={({ field }) => (
+                                    <Select value={field.value} onValueChange={field.onChange}>
+                                      <SelectTrigger className="w-full">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="fixed">قيمة ثابتة</SelectItem>
+                                        <SelectItem value="percentage">نسبة %</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  )}
+                                />
 
-                            {/* قيمة الخصم */}
-                            <div>
-                              <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">الخصم</FieldLabel>
-                              <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" min={0} value={field.value || 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center " />} />
-                            </div>
-
-                            {/* الإجمالي */}
-                            <div className="flex items-center md:justify-center font-semibold text-zinc-900 mt-2 md:mt-0 px-2 h-9">
-                              <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">الإجمالي:</FieldLabel>
-                              {Math.max(0, itemTotal).toLocaleString()}
-                            </div>
-
-                            {/* حذف */}
-                            <div className="flex justify-end md:justify-center absolute top-4 left-4 md:static">
-                              <button type="button" onClick={() => removeItem(index)} disabled={items.length === 1} className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors disabled:opacity-30 md:opacity-0 md:group-hover:opacity-100">
-                                <Trash2 size={18} strokeWidth={1.5} />
-                              </button>
-                            </div>
+                                <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} />} />
+                              </div>
+                            )}
                           </div>
                         );
                       })}
@@ -532,6 +623,11 @@ const CreateSalesInvoice: React.FC = () => {
                   <div className="flex justify-between items-center text-zinc-600">
                     <span className="text-sm font-medium">ضريبة القيمة المضافة</span>
                     <span className="font-semibold text-zinc-900">{}</span>
+                  </div>
+
+                  <div className="flex justify-between items-center text-zinc-600">
+                    <span className="text-sm font-medium">ضريبة القيمة المضافة</span>
+                    <span className="font-semibold text-orange-600">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-zinc-600 gap-3">

@@ -17,6 +17,10 @@ import { Button } from "@/components/ui/button";
 import { DataTable, type DataTablePageEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { useGetAllQuotations } from "@/features/quotation/hooks/useGetAllQuotations";
+<<<<<<< HEAD
+=======
+import formatDate from "@/lib/formatDate";
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 
 export default function QuotesList() {
   const { t, direction } = useLanguage();
@@ -375,7 +379,11 @@ export default function QuotesList() {
         <CardDescription>يمكنك إدارة ، إضافة ، تعديل عروض الأسعار الخاصة بك</CardDescription>
         <CardAction>
           <Button variant={"default"} asChild>
+<<<<<<< HEAD
             <Link to={"/sales/create"}>إضافة عرض سعر</Link>
+=======
+            <Link to={"/quotes/create"}>إضافة عرض سعر</Link>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
           </Button>
         </CardAction>
       </CardHeader>
@@ -401,7 +409,11 @@ export default function QuotesList() {
           stripedRows={false}
         >
           <Column header={"رقم الفاتورة"} sortable field="quotationNumber" />
+<<<<<<< HEAD
           <Column header="التاريخ" sortable field="quotationDate" body={(row) => new Date(row.quotationDate).toLocaleDateString("ar-EG")} />
+=======
+          <Column header="التاريخ" sortable field="quotationDate" body={(row) => formatDate(row.quotationDate)} />
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
           <Column header={"اسم العميل"} sortable field="customerName" />
           <Column header={"الكاشير"} sortable field="createdBy" />
           <Column header={"حالة عرض السعر"} sortable field="status" />
