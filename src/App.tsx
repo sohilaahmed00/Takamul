@@ -207,19 +207,13 @@ function AppRoutes() {
           {/* المشتريات */}
           <Route path="/purchases" element={<PurchasesList />} />
           <Route path="/purchases/create" element={<CreatePurchaseInvoice />} />
-<<<<<<< HEAD
           <Route path="/purchases/edit/:id" element={<EditPurchase />} />
-=======
           <Route path="/purchases/edit/:id" element={<CreatePurchaseInvoice />} />
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683
           <Route path="/purchases/import-csv" element={<AddPurchaseCSV />} />
           <Route path="/purchases/expenses" element={<Expenses />} />
           <Route path="/suppliers" element={<SuppliersList />} />
           <Route path="/suppliers/payments" element={<SupplierPaymentsList />} />
-<<<<<<< HEAD
-=======
           <Route path="/expenses" element={<Expenses />} />
->>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 
           {/* العملاء */}
           <Route path="/customers" element={<CustomersList />} />
