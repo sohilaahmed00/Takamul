@@ -2,7 +2,8 @@ export interface Treasury {
   id: number;
   name: string;
   openingBalance: number;
-  currentBalance?: number;
+  currentBalance?: number; 
+  balance?: number;
 }
 
 export interface CreateTreasuryPayload {

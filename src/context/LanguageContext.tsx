@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useSettings } from "./SettingsContext";
+import arJson from "@/locales/ar.json";
+import enJson from "@/locales/en.json";
 
 type Language = "ar" | "en";
 type Direction = "rtl" | "ltr";
@@ -15,6 +17,10 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 const translations: Record<Language, Record<string, string>> = {
+<<<<<<< HEAD
+  ar: { ...arJson },
+  en: { ...enJson },
+=======
   ar: {
     confirm_delete_title: "تأكيد الحذف",
     confirm_delete_desc: "هل أنت متأكد من حذف هذا العنصر؟",
@@ -1561,27 +1567,34 @@ const translations: Record<Language, Record<string, string>> = {
     
 
   },
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 };
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const { systemSettings } = useSettings();
-  const [language, setLanguageState] = useState<Language>(() => {
-    // Initial load from settings if available, otherwise localStorage
-    const savedLang = localStorage.getItem("language");
-    if (savedLang) return savedLang as Language;
 
-    return systemSettings.site.language.toLowerCase().includes("en") ? "en" : "ar";
+  const [language, setLanguageState] = useState<Language>(() => {
+    const savedLang = localStorage.getItem("language");
+    if (savedLang === "ar" || savedLang === "en") return savedLang;
+
+    return systemSettings?.site?.language?.toLowerCase?.().includes("en")
+      ? "en"
+      : "ar";
   });
 
-  // Sync with system settings when they change
   useEffect(() => {
-    const targetLang = systemSettings.site.language.toLowerCase().includes("en") ? "en" : "ar";
+    const targetLang: Language = systemSettings?.site?.language
+      ?.toLowerCase?.()
+      .includes("en")
+      ? "en"
+      : "ar";
+
     if (language !== targetLang) {
       setLanguageState(targetLang);
     }
-  }, [systemSettings.site.language]);
+  }, [systemSettings?.site?.language]);
 
-  const direction = language === "ar" ? "rtl" : "ltr";
+  const direction: Direction = language === "ar" ? "rtl" : "ltr";
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -1595,10 +1608,20 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const t = (key: string) => {
-    return translations[language][key] || key;
+    return (
+      translations[language]?.[key] ||
+      translations.ar?.[key] ||
+      key
+    );
   };
 
-  return <LanguageContext.Provider value={{ language, direction, dir: direction, setLanguage, t }}>{children}</LanguageContext.Provider>;
+  return (
+    <LanguageContext.Provider
+      value={{ language, direction, dir: direction, setLanguage, t }}
+    >
+      {children}
+    </LanguageContext.Provider>
+  );
 }
 
 export function useLanguage() {

@@ -12,6 +12,8 @@ export interface Customer {
   taxNumber: string;
   isActive: boolean;
   createdAt: string;
+  balance?: number;
+
 }
 export interface createCustomer {
   customerName: string;

@@ -89,13 +89,22 @@ export default function SupplierPaymentsList() {
 
     try {
       await deleteTransaction(rowToDelete.id);
+<<<<<<< HEAD
+      notifySuccess("تم حذف سند الصرف بنجاح");
+=======
       notifySuccess("تم حذف السداد بنجاح");
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
       setRowToDelete(null);
     } catch (error: any) {
       notifyError(
         error?.response?.data?.message ||
+<<<<<<< HEAD
+        error?.message ||
+        "حدث خطأ أثناء حذف سند الصرف"
+=======
           error?.message ||
           "حدث خطأ أثناء حذف السداد"
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
       );
     }
   };
@@ -149,18 +158,30 @@ export default function SupplierPaymentsList() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Truck size={20} className="text-[var(--primary)]" />
+<<<<<<< HEAD
+            سند صرف          </CardTitle>
+
+          {/* <CardDescription>
+            تسجيل وعرض حركات سند الصرف الصادر للموردين
+          </CardDescription> */}
+=======
             سداد صادر
           </CardTitle>
 
           <CardDescription>
             تسجيل وعرض حركات السداد الصادر للموردين
           </CardDescription>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 
           <CardAction>
             <Button onClick={openAddModal} variant="default">
               <Plus size={18} />
+<<<<<<< HEAD
+              إضافة سند صرف            </Button>
+=======
               إضافة سداد صادر
             </Button>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
           </CardAction>
         </CardHeader>
 
@@ -377,7 +398,11 @@ export default function SupplierPaymentsList() {
 
       <DeleteTreasuryDialog
         open={!!rowToDelete}
+<<<<<<< HEAD
+        itemLabel="هذا سند الصرف"
+=======
         itemLabel="هذا السداد"
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
         loading={isDeleting}
         onClose={() => setRowToDelete(null)}
         onConfirm={handleDelete}

@@ -256,7 +256,11 @@ export default function Layout() {
             {openSubmenu === "customers" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 <SubmenuItem label={t("customers_list")} icon={List} path="/customers" />
+<<<<<<< HEAD
+                <SubmenuItem label="سند قبض نقدية" icon={HandCoins} path="/customers/collections" />
+=======
                 <SubmenuItem label="تحصيل الوارد" icon={HandCoins} path="/customers/collections" />
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
               </motion.div>
             )}
           </AnimatePresence>
@@ -267,7 +271,11 @@ export default function Layout() {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 <SubmenuItem label={t("suppliers_list")} icon={LayoutGrid} path="/suppliers" />
                 {/* <SubmenuItem label={t("add_supplier")} icon={PlusCircle} path="/suppliers" /> */}
+<<<<<<< HEAD
+                <SubmenuItem label=" سند صرف نقدية" icon={Truck} path="/suppliers/payments" />
+=======
                 <SubmenuItem label="سداد الصادر" icon={Truck} path="/suppliers/payments" />
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
               </motion.div>
             )}
           </AnimatePresence>
@@ -284,28 +292,23 @@ export default function Layout() {
             )}
           </AnimatePresence>
 
-          <SidebarItem icon={Banknote} label={t("bonds")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "bonds"} onClick={() => toggleSubmenu("bonds")} />
+          <SidebarItem icon={Banknote} label={t("revenues_and_expenses")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "revenues_and_expenses"} onClick={() => toggleSubmenu("revenues_and_expenses")} />
           <AnimatePresence>
-            {openSubmenu === "bonds" && showSidebarContent && (
+            {openSubmenu === "revenues_and_expenses" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                <NestedSubmenu label={t("receipt_bonds")} icon={Briefcase} isOpen={openNestedSubmenu === "receipt_bonds"} onToggle={() => toggleNestedSubmenu("receipt_bonds")}>
-                  <SubmenuItem label={t("view")} icon={List} path="/bonds/receipt" />
-                  <SubmenuItem label={t("add_receipt_bond")} icon={Plus} path="/bonds/receipt" state={{ openAddModal: true }} />
+                <NestedSubmenu label={t("revenues")} icon={ArrowUpRight} isOpen={openNestedSubmenu === "revenues"} onToggle={() => toggleNestedSubmenu("revenues")}>
+                  <SubmenuItem label={t("view") || "عرض"} icon={List} path="/revenues" />
+                  <SubmenuItem label={t("add_revenue")} icon={Plus} path="/revenues" state={{ openAddModal: true }} />
                 </NestedSubmenu>
 
-                <NestedSubmenu label={t("payment_bonds")} icon={FileMinus} isOpen={openNestedSubmenu === "payment_bonds"} onToggle={() => toggleNestedSubmenu("payment_bonds")}>
-                  <SubmenuItem label={t("view")} icon={List} path="/bonds/payment" />
-                  <SubmenuItem label={t("add_payment_bond")} icon={Plus} path="/bonds/payment" state={{ openAddModal: true }} />
+                <NestedSubmenu label={t("expenses")} icon={DollarSign} isOpen={openNestedSubmenu === "expenses"} onToggle={() => toggleNestedSubmenu("expenses")}>
+                  <SubmenuItem label={t("view") || "عرض"} icon={List} path="/expenses" />
+                  <SubmenuItem label={t("add_expense")} icon={Plus} path="/expenses" state={{ openAddModal: true }} />
                 </NestedSubmenu>
 
-                <NestedSubmenu label={t("deposit_bonds")} icon={Building} isOpen={openNestedSubmenu === "deposit_bonds"} onToggle={() => toggleNestedSubmenu("deposit_bonds")}>
-                  <SubmenuItem label={t("view")} icon={List} path="/bonds/deposit" />
-                  <SubmenuItem label={t("add_deposit_bond")} icon={Plus} path="/bonds/deposit" state={{ openAddModal: true }} />
-                </NestedSubmenu>
-
-                <NestedSubmenu label={t("withdrawal_bonds")} icon={Building} isOpen={openNestedSubmenu === "withdrawal_bonds"} onToggle={() => toggleNestedSubmenu("withdrawal_bonds")}>
-                  <SubmenuItem label={t("view")} icon={List} path="/bonds/withdrawal" />
-                  <SubmenuItem label={t("add_withdrawal_bond")} icon={Plus} path="/bonds/withdrawal" state={{ openAddModal: true }} />
+                <NestedSubmenu label={t("items")} icon={List} isOpen={openNestedSubmenu === "items"} onToggle={() => toggleNestedSubmenu("items")}>
+                  <SubmenuItem label={t("view") || "عرض"} icon={List} path="/items" />
+                  <SubmenuItem label={t("add_item")} icon={Plus} path="/items" state={{ openAddModal: true }} />
                 </NestedSubmenu>
               </motion.div>
             )}

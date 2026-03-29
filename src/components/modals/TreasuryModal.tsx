@@ -29,7 +29,11 @@ export default function TreasuryModal({
   onClose,
   treasuryId,
 }: Props) {
+<<<<<<< HEAD
+  const { direction, t } = useLanguage();
+=======
   const { direction } = useLanguage();
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
   const { notifySuccess, notifyError } = useToast();
 
   const isEdit = !!treasuryId;
@@ -65,7 +69,11 @@ export default function TreasuryModal({
     e.preventDefault();
 
     if (!name.trim()) {
+<<<<<<< HEAD
+      notifyError(t('treasury_name_required') || "اسم الخزينة مطلوب");
+=======
       notifyError("اسم الخزينة مطلوب");
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
       return;
     }
 
@@ -100,7 +108,11 @@ export default function TreasuryModal({
         <DialogHeader className="px-6 py-4 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-xl">
             <Wallet size={20} />
+<<<<<<< HEAD
+            {isEdit ? t('treasury_modal_title_edit') || "تعديل خزينة" : t('treasury_modal_title_add') || "إضافة خزينة"}
+=======
             {isEdit ? "تعديل خزينة" : "إضافة خزينة"}
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
           </DialogTitle>
           <p className="text-sm text-gray-500">
             {isEdit
@@ -122,7 +134,11 @@ export default function TreasuryModal({
             <div className="grid grid-cols-1 gap-5">
               <Field>
                 <FieldLabel>
+<<<<<<< HEAD
+                  {t('treasury_name_label') || 'اسم الخزينة'} <span className="text-red-500">*</span>
+=======
                   اسم الخزينة <span className="text-red-500">*</span>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                 </FieldLabel>
                 <Input
                   value={name}
@@ -132,7 +148,11 @@ export default function TreasuryModal({
               </Field>
 
               <Field>
+<<<<<<< HEAD
+                <FieldLabel>{t('treasury_opening_balance') || 'الرصيد الافتتاحي'}</FieldLabel>
+=======
                 <FieldLabel>الرصيد الافتتاحي</FieldLabel>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                 <Input
                   type="number"
                   value={openingBalance}
@@ -147,7 +167,11 @@ export default function TreasuryModal({
         <DialogFooter className="px-8 py-8 border-t border-gray-100">
           <div className="flex items-center justify-end gap-3 w-full">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+<<<<<<< HEAD
+              {t('cancel') || 'إلغاء'}
+=======
               إلغاء
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
             </Button>
 
             <Button
@@ -160,8 +184,13 @@ export default function TreasuryModal({
               {isSubmitting
                 ? "جارٍ الحفظ..."
                 : isEdit
+<<<<<<< HEAD
+                  ? "حفظ التعديلات"
+                  : "إضافة خزينة"}
+=======
                 ? "حفظ التعديلات"
                 : "إضافة خزينة"}
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
             </Button>
           </div>
         </DialogFooter>

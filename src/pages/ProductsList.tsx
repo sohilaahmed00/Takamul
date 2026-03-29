@@ -145,16 +145,52 @@ export default function ProductsList() {
   return (
     <>
       <Card>
+<<<<<<< HEAD
+        <CardHeader>
+          <CardTitle>إدارة الاصناف</CardTitle>
+          <CardDescription>إدارة الأصناف المباشرة والمتفرعة والمجهزة والخامات</CardDescription>
+          <CardAction>
+            {" "}
+            <Button variant={"default"} asChild>
+              <Link to={"/products/create"}>إضافة صنف </Link>
+=======
         <CardHeader className="max-md:flex max-md:flex-col">
           <CardTitle>إدارة الاصناف</CardTitle>
           <CardDescription>إدارة الأصناف المباشرة والمتفرعة والمجهزة والخامات</CardDescription>
           <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
             <Button variant={"default"} asChild>
               <Link to={"/products/create"}>إضافة صنف</Link>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
             </Button>
           </CardAction>
         </CardHeader>
         <CardContent>
+<<<<<<< HEAD
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="border border-gray-200 rounded-t-md">
+            <TabsList variant={"line"} className="flex   overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit!  pb-1 [&::-webkit-scrollbar]:hidden">
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
+                جميع الأصناف
+              </TabsTrigger>
+
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="direct">
+                الأصناف المباشرة
+              </TabsTrigger>
+
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="branched">
+                الأصناف المتفرعة
+              </TabsTrigger>
+
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="prepared">
+                الأصناف المجهزة
+              </TabsTrigger>
+
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="rawMaterials">
+                الخامات
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+=======
           <Tabs value={activeTab} onValueChange={handleTabChange} className="border border-gray-200 rounded-t-md overflow-hidden">
             <TabsList variant={"line"} className="flex overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit! pb-1 max-lg:w-full [&::-webkit-scrollbar]:hidden">
               <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
@@ -175,6 +211,7 @@ export default function ProductsList() {
             </TabsList>
           </Tabs>
 
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
           <DataTable
             value={currentTableData.items}
             totalRecords={currentTableData.total}

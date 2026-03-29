@@ -1,5 +1,9 @@
 import { useMemo, useState } from "react";
+<<<<<<< HEAD
+import { useNavigate } from "react-router-dom";
+=======
 import { Link, useNavigate } from "react-router-dom";
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 import { Search, FileText, LayoutGrid, ChevronRight, ChevronLeft, Filter, ArrowUpDown, CheckSquare, Square, Plus, Edit2, Trash2, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PurchaseStatus, PaymentStatus } from "@/types";
@@ -13,17 +17,28 @@ import { Column } from "primereact/column";
 import { useGetAllPurchases } from "@/features/purchases/hooks/useGetAllSales";
 import type { Purchase } from "@/features/purchases/types/purchase.types";
 import { useLanguage } from "@/context/LanguageContext";
+<<<<<<< HEAD
+=======
 import formatDate from "@/lib/formatDate";
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
 
 export default function PurchasesList() {
   const navigate = useNavigate();
   const { t } = useLanguage();
   // const { purchases, addPurchase, updatePurchase, deletePurchase } = usePurchases();
+<<<<<<< HEAD
+  const [searchTerm, setSearchTerm] = useState("");
+=======
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
 
+<<<<<<< HEAD
+  const { data: purchases } = useGetAllPurchases({ page: currentPage, limit: entriesPerPage, searchTerm: globalFilterValue          });
+=======
   const { data: purchases } = useGetAllPurchases({ page: currentPage, limit: entriesPerPage, searchTerm: globalFilterValue });
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setGlobalFilterValue(value);
@@ -257,6 +272,14 @@ export default function PurchasesList() {
     //     </div>
     //   </div>
     // </div>
+<<<<<<< HEAD
+    <Card>
+      <CardHeader>
+        <CardTitle>إدارة المشتريات </CardTitle>
+        <CardDescription>إدارة المشتريات </CardDescription>
+        <CardAction>
+          <Button variant={"default"}>إضافة فاتورة مشتريات </Button>
+=======
 
     <Card>
       <CardHeader>
@@ -266,6 +289,7 @@ export default function PurchasesList() {
           <Button variant={"default"} asChild>
             <Link to={"/purchases/create"}>إضافة فاتورة مشتريات</Link>
           </Button>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -288,7 +312,20 @@ export default function PurchasesList() {
           className="custom-green-table custom-compact-table"
           dataKey="id"
         >
+<<<<<<< HEAD
+          <Column
+            header={"التاريخ"}
+            sortable
+            body={(purchase: Purchase) => (
+              <div className="cell-data-stack">
+                {" "}
+                <span className="customer-name-main">{purchase.orderDate}</span>
+              </div>
+            )}
+          />
+=======
           <Column header={"التاريخ"} sortable body={(purchase: Purchase) => formatDate(purchase.orderDate)} />
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
           <Column header={"رقم الفاتورة"} field="purchaseOrderNumber" sortable />
           <Column header={"اسم المورد"} field="supplierName" sortable />
           <Column header={"حالة عملية الشراء"} field="orderStatus" sortable />
@@ -296,9 +333,15 @@ export default function PurchasesList() {
             header={t("actions")}
             body={(purchase) => (
               <div className="space-x-2">
+<<<<<<< HEAD
+                <button onClick={async () => {}} className="btn-minimal-action btn-edit">
+                  <Edit2 size={16} />
+                </button>
+=======
                 <Link to={`/purchases/edit/${purchase?.id}`} onClick={async () => {}} className="btn-minimal-action btn-edit">
                   <Edit2 size={16} />
                 </Link>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
                 <button onClick={async () => {}} className="btn-minimal-action btn-delete">
                   <Trash2 size={16} />
                 </button>

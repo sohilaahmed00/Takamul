@@ -301,6 +301,7 @@ export default function AddProduct() {
         } else {
           await createProductDirect(formData);
         }
+        navigate("/products");
       }
       navigate("/products");
     } catch (error) {}

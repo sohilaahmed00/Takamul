@@ -131,7 +131,11 @@ export default function AddSupplierPaymentModal({
           description: description.trim() || "",
         });
 
+<<<<<<< HEAD
+        notifySuccess("تم تعديل سند الصرف بنجاح");
+=======
         notifySuccess("تم تعديل السداد بنجاح");
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
       } else {
         await createTransaction({
           supplierId,
@@ -142,7 +146,11 @@ export default function AddSupplierPaymentModal({
           description: description.trim() || "",
         });
 
+<<<<<<< HEAD
+        notifySuccess("تم إضافة سند الصرف بنجاح");
+=======
         notifySuccess("تم إضافة السداد بنجاح");
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
       }
 
       handleClose();
@@ -174,6 +182,19 @@ export default function AddSupplierPaymentModal({
         <DialogHeader className="px-5 py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold flex-wrap">
             {isEditMode ? <Pencil size={18} /> : <Truck size={18} />}
+<<<<<<< HEAD
+            {isEditMode ? "تعديل سند صرف" : "إضافة سند صرف"}
+            {/* <span className="text-xs bg-[#2ecc71]/10 text-[#2ecc71] px-2 py-1 rounded-lg">
+              سند صرف
+            </span> */}
+          </DialogTitle>
+
+          {/* <DialogDescription className="text-sm text-gray-500">
+            {isEditMode
+              ? "تعديل بيانات سند الصرف "
+              : "تسجيل سند صرف للموردين"}
+          </DialogDescription> */}
+=======
             {isEditMode ? "تعديل سداد صادر" : "إضافة سداد صادر"}
             <span className="text-xs bg-[#2ecc71]/10 text-[#2ecc71] px-2 py-1 rounded-lg">
               سداد صادر
@@ -185,6 +206,7 @@ export default function AddSupplierPaymentModal({
               ? "تعديل بيانات السداد الصادر"
               : "تسجيل سداد صادر للموردين"}
           </DialogDescription>
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
         </DialogHeader>
 
         <form
@@ -292,7 +314,11 @@ export default function AddSupplierPaymentModal({
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
+<<<<<<< HEAD
+              placeholder="اكتب ملاحظات أو بيان سند الصرف"
+=======
               placeholder="اكتب ملاحظات أو بيان السداد"
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
               className="h-9"
             />
           </Field>
@@ -322,7 +348,11 @@ export default function AddSupplierPaymentModal({
                   : "جارٍ الحفظ..."
                 : isEditMode
                 ? "حفظ التعديلات"
+<<<<<<< HEAD
+                : "حفظ سند الصرف"}
+=======
                 : "حفظ السداد"}
+>>>>>>> b0e5c146f6498030c86350b385228534c7b32683
             </Button>
           </div>
         </DialogFooter>
