@@ -10,108 +10,84 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Plus, Search, Edit2, Trash2, DollarSign } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, ListChecks } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 
-import { useGetAllExpenses } from "@/features/expenses/hooks/useGetAllExpenses";
-import { useCreateExpense } from "@/features/expenses/hooks/useCreateExpense";
-import { useUpdateExpense } from "@/features/expenses/hooks/useUpdateExpense";
-import { useDeleteExpense } from "@/features/expenses/hooks/useDeleteExpense";
-import AddExpenseModal from "@/components/modals/AddExpenseModal";
+import { useGetItems } from "@/features/items/hooks/useGetItems";
+import useDeleteItem from "@/features/items/hooks/useDeleteItem";
+import ItemModal from "@/components/modals/ItemModal";
 import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
-import type { Expense } from "@/features/expenses/types/Expenses.types";
+import type { Item } from "@/features/items/types/items.types";
 
-export default function Expenses() {
+export default function ItemsList() {
   const { direction } = useLanguage();
-  const { notifyError } = useToast();
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
-  const [selectedRow, setSelectedRow] = useState<Expense | null>(null);
-  const [rowToDelete, setRowToDelete] = useState<Expense | null>(null);
+  const { notifySuccess, notifyError } = useToast();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: expensesData, isLoading } = useGetAllExpenses({
-    page: currentPage,
-    pageSize: entriesPerPage,
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
+
+  const { data, isLoading } = useGetItems({
+    page: 1,
+    pageSize: 100,
     searchTerm,
   });
 
-  const { mutateAsync: createExpense } = useCreateExpense();
-  const { mutateAsync: updateExpense } = useUpdateExpense();
-  const { mutateAsync: deleteExpense, isPending: isDeleting } =
-    useDeleteExpense();
+  const { mutateAsync: deleteItem, isPending: isDeleting } = useDeleteItem();
 
-  const rows = useMemo(() => expensesData?.items ?? [], [expensesData]);
-  const totalItems = expensesData?.totalCount ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalItems / entriesPerPage));
+  const rows = useMemo(() => data?.items ?? [], [data]);
 
-  const formatDate = (value?: string) => {
-    if (!value) return "-";
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
-    return date.toLocaleDateString("en-GB");
-  };
+  const paginatedMobileRows = useMemo(
+    () =>
+      rows.slice(
+        (currentPage - 1) * entriesPerPage,
+        currentPage * entriesPerPage
+      ),
+    [rows, currentPage, entriesPerPage]
+  );
 
-  const formatNumber = (value?: number) =>
-    Number(value ?? 0).toLocaleString("en-US");
+  const totalPages = Math.max(1, Math.ceil(rows.length / entriesPerPage));
 
   const openAddModal = () => {
-    setSelectedRow(null);
-    setModalMode("add");
+    setSelectedItem(null);
     setIsModalOpen(true);
   };
 
-  const openEditModal = (row: Expense) => {
-    setSelectedRow(row);
-    setModalMode("edit");
+  const openEditModal = (item: Item) => {
+    setSelectedItem(item);
     setIsModalOpen(true);
   };
 
   const handleDelete = async () => {
-    if (!rowToDelete) return;
+    if (!itemToDelete) return;
 
     try {
-      await deleteExpense(rowToDelete.id);
-      setRowToDelete(null);
-    } catch (error: any) {
-      notifyError(error?.message || "حدث خطأ أثناء حذف المصروف");
+      await deleteItem(itemToDelete.id);
+      notifySuccess("تم حذف البند بنجاح");
+      setItemToDelete(null);
+    } catch {
+      notifyError("حدث خطأ أثناء حذف البند");
     }
   };
 
-  const handleSubmitData = async (payload: {
-    id?: number;
-    name: string;
-    amount: number;
-    date: string;
-    notes: string;
-    treasuryId?: number | null;
-    itemId?: number | null;
-  }) => {
-    const body = {
-      name: payload.name,
-      amount: payload.amount,
-      date: payload.date,
-      notes: payload.notes,
-      treasuryId: payload.treasuryId ?? 0,
-      itemId: payload.itemId ?? 0,
-    };
+  const statusBodyTemplate = (row: Item) => (
+    <span
+      className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
+        row.isActive
+          ? "bg-green-100 text-green-700"
+          : "bg-red-100 text-red-700"
+      }`}
+    >
+      {row.isActive ? "نشط" : "غير نشط"}
+    </span>
+  );
 
-    if (modalMode === "edit" && payload.id) {
-      await updateExpense({
-        id: payload.id,
-        ...body,
-      });
-    } else {
-      await createExpense(body);
-    }
-  };
-
-  const actionBodyTemplate = (row: Expense) => (
+  const actionBodyTemplate = (row: Item) => (
     <div className="flex items-center gap-2 justify-center">
       <button
         onClick={() => openEditModal(row)}
@@ -122,7 +98,7 @@ export default function Expenses() {
       </button>
 
       <button
-        onClick={() => setRowToDelete(row)}
+        onClick={() => setItemToDelete(row)}
         className="btn-minimal-action btn-compact-action text-red-600"
         type="button"
       >
@@ -144,7 +120,7 @@ export default function Expenses() {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          placeholder="ابحث باسم المصروف أو الخزينة أو البند أو البيان أو المبلغ..."
+          placeholder="ابحث باسم البند..."
           className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none"
         />
       </div>
@@ -156,16 +132,18 @@ export default function Expenses() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <DollarSign size={20} className="text-[var(--primary)]" />
-            المصروفات
+            <ListChecks size={20} className="text-[var(--primary)]" />
+            البنود
           </CardTitle>
 
-          <CardDescription>تسجيل وعرض حركات المصروفات</CardDescription>
+          <CardDescription>
+            إدارة البنود المستخدمة في الإيرادات والمصروفات
+          </CardDescription>
 
           <CardAction>
             <Button onClick={openAddModal} variant="default">
               <Plus size={18} />
-              إضافة مصروف
+              إضافة بند
             </Button>
           </CardAction>
         </CardHeader>
@@ -179,7 +157,6 @@ export default function Expenses() {
               rows={entriesPerPage}
               rowsPerPageOptions={[5, 10, 20, 50]}
               first={(currentPage - 1) * entriesPerPage}
-              totalRecords={totalItems}
               onPage={(e: DataTablePageEvent) => {
                 if (e.page === undefined) return;
                 setCurrentPage(e.page + 1);
@@ -192,51 +169,21 @@ export default function Expenses() {
               responsiveLayout="stack"
             >
               <Column
-                field="date"
-                header="تاريخ العملية"
-                sortable
-                body={(row) => formatDate(row.date)}
-                style={{ width: "14%" }}
-                bodyStyle={{ whiteSpace: "nowrap" }}
-              />
-              <Column
                 field="name"
-                header="اسم الحركة"
+                header="اسم البند"
                 sortable
-                style={{ width: "20%" }}
+                style={{ width: "45%" }}
                 bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
               />
               <Column
-                field="treasuryName"
-                header="الخزينة"
-                sortable
-                body={(row) => row.treasuryName || "-"}
-                style={{ width: "16%" }}
-              />
-              <Column
-                field="itemName"
-                header="البند"
-                body={(row) => row.itemName || row.name || "-"}
-                style={{ width: "16%" }}
-              />
-              <Column
-                field="amount"
-                header="المبلغ"
-                sortable
-                body={(row) => formatNumber(row.amount)}
-                style={{ width: "12%" }}
-                bodyStyle={{ whiteSpace: "nowrap" }}
-              />
-              <Column
-                field="notes"
-                header="البيان"
-                body={(row) => row.notes || "-"}
-                style={{ width: "12%" }}
+                header="الحالة"
+                body={statusBodyTemplate}
+                style={{ width: "25%" }}
               />
               <Column
                 header="الإجراءات"
                 body={actionBodyTemplate}
-                style={{ width: "10%" }}
+                style={{ width: "20%" }}
                 bodyStyle={{ whiteSpace: "nowrap", textAlign: "center" }}
               />
             </DataTable>
@@ -254,7 +201,7 @@ export default function Expenses() {
                 لا توجد بيانات
               </div>
             ) : (
-              rows.map((row) => (
+              paginatedMobileRows.map((row) => (
                 <div
                   key={row.id}
                   className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
@@ -264,42 +211,17 @@ export default function Expenses() {
                       <p className="text-sm font-bold text-[var(--text-main)] break-words">
                         {row.name || "-"}
                       </p>
-                      <p className="text-xs text-[var(--text-muted)] mt-1">
-                        {formatDate(row.date)}
-                      </p>
                     </div>
 
-                    <div className="shrink-0 rounded-full px-3 py-1 text-xs font-medium bg-red-50 text-red-600">
-                      {formatNumber(row.amount)}
-                    </div>
+                    <div>{statusBodyTemplate(row)}</div>
                   </div>
 
                   <div className="p-4 space-y-3">
                     <div className="rounded-xl bg-[#f8fafc] p-3">
                       <p className="text-xs text-[var(--text-muted)] mb-1">
-                        الخزينة
+                        الحالة
                       </p>
-                      <p className="text-sm font-semibold text-[var(--text-main)]">
-                        {row.treasuryName || "-"}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-[#f8fafc] p-3">
-                      <p className="text-xs text-[var(--text-muted)] mb-1">
-                        البند
-                      </p>
-                      <p className="text-sm font-semibold text-[var(--text-main)]">
-                        {row.itemName || row.name || "-"}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-[#f8fafc] p-3">
-                      <p className="text-xs text-[var(--text-muted)] mb-1">
-                        البيان
-                      </p>
-                      <p className="text-sm font-semibold text-[var(--text-main)] break-words">
-                        {row.notes || "-"}
-                      </p>
+                      <div className="pt-1">{statusBodyTemplate(row)}</div>
                     </div>
 
                     <div className="flex items-center gap-2 pt-1">
@@ -312,7 +234,7 @@ export default function Expenses() {
                       </button>
 
                       <button
-                        onClick={() => setRowToDelete(row)}
+                        onClick={() => setItemToDelete(row)}
                         className="btn-minimal-action btn-compact-action text-red-600"
                         type="button"
                       >
@@ -357,22 +279,17 @@ export default function Expenses() {
         </CardContent>
       </Card>
 
-      <AddExpenseModal
+      <ItemModal
         isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setSelectedRow(null);
-        }}
-        mode={modalMode}
-        editData={selectedRow}
-        onSubmitData={handleSubmitData}
+        onClose={() => setIsModalOpen(false)}
+        item={selectedItem}
       />
 
       <DeleteTreasuryDialog
-        open={!!rowToDelete}
-        itemLabel="هذا المصروف"
+        open={!!itemToDelete}
+        itemLabel="هذا البند"
         loading={isDeleting}
-        onClose={() => setRowToDelete(null)}
+        onClose={() => setItemToDelete(null)}
         onConfirm={handleDelete}
       />
     </div>

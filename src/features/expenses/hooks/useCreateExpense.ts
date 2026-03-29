@@ -4,7 +4,6 @@ import { expensesKeys } from "../keys/expenses.keys";
 
 export const useCreateExpense = () => {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: createExpense,
     onSuccess: () => {

@@ -1,5 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Loader2, Pencil, Wallet, HandCoins } from "lucide-react";
+import {
+  Loader2,
+  Pencil,
+  Wallet,
+  HandCoins,
+  Search,
+  ChevronDown,
+  X,
+} from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
@@ -8,29 +16,31 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
-
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
+import { useGetItems } from "@/features/items/hooks/useGetItems";
 import type { Revenue } from "@/features/revenues/types/revenues.types";
+
+type SubmitPayload = {
+  id?: number;
+  name: string;
+  amount: number;
+  date: string;
+  notes: string;
+  treasuryId?: number | null;
+  itemId?: number | null;
+};
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   mode?: "add" | "edit";
   editData?: Revenue | null;
-  onSubmitData: (payload: {
-    id?: number;
-    name: string;
-    amount: number;
-    date: string;
-    notes: string;
-    treasuryId?: number | null;
-    itemId?: number | null;
-  }) => Promise<void>;
+  onSubmitData: (payload: SubmitPayload) => Promise<void>;
 };
 
 export default function AddRevenueModal({
@@ -43,15 +53,35 @@ export default function AddRevenueModal({
   const { direction } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
   const { data: treasurys } = useGetAllTreasurys();
-
   const isEditMode = mode === "edit";
+  const [isPending, setIsPending] = useState(false);
 
   const [date, setDate] = useState("");
   const [treasuryId, setTreasuryId] = useState<number | undefined>();
-  const [itemName, setItemName] = useState("");
-  const [itemId, setItemId] = useState<number | undefined>();
+  const [itemId, setItemId] = useState<number | null>(null);
+  const [itemSearch, setItemSearch] = useState("");
+  const [isItemDropdownOpen, setIsItemDropdownOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
+
+  const treasuryRows = useMemo(() => {
+    if (Array.isArray(treasurys)) return treasurys;
+    return (treasurys as any)?.items ?? [];
+  }, [treasurys]);
+
+  const { data: itemsData } = useGetItems({ pageSize: 100 });
+  const allItems = useMemo(() => itemsData?.items ?? [], [itemsData]);
+
+  const filteredItems = useMemo(() => {
+    const term = itemSearch.trim().toLowerCase();
+    if (!term) return allItems;
+    return allItems.filter((i) => i.name.toLowerCase().includes(term));
+  }, [allItems, itemSearch]);
+
+  const selectedItem = useMemo(
+    () => allItems.find((i) => i.id === itemId) ?? null,
+    [allItems, itemId]
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -63,8 +93,8 @@ export default function AddRevenueModal({
           : new Date().toISOString().slice(0, 10)
       );
       setTreasuryId(editData.treasuryId ?? undefined);
-      setItemId(editData.itemId ?? undefined);
-      setItemName(editData.itemName || editData.name || "");
+      setItemId(editData.itemId ?? null);
+      setItemSearch(editData.itemName || "");
       setAmount(String(editData.amount ?? ""));
       setNotes(editData.notes ?? "");
       return;
@@ -72,23 +102,35 @@ export default function AddRevenueModal({
 
     setDate(new Date().toISOString().slice(0, 10));
     setTreasuryId(undefined);
-    setItemId(undefined);
-    setItemName("");
+    setItemId(null);
+    setItemSearch("");
     setAmount("");
     setNotes("");
+    setIsItemDropdownOpen(false);
   }, [isOpen, isEditMode, editData]);
 
   const selectedTreasury = useMemo(
-    () => treasurys?.find((t: any) => t.id === treasuryId),
-    [treasurys, treasuryId]
+    () => treasuryRows.find((t: any) => t.id === treasuryId),
+    [treasuryRows, treasuryId]
   );
 
-  const currentBalance = Number(selectedTreasury?.balance ?? 0);
-  const amountNumber = Number(amount || 0);
+  const currentBalance = Number(
+    selectedTreasury?.balance ?? selectedTreasury?.currentBalance ?? 0
+  );
+  const amountNumber = parseFloat(amount) || 0;
   const balanceAfter = currentBalance + amountNumber;
+  const fmt = (v?: number) => Number(v ?? 0).toLocaleString("en-US");
 
-  const formatNumber = (value?: number) =>
-    Number(value ?? 0).toLocaleString("en-US");
+  const handleSelectItem = (id: number, name: string) => {
+    setItemId(id);
+    setItemSearch(name);
+    setIsItemDropdownOpen(false);
+  };
+
+  const handleClearItem = () => {
+    setItemId(null);
+    setItemSearch("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,21 +145,23 @@ export default function AddRevenueModal({
       return;
     }
 
-    if (!itemName.trim()) {
-      notifyError("أدخل اسم البند");
+    if (!itemId) {
+      notifyError("اختر البند");
       return;
     }
 
     const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
       notifyError("أدخل مبلغ صحيح أكبر من صفر");
       return;
     }
 
     try {
+      setIsPending(true);
+
       await onSubmitData({
         id: editData?.id,
-        name: itemName.trim(),
+        name: selectedItem?.name ?? "",
         amount: parsedAmount,
         date: new Date(date).toISOString(),
         notes: notes.trim() || "",
@@ -130,11 +174,9 @@ export default function AddRevenueModal({
       );
       onClose();
     } catch (error: any) {
-      notifyError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "حدث خطأ أثناء الحفظ"
-      );
+      notifyError(error?.message || "حدث خطأ أثناء الحفظ");
+    } finally {
+      setIsPending(false);
     }
   };
 
@@ -152,79 +194,29 @@ export default function AddRevenueModal({
         dir={direction}
         onOpenAutoFocus={(e) => e.preventDefault()}
         onCloseAutoFocus={(e) => e.preventDefault()}
-        className="w-full sm:max-w-[720px] p-0 overflow-hidden rounded-2xl"
+        className="w-[92vw] max-w-[860px] p-0 rounded-2xl overflow-hidden max-h-[90vh]"
       >
-        <DialogHeader className="px-5 py-2 border-b border-gray-100">
-          <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold flex-wrap">
-            {isEditMode ? <Pencil size={18} /> : <HandCoins size={18} />}
+        <DialogHeader className="px-5 py-3 border-b border-gray-100">
+          <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-base font-semibold flex-wrap">
+            {isEditMode ? <Pencil size={17} /> : <HandCoins size={17} />}
             {isEditMode ? "تعديل إيراد" : "إضافة إيراد"}
-            <span className="text-xs bg-[#2ecc71]/10 text-[#2ecc71] px-2 py-1 rounded-lg">
+            {/* <span className="text-[11px] bg-[#2ecc71]/10 text-[#2ecc71] px-2 py-1 rounded-lg">
               إيراد
-            </span>
+            </span> */}
           </DialogTitle>
-
-          <DialogDescription className="text-sm text-gray-500">
+          {/* <DialogDescription className="text-xs text-gray-500">
             {isEditMode ? "تعديل بيانات الإيراد" : "تسجيل إيراد جديد"}
-          </DialogDescription>
+          </DialogDescription> */}
         </DialogHeader>
 
-        <form
-          id="revenueForm"
-          onSubmit={handleSubmit}
-          className="px-5 space-y-3"
-        >
+        <form id="revenueForm" onSubmit={handleSubmit} className="px-5 space-y-2">
           <Field>
             <FieldLabel>التاريخ</FieldLabel>
             <Input
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="h-9"
-            />
-          </Field>
-
-          <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
-            <div className="flex items-center gap-2">
-              <Wallet size={16} className="text-[#2ecc71]" />
-              <h3 className="text-sm font-semibold text-gray-800">الخزينة</h3>
-            </div>
-
-            <Field>
-              <select
-                value={treasuryId ?? ""}
-                onChange={(e) =>
-                  setTreasuryId(
-                    e.target.value ? Number(e.target.value) : undefined
-                  )
-                }
-                className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]"
-              >
-                <option value="">اختر الخزينة</option>
-                {(treasurys ?? []).map((t: any) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field>
-              <FieldLabel>الرصيد الحالي</FieldLabel>
-              <Input
-                readOnly
-                value={formatNumber(currentBalance)}
-                className="h-9 bg-gray-50 text-center"
-              />
-            </Field>
-          </div>
-
-          <Field>
-            <FieldLabel>البند</FieldLabel>
-            <Input
-              value={itemName}
-              onChange={(e) => setItemName(e.target.value)}
-              placeholder="اكتب اسم البند"
-              className="h-9"
+              className="h-10"
             />
           </Field>
 
@@ -235,16 +227,133 @@ export default function AddRevenueModal({
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="0"
-              className="h-9"
+              className="h-10"
             />
+          </Field>
+
+          <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
+            <div className="flex items-center gap-2">
+              <Wallet size={15} className="text-[#2ecc71]" />
+              <h3 className="text-sm font-semibold text-gray-800">الخزينة</h3>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field>
+                <FieldLabel>الخزينة</FieldLabel>
+                <select
+                  value={treasuryId ?? ""}
+                  onChange={(e) =>
+                    setTreasuryId(e.target.value ? Number(e.target.value) : undefined)
+                  }
+                  className="w-full h-10 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71] text-sm"
+                >
+                  <option value="">اختر الخزينة</option>
+                  {treasuryRows.map((t: any) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field>
+                <FieldLabel>الرصيد الحالي</FieldLabel>
+                <Input
+                  readOnly
+                  value={fmt(currentBalance)}
+                  className="h-10 bg-gray-50 text-center text-sm font-semibold text-[var(--primary)]"
+                />
+              </Field>
+            </div>
+          </div>
+
+          <Field>
+            <FieldLabel>البند</FieldLabel>
+            <div className="relative">
+              <div
+                className={`w-full h-10 rounded-xl border px-3 bg-white flex items-center justify-between cursor-pointer text-sm transition-colors ${isItemDropdownOpen ? "border-[#2ecc71]" : "border-gray-200"
+                  }`}
+                onClick={() => setIsItemDropdownOpen((v) => !v)}
+              >
+                <span className={selectedItem ? "text-gray-800" : "text-gray-400"}>
+                  {selectedItem ? selectedItem.name : "اختر البند"}
+                </span>
+
+                <div className="flex items-center gap-1">
+                  {selectedItem && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleClearItem();
+                      }}
+                      className="p-0.5 rounded hover:bg-gray-100"
+                    >
+                      <X size={13} className="text-gray-400" />
+                    </button>
+                  )}
+                  <ChevronDown
+                    size={15}
+                    className={`text-gray-400 transition-transform ${isItemDropdownOpen ? "rotate-180" : ""
+                      }`}
+                  />
+                </div>
+              </div>
+
+              {isItemDropdownOpen && (
+                <div className="absolute z-50 top-full mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+                  <div className="p-2 border-b border-gray-100">
+                    <div className="relative">
+                      <Search
+                        size={14}
+                        className="absolute top-1/2 -translate-y-1/2 right-2.5 text-gray-400"
+                      />
+                      <input
+                        type="text"
+                        value={itemSearch}
+                        onChange={(e) => setItemSearch(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        placeholder="ابحث عن بند..."
+                        autoFocus
+                        className="w-full h-8 rounded-lg border border-gray-200 pr-8 pl-3 text-sm outline-none focus:border-[#2ecc71]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="max-h-48 overflow-y-auto">
+                    {filteredItems.length === 0 ? (
+                      <div className="px-3 py-4 text-center text-sm text-gray-400">
+                        لا توجد بنود
+                      </div>
+                    ) : (
+                      filteredItems.map((item) => (
+                        <div
+                          key={item.id}
+                          onClick={() => handleSelectItem(item.id, item.name)}
+                          className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-[#2ecc71]/5 transition-colors flex items-center justify-between ${itemId === item.id
+                            ? "bg-[#2ecc71]/10 text-[#2ecc71] font-medium"
+                            : "text-gray-700"
+                            }`}
+                        >
+                          {item.name}
+                          {itemId === item.id && (
+                            <span className="text-[#2ecc71] text-xs">✓</span>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           </Field>
 
           <Field>
             <FieldLabel>الرصيد بعد</FieldLabel>
             <Input
               readOnly
-              value={formatNumber(balanceAfter)}
-              className="h-9 bg-gray-50 text-center text-[#2ecc71] font-semibold"
+              value={fmt(balanceAfter)}
+              className="h-10 bg-gray-50 text-center font-semibold text-[#2ecc71]"
             />
           </Field>
 
@@ -254,29 +363,33 @@ export default function AddRevenueModal({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="اكتب ملاحظات أو بيان الإيراد"
-              className="h-9"
+              className="h-10"
             />
           </Field>
         </form>
 
-        <DialogFooter className="px-5 py-7 border-t border-gray-100">
-          <div className="flex justify-end gap-3 w-full px-2">
+        <DialogFooter className="px-6 py-4 border-t border-gray-100 bg-white">
+          <div className="flex items-center justify-end gap-3 w-full">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="h-10 px-6"
+              className="h-8 px-6 "
             >
               إلغاء
             </Button>
-
             <Button
               form="revenueForm"
               type="submit"
-              className="min-w-[150px] h-10 px-6"
+              disabled={isPending}
+              className="min-w-[140px] h-8 px-6"
             >
-              <Loader2 size={16} className="hidden animate-spin" />
-              {isEditMode ? "حفظ التعديلات" : "حفظ الإيراد"}
+              {isPending && <Loader2 size={15} className="animate-spin mr-1" />}
+              {isPending
+                ? "جارٍ الحفظ..."
+                : isEditMode
+                  ? "حفظ التعديلات"
+                  : "حفظ الإيراد"}
             </Button>
           </div>
         </DialogFooter>

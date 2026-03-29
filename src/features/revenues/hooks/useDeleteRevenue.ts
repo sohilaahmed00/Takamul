@@ -2,9 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteRevenue } from "../services/revenues";
 import { revenuesKeys } from "../keys/revenues.keys";
 
-export const useDeleteRevenue = () => {
+export default function useDeleteRevenue() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: deleteRevenue,
     onSuccess: () => {
@@ -12,4 +11,4 @@ export const useDeleteRevenue = () => {
       queryClient.invalidateQueries({ queryKey: ["treasurys"] });
     },
   });
-};
+}

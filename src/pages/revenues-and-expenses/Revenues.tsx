@@ -13,10 +13,11 @@ import {
 import { Plus, Search, Edit2, Trash2, HandCoins } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
-import { useGetAllRevenues } from "@/features/revenues/hooks/useGetAllRevenues";
-import { useCreateRevenue } from "@/features/revenues/hooks/useCreateRevenue";
+
+import useGetAllRevenues from "@/features/revenues/hooks/useGetAllRevenues";
+import useCreateRevenue from "@/features/revenues/hooks/useCreateRevenue";
 import { useUpdateRevenue } from "@/features/revenues/hooks/useUpdateRevenue";
-import { useDeleteRevenue } from "@/features/revenues/hooks/useDeleteRevenue";
+import useDeleteRevenue from "@/features/revenues/hooks/useDeleteRevenue";
 import AddRevenueModal from "@/components/modals/AddRevenueModal";
 import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { Revenue } from "@/features/revenues/types/revenues.types";
@@ -37,15 +38,16 @@ export default function Revenues() {
   const { data: revenues, isLoading } = useGetAllRevenues();
   const { mutateAsync: createRevenue } = useCreateRevenue();
   const { mutateAsync: updateRevenue } = useUpdateRevenue();
-  const { mutateAsync: deleteRevenue, isPending: isDeleting } = useDeleteRevenue();
+  const { mutateAsync: deleteRevenue, isPending: isDeleting } =
+    useDeleteRevenue();
 
   const rows = useMemo(() => revenues ?? [], [revenues]);
 
   const filteredRows = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
-    return rows.filter((row) => {
-      if (!term) return true;
+    if (!term) return rows;
 
+    return rows.filter((row) => {
       return (
         row.name?.toLowerCase().includes(term) ||
         row.treasuryName?.toLowerCase().includes(term) ||
@@ -55,6 +57,20 @@ export default function Revenues() {
       );
     });
   }, [rows, searchTerm]);
+
+  const paginatedMobileRows = useMemo(
+    () =>
+      filteredRows.slice(
+        (currentPage - 1) * entriesPerPage,
+        currentPage * entriesPerPage
+      ),
+    [filteredRows, currentPage, entriesPerPage]
+  );
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredRows.length / entriesPerPage)
+  );
 
   const formatDate = (value?: string) => {
     if (!value) return "-";
@@ -80,11 +96,40 @@ export default function Revenues() {
 
   const handleDelete = async () => {
     if (!rowToDelete) return;
+
     try {
       await deleteRevenue(rowToDelete.id);
       setRowToDelete(null);
     } catch (error: any) {
-      notifyError(error?.response?.data?.message || error?.message || "حدث خطأ أثناء حذف الإيراد");
+      notifyError(error?.message || "حدث خطأ أثناء حذف الإيراد");
+    }
+  };
+
+  const handleSubmitData = async (payload: {
+    id?: number;
+    name: string;
+    amount: number;
+    date: string;
+    notes: string;
+    treasuryId?: number | null;
+    itemId?: number | null;
+  }) => {
+    const body = {
+      name: payload.name,
+      amount: payload.amount,
+      date: payload.date,
+      notes: payload.notes,
+      treasuryId: payload.treasuryId ?? 0,
+      itemId: payload.itemId ?? 0,
+    };
+
+    if (modalMode === "edit" && payload.id) {
+      await updateRevenue({
+        id: payload.id,
+        ...body,
+      });
+    } else {
+      await createRevenue(body);
     }
   };
 
@@ -100,7 +145,7 @@ export default function Revenues() {
 
       <button
         onClick={() => setRowToDelete(row)}
-        className="btn-minimal-action btn-compact-action"
+        className="btn-minimal-action btn-compact-action text-red-600"
         type="button"
       >
         <Trash2 size={16} />
@@ -137,9 +182,7 @@ export default function Revenues() {
             الإيرادات
           </CardTitle>
 
-          <CardDescription>
-            تسجيل وعرض حركات الإيرادات
-          </CardDescription>
+          <CardDescription>تسجيل وعرض حركات الإيرادات</CardDescription>
 
           <CardAction>
             <Button onClick={openAddModal} variant="default">
@@ -232,72 +275,106 @@ export default function Revenues() {
                 لا توجد بيانات
               </div>
             ) : (
-              filteredRows
-                .slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage)
-                .map((row) => (
-                  <div
-                    key={row.id}
-                    className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
-                  >
-                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] border-b border-gray-100">
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-[var(--text-main)] break-words">
-                          {row.name || "-"}
-                        </p>
-                        <p className="text-xs text-[var(--text-muted)] mt-1">
-                          {formatDate(row.date)}
-                        </p>
-                      </div>
-
-                      <div className="shrink-0 rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">
-                        {formatNumber(row.amount)}
-                      </div>
+              paginatedMobileRows.map((row) => (
+                <div
+                  key={row.id}
+                  className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+                >
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] border-b border-gray-100">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-[var(--text-main)] break-words">
+                        {row.name || "-"}
+                      </p>
+                      <p className="text-xs text-[var(--text-muted)] mt-1">
+                        {formatDate(row.date)}
+                      </p>
                     </div>
 
-                    <div className="p-4 space-y-3">
-                      <div className="rounded-xl bg-[#f8fafc] p-3">
-                        <p className="text-xs text-[var(--text-muted)] mb-1">الخزينة</p>
-                        <p className="text-sm font-semibold text-[var(--text-main)]">
-                          {row.treasuryName || "-"}
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl bg-[#f8fafc] p-3">
-                        <p className="text-xs text-[var(--text-muted)] mb-1">البند</p>
-                        <p className="text-sm font-semibold text-[var(--text-main)]">
-                          {row.itemName || row.name || "-"}
-                        </p>
-                      </div>
-
-                      <div className="rounded-xl bg-[#f8fafc] p-3">
-                        <p className="text-xs text-[var(--text-muted)] mb-1">البيان</p>
-                        <p className="text-sm font-semibold text-[var(--text-main)] break-words">
-                          {row.notes || "-"}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2 pt-1">
-                        <button
-                          onClick={() => openEditModal(row)}
-                          className="btn-minimal-action btn-compact-action"
-                          type="button"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-
-                        <button
-                          onClick={() => setRowToDelete(row)}
-                          className="btn-minimal-action btn-compact-action"
-                          type="button"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+                    <div className="shrink-0 rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">
+                      {formatNumber(row.amount)}
                     </div>
                   </div>
-                ))
+
+                  <div className="p-4 space-y-3">
+                    <div className="rounded-xl bg-[#f8fafc] p-3">
+                      <p className="text-xs text-[var(--text-muted)] mb-1">
+                        الخزينة
+                      </p>
+                      <p className="text-sm font-semibold text-[var(--text-main)]">
+                        {row.treasuryName || "-"}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-[#f8fafc] p-3">
+                      <p className="text-xs text-[var(--text-muted)] mb-1">
+                        البند
+                      </p>
+                      <p className="text-sm font-semibold text-[var(--text-main)]">
+                        {row.itemName || row.name || "-"}
+                      </p>
+                    </div>
+
+                    <div className="rounded-xl bg-[#f8fafc] p-3">
+                      <p className="text-xs text-[var(--text-muted)] mb-1">
+                        البيان
+                      </p>
+                      <p className="text-sm font-semibold text-[var(--text-main)] break-words">
+                        {row.notes || "-"}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        onClick={() => openEditModal(row)}
+                        className="btn-minimal-action btn-compact-action"
+                        type="button"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+
+                      <button
+                        onClick={() => setRowToDelete(row)}
+                        className="btn-minimal-action btn-compact-action text-red-600"
+                        type="button"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
             )}
           </div>
+
+          {filteredRows.length > 0 && (
+            <div className="flex items-center justify-center gap-2 pt-2 lg:hidden">
+              <button
+                type="button"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                السابق
+              </button>
+
+              <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
+                {currentPage}
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  setCurrentPage((prev) =>
+                    prev < totalPages ? prev + 1 : prev
+                  )
+                }
+                disabled={currentPage >= totalPages}
+                className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                التالي
+              </button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -309,28 +386,7 @@ export default function Revenues() {
         }}
         mode={modalMode}
         editData={selectedRow}
-        onSubmitData={async (payload) => {
-          if (modalMode === "edit" && payload.id) {
-            await updateRevenue({
-              id: payload.id,
-              name: payload.name,
-              amount: payload.amount,
-              date: payload.date,
-              notes: payload.notes,
-              treasuryId: payload.treasuryId,
-              itemId: payload.itemId,
-            });
-          } else {
-            await createRevenue({
-              name: payload.name,
-              amount: payload.amount,
-              date: payload.date,
-              notes: payload.notes,
-              treasuryId: payload.treasuryId,
-              itemId: payload.itemId,
-            });
-          }
-        }}
+        onSubmitData={handleSubmitData}
       />
 
       <DeleteTreasuryDialog

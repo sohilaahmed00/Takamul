@@ -1,39 +1,47 @@
-export type Expense = {
+export interface Expense {
   id: number;
   name: string;
   amount: number;
   date: string;
-  notes: string;
-  treasuryId?: number | null;
-  treasuryName?: string | null;
-  itemId?: number | null;
-  itemName?: string | null;
-  createdBy?: string;
-  createdAt?: string;
-};
+  notes: string | null;
+  createdBy: string;
+  createdAt: string;
+  treasuryId: number | null;
+  treasuryName: string | null;
+  itemId: number | null;
+  itemName: string | null;
+}
 
-export type ExpensesListResponse = {
+export interface ExpensesResponse {
   items: Expense[];
   totalCount: number;
   pageNumber: number;
   pageSize: number;
-};
+}
 
-export type CreateExpensePayload = {
+export type ExpensesListResponse = ExpensesResponse;
+
+export interface GetExpensesParams {
+  page?: number;
+  pageSize?: number;
+  searchTerm?: string;
+}
+
+export interface CreateExpensePayload {
   name: string;
   amount: number;
   date: string;
   notes: string;
-  treasuryId?: number | null;
+  treasuryId: number;
   itemId?: number | null;
-};
+}
 
-export type UpdateExpensePayload = {
+export interface UpdateExpensePayload {
   id: number;
   name: string;
   amount: number;
   date: string;
   notes: string;
-  treasuryId?: number | null;
+  treasuryId: number;
   itemId?: number | null;
-};
+}

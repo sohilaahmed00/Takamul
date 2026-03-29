@@ -1,32 +1,33 @@
-export type Revenue = {
+export interface Revenue {
+  id: number;
+  name: string;
+  amount: number;
+  date: string;
+  notes: string | null;
+  createdBy: string;
+  createdAt: string;
+  treasuryId: number | null;
+  treasuryName: string | null;
+  itemId: number | null;
+  itemName: string | null;
+}
+
+export interface CreateRevenuePayload {
+  name: string;
+  amount: number;
+  date: string;
+  notes: string;
+  treasuryId: number;
+  itemId?: number | null;
+}
+
+// ✅ PUT يقبل كل الحقول زي الـ POST
+export interface UpdateRevenuePayload {
   id: number;
   name: string;
   amount: number;
   date: string;
   notes: string;
-  treasuryId?: number | null;
-  treasuryName?: string | null;
+  treasuryId: number;
   itemId?: number | null;
-  itemName?: string | null;
-  createdBy?: string;
-  createdAt?: string;
-};
-
-export type CreateRevenuePayload = {
-  name: string;
-  amount: number;
-  date: string;
-  notes: string;
-  treasuryId?: number | null;
-  itemId?: number | null;
-};
-
-export type UpdateRevenuePayload = {
-  id: number;
-  name: string;
-  amount: number;
-  date: string;
-  notes: string;
-  treasuryId?: number | null;
-  itemId?: number | null;
-};
+}

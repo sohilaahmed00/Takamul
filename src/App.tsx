@@ -136,7 +136,9 @@ import FinancialSummary from "@/pages/reports/accounts/FinancialSummary";
 
 import Revenues from "@/pages/revenues-and-expenses/Revenues";
 import Expenses from "@/pages/revenues-and-expenses/Expenses";
-import Items from "@/pages/revenues-and-expenses/Items";
+import Items from "@/pages/revenues-and-expenses/ItemsList";
+
+
 
 // Print Context
 import { PrintProvider, usePrint } from "@/context/PrintContext";
@@ -304,6 +306,7 @@ function AppRoutes() {
           <Route path="/revenues" element={<Revenues />} />
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/items" element={<Items />} />
+
         </Route>
       </Routes>
 

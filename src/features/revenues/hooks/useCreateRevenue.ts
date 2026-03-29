@@ -2,9 +2,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createRevenue } from "../services/revenues";
 import { revenuesKeys } from "../keys/revenues.keys";
 
-export const useCreateRevenue = () => {
+export default function useCreateRevenue() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: createRevenue,
     onSuccess: () => {
@@ -12,4 +11,4 @@ export const useCreateRevenue = () => {
       queryClient.invalidateQueries({ queryKey: ["treasurys"] });
     },
   });
-};
+}
