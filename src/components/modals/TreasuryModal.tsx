@@ -102,11 +102,11 @@ export default function TreasuryModal({
             <Wallet size={20} />
             {isEdit ? t('treasury_modal_title_edit') || "تعديل خزينة" : t('treasury_modal_title_add') || "إضافة خزينة"}
           </DialogTitle>
-          <p className="text-sm text-gray-500">
+          {/* <p className="text-sm text-gray-500">
             {isEdit
               ? "يمكنك تعديل اسم الخزينة والرصيد الافتتاحي"
               : "أدخل بيانات الخزينة الجديدة"}
-          </p>
+          </p> */}
         </DialogHeader>
 
         <form
