@@ -194,7 +194,7 @@ export default function AddExpenseModal({
         dir={direction}
         onOpenAutoFocus={(e) => e.preventDefault()}
         onCloseAutoFocus={(e) => e.preventDefault()}
-        className="w-[92vw] max-w-[860px] p-0 rounded-2xl overflow-hidden max-h-[90vh]"
+        className="w-full sm:max-w-[750px] p-0 rounded-2xl overflow-hidden max-h-[100vh]"
       >
         <DialogHeader className="px-5 py-3 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-base font-semibold flex-wrap">
@@ -220,16 +220,6 @@ export default function AddExpenseModal({
             />
           </Field>
 
-          <Field>
-            <FieldLabel>المبلغ</FieldLabel>
-            <Input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
-              className="h-10"
-            />
-          </Field>
 
           <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
             <div className="flex items-center gap-2">
@@ -267,6 +257,17 @@ export default function AddExpenseModal({
             </div>
           </div>
 
+
+          <Field>
+            <FieldLabel>المبلغ</FieldLabel>
+            <Input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0"
+              className="h-10"
+            />
+          </Field>
           <Field>
             <FieldLabel>البند</FieldLabel>
             <div className="relative">
@@ -368,7 +369,7 @@ export default function AddExpenseModal({
             />
           </Field>
         </form>
-        <DialogFooter className="px-6 py-4 border-t border-gray-100 bg-white">
+        <DialogFooter className="px-8 py-4 border-t border-gray-100  h-25">
           <div className="flex items-center justify-end gap-3 w-full">
             <Button
               type="button"
@@ -397,3 +398,4 @@ export default function AddExpenseModal({
     </Dialog>
   );
 }
+

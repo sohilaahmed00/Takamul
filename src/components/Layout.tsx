@@ -287,21 +287,20 @@ export default function Layout() {
           <SidebarItem icon={Banknote} label={t("revenues_and_expenses")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "revenues_and_expenses"} onClick={() => toggleSubmenu("revenues_and_expenses")} />
           <AnimatePresence>
             {openSubmenu === "revenues_and_expenses" && showSidebarContent && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                <NestedSubmenu label={t("revenues")} icon={ArrowUpRight} isOpen={openNestedSubmenu === "revenues"} onToggle={() => toggleNestedSubmenu("revenues")}>
-                  <SubmenuItem label={t("view") || "عرض"} icon={List} path="/revenues" />
-                  <SubmenuItem label={t("add_revenue")} icon={Plus} path="/revenues" state={{ openAddModal: true }} />
-                </NestedSubmenu>
-
-                <NestedSubmenu label={t("expenses")} icon={DollarSign} isOpen={openNestedSubmenu === "expenses"} onToggle={() => toggleNestedSubmenu("expenses")}>
-                  <SubmenuItem label={t("view") || "عرض"} icon={List} path="/expenses" />
-                  <SubmenuItem label={t("add_expense")} icon={Plus} path="/expenses" state={{ openAddModal: true }} />
-                </NestedSubmenu>
-
-                <NestedSubmenu label={t("items")} icon={List} isOpen={openNestedSubmenu === "items"} onToggle={() => toggleNestedSubmenu("items")}>
-                  <SubmenuItem label={t("view") || "عرض"} icon={List} path="/items" />
-                  <SubmenuItem label={t("add_item")} icon={Plus} path="/items" state={{ openAddModal: true }} />
-                </NestedSubmenu>
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className={cn(
+                  "overflow-hidden space-y-1 pr-2",
+                  direction === "rtl"
+                    ? "mr-4 border-r border-gray-100"
+                    : "ml-4 border-l border-gray-100 pl-2 pr-0"
+                )}
+              >
+                <SubmenuItem label={t("revenues")} icon={ArrowUpRight} path="/revenues" />
+                <SubmenuItem label={t("expenses")} icon={DollarSign} path="/expenses" />
+                <SubmenuItem label={t("items")} icon={List} path="/items" />
               </motion.div>
             )}
           </AnimatePresence>

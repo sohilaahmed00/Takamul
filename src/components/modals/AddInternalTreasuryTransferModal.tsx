@@ -112,9 +112,9 @@ export default function AddInternalTreasuryTransferModal({
             <ArrowLeftRight size={18} />
             إضافة تحويل داخلي
           </DialogTitle>
-          <p className="text-sm text-gray-500">
+          {/* <p className="text-sm text-gray-500">
             قم بتحويل رصيد بين الخزائن الداخلية
-          </p>
+          </p> */}
         </DialogHeader>
 
         <form

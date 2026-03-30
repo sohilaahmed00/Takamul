@@ -194,7 +194,7 @@ export default function AddRevenueModal({
         dir={direction}
         onOpenAutoFocus={(e) => e.preventDefault()}
         onCloseAutoFocus={(e) => e.preventDefault()}
-        className="w-[92vw] max-w-[860px] p-0 rounded-2xl overflow-hidden max-h-[90vh]"
+        className="w-full sm:max-w-[750px] p-0 rounded-2xl overflow-hidden max-h-[100vh]"
       >
         <DialogHeader className="px-5 py-3 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-base font-semibold flex-wrap">
@@ -220,16 +220,6 @@ export default function AddRevenueModal({
             />
           </Field>
 
-          <Field>
-            <FieldLabel>المبلغ</FieldLabel>
-            <Input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
-              className="h-10"
-            />
-          </Field>
 
           <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
             <div className="flex items-center gap-2">
@@ -266,6 +256,17 @@ export default function AddRevenueModal({
               </Field>
             </div>
           </div>
+
+          <Field>
+            <FieldLabel>المبلغ</FieldLabel>
+            <Input
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0"
+              className="h-10"
+            />
+          </Field>
 
           <Field>
             <FieldLabel>البند</FieldLabel>
@@ -368,13 +369,14 @@ export default function AddRevenueModal({
           </Field>
         </form>
 
-        <DialogFooter className="px-6 py-4 border-t border-gray-100 bg-white">
+
+        <DialogFooter className="px-8 border-t border-gray-100 h-25 flex items-center justify-end">
           <div className="flex items-center justify-end gap-3 w-full">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="h-8 px-6 "
+              className="h-10 px-6 "
             >
               إلغاء
             </Button>
@@ -382,7 +384,7 @@ export default function AddRevenueModal({
               form="revenueForm"
               type="submit"
               disabled={isPending}
-              className="min-w-[140px] h-8 px-6"
+              className="min-w-[140px] h-10 px-6"
             >
               {isPending && <Loader2 size={15} className="animate-spin mr-1" />}
               {isPending
