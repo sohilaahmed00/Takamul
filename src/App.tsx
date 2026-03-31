@@ -148,6 +148,10 @@ import CreateQuote from "./pages/CreateQuote";
 import CreatePurchaseInvoice from "./pages/CreatePurchasesInvoice";
 import SupplierPaymentsList from "./pages/SupplierPaymentsList";
 import CustomerCollectionsList from "./pages/CustomerCollectionsList";
+import BranchesList from "./pages/BranchesList";
+import AddBranch from "@/pages/AddBranch";
+import WarehousesList from "./pages/WarehousesList";
+
 
 function AppRoutes() {
   const { receiptData } = usePrint();
@@ -248,6 +252,7 @@ function AppRoutes() {
           <Route path="/settings/warehouses" element={<Warehouses />} />
           <Route path="/settings/branches" element={<Branches />} />
 
+
           {/* التقارير */}
           <Route path="/reports/sales-by-category" element={<SalesByCategoryReport />} />
           <Route path="/reports/items" element={<ItemsReport />} />
@@ -309,7 +314,12 @@ function AppRoutes() {
           <Route path="/revenues" element={<Revenues />} />
           <Route path="/expenses" element={<Expenses />} />
           <Route path="/items" element={<Items />} />
-
+          <Route path="/branches" element={<BranchesList />} />
+          <Route path="/branches/create" element={<AddBranch />} />
+          <Route path="/branches/edit/:id" element={<AddBranch />} />
+          <Route path="/branches/:mode/:id" element={<AddBranch />} />
+           <Route path="/warehouses" element={<WarehousesList/>} />
+       
         </Route>
       </Routes>
 
