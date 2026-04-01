@@ -1,3 +1,5 @@
+import type { PaginationMeta } from "@/types";
+
 export interface Supplier {
   id: number;
   supplierCode: number;
@@ -18,7 +20,7 @@ export interface Supplier {
 }
 export interface createSupplier {
   supplierName: string;
-  email: string;
+  email?: string;
   phone: string;
   mobile: string;
   address: string;
@@ -28,6 +30,11 @@ export interface createSupplier {
   postalCode: string;
   taxNumber: string;
   paymentTerms?: number;
+  buildingNumber: string;
+  additionalNumber: string;
+  commercialRegister: string;
 }
 
-export type GetAllSuppliersResponse = Supplier[];
+export interface GetAllSuppliersResponse extends PaginationMeta {
+  items: Supplier[];
+}

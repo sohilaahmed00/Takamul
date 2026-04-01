@@ -35,34 +35,113 @@ interface AddParnterModalProps {
   type?: "supplier" | "customer";
 }
 
-export const createPartnerSchema = (isSupplier: boolean) =>
+export const createPartnerSchema = () =>
   z
     .object({
       name: z.string().min(3, "الاسم يجب أن يكون 3 أحرف على الأقل"),
 
-      phone: z.string().min(10, "رقم الهاتف غير صحيح"),
+      phone: z.string().regex(/^\d+$/, "أرقام فقط").min(10, "رقم الهاتف غير صحيح"),
 
-      mobile: z.string().min(10, "رقم الموبايل غير صحيح"),
+      mobile: z
+        .string()
+        .optional()
+        .refine((val) => !val || /^\d+$/.test(val), {
+          message: "أرقام فقط",
+        }),
 
-      commercialRegister: z.string().min(1, "السجل التجاري مطلوب"),
+      commercialRegister: z.string().min(1, "السجل التجاري مطلوب").regex(/^\d+$/, "أرقام فقط"),
 
       isTaxable: z.boolean(),
 
       taxNumber: z.string().optional(),
 
-      countryId: z.number().min(1, "يجب اختيار الدولة"),
+      countryId: z.number().optional(),
+      cityId: z.number().optional(),
+      stateId: z.number().optional(),
 
-      cityId: z.number().min(1, "يجب اختيار المدينة"),
+      address: z.string().optional(),
+      postalCode: z.string().optional(),
 
-      stateId: z.number().min(1, "يجب اختيار المحافظة"),
+      buildingNumber: z
+        .string()
+        .optional()
+        .refine((val) => !val || /^\d+$/.test(val), {
+          message: "أرقام فقط",
+        }),
 
-      postalCode: z.string().min(1, "الرمز البريدي مطلوب"),
-
-      address: z.string().min(5, "العنوان يجب أن يكون 5 أحرف على الأقل"),
+      additionalNumber: z
+        .string()
+        .optional()
+        .refine((val) => !val || /^\d+$/.test(val), {
+          message: "أرقام فقط",
+        }),
     })
-    .refine((data) => !data.isTaxable || (data.taxNumber?.trim().length ?? 0) > 0, {
-      message: "الرقم الضريبي مطلوب",
-      path: ["taxNumber"],
+    .superRefine((data, ctx) => {
+      if (data.isTaxable) {
+        if (!data.taxNumber) {
+          ctx.addIssue({
+            path: ["taxNumber"],
+            message: "الرقم الضريبي مطلوب",
+            code: z.ZodIssueCode.custom,
+          });
+        }
+
+        if (!data.countryId) {
+          ctx.addIssue({
+            path: ["countryId"],
+            message: "يجب اختيار الدولة",
+            code: z.ZodIssueCode.custom,
+          });
+        }
+
+        if (!data.cityId) {
+          ctx.addIssue({
+            path: ["cityId"],
+            message: "يجب اختيار المنطقة",
+            code: z.ZodIssueCode.custom,
+          });
+        }
+
+        if (!data.stateId) {
+          ctx.addIssue({
+            path: ["stateId"],
+            message: "يجب اختيار المدينة",
+            code: z.ZodIssueCode.custom,
+          });
+        }
+
+        if (!data.address || data.address.length < 5) {
+          ctx.addIssue({
+            path: ["address"],
+            message: "العنوان مطلوب",
+            code: z.ZodIssueCode.custom,
+          });
+        }
+
+        if (!data.postalCode) {
+          ctx.addIssue({
+            path: ["postalCode"],
+            message: "الرمز البريدي مطلوب",
+            code: z.ZodIssueCode.custom,
+          });
+        }
+
+        if (!data.buildingNumber) {
+          ctx.addIssue({
+            path: ["buildingNumber"],
+            message: "رقم المبنى مطلوب",
+            code: z.ZodIssueCode.custom,
+          });
+        }
+
+        if (!data.additionalNumber) {
+          ctx.addIssue({
+            path: ["additionalNumber"],
+            message: "الرقم الإضافي مطلوب",
+            code: z.ZodIssueCode.custom,
+          });
+        }
+      }
     });
 export default function AddParnterModal({ isOpen, onClose, partner, type }: AddParnterModalProps) {
   const { t } = useLanguage();
@@ -74,7 +153,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
   const { mutateAsync: updateCustomer } = useUpdateCustomer();
   const { notifyError, notifySuccess } = useToast();
   const isSupplier = type == "supplier";
-  const schema = createPartnerSchema(isSupplier);
+  const schema = createPartnerSchema();
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -160,25 +239,25 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
       if (isSupplier) {
         payload = {
           supplierName: data.name,
-          email: "",
           phone: data.phone,
-          mobile: data.mobile,
-          address: data.address,
+          mobile: data.mobile ?? "",
+          address: data.address ?? "",
           city: selectedCity?.cityName ?? "",
           state: selectedState?.statesName ?? "",
           country: selectedCountry?.countryName ?? "",
-          postalCode: data.postalCode,
+          postalCode: data.postalCode ?? "",
           taxNumber: data.taxNumber ?? "",
-          paymentTerms: 0,
-          // commercialRegister: data?.commercialRegister ?? "",
+          buildingNumber: "",
+          additionalNumber: "",
+          commercialRegister: data?.commercialRegister ?? "",
         };
       } else {
         payload = {
           customerName: data?.name,
           phone: data.phone,
-          mobile: data.mobile,
-          address: data.address,
-          postalCode: data.postalCode,
+          mobile: data.mobile || "",
+          address: data.address || "",
+          postalCode: data.postalCode || "",
           taxNumber: data.taxNumber ?? "",
           country: selectedCountry?.countryName ?? "",
           city: selectedCity?.cityName ?? "",
@@ -203,14 +282,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
           notifySuccess("تم إضافة العميل بنجاح");
         }
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const message = error.response?.data?.message;
-        notifyError(message);
-      }
-    }
-    form.reset();
-    onClose();
+      form.reset();
+      onClose();
+    } catch (error) {}
   };
 
   return (
@@ -424,7 +498,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
                     )}
                   />
                   <Controller
-                    name="postalCode"
+                    name="additionalNumber"
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
@@ -435,7 +509,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
                     )}
                   />
                   <Controller
-                    name="postalCode"
+                    name="buildingNumber"
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
@@ -463,7 +537,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
 
           <DialogFooter>
             <Button form="addCustomerForm" className="h-12 px-6 text-base" type="submit">
-              {partner ? "تعديل عميل" : "إضافة عميل"}
+              {partner ? (isSupplier ? "تعديل المورد" : "تعديل العميل") : isSupplier ? "إضافة مورد" : "إضافة عميل"}{" "}
             </Button>
           </DialogFooter>
         </DialogContent>

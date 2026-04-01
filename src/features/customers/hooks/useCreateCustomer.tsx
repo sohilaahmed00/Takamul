@@ -9,11 +9,11 @@ export function useCreateCustomer() {
     mutationFn: (data: createCustomer) => createCustomers(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: customersKeys.list(),
+        queryKey: customersKeys.all,
       });
     },
-    // onError: (error) => {
-    //   console.error("API ERROR ❌", error);
-    // },
+    onError: (error) => {
+      console.error("API ERROR ❌", error);
+    },
   });
 }

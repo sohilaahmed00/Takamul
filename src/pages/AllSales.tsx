@@ -104,9 +104,7 @@ export default function AllSales() {
             />
           </DataTable>
         </CardContent>
-        {/* <CardFooter>
-          <p>Card Footer</p>
-        </CardFooter> */}
+       
       </Card>
     </div>
   );

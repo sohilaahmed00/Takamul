@@ -38,7 +38,7 @@ export const createProductDirect = (data: FormData) =>
     data,
   });
 export const createProductBranched = (data: FormData) =>
-  httpClient<void>("/Products/branched", {
+  httpClient<string>("/Products/branched", {
     method: "POST",
     data,
   });

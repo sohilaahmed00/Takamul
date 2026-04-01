@@ -20,6 +20,7 @@ export type Product = {
   parentCategoryId: number;
   productType: "Direct" | "Prepared" | "Branched" | "RawMatrial";
   taxAmount: number;
+  taxId: number;
 };
 export type ProductDirect = {
   id: number;

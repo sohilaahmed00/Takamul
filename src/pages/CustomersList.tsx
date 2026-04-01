@@ -14,7 +14,7 @@ import { FilterMatchMode } from "primereact/api";
 export default function CustomersList() {
   const { t, direction } = useLanguage();
   const { data: response, isLoading } = useGetAllCustomers();
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,7 +23,7 @@ export default function CustomersList() {
   const { mutateAsync: deleteCustomer } = useDeleteCustomer();
   const { notifyError, notifySuccess } = useToast();
   const { data: customerData } = useGetCustomerById(selectedCustomer ?? undefined);
-  
+
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState<DataTableFilterMeta>({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -41,17 +41,13 @@ export default function CustomersList() {
     setGlobalFilterValue(value);
   };
 
-  const customers = response?.items || []; 
+  const customers = response?.items || [];
 
-  const filteredCustomers = Array.isArray(customers) 
+  const filteredCustomers = Array.isArray(customers)
     ? customers
         .filter((c) => {
           const term = searchTerm.toLowerCase();
-          return (
-            c.customerName?.toLowerCase().includes(term) || 
-            c.phone?.includes(term) || 
-            String(c.customerCode || "").includes(term)
-          );
+          return c.customerName?.toLowerCase().includes(term) || c.phone?.includes(term) || String(c.customerCode || "").includes(term);
         })
         .sort((a, b) => (b.id || 0) - (a.id || 0))
     : [];
@@ -86,13 +82,7 @@ export default function CustomersList() {
             <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
               <Search size={18} className="text-gray-400" />
             </div>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder={t("search_placeholder") || "البحث..."}
-              className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 pr-11 pl-4 transition-all outline-none"
-            />
+            <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t("search_placeholder") || "البحث..."} className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-primary focus:bg-white text-gray-700 text-sm rounded-xl py-3 pr-11 pl-4 transition-all outline-none" />
           </div>
 
           {/* --- Mobile Cards (شكل الخزينة) --- */}
@@ -115,10 +105,21 @@ export default function CustomersList() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => { setSelectedCustomer(customer.id); setIsAddModalOpen(true); }} className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                      <button
+                        onClick={() => {
+                          setSelectedCustomer(customer.id);
+                          setIsAddModalOpen(true);
+                        }}
+                        className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                      >
                         <Edit2 size={16} />
                       </button>
-                      <button onClick={async () => { if(confirm(t("confirm_delete"))) await deleteCustomer(customer.id); }} className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                      <button
+                        onClick={async () => {
+                          if (confirm(t("confirm_delete"))) await deleteCustomer(customer.id);
+                        }}
+                        className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -131,7 +132,9 @@ export default function CustomersList() {
                     </div>
                     <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg text-sm text-gray-700">
                       <MapPin size={16} className="text-gray-400" />
-                      <span>{customer.city} - {customer.address}</span>
+                      <span>
+                        {customer.city} - {customer.address}
+                      </span>
                     </div>
                     {customer.taxNumber && (
                       <div className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg text-sm text-gray-700">
@@ -143,41 +146,40 @@ export default function CustomersList() {
                 </div>
               ))
             )}
-            {filteredCustomers.length === 0 && !isLoading && (
-              <div className="text-center py-10 text-gray-400">{t("no_customers_found")}</div>
-            )}
+            {filteredCustomers.length === 0 && !isLoading && <div className="text-center py-10 text-gray-400">{t("no_customers_found")}</div>}
           </div>
 
           {/* --- Desktop Table --- */}
           <div className="hidden lg:block overflow-x-auto rounded-xl border border-gray-100">
-            <DataTable 
-              value={filteredCustomers} 
-              paginator 
-              rows={entriesPerPage} 
-              first={(currentPage - 1) * entriesPerPage} 
-              onPage={(e) => setCurrentPage((e.page ?? 0) + 1)} 
-              dataKey="id" 
-              loading={isLoading}
-              className="custom-green-table"
-              emptyMessage={t("no_customers_found")}
-            >
-              <Column field="customerCode" header={t("code")} sortable style={{ width: '10%' }} />
-              <Column field="customerName" header={t("name")} sortable style={{ width: '30%' }} />
-              <Column field="phone" header={t("phone")} style={{ width: '20%' }} />
-              <Column field="city" header={t("city")} style={{ width: '20%' }} />
-              <Column 
-                header={t("actions")} 
-                style={{ width: '20%' }}
+            <DataTable value={filteredCustomers} paginator rows={entriesPerPage} first={(currentPage - 1) * entriesPerPage} onPage={(e) => setCurrentPage((e.page ?? 0) + 1)} dataKey="id" loading={isLoading} className="custom-green-table" emptyMessage={t("no_customers_found")}>
+              <Column field="customerCode" header={t("code")} sortable style={{ width: "10%" }} />
+              <Column field="customerName" header={t("name")} sortable style={{ width: "30%" }} />
+              <Column field="phone" header={t("phone")} style={{ width: "20%" }} />
+              <Column field="city" header={t("city")} style={{ width: "20%" }} />
+              <Column
+                header={t("actions")}
+                style={{ width: "20%" }}
                 body={(customer) => (
                   <div className="flex gap-2">
-                    <button onClick={() => { setSelectedCustomer(customer.id); setIsAddModalOpen(true); }} className="btn-minimal-action">
+                    <button
+                      onClick={() => {
+                        setSelectedCustomer(customer.id);
+                        setIsAddModalOpen(true);
+                      }}
+                      className="btn-minimal-action"
+                    >
                       <Edit2 size={16} />
                     </button>
-                    <button onClick={async () => { if(confirm(t("confirm_delete"))) await deleteCustomer(customer.id); }} className="btn-minimal-action">
+                    <button
+                      onClick={async () => {
+                        if (confirm(t("confirm_delete"))) await deleteCustomer(customer.id);
+                      }}
+                      className="btn-minimal-action"
+                    >
                       <Trash2 size={16} />
                     </button>
                   </div>
-                )} 
+                )}
               />
             </DataTable>
           </div>

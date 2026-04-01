@@ -15,13 +15,13 @@ export const getAllSuppliers = () => httpClient<GetAllSuppliersResponse>("/Suppl
 // // ===================
 
 export const createSuppliers = (data: createSupplier) =>
-  httpClient<GetAllSuppliersResponse>("/Suppliers", {
+  httpClient<{ message: string }>("/Suppliers", {
     method: "POST",
     data,
   });
 
 export const updateSupplier = (id: number, data: createSupplier) =>
-  httpClient<Supplier>(`/Suppliers/${id}`, {
+  httpClient<string>(`/Suppliers/${id}`, {
     method: "PUT",
     data,
   });

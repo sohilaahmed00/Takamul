@@ -13,6 +13,7 @@ export function useCreateProductBranched() {
       queryClient.invalidateQueries({
         queryKey: productsKeys.all,
       });
+      notifySuccess(response);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

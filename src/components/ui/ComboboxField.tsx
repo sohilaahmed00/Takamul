@@ -9,7 +9,7 @@ interface ComboboxFieldProps<T, TFieldValues extends FieldValues, TName extends 
   labelKey: keyof T;
   placeholder?: string;
   onValueChange?: (val: string) => void;
-  disabled?: boolean; // 👈 أضفناها
+  disabled?: boolean; 
 }
 
 function ComboboxField<T, TFieldValues extends FieldValues, TName extends FieldPath<TFieldValues>>({
@@ -19,7 +19,7 @@ function ComboboxField<T, TFieldValues extends FieldValues, TName extends FieldP
   labelKey,
   placeholder,
   onValueChange,
-  disabled = false, // 👈 default
+  disabled = false, 
 }: ComboboxFieldProps<T, TFieldValues, TName>) {
   const [searchValue, setSearchValue] = useState("");
 
@@ -31,7 +31,7 @@ function ComboboxField<T, TFieldValues extends FieldValues, TName extends FieldP
   }, [field.value, items]);
 
   const handleValueChange = (val: string) => {
-    if (disabled) return; // 👈 يمنع التغيير
+    if (disabled) return; 
 
     const selectedItem = (items ?? []).find((item) => item[valueKey]?.toString() === val);
 
@@ -46,13 +46,13 @@ function ComboboxField<T, TFieldValues extends FieldValues, TName extends FieldP
       value={field.value ? field.value.toString() : ""}
       onValueChange={handleValueChange}
       items={items}
-      disabled={disabled} // 👈 لو الكومبوننت بيدعمها
+      disabled={disabled} 
     >
       <ComboboxInput
         placeholder={placeholder}
         value={searchValue}
         onChange={(e) => !disabled && setSearchValue(e.target.value)}
-        disabled={disabled} // 👈 مهم
+        disabled={disabled} 
         className={disabled ? "bg-gray-50 cursor-not-allowed" : ""}
       />
 

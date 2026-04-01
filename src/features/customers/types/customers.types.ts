@@ -1,3 +1,4 @@
+import type { PaginationMeta } from "@/types";
 
 export interface Customer {
   id: number;
@@ -18,7 +19,7 @@ export interface Customer {
 export interface createCustomer {
   customerName: string;
   phone: string;
-  mobile: string;
+  mobile?: string;
   address: string;
   city: string;
   state: string;
@@ -26,4 +27,6 @@ export interface createCustomer {
   taxNumber: string;
 }
 
-export type GetAllCustomersResponse = Customer[];
+export interface GetAllCustomersResponse extends PaginationMeta {
+  items: Customer[];
+}

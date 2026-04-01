@@ -13,13 +13,13 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { Input } from "@/components/ui/input";
 import ComboboxField from "@/components/ui/ComboboxField";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
 import type { StockInventoryOption } from "@/features/quantity-adjustments/types/stock.types";
 import { useGetQuantityAdjustmentDetails } from "@/features/quantity-adjustments/hooks/useGetQuantityAdjustmentDetails";
 import { useUpdateQuantityAdjustment } from "@/features/quantity-adjustments/hooks/useUpdateQuantityAdjustment";
+import z from "zod/v3";
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 
@@ -39,7 +39,7 @@ const QuantityAdjustmentSchema = z.object({
       z.object({
         stockInventoryId: z.number().min(1, "اختر الصنف"),
         operationType: z.enum(["Add", "Remove"]),
-        quantity: z.number().min(1, "الكمية لازم تكون أكبر من 0"),
+        quantity: z.number({ required_error: "يرجى إدخال الكمية", invalid_type_error: "يرجى إدخال الكمية" }).min(1, "الكمية يجب أن تكون أكبر من 0"),
         notes: z.string().optional(),
       }),
     )
@@ -65,7 +65,7 @@ export default function AddQuantityAdjustment() {
         {
           stockInventoryId: 0,
           operationType: "Add",
-          quantity: 1,
+          quantity: undefined,
           notes: "",
         },
       ],
@@ -223,9 +223,9 @@ export default function AddQuantityAdjustment() {
                   {itemFields.map((item, index) => {
                     const selectedId = form.watch(`items.${index}.stockInventoryId`);
                     const selectedProduct = inventoryMap[selectedId];
-
+                    console.log(selectedProduct);
                     return (
-                      <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group">
+                      <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group mb-8">
                         {/* الصنف */}
                         <Controller
                           control={form.control}
@@ -242,18 +242,17 @@ export default function AddQuantityAdjustment() {
                                 placeholder="اختر الصنف"
                                 disabled={isView}
                                 onValueChange={(val) => {
-                                  if (isView) return; // 👈 حماية زيادة
+                                  if (isView) return;
 
                                   const product = inventoryMap[Number(val)];
                                   if (product) {
                                     field.onChange(Number(val));
-                                    form.setValue(`items.${index}.quantity`, 1);
                                   }
                                 }}
                               />
 
                               {fieldState.invalid && (
-                                <div className="absolute top-full mt-1 right-0 z-10 w-full">
+                                <div className="absolute top-full mt-2 right-0 z-10 w-full">
                                   <FieldError errors={[fieldState.error]} />
                                 </div>
                               )}
@@ -283,11 +282,7 @@ export default function AddQuantityAdjustment() {
                             <Field className="relative">
                               <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">نوع العملية</FieldLabel>
 
-                              <Select
-                                value={field.value}
-                                onValueChange={(val) => !isView && field.onChange(val)}
-                                disabled={isView} // 👈
-                              >
+                              <Select value={field.value} onValueChange={(val) => !isView && field.onChange(val)} disabled={isView}>
                                 <SelectTrigger className="w-full">
                                   <SelectValue placeholder="نوع العملية" />
                                 </SelectTrigger>
@@ -314,18 +309,24 @@ export default function AddQuantityAdjustment() {
                             control={form.control}
                             name={`items.${index}.quantity`}
                             render={({ field, fieldState }) => (
-                              <Field data-invalid={fieldState.invalid}>
+                              <Field data-invalid={fieldState.invalid} className="relative">
                                 <Input
                                   type="number"
-                                  min={1}
-                                  max={selectedProduct?.quantityAvailable || undefined}
-                                  value={field.value}
-                                  onChange={(e) => !isView && field.onChange(Number(e.target.value))}
-                                  readOnly={isView} // 👈
+                                  value={field.value === undefined ? "" : field.value}
+                                  onChange={(e) => {
+                                    if (!isView) {
+                                      const val = e.target.value;
+                                      field.onChange(val === "" ? undefined : Number(val));
+                                    }
+                                  }}
+                                  readOnly={isView}
                                   className={`text-center ${isView ? "bg-gray-50 cursor-not-allowed" : ""}`}
                                 />
-
-                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                {fieldState.invalid && (
+                                  <div className="absolute top-full mt-2 right-0 z-10 w-full">
+                                    <FieldError errors={[fieldState.error]} />
+                                  </div>
+                                )}{" "}
                               </Field>
                             )}
                           />

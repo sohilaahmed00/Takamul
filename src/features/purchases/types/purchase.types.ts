@@ -19,6 +19,7 @@ export interface Purchase {
 export type CreatePurchaseOrder = {
   orderDate: string;
   warehouseId: number;
+  supplierId: number;
   notes: string;
   items: {
     productId: number;
@@ -27,6 +28,11 @@ export type CreatePurchaseOrder = {
     unitPrice: number;
     discountPercentage: number;
     discountValue: number;
+  }[];
+  payments: {
+    amount: number;
+    treasuryId: number;
+    notes: "";
   }[];
 };
 

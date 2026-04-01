@@ -5,7 +5,14 @@ import type { createCustomer, Customer, GetAllCustomersResponse } from "../types
 // GET
 // ===================
 
-export const getAllCustomers = () => httpClient<GetAllCustomersResponse>("/Customer");
+export const getAllCustomers = ({ page, limit, searchTerm }: { page: number; limit: number; searchTerm: string }) =>
+  httpClient<GetAllCustomersResponse>("/Customer", {
+    params: {
+      Page: page,
+      PageSize: limit,
+      SearchTerm: searchTerm,
+    },
+  });
 
 // export const getCategoryClient = (idOrSlug: string | number) =>
 //   httpClient<Category>(`/categories/${idOrSlug}`);

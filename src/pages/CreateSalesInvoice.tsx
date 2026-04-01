@@ -297,7 +297,7 @@ const CreateSalesInvoice: React.FC = () => {
                   return (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>العميل *</FieldLabel>
-                      <ComboboxField field={field} items={customers} valueKey="id" labelKey="customerName" placeholder="اختر العميل" />
+                      <ComboboxField field={field} items={customers?.items} valueKey="id" labelKey="customerName" placeholder="اختر العميل" />
 
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>

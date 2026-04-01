@@ -2,6 +2,6 @@
 
 export const customersKeys = {
   all: ["customers"] as const,
-  list: () => [...customersKeys.all, "list"] as const,
+  list: (params: { page: number; limit: number; searchTerm: string }) => [...customersKeys.all, "list", params] as const,
   detail: (id: string | number) => [...customersKeys.all, "detail", id] as const,
 };

@@ -3,7 +3,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { PlusCircle, Upload, Barcode, X, Trash2, Plus } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
-import { Controller, FormProvider, useFieldArray, useForm, type Resolver } from "react-hook-form";
+import { Controller, FormProvider, useFieldArray, useForm, type FieldErrors, type Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
@@ -47,20 +47,31 @@ export const createProductSchema = z.object({
   Image: z.union([z.instanceof(File), z.string()]).optional(),
 });
 
-export const createBranchedProductSchema = createProductSchema.extend({
-  ChildrenIds: z.array(z.number()).min(1, "يجب اختيار صنف أم مباشر واحد على الأقل"),
-});
-export const createPreparedProductSchema = createProductSchema.extend({
-  RawMaterials: z
-    .array(
-      z.object({
-        rawMaterialId: z.number().min(1, "الخامة مطلوبة"),
-        quantity: z.number().min(0.01, "الكمية يجب أن تكون أكبر من صفر"),
-        unitId: z.number().min(1, "الوحدة مطلوبة"),
-      }),
-    )
-    .min(1, "يجب إضافة خامة واحدة على الأقل للصنف المجهز"),
-});
+export const createBranchedProductSchema = createProductSchema
+  .omit({
+    Barcode: true,
+    MinStockLevel: true,
+    TaxId: true,
+    TaxCalculation: true,
+  })
+  .extend({
+    ChildrenIds: z.array(z.number()).min(1, "يجب اختيار صنف أم مباشر واحد على الأقل"),
+  });
+export const createPreparedProductSchema = createProductSchema
+  .extend({
+    RawMaterials: z
+      .array(
+        z.object({
+          rawMaterialId: z.number().min(1, "الخامة مطلوبة"),
+          quantity: z.number().min(0.01, "الكمية يجب أن تكون أكبر من صفر"),
+          unitId: z.number().min(1, "الوحدة مطلوبة"),
+        }),
+      )
+      .min(1, "يجب إضافة خامة واحدة على الأقل للصنف المجهز"),
+  })
+  .extend({
+    ChildrenIds: z.array(z.number()).min(1, "يجب اختيار صنف أم مباشر واحد على الأقل"),
+  });
 export const createRawMaterialSchema = createProductSchema
   .omit({
     Barcode: true,
@@ -76,17 +87,7 @@ export const createRawMaterialSchema = createProductSchema
     ConversionFactor: z.number().min(0.01, "معامل التحويل يجب أن يكون أكبر من صفر"),
   });
 
-type FormValues = z.infer<typeof createProductSchema> & {
-  ChildrenIds?: number[];
-  RawMaterials?: {
-    rawMaterialId: number;
-    quantity: number;
-    unitId: number;
-  }[];
-  BaseUnitId?: number;
-  PurchaseUnitId?: number;
-  ConversionFactor?: number;
-};
+type FormValues = z.infer<typeof createProductSchema> | z.infer<typeof createBranchedProductSchema> | z.infer<typeof createPreparedProductSchema> | z.infer<typeof createRawMaterialSchema>;
 
 export const baseDefaultValues: FormValues = {
   Barcode: "",
@@ -184,7 +185,7 @@ export default function AddProduct() {
         TaxCalculation: productData?.taxCalculation,
         CategoryId: undefined,
         Barcode: productData.barcode,
-        TaxId: undefined,
+        TaxId: productData?.taxId,
         Image: undefined,
         MinStockLevel: productData?.minStockLevel,
       });
@@ -253,13 +254,15 @@ export default function AddProduct() {
     const formData = new FormData();
 
     if (productType === "raw") {
+      const rawData = data as z.infer<typeof createRawMaterialSchema>;
+
       formData.append("ProductNameAr", data.ProductNameAr);
       formData.append("ProductNameEN", data.ProductNameEn);
       formData.append("ProductNameUr", data?.ProductNameUr);
       formData.append("CostPrice", String(data.CostPrice));
-      if (data.BaseUnitId) formData.append("BaseUnitId", String(data.BaseUnitId));
-      if (data.PurchaseUnitId) formData.append("PurchaseUnitId", String(data.PurchaseUnitId));
-      if (data.ConversionFactor) formData.append("ConversionFactor", String(data.ConversionFactor));
+      if (rawData.BaseUnitId) formData.append("BaseUnitId", String(rawData.BaseUnitId));
+      if (rawData.PurchaseUnitId) formData.append("PurchaseUnitId", String(rawData.PurchaseUnitId));
+      if (rawData.ConversionFactor) formData.append("ConversionFactor", String(rawData.ConversionFactor));
     } else {
       Object.entries(data).forEach(([key, value]) => {
         if (key === "ChildrenIds" && productType === "branched" && Array.isArray(value)) {
@@ -746,9 +749,7 @@ export default function AddProduct() {
                         <Plus size={16} /> إضافة خامة
                       </Button>
                     </div>
-
                     {rawMaterialFields.length === 0 && <div className="text-center py-4 text-gray-400 text-sm">لم يتم إضافة أي خامات بعد. اضغط على "إضافة خامة".</div>}
-
                     {rawMaterialFields.map((field, index) => (
                       /* تم التعديل لتكون القوائم منسدلة عمودياً في الموبايل وأفقياً في الشاشات الأكبر */
                       <div key={field.id} className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start border-b border-gray-100 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
@@ -831,8 +832,7 @@ export default function AddProduct() {
                         </div>
                       </div>
                     ))}
-
-                    {methods.formState.errors.RawMaterials?.root?.message && <p className="text-sm text-red-500 mt-2">{methods.formState.errors.RawMaterials.root.message}</p>}
+                    {(methods.formState.errors as FieldErrors<z.infer<typeof createPreparedProductSchema>>).RawMaterials?.root?.message && <p className="text-sm text-red-500 mt-2">{(methods.formState.errors as FieldErrors<z.infer<typeof createPreparedProductSchema>>).RawMaterials?.root?.message}</p>}{" "}
                   </div>
                 )}
 

@@ -2,7 +2,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import { PlusCircle, Save, Trash2, FileText, CreditCard, Box, Plus, Eye, X, ArrowLeft, Tag } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
-import z from "zod";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
@@ -25,27 +24,36 @@ import { useCreatePurchaseOrder } from "@/features/purchases/hooks/useCreatePurc
 import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
 import { useGetAllTaxes } from "@/features/taxes/hooks/useGetAllTaxes";
 import { useGetPurchaseOrderById } from "@/features/purchases/hooks/useGetPurchaseOrderById";
+import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
+import z from "zod/v3";
 const PurchasesInvoiceSchema = z.object({
   supplierId: z.number().min(1, "المورد مطلوب"),
   warehouseId: z.number().min(1, "المخزن مطلوب"),
   orderDate: z.string().min(1, "التاريخ مطلوب"),
 
+  notes: z.string().optional(),
   items: z
     .array(
       z.object({
         productId: z.number().min(1, "اختر الصنف"),
-        unitId: z.number().min(1, "اختر وحدة الصنف"),
+        unitId: z.coerce.number().min(1, "اختر وحدة الصنف"),
         quantity: z.number().min(1, "الكمية لازم تكون أكبر من 0"),
-        unitPrice: z.number().min(0, "السعر لازم يكون ≥ 0"),
+        unitPrice: z.number({ required_error: "تكلفة الوحدة مطلوبة" }).min(0, "السعر لازم يكون ≥ 0"),
         discountType: z.enum(["percentage", "fixed"]).default("fixed"),
         discountValue: z.number().min(0).default(0),
         taxType: z.enum(["percentage", "fixed"]).default("fixed"),
-        taxAmount: z.number().min(0).default(0),
-        subTotal: z.number().min(0).default(0),
+        taxId: z.number().min(1, "يرجى اختيار الضريبة"),
       }),
     )
     .min(1, "لازم تضيف صنف واحد على الأقل"),
-  notes: z.string().optional(),
+  payments: z
+    .array(
+      z.object({
+        amount: z.number().min(1, "المبلغ لازم يكون أكبر من 0"),
+        treasuryId: z.number().min(1, "اختر الخزنة"),
+      }),
+    )
+    .min(1, "لازم تضيف دفعة واحدة على الأقل"),
   // subTotal: z.number().min(0),
   // taxAmount: z.number().min(0),
   // discountAmount: z.number().min(0),
@@ -61,21 +69,30 @@ const CreatePurchaseInvoice: React.FC = () => {
   const toggleDiscount = (i: number) => setDiscountOpen((prev) => ({ ...prev, [i]: !prev[i] }));
   const { id } = useParams();
   const { data: purchaseOrder } = useGetPurchaseOrderById(Number(id));
+  const { data: treasurys } = useGetAllTreasurys();
 
   const form = useForm<PurchaseInvoiceType>({
     resolver: zodResolver(PurchasesInvoiceSchema),
     defaultValues: {
       orderDate: new Date().toISOString().split("T")[0],
       warehouseId: 0,
+      supplierId: 0,
       notes: "",
       items: [
         {
           productId: 0,
           unitId: 0,
           quantity: 1,
-          unitPrice: undefined,
+          unitPrice: undefined as unknown as number,
           discountType: "fixed",
           discountValue: 0,
+          taxId: 0,
+        },
+      ],
+      payments: [
+        {
+          amount: 0,
+          treasuryId: 0,
         },
       ],
     },
@@ -95,6 +112,8 @@ const CreatePurchaseInvoice: React.FC = () => {
     control: form.control,
     name: "items",
   });
+
+  const { fields: paymentFields, append: appendPayment, remove: removePayment } = useFieldArray({ control: form.control, name: "payments" });
 
   const items = useWatch({
     control: form.control,
@@ -134,6 +153,7 @@ const CreatePurchaseInvoice: React.FC = () => {
       unitPrice: 0,
       discountType: "fixed",
       discountValue: 0,
+      taxId: 0,
     });
   };
 
@@ -151,14 +171,21 @@ const CreatePurchaseInvoice: React.FC = () => {
     const payload: CreatePurchaseOrder = {
       orderDate: data.orderDate,
       warehouseId: data.warehouseId,
+      supplierId: Number(data?.supplierId),
       notes: data.notes || "",
       items: data.items.map((item) => ({
         productId: item.productId,
-        unitId: item.unitId,
+        unitId: Number(item.unitId),
         quantity: item.quantity,
         unitPrice: item?.unitPrice,
         discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
         discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
+        taxId: item?.taxId,
+      })),
+      payments: data.payments.map((payment) => ({
+        amount: payment.amount,
+        treasuryId: payment?.treasuryId,
+        notes: "",
       })),
     };
     console.log(payload);
@@ -175,7 +202,7 @@ const CreatePurchaseInvoice: React.FC = () => {
       const discType = item.discountType || "fixed";
       const discValue = item.discountValue || 0;
 
-      const tax = taxes?.find((t) => t.id === Number(item.taxAmount));
+      const tax = taxes?.find((t) => t.id === Number(item.taxId));
       const taxRate = tax?.amount || 0;
 
       const gross = qty * price;
@@ -198,6 +225,10 @@ const CreatePurchaseInvoice: React.FC = () => {
       finalTotal,
     };
   }, [items, taxes]);
+
+  const handleAddPayment = () => {
+    appendPayment({ amount: 0, treasuryId: 0 });
+  };
 
   return (
     <Card>
@@ -257,7 +288,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                   return (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>المورد *</FieldLabel>
-                      <ComboboxField field={field} items={suppliers} valueKey="id" labelKey="supplierName" placeholder="اختر المورد" />
+                      <ComboboxField field={field} items={suppliers?.items} valueKey="id" labelKey="supplierName" placeholder="اختر المورد" onValueChange={(val) => Number(val)} />
 
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -306,108 +337,128 @@ const CreatePurchaseInvoice: React.FC = () => {
                       {itemFields.map((item, index) => {
                         const qty = Number(form.watch(`items.${index}.quantity`) || 0);
                         const price = Number(form.watch(`items.${index}.unitPrice`) || 0);
+
                         const discType = form.watch(`items.${index}.discountType`) || "fixed";
                         const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
-                        const taxId = form.watch(`items.${index}.taxAmount`);
+
+                        const taxId = form.watch(`items.${index}.taxId`);
                         const tax = taxes?.find((t) => t.id === Number(taxId));
                         const taxRate = tax?.amount || 0;
+
+                        // 🧮 الحسابات
                         const gross = qty * price;
+
+                        // الخصم
                         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
+
+                        // قبل الضريبة
                         const beforeTax = Math.max(0, gross - discount);
+
+                        // الضريبة (تتضاف)
                         const vatAmount = beforeTax * (taxRate / 100);
+
+                        // الإجمالي النهائي
                         const afterTax = beforeTax + vatAmount;
                         const isDiscOpen = !!discountOpen[index];
 
                         return (
                           <div key={item.id}>
-                            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group">
+                            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-start group">
                               {/* الصنف */}
                               <Controller
                                 control={form.control}
                                 name={`items.${index}.productId`}
-                                render={({ field }) => (
-                                  <ComboboxField
-                                    field={field}
-                                    items={products?.items}
-                                    valueKey="id"
-                                    labelKey="productNameAr"
-                                    placeholder="اختر الصنف"
-                                    onValueChange={(val) => {
-                                      const product = products?.items?.find((p) => p.id === Number(val));
-                                      if (product) {
-                                        form.setValue(`items.${index}.unitPrice`, product.sellingPrice);
-                                      }
-                                    }}
-                                  />
+                                render={({ field, fieldState }) => (
+                                  <Field>
+                                    <ComboboxField
+                                      field={field}
+                                      items={products?.items}
+                                      valueKey="id"
+                                      labelKey="productNameAr"
+                                      placeholder="اختر الصنف"
+                                      onValueChange={(val) => {
+                                        const product = products?.items?.find((p) => p.id === Number(val));
+                                        if (product) {
+                                          console.log(product);
+                                          form.setValue(`items.${index}.unitPrice`, product.sellingPrice);
+                                        }
+                                      }}
+                                    />
+                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                  </Field>
                                 )}
                               />
                               {/* الوحدة */}
                               <Controller
                                 control={form.control}
                                 name={`items.${index}.unitId`}
-                                render={({ field }) => (
-                                  <Select value={field.value === 0 ? "" : String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="الوحدة" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {units?.items?.map((u) => (
-                                        <SelectItem key={u.id} value={String(u.id)}>
-                                          {u.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
+                                render={({ field, fieldState }) => (
+                                  <Field>
+                                    <Select value={field.value === 0 ? "" : String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
+                                      <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="الوحدة" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {units?.items?.map((u) => (
+                                          <SelectItem key={u.id} value={String(u.id)}>
+                                            {u.name}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                  </Field>
                                 )}
                               />
-
                               {/* السعر */}
-                              <Controller control={form.control} name={`items.${index}.unitPrice`} render={({ field }) => <Input type="number" value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />} />
-
-                              {/* الكمية */}
-                              <Controller control={form.control} name={`items.${index}.quantity`} render={({ field }) => <Input type="number" min={1} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />} />
-
-                              {/* قبل الضريبة */}
-                              <div className="text-center font-medium">
-                                {beforeTax.toLocaleString("en-EG", {
-                                  minimumFractionDigits: 2,
-                                })}
-                              </div>
-
-                              {/* نسبة الضريبة */}
                               <Controller
                                 control={form.control}
-                                name={`items.${index}.taxAmount`}
-                                render={({ field }) => (
-                                  <Select value={field.value === 0 ? "" : String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
-                                    <SelectTrigger className="w-full">
-                                      <SelectValue placeholder="الضريبة" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {taxes?.map((t) => (
-                                        <SelectItem key={t.id} value={String(t.id)}>
-                                          {t.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
+                                name={`items.${index}.unitPrice`}
+                                render={({ field, fieldState }) => (
+                                  <Field>
+                                    <Input type="number" value={field.value === undefined ? "" : field.value} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} className="text-center" />
+                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                  </Field>
                                 )}
                               />
-
+                              {/* الكمية */}
+                              <Controller
+                                control={form.control}
+                                name={`items.${index}.quantity`}
+                                render={({ field, fieldState }) => (
+                                  <Field>
+                                    <Input type="number" min={1} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                  </Field>
+                                )}
+                              />
+                              {/* قبل الضريبة */}
+                              <div className="self-start pt-2 text-center font-medium">{beforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</div> {/* نسبة الضريبة */}
+                              <Controller
+                                control={form.control}
+                                name={`items.${index}.taxId`}
+                                render={({ field, fieldState }) => (
+                                  <Field>
+                                    <Select value={field.value === 0 ? "" : String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
+                                      <SelectTrigger className="w-full">
+                                        <SelectValue placeholder="الضريبة" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {taxes?.map((t) => (
+                                          <SelectItem key={t.id} value={String(t.id)}>
+                                            {t.name}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                  </Field>
+                                )}
+                              />
                               {/* قيمة الضريبة */}
-                              <div className="text-center text-orange-600 font-medium">
-                                {vatAmount.toLocaleString("en-EG", {
-                                  minimumFractionDigits: 2,
-                                })}
-                              </div>
-
+                              <div className="self-start pt-2 text-center text-orange-600 font-medium">{vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</div>
                               {/* الإجمالي */}
-                              <div className="text-center text-green-600 font-bold">
-                                {afterTax.toLocaleString("en-EG", {
-                                  minimumFractionDigits: 2,
-                                })}
-                              </div>
-
+                              <div className="self-start pt-2 text-center text-green-600 font-bold">{afterTax.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</div>
                               {/* أزرار */}
                               <div className="flex items-center justify-center gap-2">
                                 <button type="button" onClick={() => removeItem(index)} className="p-2 text-zinc-400 hover:text-red-500">
@@ -445,6 +496,8 @@ const CreatePurchaseInvoice: React.FC = () => {
                           </div>
                         );
                       })}
+
+                      {(form.formState.errors.items?.root?.message || form.formState.errors.items?.message) && <p className="text-red-500 text-sm text-center py-2">{form.formState.errors.items?.root?.message || form.formState.errors.items?.message}</p>}
                     </div>
                   </div>
                 </div>
@@ -454,40 +507,97 @@ const CreatePurchaseInvoice: React.FC = () => {
               </section>
             </div>
           </div>
-          <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
-            <h3 className="text-base font-semibold text-gray-800 mb-5">ملخص الفاتورة</h3>
 
-            <div className="space-y-4">
-              {/* قبل الضريبة */}
-              <div className="flex justify-between items-center text-zinc-600">
-                <span className="text-sm font-medium">الإجمالي قبل الضريبة</span>
-                <span className="font-semibold text-zinc-900">
-                  {summary.beforeTaxTotal.toLocaleString("en-EG", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-2 space-y-4">
+              {paymentFields.map((payment, index) => (
+                <div key={payment.id} className="flex flex-col sm:flex-row gap-3 items-start bg-gray-50/50 p-3 rounded-lg border border-gray-100">
+                  <div className="w-full flex-1">
+                    <label className="text-xs text-gray-500 mb-1 block">المبلغ</label>
+                    <Controller
+                      control={form.control}
+                      name={`payments.${index}.amount`}
+                      render={({ field, fieldState }) => (
+                        <Field className="relative" data-invalid={fieldState.invalid}>
+                          <Input type="number" placeholder="0.00" value={field.value === 0 ? "" : field.value} onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))} className="bg-white" /> {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                  </div>
 
-              {/* الضريبة */}
-              <div className="flex justify-between items-center text-zinc-600">
-                <span className="text-sm font-medium">ضريبة القيمة المضافة</span>
-                <span className="font-semibold text-orange-600">
-                  {summary.totalVat.toLocaleString("en-EG", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
-              </div>
+                  <div className="w-full flex-1">
+                    <label className="text-xs text-gray-500 mb-1 block">طريقة الدفع</label>
+                    <Controller
+                      control={form.control}
+                      name={`payments.${index}.treasuryId`}
+                      render={({ field, fieldState }) => (
+                        <Field>
+                          <Select value={field.value ? String(field.value) : ""} onValueChange={(val) => field.onChange(Number(val))}>
+                            <SelectTrigger className="w-full bg-white">
+                              <SelectValue placeholder="اختر..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {treasurys?.map((treasury) => (
+                                <SelectItem key={treasury?.id} value={String(treasury?.id)}>
+                                  {treasury?.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                  </div>
 
-              <hr className="border-zinc-200" />
+                  <div className="pt-5 shrink-0">
+                    <button type="button" onClick={() => removePayment(index)} disabled={paymentFields.length === 1} className="p-2 text-red-500 hover:bg-red-50 rounded-md disabled:opacity-30 transition-colors border border-transparent hover:border-red-100" title="حذف الدفعة">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              ))}
 
-              {/* الإجمالي النهائي */}
-              <div className="flex justify-between items-center">
-                <span className="font-bold text-zinc-900">الإجمالي النهائي</span>
-                <span className="text-xl font-black text-green-600">
-                  {summary.finalTotal.toLocaleString("en-EG", {
-                    minimumFractionDigits: 2,
-                  })}
-                </span>
+              <Button type="button" size={"lg"} variant={"secondary"} onClick={handleAddPayment} className=" text-sm font-medium px-4  rounded-lg transition-colors w-max">
+                <Plus size={16} strokeWidth={2} /> إضافة دفعة أخرى
+              </Button>
+            </div>
+
+            <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
+              <h3 className="text-base font-semibold text-gray-800 mb-5">ملخص الفاتورة</h3>
+
+              <div className="space-y-4">
+                {/* قبل الضريبة */}
+                <div className="flex justify-between items-center text-zinc-600">
+                  <span className="text-sm font-medium">الإجمالي قبل الضريبة</span>
+                  <span className="font-semibold text-zinc-900">
+                    {summary.beforeTaxTotal.toLocaleString("en-EG", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+
+                {/* الضريبة */}
+                <div className="flex justify-between items-center text-zinc-600">
+                  <span className="text-sm font-medium">ضريبة القيمة المضافة</span>
+                  <span className="font-semibold text-orange-600">
+                    {summary.totalVat.toLocaleString("en-EG", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
+
+                <hr className="border-zinc-200" />
+
+                {/* الإجمالي النهائي */}
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-zinc-900">الإجمالي النهائي</span>
+                  <span className="text-xl font-black text-green-600">
+                    {summary.finalTotal.toLocaleString("en-EG", {
+                      minimumFractionDigits: 2,
+                    })}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

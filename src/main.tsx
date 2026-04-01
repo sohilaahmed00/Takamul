@@ -37,6 +37,7 @@ import "primereact/resources/primereact.min.css";
 import "primeicons/primeicons.css";
 
 import { DirectionProvider } from "@/components/ui/direction";
+import { ProductsProvider } from "./context/ProductsContext.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -47,6 +48,8 @@ createRoot(document.getElementById("root")!).render(
             <SettingsProvider>
               <LanguageProvider>
                 {" "}
+                <ProductsProvider>
+
                 <AdjustmentsProvider>
                   <ExpensesProvider>
                     <SalesProvider>
@@ -94,6 +97,7 @@ createRoot(document.getElementById("root")!).render(
                     </SalesProvider>
                   </ExpensesProvider>
                 </AdjustmentsProvider>
+                </ProductsProvider>
                 {/* ✅ */}
               </LanguageProvider>
             </SettingsProvider>

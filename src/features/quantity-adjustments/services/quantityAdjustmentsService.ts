@@ -19,8 +19,8 @@ export async function getQuantityAdjustmentById(id: number): Promise<QuantityAdj
   return response;
 }
 
-export async function createQuantityAdjustment(payload: CreateQuantityAdjustmentPayload): Promise<any> {
-  return await httpClient<any>("/StockInventory/bulk-adjust", {
+export async function createQuantityAdjustment(payload: CreateQuantityAdjustmentPayload) {
+  return await httpClient<{ message: string }>("/StockInventory/bulk-adjust", {
     method: "POST",
     data: payload,
   });
