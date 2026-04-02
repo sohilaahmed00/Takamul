@@ -138,8 +138,6 @@ import Revenues from "@/pages/revenues-and-expenses/Revenues";
 import Expenses from "@/pages/revenues-and-expenses/Expenses";
 import Items from "@/pages/revenues-and-expenses/ItemsList";
 
-
-
 // Print Context
 import { PrintProvider, usePrint } from "@/context/PrintContext";
 import ThermalReceipt from "@/components/ThermalReceipt";
@@ -151,7 +149,8 @@ import CustomerCollectionsList from "./pages/CustomerCollectionsList";
 import BranchesList from "./pages/BranchesList";
 import AddBranch from "@/pages/AddBranch";
 import WarehousesList from "./pages/WarehousesList";
-
+import AppLayout from "./components/pos/layout/AppLayout";
+import HomePage from "./components/pos/pages/HomePage";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
@@ -163,7 +162,8 @@ function AppRoutes() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/verify-otp" element={<VerifyOTP />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/pos" element={<POSPage />} />
+        {/* <Route path="/pos" element={<POSPage />} /> */}
+        <Route path="/pos" element={<AppLayout />} />
 
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -252,7 +252,6 @@ function AppRoutes() {
           <Route path="/settings/warehouses" element={<Warehouses />} />
           <Route path="/settings/branches" element={<Branches />} />
 
-
           {/* التقارير */}
           <Route path="/reports/sales-by-category" element={<SalesByCategoryReport />} />
           <Route path="/reports/items" element={<ItemsReport />} />
@@ -318,8 +317,7 @@ function AppRoutes() {
           <Route path="/branches/create" element={<AddBranch />} />
           <Route path="/branches/edit/:id" element={<AddBranch />} />
           <Route path="/branches/:mode/:id" element={<AddBranch />} />
-           <Route path="/warehouses" element={<WarehousesList/>} />
-       
+          <Route path="/warehouses" element={<WarehousesList />} />
         </Route>
       </Routes>
 

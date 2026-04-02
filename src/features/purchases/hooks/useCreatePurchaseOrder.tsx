@@ -14,7 +14,6 @@ export function useCreatePurchaseOrder() {
   return useMutation({
     mutationFn: (data: CreatePurchaseOrder) => createPurchaseOrder(data),
     onSuccess: (response) => {
-      console.log(response);
       queryClient.invalidateQueries({
         queryKey: purchasesKeys.all,
       });

@@ -4,7 +4,6 @@ import { PlusCircle, Upload, Barcode, X, Trash2, Plus } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { Controller, FormProvider, useFieldArray, useForm, type FieldErrors, type Resolver } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import axios from "axios";
 
@@ -32,6 +31,8 @@ import { useUpdateProduct } from "@/features/products/hooks/useUpdateProduct";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
 import useToast from "@/hooks/useToast";
+import z from "zod/v3";
+import { useGetProductBranchedById } from "@/features/products/hooks/useGetProductBranchedById";
 export const createProductSchema = z.object({
   Barcode: z.string().min(1, "الباركود مطلوب"),
   ProductNameAr: z.string().min(1, "اسم المنتج بالعربي مطلوب"),
@@ -39,9 +40,9 @@ export const createProductSchema = z.object({
   ProductNameUr: z.string().min(1, "اسم المنتج بالأوردو مطلوب"),
   Description: z.string().optional().or(z.literal("")),
   CategoryId: z.number().min(1, "التصنيف مطلوب"),
-  CostPrice: z.number().min(0, "سعر التكلفة يجب أن يكون أكبر من أو يساوي صفر"),
-  SellingPrice: z.number().min(0, "سعر البيع يجب أن يكون أكبر من أو يساوي صفر"),
-  MinStockLevel: z.number().min(1, "الحد الأدنى للمخزون غير صحيح"),
+  CostPrice: z.number({ required_error: "سعر التكلفة مطلوب" }).min(0, "سعر التكلفة يجب أن يكون أكبر من أو يساوي صفر"),
+  SellingPrice: z.number({ required_error: "سعر البيع مطلوب" }).min(0, "سعر البيع يجب أن يكون أكبر من أو يساوي صفر"),
+  MinStockLevel: z.number().min(1, "الحد الأدنى للمخزون غير صحيح").optional(),
   TaxId: z.number().min(1, "الضريبة مطلوبة"),
   TaxCalculation: z.string().min(1, "طريقة حساب الضريبة مطلوبة"),
   Image: z.union([z.instanceof(File), z.string()]).optional(),
@@ -87,8 +88,7 @@ export const createRawMaterialSchema = createProductSchema
     ConversionFactor: z.number().min(0.01, "معامل التحويل يجب أن يكون أكبر من صفر"),
   });
 
-type FormValues = z.infer<typeof createProductSchema> | z.infer<typeof createBranchedProductSchema> | z.infer<typeof createPreparedProductSchema> | z.infer<typeof createRawMaterialSchema>;
-
+type FormValues = z.infer<typeof createProductSchema> & Partial<z.infer<typeof createBranchedProductSchema>> & Partial<z.infer<typeof createPreparedProductSchema>> & Partial<z.infer<typeof createRawMaterialSchema>>;
 export const baseDefaultValues: FormValues = {
   Barcode: "",
   ProductNameAr: "",
@@ -96,9 +96,9 @@ export const baseDefaultValues: FormValues = {
   ProductNameUr: "",
   Description: "",
   CategoryId: 0,
-  CostPrice: 0,
-  SellingPrice: 0,
-  MinStockLevel: 0,
+  CostPrice: undefined as unknown as number,
+  SellingPrice: undefined as unknown as number,
+  MinStockLevel: undefined,
   TaxId: 1,
   TaxCalculation: "1",
   Image: undefined,
@@ -139,6 +139,9 @@ export default function AddProduct() {
   const anchor = useComboboxAnchor();
   const { id } = useParams();
   const { data: productData, error } = useGetProductById(Number(id));
+  const { data: productDataBracnhed } = useGetProductBranchedById(Number(id), {
+    enabled: !!id && productType === "branched",
+  });
   const { mutateAsync: updateProduct } = useUpdateProduct();
   const { notifyError, notifySuccess } = useToast();
   useEffect(() => {
@@ -148,7 +151,7 @@ export default function AddProduct() {
   }, [error]);
   const activeSchema = productType === "branched" ? createBranchedProductSchema : productType === "prepared" ? createPreparedProductSchema : productType === "raw" ? createRawMaterialSchema : createProductSchema;
   const methods = useForm<FormValues>({
-    resolver: zodResolver(activeSchema) as Resolver<FormValues>,
+    resolver: zodResolver(activeSchema as any) as Resolver<FormValues>,
     defaultValues: baseDefaultValues,
     mode: "onChange",
   });
@@ -188,6 +191,7 @@ export default function AddProduct() {
         TaxId: productData?.taxId,
         Image: undefined,
         MinStockLevel: productData?.minStockLevel,
+        ChildrenIds: productDataBracnhed?.children?.map((c) => c?.id)?.filter((id): id is number => typeof id === "number") || [],
       });
     }
   }, [productData, reset, id]);
@@ -486,7 +490,7 @@ export default function AddProduct() {
                         <FieldLabel className="gap-x-0">
                           التكلفة <span className="text-red-500">*</span>
                         </FieldLabel>
-                        <Input {...field} onChange={(e) => field.onChange(Number(e.target.value))} type="number" placeholder="ادخل التكلفة *" />
+                        <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} type="number" placeholder="ادخل التكلفة *" />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
@@ -503,7 +507,7 @@ export default function AddProduct() {
                           <FieldLabel>
                             سعر البيع <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <Input {...field} onChange={(e) => field.onChange(Number(e.target.value))} type="number" placeholder="ادخل السعر *" />
+                          <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} type="number" placeholder="ادخل السعر *" />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -515,7 +519,7 @@ export default function AddProduct() {
                         render={({ field, fieldState }) => (
                           <Field data-invalid={fieldState.invalid}>
                             <FieldLabel className="gap-x-0">الحد الأدنى للمخزون</FieldLabel>
-                            <Input {...field} onChange={(e) => field.onChange(Number(e.target.value))} placeholder="ادخل الحد الادنى للمخزون" />
+                            <Input {...field} value={field?.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} placeholder="ادخل الحد الادنى للمخزون" />
                             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                           </Field>
                         )}
@@ -878,11 +882,11 @@ export default function AddProduct() {
                 )}
               </div>
 
-              <div className="flex flex-col-reverse lg:flex-row justify-between gap-3   py-4 border-t border-gray-100 bg-gray-50/50 mt-8">
+              <div className="flex flex-col-reverse lg:flex-row justify-between    py-4 border px-3 gap-3 rounded border-gray-100">
                 <Button size="lg" variant="destructive" type="button" className="w-full lg:w-auto px-8 h-12">
                   إلغاء
                 </Button>
-                <div className="flex flex-col lg:flex-row items-center gap-3 w-full lg:w-auto">
+                <div className="flex flex-col-reverse lg:flex-row items-center gap-3 w-full lg:w-auto">
                   <Button variant="outline" size="lg" type="button" className="w-full lg:w-auto px-8 h-12 text-base">
                     حفظ وإضافة آخر
                   </Button>

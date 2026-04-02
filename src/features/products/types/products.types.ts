@@ -52,7 +52,14 @@ export type ProductBranch = {
   parentCategoryId: number;
   imageUrl: string | null;
   isActive: boolean;
-  children: Product[];
+  children: {
+    id: number;
+    productCode: number;
+    productNameAr: string;
+    barcode: string;
+    costPrice: number;
+    sellingPrice: number;
+  }[];
 };
 export type ProductRawMatrial = {
   id: number;

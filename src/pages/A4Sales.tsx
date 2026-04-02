@@ -55,7 +55,7 @@ export default function A4Sales() {
           <CardTitle>مبيعات A4</CardTitle>
           <CardDescription>يمكنك إدارة ، إضافة ، تعديل فواتير البيع الخاصة بك</CardDescription>
           <CardAction>
-            <Button variant={"default"} asChild>
+            <Button size={"xl"} variant={"default"} asChild>
               <Link to={"/sales/create"}>إضافة فاتورة مبيعات</Link>
             </Button>
           </CardAction>

@@ -196,6 +196,7 @@ export default function ProductsList() {
           >
             <Column header={t("name")} sortable field="productNameAr" />
             <Column field="description" sortable header={t("description")} />
+            <Column field="productType" sortable header={"الكمية"} />
             <Column field="productType" sortable header={"النوع"} />
             <Column
               header={t("actions")}

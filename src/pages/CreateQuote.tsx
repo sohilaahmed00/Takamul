@@ -268,7 +268,7 @@ const CreateQuote: React.FC = () => {
     },
   });
 
-  const { data: customers } = useGetAllCustomers();
+  const { data: customers } = useGetAllCustomers({ page: 1, limit: 100 });
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
@@ -337,7 +337,7 @@ const CreateQuote: React.FC = () => {
         <CardHeader>
           <CardTitle>إضافة عرض سعر</CardTitle>
           <CardAction>
-            <Button variant="outline" asChild>
+            <Button size={"xl"} variant="outline" asChild>
               <Link to="/quotes">
                 الرجوع لقائمة عروض الأسعار
                 <ArrowLeft size={16} />
@@ -382,7 +382,7 @@ const CreateQuote: React.FC = () => {
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>العميل *</FieldLabel>
-                      <ComboboxField field={field} items={customers} valueKey="id" labelKey="customerName" placeholder="اختر العميل" />
+                      <ComboboxField field={field} items={customers?.items} valueKey="id" labelKey="customerName" placeholder="اختر العميل" />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
@@ -614,7 +614,7 @@ const CreateQuote: React.FC = () => {
         </CardContent>
       </Card>
 
-      <FloatingSummary control={form.control} customers={customers} products={products?.items} units={units?.items} grandTotal={grandTotal} itemCount={count} />
+      <FloatingSummary control={form.control} customers={customers?.items} products={products?.items} units={units?.items} grandTotal={grandTotal} itemCount={count} />
     </>
   );
 };

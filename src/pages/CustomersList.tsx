@@ -13,7 +13,7 @@ import { FilterMatchMode } from "primereact/api";
 
 export default function CustomersList() {
   const { t, direction } = useLanguage();
-  const { data: response, isLoading } = useGetAllCustomers();
+  const { data: response, isLoading } = useGetAllCustomers({ page: 1, limit: 10000 });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage] = useState(10);

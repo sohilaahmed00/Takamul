@@ -100,7 +100,7 @@ const CreateSalesInvoice: React.FC = () => {
     },
   });
 
-  const { data: customers } = useGetAllCustomers();
+  const { data: customers } = useGetAllCustomers({ page: 1, limit: 100 });
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
@@ -113,7 +113,7 @@ const CreateSalesInvoice: React.FC = () => {
   useEffect(() => {
     if (!salesOrder || !isEditMode) return;
     if (!customers || !wareHouses || !products?.items || !units?.items) return;
-    const customer = customers?.find((c) => c.customerName === salesOrder.customerName);
+    const customer = customers?.items?.find((c) => c.customerName === salesOrder.customerName);
     const warehouse = wareHouses?.find((w) => w.warehouseName === salesOrder.warehouseName);
 
     form.reset({
@@ -176,7 +176,6 @@ const CreateSalesInvoice: React.FC = () => {
         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
         const beforeTax = Math.max(0, gross - discount);
 
-        // ─── ← التعديل الوحيد هنا ───
         const productId = item.productId;
         const product = products?.items?.find((p) => p.id === Number(productId));
         const taxRate = product?.taxAmount || 0;
@@ -242,15 +241,12 @@ const CreateSalesInvoice: React.FC = () => {
     }
   };
 
-
-
   return (
     <Card>
       <CardHeader>
-        {/* ← العنوان بيتغير حسب الوضع */}
         <CardTitle>{isEditMode ? `تعديل فاتورة مبيعات #${salesOrder?.orderNumber ?? id}` : "إضافة فاتورة مبيعات"}</CardTitle>
         <CardAction>
-          <Button variant={"outline"} asChild>
+          <Button size={"xl"} variant={"outline"} asChild>
             <Link to={"/sales/all"}>
               الرجوع لقائمة المبيعات
               <ArrowLeft size={16} />
@@ -355,7 +351,7 @@ const CreateSalesInvoice: React.FC = () => {
                         const gross = qty * price;
                         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                         const beforeTax = Math.max(0, gross - discount);
-                        const vatAmount = calcVat(beforeTax, taxRate, taxCalc); 
+                        const vatAmount = calcVat(beforeTax, taxRate, taxCalc);
 
                         const afterTax = beforeTax + vatAmount;
 

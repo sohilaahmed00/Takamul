@@ -375,7 +375,7 @@ export default function QuotesList() {
         <CardTitle>عروض الأسعار</CardTitle>
         <CardDescription>يمكنك إدارة ، إضافة ، تعديل عروض الأسعار الخاصة بك</CardDescription>
         <CardAction>
-          <Button variant={"default"} asChild>
+          <Button  size={"xl"} variant={"default"} asChild>
             <Link to={"/quotes/create"}>إضافة عرض سعر</Link>
           </Button>
         </CardAction>

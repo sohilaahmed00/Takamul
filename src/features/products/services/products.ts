@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import type { CreateProduct, GetAllProductBranchedResponse, GetAllProductDirectResponse, GetAllProductPreparedResponse, GetAllProductRawMatrialResponse, GetAllProductsResponse, Product } from "../types/products.types";
+import type { CreateProduct, GetAllProductBranchedResponse, GetAllProductDirectResponse, GetAllProductPreparedResponse, GetAllProductRawMatrialResponse, GetAllProductsResponse, Product, ProductBranch } from "../types/products.types";
 
 // ===================
 // GET
@@ -66,4 +66,7 @@ export const deleteProduct = (id: number) =>
 
 export function getProductById(id: number) {
   return httpClient<Product>(`/Products/${id}`);
+}
+export function getProductBranchedById(id: number) {
+  return httpClient<ProductBranch>(`/Products/branched/${id}`);
 }
