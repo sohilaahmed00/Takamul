@@ -1,7 +1,7 @@
 // src/pages/AddProduct.tsx
 import React, { useState, useMemo, useEffect } from "react";
 import { PlusCircle, Upload, Barcode, X, Trash2, Plus } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
 import { Controller, FormProvider, useFieldArray, useForm, type FieldErrors, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,6 +33,13 @@ import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
 import useToast from "@/hooks/useToast";
 import z from "zod/v3";
 import { useGetProductBranchedById } from "@/features/products/hooks/useGetProductBranchedById";
+import { useUpdateProductBranched } from "@/features/products/hooks/useUpdateProductBranched";
+import { useGetProductDirectById } from "@/features/products/hooks/useGetProductDirectById";
+import { useUpdateProductDirect } from "@/features/products/hooks/useUpdateProductDirect";
+import { useGetProductPreparedById } from "@/features/products/hooks/useGetProductPreparedById";
+import { updateProductPrepared } from "@/features/products/services/products";
+import { useUpdateProductPrepared } from "@/features/products/hooks/useUpdateProductPrepared";
+import { useGetProductRawMaterialtById } from "@/features/products/hooks/useGetProductRawMaterialtById";
 export const createProductSchema = z.object({
   Barcode: z.string().min(1, "الباركود مطلوب"),
   ProductNameAr: z.string().min(1, "اسم المنتج بالعربي مطلوب"),
@@ -44,7 +51,7 @@ export const createProductSchema = z.object({
   SellingPrice: z.number({ required_error: "سعر البيع مطلوب" }).min(0, "سعر البيع يجب أن يكون أكبر من أو يساوي صفر"),
   MinStockLevel: z.number().min(1, "الحد الأدنى للمخزون غير صحيح").optional(),
   TaxId: z.number().min(1, "الضريبة مطلوبة"),
-  TaxCalculation: z.string().min(1, "طريقة حساب الضريبة مطلوبة"),
+  TaxCalculation: z.number().min(1, "طريقة حساب الضريبة مطلوبة"),
   Image: z.union([z.instanceof(File), z.string()]).optional(),
 });
 
@@ -54,25 +61,29 @@ export const createBranchedProductSchema = createProductSchema
     MinStockLevel: true,
     TaxId: true,
     TaxCalculation: true,
+    CostPrice: true,
+    SellingPrice: true,
   })
   .extend({
     ChildrenIds: z.array(z.number()).min(1, "يجب اختيار صنف أم مباشر واحد على الأقل"),
   });
-export const createPreparedProductSchema = createProductSchema
-  .extend({
-    RawMaterials: z
-      .array(
-        z.object({
-          rawMaterialId: z.number().min(1, "الخامة مطلوبة"),
-          quantity: z.number().min(0.01, "الكمية يجب أن تكون أكبر من صفر"),
-          unitId: z.number().min(1, "الوحدة مطلوبة"),
-        }),
-      )
-      .min(1, "يجب إضافة خامة واحدة على الأقل للصنف المجهز"),
-  })
-  .extend({
-    ChildrenIds: z.array(z.number()).min(1, "يجب اختيار صنف أم مباشر واحد على الأقل"),
-  });
+export const createPreparedProductSchema = createProductSchema.extend({
+  RawMaterials: z
+    .array(
+      z.object({
+        rawMaterialId: z.number().min(1, "الخامة مطلوبة"),
+        quantity: z
+          .number({
+            required_error: "الكمية مطلوبة",
+            invalid_type_error: "الكمية يجب أن تكون رقم",
+          })
+          .min(1, "الكمية يجب أن تكون أكبر من صفر"),
+        unitId: z.number().min(1, "الوحدة مطلوبة"),
+      }),
+    )
+    .min(1, "يجب إضافة خامة واحدة على الأقل للصنف المجهز"),
+});
+
 export const createRawMaterialSchema = createProductSchema
   .omit({
     Barcode: true,
@@ -83,9 +94,19 @@ export const createRawMaterialSchema = createProductSchema
     MinStockLevel: true,
   })
   .extend({
-    BaseUnitId: z.number().min(1, "وحدة الأساس مطلوبة"),
-    PurchaseUnitId: z.number().min(1, "وحدة الشراء مطلوبة"),
-    ConversionFactor: z.number().min(0.01, "معامل التحويل يجب أن يكون أكبر من صفر"),
+    BaseUnitId: z
+      .number({
+        required_error: "وحدة الأساس مطلوبة",
+        invalid_type_error: "وحدة الأساس مطلوبة",
+      })
+      .min(1, "وحدة الأساس مطلوبة"),
+    PurchaseUnitId: z
+      .number({
+        required_error: "وحدة الشراء مطلوبة",
+        invalid_type_error: "وحدة الشراء مطلوبة",
+      })
+      .min(1, "وحدة الشراء مطلوبة"),
+    ConversionFactor: z.number().min(1, "معامل التحويل يجب أن يكون أكبر من صفر"),
   });
 
 type FormValues = z.infer<typeof createProductSchema> & Partial<z.infer<typeof createBranchedProductSchema>> & Partial<z.infer<typeof createPreparedProductSchema>> & Partial<z.infer<typeof createRawMaterialSchema>>;
@@ -99,13 +120,19 @@ export const baseDefaultValues: FormValues = {
   CostPrice: undefined as unknown as number,
   SellingPrice: undefined as unknown as number,
   MinStockLevel: undefined,
-  TaxId: 1,
-  TaxCalculation: "1",
+  TaxId: 0,
+  TaxCalculation: 0,
   Image: undefined,
   ChildrenIds: [],
-  RawMaterials: [],
-  BaseUnitId: undefined,
-  PurchaseUnitId: undefined,
+  RawMaterials: [
+    {
+      rawMaterialId: 0,
+      quantity: undefined as unknown as number,
+      unitId: 0,
+    },
+  ],
+  BaseUnitId: 0,
+  PurchaseUnitId: 0,
   ConversionFactor: 1,
 };
 
@@ -122,10 +149,10 @@ function createFileValidator(options: { maxFiles: number; maxSizeMB?: number; al
 export default function AddProduct() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  type ProductType = "direct" | "branched" | "prepared" | "raw";
-  const [productType, setProductType] = useState<ProductType>("direct");
+  type ProductType = "Direct" | "Branched" | "Prepared" | "RawMatrial";
   const [mainCategoryId, setMainCategoryId] = useState<number>();
   const { data: taxesData } = useGetAllTaxes();
+  const [productType, setProductType] = useState<ProductType>("Direct");
   const { data: mainCategories } = useGetAllMainCategories();
   const { data: subCategories, refetch } = useGetAllSubCategoriesWidthParentId(mainCategoryId as number);
   const { data: productsDirect } = useGetAllProductsDirect({ page: 1, limit: 100 });
@@ -138,18 +165,25 @@ export default function AddProduct() {
   const { data: units } = useGetAllUnits({ page: 1, size: 1000000 });
   const anchor = useComboboxAnchor();
   const { id } = useParams();
-  const { data: productData, error } = useGetProductById(Number(id));
+  const [searchParams] = useSearchParams();
+  const type = searchParams.get("type") as ProductType;
   const { data: productDataBracnhed } = useGetProductBranchedById(Number(id), {
-    enabled: !!id && productType === "branched",
+    enabled: !!id && type === "Branched",
   });
-  const { mutateAsync: updateProduct } = useUpdateProduct();
-  const { notifyError, notifySuccess } = useToast();
-  useEffect(() => {
-    if (error && error?.message) {
-      notifyError(String(error?.message));
-    }
-  }, [error]);
-  const activeSchema = productType === "branched" ? createBranchedProductSchema : productType === "prepared" ? createPreparedProductSchema : productType === "raw" ? createRawMaterialSchema : createProductSchema;
+  const { data: productDataDirect } = useGetProductDirectById(Number(id), {
+    enabled: !!id && type === "Direct",
+  });
+  const { data: productDataPrepared } = useGetProductPreparedById(Number(id), {
+    enabled: !!id && type === "Prepared",
+  });
+  const { data: productDataRawMaterial } = useGetProductRawMaterialtById(Number(id), {
+    enabled: !!id && type === "RawMatrial",
+  });
+
+  const { mutateAsync: updateProductBranched } = useUpdateProductBranched();
+  const { mutateAsync: updateProductDirect } = useUpdateProductDirect();
+  const { mutateAsync: updateProductPrepared } = useUpdateProductPrepared();
+  const activeSchema = productType === "Branched" ? createBranchedProductSchema : productType === "Prepared" ? createPreparedProductSchema : productType === "RawMatrial" ? createRawMaterialSchema : createProductSchema;
   const methods = useForm<FormValues>({
     resolver: zodResolver(activeSchema as any) as Resolver<FormValues>,
     defaultValues: baseDefaultValues,
@@ -159,47 +193,98 @@ export default function AddProduct() {
   const { control, watch, setValue, clearErrors, reset } = methods;
 
   useEffect(() => {
-    if (productData && id) {
-      setMainCategoryId(productData?.parentCategoryId);
-      console.log(productData);
-      switch (productData?.productType) {
-        case "Direct":
-          setProductType("direct");
-          break;
-        case "Branched":
-          setProductType("branched");
-          break;
-        case "Prepared":
-          setProductType("prepared");
-          break;
-        case "RawMatrial":
-          setProductType("raw");
-          break;
-        default:
-          setProductType("direct");
-      }
-      reset({
-        ProductNameAr: productData.productNameAr,
-        ProductNameEn: productData.productNameEn,
-        ProductNameUr: productData.productNameUr,
-        Description: productData.description || "",
-        SellingPrice: productData.sellingPrice,
-        CostPrice: productData.costPrice,
-        TaxCalculation: productData?.taxCalculation,
-        CategoryId: undefined,
-        Barcode: productData.barcode,
-        TaxId: productData?.taxId,
-        Image: undefined,
-        MinStockLevel: productData?.minStockLevel,
-        ChildrenIds: productDataBracnhed?.children?.map((c) => c?.id)?.filter((id): id is number => typeof id === "number") || [],
-      });
+    if (!id) return;
+
+    switch (type) {
+      case "Direct":
+        if (!productDataDirect) return;
+        setProductType("Direct");
+        setMainCategoryId(productDataDirect.parentCategoryId);
+        reset({
+          ProductNameAr: productDataDirect.productNameAr,
+          ProductNameEn: productDataDirect.productNameEn,
+          ProductNameUr: productDataDirect.productNameUr,
+          Description: productDataDirect.description || "",
+          Barcode: productDataDirect.barcode,
+          SellingPrice: productDataDirect.sellingPrice,
+          CostPrice: productDataDirect.costPrice,
+          MinStockLevel: productDataDirect.minStockLevel,
+        });
+        break;
+
+      case "Branched":
+        if (!productDataBracnhed) return;
+        setProductType("Branched");
+        setMainCategoryId(productDataBracnhed.parentCategoryId);
+        reset({
+          ProductNameAr: productDataBracnhed.productNameAr,
+          ProductNameEn: productDataBracnhed.productNameEn,
+          ProductNameUr: productDataBracnhed.productNameUr,
+          Description: productDataBracnhed.description || "",
+          ChildrenIds: productDataBracnhed.children?.map((c) => c?.id)?.filter((id): id is number => typeof id === "number") || [],
+        });
+        break;
+
+      case "Prepared":
+        if (!productDataPrepared) return;
+        setProductType("Prepared");
+        setMainCategoryId(productDataPrepared.parentCategoryId);
+        reset({
+          ProductNameAr: productDataPrepared.productNameAr,
+          ProductNameEn: productDataPrepared.productNameEn,
+          ProductNameUr: productDataPrepared.productNameUr,
+          Description: productDataPrepared.description || "",
+          Barcode: productDataPrepared.barcode,
+          SellingPrice: productDataPrepared.sellingPrice,
+          CostPrice: productDataPrepared.costPrice,
+          MinStockLevel: productDataPrepared.minStockLevel,
+          RawMaterials:
+            productDataPrepared.components?.map((c) => ({
+              rawMaterialId: c.componentProductId,
+              quantity: c.quantity,
+              unitId: 0,
+            })) || [],
+        });
+        break;
+
+      case "RawMatrial":
+        if (!productDataPrepared) return;
+        setProductType("RawMatrial");
+        reset({
+          ProductNameAr: productDataRawMaterial?.productNameAr,
+          ProductNameEn: productDataRawMaterial?.productNameEn,
+          ProductNameUr: productDataRawMaterial?.productNameUr,
+          Description: productDataRawMaterial?.description || "",
+          ConversionFactor: productDataRawMaterial?.conversionFactor,
+          //  BaseUnitId:productDataRawMaterial?.
+        });
+        break;
+
+      default:
+        break;
     }
-  }, [productData, reset, id]);
+  }, [reset, id, type, productDataDirect, productDataBracnhed, productDataPrepared]);
   useEffect(() => {
-    if (productData?.categoryId && subCategories && subCategories.length > 0) {
-      setValue("CategoryId", productData.categoryId, { shouldValidate: true });
+    if (!mainCategoryId || !subCategories?.length) return;
+
+    let categoryName: string | undefined;
+
+    if (type === "Branched") {
+      categoryName = productDataBracnhed?.categoryName;
+    } else if (type === "Direct") {
+      categoryName = productDataDirect?.categoryName;
+    } else if (type === "Prepared") {
+      categoryName = productDataPrepared?.categoryName;
     }
-  }, [subCategories, productData?.categoryId, setValue]);
+
+    if (!categoryName) return;
+
+    const category = subCategories.find((cat) => cat.categoryNameAr === categoryName);
+
+    if (category) {
+      setValue("CategoryId", category.id, { shouldValidate: true });
+    }
+  }, [subCategories, productDataBracnhed, productDataDirect, setValue, mainCategoryId, type]);
 
   const {
     fields: rawMaterialFields,
@@ -209,10 +294,6 @@ export default function AddProduct() {
     control,
     name: "RawMaterials",
   });
-
-  useEffect(() => {
-    clearErrors();
-  }, [productType, clearErrors]);
 
   const CostPrice = watch("CostPrice");
   const SellingPrice = watch("SellingPrice");
@@ -229,10 +310,10 @@ export default function AddProduct() {
     let finalPrice = Number(SellingPrice) || 0;
     let taxAmount = 0;
 
-    if (TaxCalculation === "2") {
+    if (TaxCalculation === 2) {
       basePrice = finalPrice - finalPrice * taxRate;
       taxAmount = finalPrice - basePrice;
-    } else if (TaxCalculation === "3") {
+    } else if (TaxCalculation === 3) {
       taxAmount = basePrice * taxRate;
       finalPrice = basePrice + taxAmount;
     }
@@ -254,64 +335,63 @@ export default function AddProduct() {
 
   const validateFile = useMemo(() => createFileValidator({ maxFiles: 1, maxSizeMB: 2, allowedTypes: ["image/"] }), []);
   const onSubmit = async (data: FormValues) => {
-    console.log("Form Data:", data);
     const formData = new FormData();
 
-    if (productType === "raw") {
-      const rawData = data as z.infer<typeof createRawMaterialSchema>;
-
-      formData.append("ProductNameAr", data.ProductNameAr);
-      formData.append("ProductNameEN", data.ProductNameEn);
-      formData.append("ProductNameUr", data?.ProductNameUr);
-      formData.append("CostPrice", String(data.CostPrice));
-      if (rawData.BaseUnitId) formData.append("BaseUnitId", String(rawData.BaseUnitId));
-      if (rawData.PurchaseUnitId) formData.append("PurchaseUnitId", String(rawData.PurchaseUnitId));
-      if (rawData.ConversionFactor) formData.append("ConversionFactor", String(rawData.ConversionFactor));
-    } else {
-      Object.entries(data).forEach(([key, value]) => {
-        if (key === "ChildrenIds" && productType === "branched" && Array.isArray(value)) {
-          value.forEach((id) => formData.append("ChildrenIds[]", String(id)));
-        } else if (key === "RawMaterials" && productType === "prepared" && Array.isArray(value)) {
-          const materials = value as { rawMaterialId: number; quantity: number; unitId: number }[];
-          formData.append(
-            "Components",
-            JSON.stringify(
-              materials.map((m) => ({
-                componentProductId: m.rawMaterialId,
-                quantity: m.quantity,
-                unitId: m.unitId,
-              })),
-            ),
-          );
-        } else if (value !== undefined && value !== null && key !== "Image" && key !== "image" && key !== "ChildrenIds" && key !== "RawMaterials" && key !== "BaseUnitId" && key !== "PurchaseUnitId" && key !== "ConversionFactor") {
-          formData.append(key, String(value));
-        }
-      });
-
-      if (data.Image instanceof File) {
-        formData.append("image", data.Image);
+    Object.entries(data).forEach(([key, value]) => {
+      if (key === "ChildrenIds" && productType === "Branched" && Array.isArray(value)) {
+        value.forEach((id) => formData.append("ChildrenIds[]", String(id)));
+      } else if (key === "RawMaterials" && productType === "Prepared" && Array.isArray(value)) {
+        const materials = value as { rawMaterialId: number; quantity: number; unitId: number }[];
+        formData.append(
+          "Components",
+          JSON.stringify(
+            materials.map((m) => ({
+              componentProductId: m.rawMaterialId,
+              quantity: m.quantity,
+              unitId: m.unitId,
+            })),
+          ),
+        );
+      } else if (value !== undefined && value !== null && key !== "Image" && key !== "image" && key !== "ChildrenIds" && key !== "BaseUnitId" && key !== "PurchaseUnitId" && key !== "ConversionFactor") {
+        formData.append(key, String(value));
       }
-    }
+    });
 
     try {
-      if (id) {
+      if (id && type) {
         formData.append("Id", id);
-        formData.append("productType", productData?.productType || "");
-        await updateProduct({ id: Number(id), data: formData });
-      } else {
-        if (productType === "raw") {
-          await createRawMaterial(formData);
-        } else if (productType === "branched") {
-          await createProductBranched(formData);
-        } else if (productType === "prepared") {
-          await createProductPrepared(formData);
-        } else {
-          await createProductDirect(formData);
+        switch (productType) {
+          case "Branched":
+            await updateProductBranched({ id: Number(id), data: formData });
+            break;
+          case "Direct":
+            await updateProductDirect({ id: Number(id), data: formData });
+          case "Prepared":
+            await updateProductPrepared({ id: Number(id), data: formData });
+            break;
+          default:
+            console.warn("نوع منتج غير معروف للتعديل:", type);
         }
-        navigate("/products");
+      } else {
+        switch (productType) {
+          case "RawMatrial":
+            await createRawMaterial(formData);
+            break;
+          case "Branched":
+            await createProductBranched(formData);
+            break;
+          case "Prepared":
+            await createProductPrepared(formData);
+            break;
+          default:
+            await createProductDirect(formData);
+        }
       }
+
       navigate("/products");
-    } catch (error) {}
+    } catch (error) {
+      console.error("خطأ أثناء حفظ المنتج:", error);
+    }
   };
 
   return (
@@ -329,22 +409,22 @@ export default function AddProduct() {
 
       <Card>
         <CardHeader className="max-md:flex max-md:flex-col">
-          <CardTitle>إضافة صنف جديد</CardTitle>
+          <CardTitle>{id ? "تعديل صنف جديد" : "إضافة صنف جديد"}</CardTitle>
           <CardDescription>يمكنك إضافة صنف جديد بشكل دوري</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={productType} onValueChange={(val) => setProductType(val as ProductType)} className="w-full  bg-white rounded-sm ">
             <TabsList className="mb-8 w-full! h-fit!">
-              <TabsTrigger className="py-2!" value="direct">
+              <TabsTrigger className="py-2!" value="Direct">
                 الصنف المباشر
               </TabsTrigger>
-              <TabsTrigger className="py-2!" value="branched">
+              <TabsTrigger className="py-2!" value="Branched">
                 الصنف المتفرع
               </TabsTrigger>
-              <TabsTrigger className="py-2!" value="prepared">
+              <TabsTrigger className="py-2!" value="Prepared">
                 الصنف المجهز
               </TabsTrigger>
-              <TabsTrigger className="py-2!" value="raw">
+              <TabsTrigger className="py-2!" value="RawMatrial">
                 الخامة
               </TabsTrigger>
             </TabsList>
@@ -372,7 +452,7 @@ export default function AddProduct() {
                   )}
                 />
 
-                {productType !== "raw" && (
+                {productType !== "RawMatrial" && (
                   <Field>
                     <FieldLabel className="gap-x-0">
                       التصنيف الرئيسي<span className="text-red-500">*</span>
@@ -408,7 +488,7 @@ export default function AddProduct() {
                   )}
                 />
 
-                {productType !== "raw" && (
+                {productType !== "RawMatrial" && (
                   <Controller
                     name="CategoryId"
                     control={control}
@@ -452,7 +532,7 @@ export default function AddProduct() {
                   )}
                 />
 
-                {productType !== "raw" && productType !== "branched" && (
+                {productType !== "RawMatrial" && productType !== "Branched" && (
                   <Controller
                     name="Barcode"
                     control={control}
@@ -481,7 +561,7 @@ export default function AddProduct() {
                   />
                 )}
 
-                {productType !== "branched" && (
+                {productType !== "Branched" && (
                   <Controller
                     name="CostPrice"
                     control={control}
@@ -497,7 +577,7 @@ export default function AddProduct() {
                   />
                 )}
 
-                {productType !== "raw" && productType !== "branched" && (
+                {productType !== "RawMatrial" && productType !== "Branched" && (
                   <>
                     <Controller
                       name="SellingPrice"
@@ -560,7 +640,7 @@ export default function AddProduct() {
                           <FieldLabel>
                             طريقة حساب الضريبة <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <Select value={field.value} onValueChange={field.onChange}>
+                          <Select value={field.value ? String(field.value) : ""} onValueChange={(val) => field.onChange(Number(val))}>
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="اختر طريقة الحساب" />
                             </SelectTrigger>
@@ -614,7 +694,7 @@ export default function AddProduct() {
                   />
                 </div>
 
-                {productType === "raw" && (
+                {productType === "RawMatrial" && (
                   <>
                     <Controller
                       name="BaseUnitId"
@@ -670,7 +750,6 @@ export default function AddProduct() {
                       )}
                     />
 
-                    {/* تم التعديل إلى lg:col-span-2 */}
                     <div className="lg:col-span-2">
                       <Controller
                         name="ConversionFactor"
@@ -690,8 +769,7 @@ export default function AddProduct() {
                   </>
                 )}
 
-                {productType === "branched" && (
-                  /* تم التعديل إلى lg:col-span-2 */
+                {productType === "Branched" && (
                   <div className="lg:col-span-2">
                     <Controller
                       name="ChildrenIds"
@@ -744,8 +822,7 @@ export default function AddProduct() {
                   </div>
                 )}
 
-                {productType === "prepared" && (
-                  /* تم التعديل إلى lg:col-span-2 */
+                {productType === "Prepared" && (
                   <div className="lg:col-span-2 bg-gray-50 border border-gray-200 rounded-xl p-5 space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="font-bold text-gray-800 text-lg">الخامات المستخدمة</h3>
@@ -755,8 +832,7 @@ export default function AddProduct() {
                     </div>
                     {rawMaterialFields.length === 0 && <div className="text-center py-4 text-gray-400 text-sm">لم يتم إضافة أي خامات بعد. اضغط على "إضافة خامة".</div>}
                     {rawMaterialFields.map((field, index) => (
-                      /* تم التعديل لتكون القوائم منسدلة عمودياً في الموبايل وأفقياً في الشاشات الأكبر */
-                      <div key={field.id} className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start border-b border-gray-100 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
+                      <div key={index} className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start border-b border-gray-100 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
                         <div className="lg:col-span-5">
                           <Controller
                             name={`RawMaterials.${index}.rawMaterialId`}
@@ -773,7 +849,9 @@ export default function AddProduct() {
                                   <SelectContent>
                                     <SelectGroup>
                                       {productRawMatrial?.items?.map((raw) => (
-                                        <SelectItem value={String(raw?.id)}>{raw?.productNameAr}</SelectItem>
+                                        <SelectItem key={raw?.id} value={String(raw?.id)}>
+                                          {raw?.productNameAr}
+                                        </SelectItem>
                                       ))}
                                     </SelectGroup>
                                   </SelectContent>
@@ -793,7 +871,7 @@ export default function AddProduct() {
                                 <FieldLabel>
                                   الكمية <span className="text-red-500">*</span>
                                 </FieldLabel>
-                                <Input {...field} type="number" step="0.01" onChange={(e) => field.onChange(Number(e.target.value))} placeholder="0.00" className="bg-white" />
+                                <Input {...field} value={field.value ?? ""} type="number" step="0.01" onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} placeholder="0.00" className="bg-white" />
                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                               </Field>
                             )}
@@ -827,7 +905,6 @@ export default function AddProduct() {
                           />
                         </div>
 
-                        {/* تم تعديل الحواف لتتناسب مع الترتيب العمودي والأفقي */}
                         <div className="lg:col-span-1 flex items-center justify-end lg:pt-8 pt-2">
                           <Button type="button" variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 w-full lg:w-auto" onClick={() => removeRawMaterial(index)}>
                             <Trash2 size={18} />
@@ -840,8 +917,7 @@ export default function AddProduct() {
                   </div>
                 )}
 
-                {productType !== "raw" && (
-                  /* تم التعديل إلى lg:col-span-2 */
+                {productType !== "RawMatrial" && (
                   <div className="lg:col-span-2">
                     <Controller
                       name="Image"

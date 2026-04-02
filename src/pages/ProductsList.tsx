@@ -149,7 +149,7 @@ export default function ProductsList() {
           <CardTitle>إدارة الاصناف</CardTitle>
           <CardDescription>إدارة الأصناف المباشرة والمتفرعة والمجهزة والخامات</CardDescription>
           <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
-            <Button variant={"default"} asChild>
+            <Button size={"xl"} variant={"default"} asChild>
               <Link to={"/products/create"}>إضافة صنف</Link>
             </Button>
           </CardAction>
@@ -196,13 +196,13 @@ export default function ProductsList() {
           >
             <Column header={t("name")} sortable field="productNameAr" />
             <Column field="description" sortable header={t("description")} />
-            <Column field="productType" sortable header={"الكمية"} />
+            {/* <Column field="productType" sortable header={"الكمية"} /> */}
             <Column field="productType" sortable header={"النوع"} />
             <Column
               header={t("actions")}
               body={(product: Product) => (
                 <div className="space-x-2">
-                  <Link to={`/products/edit/${product?.id}`} className="btn-minimal-action btn-edit">
+                  <Link to={`/products/edit/${product?.id}?type=${product?.productType}`} className="btn-minimal-action btn-edit">
                     <Edit2 size={16} />
                   </Link>
                   <button

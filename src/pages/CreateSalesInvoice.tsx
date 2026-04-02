@@ -19,7 +19,7 @@ import { useWatch } from "react-hook-form";
 import type { CreateSalesOrder } from "@/features/sales/types/sales.types";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useGetSalesOrderById } from "@/features/sales/hooks/useGetSalesOrderById";
 
 const SalesInvoiceSchema = z.object({
@@ -57,6 +57,7 @@ type SalesInvoiceType = z.input<typeof SalesInvoiceSchema>;
 
 const CreateSalesInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
+  const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const [discountOpen, setDiscountOpen] = useState<{ [key: number]: boolean }>({});
@@ -235,9 +236,11 @@ const CreateSalesInvoice: React.FC = () => {
     };
 
     if (isEditMode) {
-      // await updateSalesOrder({ id: Number(id), ...payload }); // ← update
+      // await updateSalesOrder({ id: Number(id), ...payload });
     } else {
       await createSalesOrders(payload); // ← create
+      navigate("/sales/all");
+      form.reset();
     }
   };
 

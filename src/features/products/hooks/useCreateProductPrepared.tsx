@@ -6,7 +6,7 @@ import { handleApiError } from "@/lib/handleApiError";
 
 export function useCreateProductPrepared() {
   const queryClient = useQueryClient();
-  const { notifyError, notifyWarning, notifySuccess } = useToast();
+  const { notifyError, notifySuccess } = useToast();
   return useMutation({
     mutationFn: (data: FormData) => createProductsPrepared(data),
     onSuccess: (response) => {
@@ -15,7 +15,6 @@ export function useCreateProductPrepared() {
       });
       notifySuccess(response);
     },
-      onError: (error) => handleApiError(error, notifyError),
-  
+    onError: (error) => handleApiError(error, notifyError),
   });
 }
