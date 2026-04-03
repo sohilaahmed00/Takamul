@@ -148,11 +148,21 @@ import CustomerCollectionsList from "./pages/CustomerCollectionsList";
 import BranchesList from "./pages/BranchesList";
 import AddBranch from "@/pages/AddBranch";
 import WarehousesList from "./pages/WarehousesList";
-// POS layout components are not present in this repository, use POS page fallback
-import POSPage from "./pages/Pos2";
+import AppLayout from "./components/pos/layout/AppLayout";
+import HomePage from "./components/pos/pages/HomePage";
 
 function AppRoutes() {
-    const { receiptData } = usePrint();
+  const { receiptData } = usePrint();
+
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        {/* <Route path="/pos" element={<POSPage />} /> */}
+        <Route path="/pos" element={<AppLayout />} />
 
     return (
         <>

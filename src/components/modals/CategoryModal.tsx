@@ -88,6 +88,9 @@ export default function CategoryModal({ isOpen, onClose, category }: CategoryMod
     try {
       const formData = new FormData();
 
+      if (category?.id) {
+        formData.append("Id", String(category?.id));
+      }
       formData.append("CategoryNameAr", data.CategoryNameAr);
 
       if (data.CategoryNameEn) formData.append("CategoryNameEn", data.CategoryNameEn);

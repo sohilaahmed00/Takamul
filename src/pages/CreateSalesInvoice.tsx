@@ -19,7 +19,7 @@ import { useWatch } from "react-hook-form";
 import type { CreateSalesOrder } from "@/features/sales/types/sales.types";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useGetSalesOrderById } from "@/features/sales/hooks/useGetSalesOrderById";
 
 const SalesInvoiceSchema = (t: (key: string) => string) => z.object({
@@ -57,6 +57,7 @@ type SalesInvoiceType = z.input<ReturnType<typeof SalesInvoiceSchema>>;
 
 const CreateSalesInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
+  const navigate = useNavigate();
   const { id } = useParams();
   const isEditMode = Boolean(id);
   const [discountOpen, setDiscountOpen] = useState<{ [key: number]: boolean }>({});
@@ -103,7 +104,7 @@ const CreateSalesInvoice: React.FC = () => {
     },
   });
 
-  const { data: customers } = useGetAllCustomers();
+  const { data: customers } = useGetAllCustomers({ page: 1, limit: 100 });
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
@@ -116,7 +117,7 @@ const CreateSalesInvoice: React.FC = () => {
   useEffect(() => {
     if (!salesOrder || !isEditMode) return;
     if (!customers || !wareHouses || !products?.items || !units?.items) return;
-    const customer = customers?.find((c) => c.customerName === salesOrder.customerName);
+    const customer = customers?.items?.find((c) => c.customerName === salesOrder.customerName);
     const warehouse = wareHouses?.find((w) => w.warehouseName === salesOrder.warehouseName);
 
     form.reset({
@@ -240,7 +241,9 @@ const CreateSalesInvoice: React.FC = () => {
     if (isEditMode) {
       // await updateSalesOrder({ id: Number(id), ...payload });
     } else {
-      await createSalesOrders(payload);
+      await createSalesOrders(payload); // ← create
+      navigate("/sales/all");
+      form.reset();
     }
   };
 
@@ -249,7 +252,7 @@ const CreateSalesInvoice: React.FC = () => {
       <CardHeader>
         <CardTitle>{isEditMode ? `${t("edit_sales_invoice")} #${salesOrder?.orderNumber ?? id}` : t("add_sales_invoice")}</CardTitle>
         <CardAction>
-          <Button variant={"outline"} asChild>
+          <Button size={"xl"} variant={"outline"} asChild>
             <Link to={"/sales/all"}>
               {t("back_to_sales_list")}
               <ArrowLeft size={16} />

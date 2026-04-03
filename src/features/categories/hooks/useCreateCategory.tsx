@@ -12,7 +12,7 @@ export function useCreateCategory() {
     mutationFn: (data: FormData) => createCategory(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: categoriesKeys.list(),
+        queryKey: categoriesKeys.all,
       });
     },
     onError: (error) => {
