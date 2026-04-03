@@ -5,14 +5,7 @@ import useToast from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
@@ -29,23 +22,16 @@ type Props = {
 
 const DEFAULT_TRANSACTION_TYPE = "PurchaseInvoice";
 
-export default function AddSupplierPaymentModal({
-  isOpen,
-  onClose,
-  mode = "add",
-  editData = null,
-}: Props) {
+export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add", editData = null }: Props) {
   const { direction } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
 
   const { data: treasurys } = useGetAllTreasurys();
   const { data: suppliers } = useGetAllSuppliers();
 
-  const { mutateAsync: createTransaction, isPending: isCreating } =
-    useCreateSupplierTransaction();
+  const { mutateAsync: createTransaction, isPending: isCreating } = useCreateSupplierTransaction();
 
-  const { mutateAsync: updateTransaction, isPending: isUpdating } =
-    useUpdateSupplierTransaction();
+  const { mutateAsync: updateTransaction, isPending: isUpdating } = useUpdateSupplierTransaction();
 
   const isEditMode = mode === "edit";
   const isPending = isCreating || isUpdating;
@@ -60,11 +46,7 @@ export default function AddSupplierPaymentModal({
     if (!isOpen) return;
 
     if (isEditMode && editData) {
-      setTransactionDate(
-        editData.transactionDate
-          ? new Date(editData.transactionDate).toISOString().slice(0, 10)
-          : new Date().toISOString().slice(0, 10)
-      );
+      setTransactionDate(editData.transactionDate ? new Date(editData.transactionDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10));
       setTreasuryId(editData.treasuryId);
       setSupplierId(editData.supplierId);
       setAmount(String(editData.amount ?? ""));
@@ -79,17 +61,13 @@ export default function AddSupplierPaymentModal({
     setDescription("");
   }, [isOpen, isEditMode, editData]);
 
-  const selectedSupplier = useMemo(
-    () => suppliers?.find((s: any) => s.id === supplierId),
-    [suppliers, supplierId]
-  );
+  const selectedSupplier = useMemo(() => suppliers?.items?.find((s: any) => s.id === supplierId), [suppliers, supplierId]);
 
   const currentBalance = Number(selectedSupplier?.balance ?? 0);
   const amountNumber = Number(amount || 0);
   const balanceAfter = currentBalance - amountNumber;
 
-  const formatNumber = (value?: number) =>
-    Number(value ?? 0).toLocaleString("en-US");
+  const formatNumber = (value?: number) => Number(value ?? 0).toLocaleString("en-US");
 
   const handleClose = () => {
     onClose();
@@ -147,11 +125,7 @@ export default function AddSupplierPaymentModal({
 
       handleClose();
     } catch (error: any) {
-      notifyError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "حدث خطأ أثناء الحفظ"
-      );
+      notifyError(error?.response?.data?.message || error?.message || "حدث خطأ أثناء الحفظ");
     }
   };
 
@@ -165,12 +139,7 @@ export default function AddSupplierPaymentModal({
         }
       }}
     >
-      <DialogContent
-        dir={direction}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-        className="w-full sm:max-w-[720px] p-0 overflow-hidden rounded-2xl"
-      >
+      <DialogContent dir={direction} onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => e.preventDefault()} className="w-full sm:max-w-[720px] p-0 overflow-hidden rounded-2xl">
         <DialogHeader className="px-5 py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold flex-wrap">
             {isEditMode ? <Pencil size={18} /> : <Truck size={18} />}
@@ -187,19 +156,10 @@ export default function AddSupplierPaymentModal({
           </DialogDescription> */}
         </DialogHeader>
 
-        <form
-          id="supplierPaymentForm"
-          onSubmit={handleSubmit}
-          className="px-5 space-y-3"
-        >
+        <form id="supplierPaymentForm" onSubmit={handleSubmit} className="px-5 space-y-3">
           <Field>
             <FieldLabel>التاريخ</FieldLabel>
-            <Input
-              type="date"
-              value={transactionDate}
-              onChange={(e) => setTransactionDate(e.target.value)}
-              className="h-9"
-            />
+            <Input type="date" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} className="h-9" />
           </Field>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
@@ -209,15 +169,7 @@ export default function AddSupplierPaymentModal({
             </div>
 
             <Field>
-              <select
-                value={treasuryId ?? ""}
-                onChange={(e) =>
-                  setTreasuryId(
-                    e.target.value ? Number(e.target.value) : undefined
-                  )
-                }
-                className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]"
-              >
+              <select value={treasuryId ?? ""} onChange={(e) => setTreasuryId(e.target.value ? Number(e.target.value) : undefined)} className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]">
                 <option value="">اختر الخزينة</option>
                 {(treasurys ?? []).map((t: any) => (
                   <option key={t.id} value={t.id}>
@@ -237,18 +189,9 @@ export default function AddSupplierPaymentModal({
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
                 <FieldLabel>اسم المورد</FieldLabel>
-                <select
-                  value={supplierId ?? ""}
-                  onChange={(e) =>
-                    setSupplierId(
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
-                  disabled={isEditMode}
-                  className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71] disabled:bg-gray-50 disabled:text-gray-500"
-                >
+                <select value={supplierId ?? ""} onChange={(e) => setSupplierId(e.target.value ? Number(e.target.value) : undefined)} disabled={isEditMode} className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71] disabled:bg-gray-50 disabled:text-gray-500">
                   <option value="">اختر المورد</option>
-                  {(suppliers ?? []).map((s: any) => (
+                  {(suppliers?.items ?? []).map((s: any) => (
                     <option key={s.id} value={s.id}>
                       {s.supplierName}
                     </option>
@@ -258,71 +201,36 @@ export default function AddSupplierPaymentModal({
 
               <Field>
                 <FieldLabel>الرصيد الحالي</FieldLabel>
-                <Input
-                  readOnly
-                  value={formatNumber(currentBalance)}
-                  className="h-9 bg-gray-50 text-center"
-                />
+                <Input readOnly value={formatNumber(currentBalance)} className="h-9 bg-gray-50 text-center" />
               </Field>
             </div>
           </div>
 
           <Field>
             <FieldLabel>المبلغ</FieldLabel>
-            <Input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
-              className="h-9"
-            />
+            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="h-9" />
           </Field>
 
           <Field>
             <FieldLabel>الرصيد بعد</FieldLabel>
-            <Input
-              readOnly
-              value={formatNumber(balanceAfter)}
-              className="h-9 bg-gray-50 text-center text-[#2ecc71] font-semibold"
-            />
+            <Input readOnly value={formatNumber(balanceAfter)} className="h-9 bg-gray-50 text-center text-[#2ecc71] font-semibold" />
           </Field>
 
           <Field>
             <FieldLabel>البيان</FieldLabel>
-            <Input
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="اكتب ملاحظات أو بيان سند الصرف"
-              className="h-9"
-            />
+            <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="اكتب ملاحظات أو بيان سند الصرف" className="h-9" />
           </Field>
         </form>
 
         <DialogFooter className="px-5 py-7 border-t border-gray-100">
           <div className="flex justify-end gap-3 w-full px-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              className="h-10 px-6"
-            >
+            <Button type="button" variant="outline" onClick={handleClose} className="h-10 px-6">
               إلغاء
             </Button>
 
-            <Button
-              form="supplierPaymentForm"
-              type="submit"
-              disabled={isPending}
-              className="min-w-[150px] h-10 px-6"
-            >
+            <Button form="supplierPaymentForm" type="submit" disabled={isPending} className="min-w-[150px] h-10 px-6">
               {isPending && <Loader2 size={16} className="animate-spin" />}
-              {isPending
-                ? isEditMode
-                  ? "جارٍ التعديل..."
-                  : "جارٍ الحفظ..."
-                : isEditMode
-                ? "حفظ التعديلات"
-                : "حفظ سند الصرف"}
+              {isPending ? (isEditMode ? "جارٍ التعديل..." : "جارٍ الحفظ...") : isEditMode ? "حفظ التعديلات" : "حفظ سند الصرف"}
             </Button>
           </div>
         </DialogFooter>

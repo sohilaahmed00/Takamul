@@ -156,7 +156,7 @@ export default function SupplierPaymentsList() {
           </CardDescription> */}
 
           <CardAction>
-            <Button onClick={openAddModal} variant="default">
+            <Button size={"xl"} onClick={openAddModal} variant="default">
               <Plus size={18} />
               إضافة سند صرف            </Button>
           </CardAction>

@@ -19,7 +19,7 @@ export function useUpdateProductDirect() {
       queryClient.invalidateQueries({
         queryKey: productsKeys.all,
       });
-      notifySuccess(response?.message);
+      notifySuccess(response);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

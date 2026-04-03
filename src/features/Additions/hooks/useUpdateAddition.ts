@@ -19,6 +19,7 @@ export function useUpdateAddition() {
       queryClient.invalidateQueries({
         queryKey: additionsKeys.list(),
       });
+      notifySuccess(response?.message);
     },
     onError: (error) => {
       if (axios.isAxiosError(error)) {

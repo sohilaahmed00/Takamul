@@ -167,7 +167,7 @@ export default function Additions() {
           <CardDescription>إدارة الإضافات الخاصة بالأصناف مثل الخيارات الإضافية والتعديلات التي يمكن تطبيقها على المنتجات داخل النظام.</CardDescription>{" "}
           <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
             {" "}
-            <Button variant={"default"} onClick={() => setIsAddModalOpen(true)}>
+            <Button size={"xl"} variant={"default"} onClick={() => setIsAddModalOpen(true)}>
               إضافة جديدة{" "}
             </Button>
           </CardAction>

@@ -5,14 +5,7 @@ import useToast from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
@@ -27,23 +20,16 @@ type Props = {
   editData?: CustomerTransaction | null;
 };
 
-export default function AddCustomerCollectionModal({
-  isOpen,
-  onClose,
-  mode = "add",
-  editData = null,
-}: Props) {
+export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "add", editData = null }: Props) {
   const { direction } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
 
   const { data: treasurys } = useGetAllTreasurys();
-  const { data: customers } = useGetAllCustomers();
+  const { data: customers } = useGetAllCustomers({ page: 1, limit: 1000 });
 
-  const { mutateAsync: createTransaction, isPending: isCreating } =
-    useCreateCustomerTransaction();
+  const { mutateAsync: createTransaction, isPending: isCreating } = useCreateCustomerTransaction();
 
-  const { mutateAsync: updateTransaction, isPending: isUpdating } =
-    useUpdateCustomerTransaction();
+  const { mutateAsync: updateTransaction, isPending: isUpdating } = useUpdateCustomerTransaction();
 
   const isEditMode = mode === "edit";
   const isPending = isCreating || isUpdating;
@@ -58,11 +44,7 @@ export default function AddCustomerCollectionModal({
     if (!isOpen) return;
 
     if (isEditMode && editData) {
-      setTransactionDate(
-        editData.transactionDate
-          ? new Date(editData.transactionDate).toISOString().slice(0, 10)
-          : new Date().toISOString().slice(0, 10)
-      );
+      setTransactionDate(editData.transactionDate ? new Date(editData.transactionDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10));
       setTreasuryId(editData.treasuryId);
       setCustomerId(editData.customerId);
       setAmount(String(editData.amount ?? ""));
@@ -77,17 +59,13 @@ export default function AddCustomerCollectionModal({
     setDescription("");
   }, [isOpen, isEditMode, editData]);
 
-  const selectedCustomer = useMemo(
-    () => customers?.find((c: any) => c.id === customerId),
-    [customers, customerId]
-  );
+  const selectedCustomer = useMemo(() => customers?.items?.find((c: any) => c.id === customerId), [customers, customerId]);
 
   const currentBalance = Number(selectedCustomer?.balance ?? 0);
   const amountNumber = Number(amount || 0);
   const balanceAfter = currentBalance - amountNumber;
 
-  const formatNumber = (value?: number) =>
-    Number(value ?? 0).toLocaleString("en-US");
+  const formatNumber = (value?: number) => Number(value ?? 0).toLocaleString("en-US");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,11 +116,7 @@ export default function AddCustomerCollectionModal({
 
       onClose();
     } catch (error: any) {
-      notifyError(
-        error?.response?.data?.message ||
-          error?.message ||
-          "حدث خطأ أثناء الحفظ"
-      );
+      notifyError(error?.response?.data?.message || error?.message || "حدث خطأ أثناء الحفظ");
     }
   };
 
@@ -156,12 +130,7 @@ export default function AddCustomerCollectionModal({
         }
       }}
     >
-      <DialogContent
-        dir={direction}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-        className="w-full sm:max-w-[720px] p-0 overflow-hidden rounded-2xl"
-      >
+      <DialogContent dir={direction} onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => e.preventDefault()} className="w-full sm:max-w-[720px] p-0 overflow-hidden rounded-2xl">
         <DialogHeader className="px-5 py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold flex-wrap">
             {isEditMode ? <Pencil size={18} /> : <HandCoins size={18} />}
@@ -178,19 +147,10 @@ export default function AddCustomerCollectionModal({
           </DialogDescription> */}
         </DialogHeader>
 
-        <form
-          id="customerCollectionForm"
-          onSubmit={handleSubmit}
-          className="px-5 space-y-3"
-        >
+        <form id="customerCollectionForm" onSubmit={handleSubmit} className="px-5 space-y-3">
           <Field>
             <FieldLabel>التاريخ</FieldLabel>
-            <Input
-              type="date"
-              value={transactionDate}
-              onChange={(e) => setTransactionDate(e.target.value)}
-              className="h-9"
-            />
+            <Input type="date" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} className="h-9" />
           </Field>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
@@ -200,15 +160,7 @@ export default function AddCustomerCollectionModal({
             </div>
 
             <Field>
-              <select
-                value={treasuryId ?? ""}
-                onChange={(e) =>
-                  setTreasuryId(
-                    e.target.value ? Number(e.target.value) : undefined
-                  )
-                }
-                className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]"
-              >
+              <select value={treasuryId ?? ""} onChange={(e) => setTreasuryId(e.target.value ? Number(e.target.value) : undefined)} className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]">
                 <option value="">اختر الخزينة</option>
                 {(treasurys ?? []).map((t: any) => (
                   <option key={t.id} value={t.id}>
@@ -223,18 +175,9 @@ export default function AddCustomerCollectionModal({
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
                 <FieldLabel>اسم العميل</FieldLabel>
-                <select
-                  value={customerId ?? ""}
-                  onChange={(e) =>
-                    setCustomerId(
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
-                  disabled={isEditMode}
-                  className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71] disabled:bg-gray-50 disabled:text-gray-500"
-                >
+                <select value={customerId ?? ""} onChange={(e) => setCustomerId(e.target.value ? Number(e.target.value) : undefined)} disabled={isEditMode} className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71] disabled:bg-gray-50 disabled:text-gray-500">
                   <option value="">اختر العميل</option>
-                  {(customers ?? []).map((c: any) => (
+                  {(customers?.items ?? []).map((c: any) => (
                     <option key={c.id} value={c.id}>
                       {c.customerName}
                     </option>
@@ -244,71 +187,36 @@ export default function AddCustomerCollectionModal({
 
               <Field>
                 <FieldLabel>الرصيد الحالي</FieldLabel>
-                <Input
-                  readOnly
-                  value={formatNumber(currentBalance)}
-                  className="h-9 bg-gray-50 text-center"
-                />
+                <Input readOnly value={formatNumber(currentBalance)} className="h-9 bg-gray-50 text-center" />
               </Field>
             </div>
           </div>
 
           <Field>
             <FieldLabel>المبلغ</FieldLabel>
-            <Input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
-              className="h-9"
-            />
+            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="h-9" />
           </Field>
 
           <Field>
             <FieldLabel>الرصيد بعد</FieldLabel>
-            <Input
-              readOnly
-              value={formatNumber(balanceAfter)}
-              className="h-9 bg-gray-50 text-center text-[#2ecc71] font-semibold"
-            />
+            <Input readOnly value={formatNumber(balanceAfter)} className="h-9 bg-gray-50 text-center text-[#2ecc71] font-semibold" />
           </Field>
 
           <Field>
             <FieldLabel>البيان</FieldLabel>
-            <Input
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="اكتب ملاحظات أو بيان سند القبض"
-              className="h-9"
-            />
+            <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="اكتب ملاحظات أو بيان سند القبض" className="h-9" />
           </Field>
         </form>
 
         <DialogFooter className="px-5 py-7 border-t border-gray-100">
           <div className="flex justify-end gap-3 w-full px-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="h-10 px-6"
-            >
+            <Button type="button" variant="outline" onClick={onClose} className="h-10 px-6">
               إلغاء
             </Button>
 
-            <Button
-              form="customerCollectionForm"
-              type="submit"
-              disabled={isPending}
-              className="min-w-[150px] h-10 px-6"
-            >
+            <Button form="customerCollectionForm" type="submit" disabled={isPending} className="min-w-[150px] h-10 px-6">
               {isPending && <Loader2 size={16} className="animate-spin" />}
-              {isPending
-                ? isEditMode
-                  ? "جارٍ التعديل..."
-                  : "جارٍ الحفظ..."
-                : isEditMode
-                ? "حفظ التعديلات"
-                : "حفظ سند القبض"}
+              {isPending ? (isEditMode ? "جارٍ التعديل..." : "جارٍ الحفظ...") : isEditMode ? "حفظ التعديلات" : "حفظ سند القبض"}
             </Button>
           </div>
         </DialogFooter>
