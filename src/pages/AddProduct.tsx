@@ -343,7 +343,7 @@ export default function AddProduct() {
     const selectedTax =
       (taxesData || []).find((tax) => String(tax.id) === String(TaxId)) || {
         id: 1,
-        name: "بدون ضريبة",
+        name: `${t("no_tax")}`,
         amount: 0,
       };
 
