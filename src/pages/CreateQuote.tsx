@@ -347,7 +347,7 @@ const CreateQuote: React.FC = () => {
         <CardHeader>
           <CardTitle>{t("add_quote")}</CardTitle>
           <CardAction>
-            <Button variant="outline" asChild>
+            <Button size={"xl"} variant="outline" asChild>
               <Link to="/quotes">
                 {t("back_to_quotes_list")}
                 <ArrowLeft size={16} />

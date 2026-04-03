@@ -8,7 +8,7 @@ export default function SubsidiaryLedger() {
   const [activeTab, setActiveTab] = useState('movements');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  
+
   const movementsData = [
     { code: '1107', name: 'العملاء', prevDebit: 0, prevCredit: 0, periodDebit: 18335.60, periodCredit: 19085.00, afterDebit: 0, afterCredit: 749.40 },
     { code: '2101', name: 'الموردين', prevDebit: 0, prevCredit: 0, periodDebit: 517.50, periodCredit: 1017.51, afterDebit: 0, afterCredit: 500.01 },
@@ -234,7 +234,7 @@ export default function SubsidiaryLedger() {
               </table>
             )}
           </div>
-          
+
           <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <span className="text-sm text-gray-600 dark:text-gray-400">عرض 1 إلى {activeTab === 'movements' ? movementsData.length : activeTab === 'customers' ? customersData.length : suppliersData.length} سجلات</span>
             <div className="flex items-center gap-2">

@@ -5,13 +5,7 @@ import useToast from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
@@ -45,11 +39,9 @@ export default function AddSupplierPaymentModal({
       ? suppliersResponse
       : [];
 
-  const { mutateAsync: createTransaction, isPending: isCreating } =
-    useCreateSupplierTransaction();
+  const { mutateAsync: createTransaction, isPending: isCreating } = useCreateSupplierTransaction();
 
-  const { mutateAsync: updateTransaction, isPending: isUpdating } =
-    useUpdateSupplierTransaction();
+  const { mutateAsync: updateTransaction, isPending: isUpdating } = useUpdateSupplierTransaction();
 
   const isEditMode = mode === "edit";
   const isPending = isCreating || isUpdating;
@@ -64,11 +56,7 @@ export default function AddSupplierPaymentModal({
     if (!isOpen) return;
 
     if (isEditMode && editData) {
-      setTransactionDate(
-        editData.transactionDate
-          ? new Date(editData.transactionDate).toISOString().slice(0, 10)
-          : new Date().toISOString().slice(0, 10)
-      );
+      setTransactionDate(editData.transactionDate ? new Date(editData.transactionDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10));
       setTreasuryId(editData.treasuryId);
       setSupplierId(editData.supplierId);
       setAmount(String(editData.amount ?? ""));
@@ -84,16 +72,14 @@ export default function AddSupplierPaymentModal({
   }, [isOpen, isEditMode, editData]);
 
   const selectedSupplier = useMemo(
-    () => suppliers?.find((s: any) => s.id === supplierId),
-    [suppliers, supplierId]
-  );
-
+  () => suppliers?.find((s: any) => s.id === supplierId),
+  [suppliers, supplierId]
+);
   const currentBalance = Number(selectedSupplier?.balance ?? 0);
   const amountNumber = Number(amount || 0);
   const balanceAfter = currentBalance - amountNumber;
 
-  const formatNumber = (value?: number) =>
-    Number(value ?? 0).toLocaleString("en-US");
+  const formatNumber = (value?: number) => Number(value ?? 0).toLocaleString("en-US");
 
   const handleClose = () => {
     onClose();
@@ -169,12 +155,7 @@ export default function AddSupplierPaymentModal({
         }
       }}
     >
-      <DialogContent
-        dir={direction}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-        className="w-full sm:max-w-[720px] p-0 overflow-hidden rounded-2xl"
-      >
+      <DialogContent dir={direction} onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => e.preventDefault()} className="w-full sm:max-w-[720px] p-0 overflow-hidden rounded-2xl">
         <DialogHeader className="px-5 py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold flex-wrap">
             {isEditMode ? <Pencil size={18} /> : <Truck size={18} />}
@@ -182,11 +163,7 @@ export default function AddSupplierPaymentModal({
           </DialogTitle>
         </DialogHeader>
 
-        <form
-          id="supplierPaymentForm"
-          onSubmit={handleSubmit}
-          className="px-5 space-y-3"
-        >
+        <form id="supplierPaymentForm" onSubmit={handleSubmit} className="px-5 space-y-3">
           <Field>
             <FieldLabel>{t("date")}</FieldLabel>
             <Input
@@ -304,12 +281,7 @@ export default function AddSupplierPaymentModal({
               {t("cancel")}
             </Button>
 
-            <Button
-              form="supplierPaymentForm"
-              type="submit"
-              disabled={isPending}
-              className="min-w-[150px] h-10 px-6"
-            >
+            <Button form="supplierPaymentForm" type="submit" disabled={isPending} className="min-w-[150px] h-10 px-6">
               {isPending && <Loader2 size={16} className="animate-spin" />}
               {isPending
                 ? isEditMode

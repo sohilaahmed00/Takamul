@@ -20,8 +20,8 @@ export function useCreateSalesOrders() {
       });
       notifySuccess(response?.message)
     },
-       onError: (error) => handleApiError(error, notifyError),
+    onError: (error) => handleApiError(error, notifyError),
 
-   
+
   });
 }

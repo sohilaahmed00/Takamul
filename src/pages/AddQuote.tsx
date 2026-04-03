@@ -67,14 +67,14 @@ export default function AddQuote() {
     searchQuery.trim() === ""
       ? []
       : allProducts.filter(
-          (p) =>
-            String(p.name || "")
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase()) ||
-            String(p.code || "")
-              .toLowerCase()
-              .includes(searchQuery.toLowerCase())
-        );
+        (p) =>
+          String(p.name || "")
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          String(p.code || "")
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
+      );
 
   const handleSelectProduct = (product: Product) => {
     const existingProductIndex = products.findIndex((p) => p.id === product.id);

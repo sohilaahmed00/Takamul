@@ -4,7 +4,7 @@ import { FileText, Download, Printer, Share2, Search } from 'lucide-react';
 
 export default function BalanceSheet() {
   const { t, direction } = useLanguage();
-  
+
   const data = [
     { code: '1', name: 'الأصول', debit: 0, credit: 0, balance: 0 },
     { code: '11', name: 'الأصول المتداولة', debit: 0, credit: 0, balance: 0 },
@@ -140,7 +140,7 @@ export default function BalanceSheet() {
               </tbody>
             </table>
           </div>
-          
+
           <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <span className="text-sm text-gray-600 dark:text-gray-400">عرض 1 إلى {data.length} من {data.length} سجلات</span>
             <div className="flex items-center gap-2">

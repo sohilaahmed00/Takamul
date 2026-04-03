@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect } from "react";
+﻿import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Upload, Barcode, X, Trash2, Plus } from "lucide-react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useLanguage } from "@/context/LanguageContext";
+import { z } from "zod";
 import {
   Controller,
   FormProvider,
@@ -10,7 +11,6 @@ import {
   type FieldErrors,
   type Resolver,
 } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
@@ -59,8 +59,17 @@ import { useCreateProductBranched } from "@/features/products/hooks/useCreatePro
 import { useCreateProductPrepared } from "@/features/products/hooks/useCreateProductPrepared";
 import { useGetAllProductsRawMatrial } from "@/features/products/hooks/useGetAllProductsRawMatrial";
 import { useCreateProductRawMaterial } from "@/features/products/hooks/useCreateProductRawMaterial";
-import { useGetProductById } from "@/features/products/hooks/useGetProductById";
-import { useUpdateProduct } from "@/features/products/hooks/useUpdateProduct";
+import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
+import useToast from "@/hooks/useToast";
+
+import { useGetProductBranchedById } from "@/features/products/hooks/useGetProductBranchedById";
+import { useGetProductDirectById } from "@/features/products/hooks/useGetProductDirectById";
+import { useGetProductPreparedById } from "@/features/products/hooks/useGetProductPreparedById";
+import { useGetProductRawMaterialtById } from "@/features/products/hooks/useGetProductRawMaterialtById";
+import { useUpdateProductBranched } from "@/features/products/hooks/useUpdateProductBranched";
+import { useUpdateProductDirect } from "@/features/products/hooks/useUpdateProductDirect";
+import { useUpdateProductPrepared } from "@/features/products/hooks/useUpdateProductPrepared";
+
 import {
   Card,
   CardContent,
@@ -68,8 +77,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
-import useToast from "@/hooks/useToast";
 
 export const createProductSchema = (t: (key: string) => string) =>
   z.object({
@@ -83,7 +90,7 @@ export const createProductSchema = (t: (key: string) => string) =>
     SellingPrice: z.number().min(0, t("validation_selling_price_invalid")),
     MinStockLevel: z.number().min(1, t("validation_min_stock_invalid")),
     TaxId: z.number().min(1, t("validation_tax_required")),
-    TaxCalculation: z.string().min(1, t("validation_tax_calc_required")),
+    TaxCalculation: z.number().min(1, t("validation_tax_calc_required")),
     Image: z.union([z.instanceof(File), z.string()]).optional(),
   });
 
@@ -113,7 +120,7 @@ export const createPreparedProductSchema = (t: (key: string) => string) =>
         .min(1, t("validation_prepared_requires_raw")),
     })
     .extend({
-      ChildrenIds: z.array(z.number()).min(1, t("validation_children_required")),
+      ChildrenIds: z.array(z.number()).optional().default([]),
     });
 
 export const createRawMaterialSchema = (t: (key: string) => string) =>
@@ -136,7 +143,13 @@ type DirectFormValues = z.infer<ReturnType<typeof createProductSchema>>;
 type BranchedFormValues = z.infer<ReturnType<typeof createBranchedProductSchema>>;
 type PreparedFormValues = z.infer<ReturnType<typeof createPreparedProductSchema>>;
 type RawFormValues = z.infer<ReturnType<typeof createRawMaterialSchema>>;
-type FormValues = DirectFormValues | BranchedFormValues | PreparedFormValues | RawFormValues;
+type FormValues =
+  | DirectFormValues
+  | BranchedFormValues
+  | PreparedFormValues
+  | RawFormValues;
+
+type ProductType = "direct" | "branched" | "prepared" | "raw";
 
 const baseDefaultValues: any = {
   Barcode: "",
@@ -145,46 +158,24 @@ const baseDefaultValues: any = {
   ProductNameUr: "",
   Description: "",
   CategoryId: 0,
-  CostPrice: 0,
-  SellingPrice: 0,
-  MinStockLevel: 0,
-  TaxId: 1,
-  TaxCalculation: "1",
+  CostPrice: undefined as unknown as number,
+  SellingPrice: undefined as unknown as number,
+  MinStockLevel: undefined as unknown as number,
+  TaxId: 0,
+  TaxCalculation: 0,
   Image: undefined,
   ChildrenIds: [],
-  RawMaterials: [],
-  BaseUnitId: undefined,
-  PurchaseUnitId: undefined,
+  RawMaterials: [
+    {
+      rawMaterialId: 0,
+      quantity: undefined as unknown as number,
+      unitId: 0,
+    },
+  ],
+  BaseUnitId: 0,
+  PurchaseUnitId: 0,
   ConversionFactor: 1,
 };
-
-function createFileValidator(options: {
-  maxFiles: number;
-  maxSizeMB?: number;
-  allowedTypes?: string[];
-  t: (key: string) => string;
-}) {
-  return (file: File, currentFiles: File[]) => {
-    if (currentFiles.length >= options.maxFiles) {
-      return tWithReplace(options.t, "max_files_allowed", {
-        count: String(options.maxFiles),
-      });
-    }
-    if (
-      options.allowedTypes &&
-      !options.allowedTypes.some((type) => file.type.startsWith(type))
-    ) {
-      return options.t("unsupported_file_type");
-    }
-    const maxSize = (options.maxSizeMB || 2) * 1024 * 1024;
-    if (file.size > maxSize) {
-      return tWithReplace(options.t, "max_file_size_mb", {
-        size: String(options.maxSizeMB || 2),
-      });
-    }
-    return null;
-  };
-}
 
 function tWithReplace(
   t: (key: string) => string,
@@ -198,104 +189,128 @@ function tWithReplace(
   return text;
 }
 
+function createFileValidator(options: {
+  maxFiles: number;
+  maxSizeMB?: number;
+  allowedTypes?: string[];
+  t: (key: string) => string;
+}) {
+  return (file: File, currentFiles: File[]) => {
+    if (currentFiles.length >= options.maxFiles) {
+      return tWithReplace(options.t, "max_files_allowed", {
+        count: String(options.maxFiles),
+      });
+    }
+
+    if (
+      options.allowedTypes &&
+      !options.allowedTypes.some((type) => file.type.startsWith(type))
+    ) {
+      return options.t("unsupported_file_type");
+    }
+
+    const maxSize = (options.maxSizeMB || 2) * 1024 * 1024;
+    if (file.size > maxSize) {
+      return tWithReplace(options.t, "max_file_size_mb", {
+        size: String(options.maxSizeMB || 2),
+      });
+    }
+
+    return null;
+  };
+}
+
 export default function AddProduct() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
   const { notifyError } = useToast();
 
-  type ProductType = "direct" | "branched" | "prepared" | "raw";
-  const [productType, setProductType] = useState<ProductType>("direct");
+  const typeParam = (searchParams.get("type") || "").toLowerCase();
+  const normalizedType: ProductType =
+    typeParam === "branched"
+      ? "branched"
+      : typeParam === "prepared"
+      ? "prepared"
+      : typeParam === "raw" || typeParam === "rawmatrial"
+      ? "raw"
+      : "direct";
+
+  const isEditMode = !!id;
+
+  const [productType, setProductType] = useState<ProductType>(normalizedType);
   const [mainCategoryId, setMainCategoryId] = useState<number>();
+  const [saveAndAddAnother, setSaveAndAddAnother] = useState(false);
+
+  const anchor = useComboboxAnchor();
 
   const { data: taxesData } = useGetAllTaxes();
   const { data: mainCategories } = useGetAllMainCategories();
-  const { data: subCategories } =
-    useGetAllSubCategoriesWidthParentId(mainCategoryId as number);
+  const { data: subCategories } = useGetAllSubCategoriesWidthParentId(
+    mainCategoryId as number
+  );
   const { data: productsDirect } = useGetAllProductsDirect({ page: 1, limit: 100 });
-  const { mutateAsync: createProductDirect, isPending: isDirectLoading } =
-    useCreateProductDirect();
-  const { mutateAsync: createProductBranched, isPending: isBranchedLoading } =
-    useCreateProductBranched();
-  const { mutateAsync: createProductPrepared, isPending: isPreparedLoading } =
-    useCreateProductPrepared();
-  const { mutateAsync: createRawMaterial, isPending: isRawLoading } =
-    useCreateProductRawMaterial();
   const { data: productRawMatrial } = useGetAllProductsRawMatrial({
     page: 1,
     limit: 100,
   });
-  const { data: units } = useGetAllUnits({ page: 1, size: 1000000 });
-  const { data: productData, error } = useGetProductById(Number(id));
-  const { mutateAsync: updateProduct } = useUpdateProduct();
+  const { data: units } = useGetAllUnits({ page: 1, size: 1_000_000 });
+
+  const { data: productDataBranched } = useGetProductBranchedById(Number(id), {
+    enabled: isEditMode && normalizedType === "branched",
+  });
+  const { data: productDataDirect } = useGetProductDirectById(Number(id), {
+    enabled: isEditMode && normalizedType === "direct",
+  });
+  const { data: productDataPrepared } = useGetProductPreparedById(Number(id), {
+    enabled: isEditMode && normalizedType === "prepared",
+  });
+  const { data: productDataRawMaterial } = useGetProductRawMaterialtById(
+    Number(id),
+    {
+      enabled: isEditMode && normalizedType === "raw",
+    }
+  );
+
+  const {
+    mutateAsync: createProductDirect,
+    isPending: isDirectLoading,
+  } = useCreateProductDirect();
+  const {
+    mutateAsync: createProductBranched,
+    isPending: isBranchedLoading,
+  } = useCreateProductBranched();
+  const {
+    mutateAsync: createProductPrepared,
+    isPending: isPreparedLoading,
+  } = useCreateProductPrepared();
+  const {
+    mutateAsync: createRawMaterial,
+    isPending: isRawLoading,
+  } = useCreateProductRawMaterial();
+
+  const { mutateAsync: updateProductBranched } = useUpdateProductBranched();
+  const { mutateAsync: updateProductDirect } = useUpdateProductDirect();
+  const { mutateAsync: updateProductPrepared } = useUpdateProductPrepared();
 
   const isLoading =
     isDirectLoading || isBranchedLoading || isPreparedLoading || isRawLoading;
 
-  useEffect(() => {
-    if (error?.message) notifyError(String(error.message));
-  }, [error, notifyError]);
-
-  const activeSchema =
-    productType === "branched"
-      ? createBranchedProductSchema(t)
-      : productType === "prepared"
-        ? createPreparedProductSchema(t)
-        : productType === "raw"
-          ? createRawMaterialSchema(t)
-          : createProductSchema(t);
+  const activeSchema = useMemo(() => {
+    if (productType === "branched") return createBranchedProductSchema(t);
+    if (productType === "prepared") return createPreparedProductSchema(t);
+    if (productType === "raw") return createRawMaterialSchema(t);
+    return createProductSchema(t);
+  }, [productType, t]);
 
   const methods = useForm<FormValues>({
-    resolver: zodResolver(activeSchema) as Resolver<FormValues>,
+    resolver: zodResolver(activeSchema as any) as Resolver<FormValues>,
     defaultValues: baseDefaultValues,
     mode: "onChange",
   });
 
-  const { control, watch, setValue, clearErrors, reset } = methods;
-
-  useEffect(() => {
-    if (productData && id) {
-      setMainCategoryId(productData.parentCategoryId);
-
-      switch (productData.productType) {
-        case "Direct":
-          setProductType("direct");
-          break;
-        case "Branched":
-          setProductType("branched");
-          break;
-        case "Prepared":
-          setProductType("prepared");
-          break;
-        case "RawMatrial":
-          setProductType("raw");
-          break;
-        default:
-          setProductType("direct");
-      }
-
-      reset({
-        ProductNameAr: productData.productNameAr,
-        ProductNameEn: productData.productNameEn,
-        ProductNameUr: productData.productNameUr,
-        Description: productData.description || "",
-        SellingPrice: productData.sellingPrice,
-        CostPrice: productData.costPrice,
-        TaxCalculation: productData.taxCalculation,
-        CategoryId: undefined as any,
-        Barcode: productData.barcode,
-        TaxId: productData.taxId,
-        Image: undefined,
-        MinStockLevel: productData.minStockLevel,
-      } as any);
-    }
-  }, [productData, reset, id]);
-
-  useEffect(() => {
-    if (productData?.categoryId && subCategories && subCategories.length > 0) {
-      setValue("CategoryId" as any, productData.categoryId, { shouldValidate: true });
-    }
-  }, [subCategories, productData?.categoryId, setValue]);
+  const { control, watch, setValue, reset } = methods;
 
   const {
     fields: rawMaterialFields,
@@ -305,55 +320,6 @@ export default function AddProduct() {
     control,
     name: "RawMaterials" as never,
   });
-
-  useEffect(() => {
-    clearErrors();
-  }, [productType, clearErrors]);
-
-  const costPrice = watch("CostPrice" as any);
-  const sellingPrice = watch("SellingPrice" as any);
-  const taxId = watch("TaxId" as any);
-  const taxCalculation = watch("TaxCalculation" as any);
-  const imageField = watch("Image" as any);
-
-  const files = imageField instanceof File ? [imageField] : [];
-  const anchor = useComboboxAnchor();
-
-  const summary = useMemo(() => {
-    const selectedTax =
-      (taxesData || []).find((tx) => String(tx.id) === String(taxId)) || {
-        id: 1,
-        name: t("no_tax"),
-        amount: 0,
-      };
-
-    const taxRate = (selectedTax.amount || 0) / 100;
-    let basePrice = Number(sellingPrice) || 0;
-    let finalPrice = Number(sellingPrice) || 0;
-    let taxAmount = 0;
-
-    if (taxCalculation === "2") {
-      basePrice = finalPrice - finalPrice * taxRate;
-      taxAmount = finalPrice - basePrice;
-    } else if (taxCalculation === "3") {
-      taxAmount = basePrice * taxRate;
-      finalPrice = basePrice + taxAmount;
-    }
-
-    const cost = Number(costPrice) || 0;
-    const profit = basePrice - cost;
-    const profitMargin = basePrice > 0 ? (profit / basePrice) * 100 : 0;
-
-    return {
-      basePrice: basePrice.toFixed(2),
-      taxAmount: taxAmount.toFixed(2),
-      finalPrice: finalPrice.toFixed(2),
-      profit: profit.toFixed(2),
-      profitMargin: profitMargin.toFixed(1),
-      taxName: selectedTax.name,
-      taxPercentage: selectedTax.amount || 0,
-    };
-  }, [costPrice, sellingPrice, taxId, taxCalculation, taxesData, t]);
 
   const validateFile = useMemo(
     () =>
@@ -366,79 +332,316 @@ export default function AddProduct() {
     [t]
   );
 
-  const onSubmit = async (data: FormValues) => {
-    const formData = new FormData();
+  const CostPrice = watch("CostPrice");
+  const SellingPrice = watch("SellingPrice");
+  const TaxId = watch("TaxId");
+  const TaxCalculation = watch("TaxCalculation");
+  const ImageField = watch("Image");
+  const files = ImageField instanceof File ? [ImageField] : [];
 
-    if (productType === "raw") {
-      const rawData = data as RawFormValues;
+  const summary = useMemo(() => {
+    const selectedTax =
+      (taxesData || []).find((tax) => String(tax.id) === String(TaxId)) || {
+        id: 1,
+        name: "بدون ضريبة",
+        amount: 0,
+      };
 
-      formData.append("ProductNameAr", data.ProductNameAr);
-      formData.append("ProductNameEN", data.ProductNameEn);
-      formData.append("ProductNameUr", data.ProductNameUr);
-      formData.append("CostPrice", String(data.CostPrice));
-      if (rawData.BaseUnitId) formData.append("BaseUnitId", String(rawData.BaseUnitId));
-      if (rawData.PurchaseUnitId)
-        formData.append("PurchaseUnitId", String(rawData.PurchaseUnitId));
-      if (rawData.ConversionFactor)
-        formData.append("ConversionFactor", String(rawData.ConversionFactor));
-    } else {
-      Object.entries(data).forEach(([key, value]) => {
-        if (key === "ChildrenIds" && productType === "branched" && Array.isArray(value)) {
-          value.forEach((childId) => formData.append("ChildrenIds[]", String(childId)));
-        } else if (key === "RawMaterials" && productType === "prepared" && Array.isArray(value)) {
-          const materials = value as {
-            rawMaterialId: number;
-            quantity: number;
-            unitId: number;
-          }[];
-          formData.append(
-            "Components",
-            JSON.stringify(
-              materials.map((m) => ({
-                componentProductId: m.rawMaterialId,
-                quantity: m.quantity,
-                unitId: m.unitId,
-              }))
-            )
-          );
-        } else if (
-          value !== undefined &&
-          value !== null &&
-          key !== "Image" &&
-          key !== "image" &&
-          key !== "ChildrenIds" &&
-          key !== "RawMaterials" &&
-          key !== "BaseUnitId" &&
-          key !== "PurchaseUnitId" &&
-          key !== "ConversionFactor"
-        ) {
-          formData.append(key, String(value));
-        }
-      });
+    const taxRate = (selectedTax.amount || 0) / 100;
+    let basePrice = Number(SellingPrice) || 0;
+    let finalPrice = Number(SellingPrice) || 0;
+    let taxAmount = 0;
 
-      if (data.Image instanceof File) {
-        formData.append("image", data.Image);
-      }
+    if (Number(TaxCalculation) === 2) {
+      basePrice = finalPrice - finalPrice * taxRate;
+      taxAmount = finalPrice - basePrice;
+    } else if (Number(TaxCalculation) === 3) {
+      taxAmount = basePrice * taxRate;
+      finalPrice = basePrice + taxAmount;
     }
 
-    try {
-      if (id) {
-        formData.append("Id", id);
-        formData.append("productType", productData?.productType || "");
-        await updateProduct({ id: Number(id), data: formData });
-      } else {
-        if (productType === "raw") {
-          await createRawMaterial(formData);
-        } else if (productType === "branched") {
-          await createProductBranched(formData);
-        } else if (productType === "prepared") {
-          await createProductPrepared(formData);
-        } else {
-          await createProductDirect(formData);
+    const cost = Number(CostPrice) || 0;
+    const profit = basePrice - cost;
+    const profitMargin = basePrice > 0 ? (profit / basePrice) * 100 : 0;
+
+    return {
+      basePrice: basePrice.toFixed(2),
+      taxAmount: taxAmount.toFixed(2),
+      finalPrice: finalPrice.toFixed(2),
+      profit: profit.toFixed(2),
+      profitMargin: profitMargin.toFixed(1),
+      taxName: selectedTax.name,
+      taxPercentage: selectedTax.amount || 0,
+    };
+  }, [CostPrice, SellingPrice, TaxId, TaxCalculation, taxesData]);
+
+  useEffect(() => {
+    if (!id) return;
+
+    switch (normalizedType) {
+      case "direct": {
+        if (!productDataDirect) return;
+        setProductType("direct");
+        setMainCategoryId(productDataDirect.parentCategoryId);
+
+        reset({
+          ...baseDefaultValues,
+          ProductNameAr: productDataDirect.productNameAr,
+          ProductNameEn: productDataDirect.productNameEn,
+          ProductNameUr: productDataDirect.productNameUr,
+          Description: productDataDirect.description || "",
+          Barcode: productDataDirect.barcode,
+          CategoryId: productDataDirect.categoryId ?? 0,
+          SellingPrice: productDataDirect.sellingPrice,
+          CostPrice: productDataDirect.costPrice,
+          MinStockLevel: productDataDirect.minStockLevel,
+          TaxId: productDataDirect.taxId ?? 0,
+          TaxCalculation: Number(productDataDirect.taxCalculation ?? 0),
+          Image: productDataDirect.image ?? undefined,
+        });
+        break;
+      }
+
+      case "branched": {
+        if (!productDataBranched) return;
+        setProductType("branched");
+        setMainCategoryId(productDataBranched.parentCategoryId);
+
+        reset({
+          ...baseDefaultValues,
+          ProductNameAr: productDataBranched.productNameAr,
+          ProductNameEn: productDataBranched.productNameEn,
+          ProductNameUr: productDataBranched.productNameUr,
+          Description: productDataBranched.description || "",
+          CategoryId: productDataBranched.categoryId ?? 0,
+          ChildrenIds:
+            productDataBranched.children
+              ?.map((c: any) => c?.id)
+              ?.filter((childId: unknown): childId is number => typeof childId === "number") || [],
+          Image: productDataBranched.image ?? undefined,
+        });
+        break;
+      }
+
+      case "prepared": {
+        if (!productDataPrepared) return;
+        setProductType("prepared");
+        setMainCategoryId(productDataPrepared.parentCategoryId);
+
+        reset({
+          ...baseDefaultValues,
+          ProductNameAr: productDataPrepared.productNameAr,
+          ProductNameEn: productDataPrepared.productNameEn,
+          ProductNameUr: productDataPrepared.productNameUr,
+          Description: productDataPrepared.description || "",
+          Barcode: productDataPrepared.barcode,
+          CategoryId: productDataPrepared.categoryId ?? 0,
+          SellingPrice: productDataPrepared.sellingPrice,
+          CostPrice: productDataPrepared.costPrice,
+          MinStockLevel: productDataPrepared.minStockLevel,
+          TaxId: productDataPrepared.taxId ?? 0,
+          TaxCalculation: Number(productDataPrepared.taxCalculation ?? 0),
+          RawMaterials:
+            productDataPrepared.components?.map((c: any) => ({
+              rawMaterialId: c.componentProductId,
+              quantity: c.quantity,
+              unitId: c.unitId ?? 0,
+            })) || [],
+          ChildrenIds:
+            productDataPrepared.children
+              ?.map((c: any) => c?.id)
+              ?.filter((childId: unknown): childId is number => typeof childId === "number") || [],
+          Image: productDataPrepared.image ?? undefined,
+        });
+        break;
+      }
+
+      case "raw": {
+        if (!productDataRawMaterial) return;
+        setProductType("raw");
+
+        reset({
+          ...baseDefaultValues,
+          ProductNameAr: productDataRawMaterial.productNameAr,
+          ProductNameEn: productDataRawMaterial.productNameEn,
+          ProductNameUr: productDataRawMaterial.productNameUr,
+          Description: productDataRawMaterial.description || "",
+          CostPrice: productDataRawMaterial.costPrice,
+          BaseUnitId: productDataRawMaterial.baseUnitId ?? 0,
+          PurchaseUnitId: productDataRawMaterial.purchaseUnitId ?? 0,
+          ConversionFactor: productDataRawMaterial.conversionFactor,
+          Image: productDataRawMaterial.image ?? undefined,
+        });
+        break;
+      }
+
+      default:
+        break;
+    }
+  }, [
+    id,
+    normalizedType,
+    reset,
+    productDataDirect,
+    productDataBranched,
+    productDataPrepared,
+    productDataRawMaterial,
+  ]);
+
+  useEffect(() => {
+    if (!mainCategoryId || !subCategories?.length) return;
+
+    let categoryName: string | undefined;
+
+    if (normalizedType === "branched") categoryName = productDataBranched?.categoryName;
+    else if (normalizedType === "direct") categoryName = productDataDirect?.categoryName;
+    else if (normalizedType === "prepared") categoryName = productDataPrepared?.categoryName;
+
+    if (!categoryName) return;
+
+    const category = subCategories.find(
+      (cat: any) => cat.categoryNameAr === categoryName
+    );
+
+    if (category) {
+      setValue("CategoryId", category.id, { shouldValidate: true });
+    }
+  }, [
+    subCategories,
+    productDataBranched,
+    productDataDirect,
+    productDataPrepared,
+    setValue,
+    mainCategoryId,
+    normalizedType,
+  ]);
+
+  const buildFormData = useCallback(
+    (data: FormValues): FormData => {
+      const formData = new FormData();
+
+      formData.append("ProductNameAr", String(data.ProductNameAr ?? ""));
+      formData.append("ProductNameEn", String(data.ProductNameEn ?? ""));
+      formData.append("ProductNameUr", String(data.ProductNameUr ?? ""));
+      formData.append("Description", String(data.Description ?? ""));
+
+      if ("Barcode" in data && data.Barcode) {
+        formData.append("Barcode", String(data.Barcode));
+      }
+
+      if ("CategoryId" in data && data.CategoryId) {
+        formData.append("CategoryId", String(data.CategoryId));
+      }
+
+      if ("CostPrice" in data && data.CostPrice !== undefined) {
+        formData.append("CostPrice", String(data.CostPrice));
+      }
+
+      if ("SellingPrice" in data && data.SellingPrice !== undefined) {
+        formData.append("SellingPrice", String(data.SellingPrice));
+      }
+
+      if ("MinStockLevel" in data && data.MinStockLevel !== undefined) {
+        formData.append("MinStockLevel", String(data.MinStockLevel));
+      }
+
+      if ("TaxId" in data && data.TaxId) {
+        formData.append("TaxId", String(data.TaxId));
+      }
+
+      if ("TaxCalculation" in data && data.TaxCalculation) {
+        formData.append("TaxCalculation", String(data.TaxCalculation));
+      }
+
+      if ("ChildrenIds" in data && Array.isArray(data.ChildrenIds)) {
+        formData.append("ChildrenIds", JSON.stringify(data.ChildrenIds));
+      }
+
+      if (productType === "prepared" && "RawMaterials" in data && Array.isArray(data.RawMaterials)) {
+        formData.append(
+          "Components",
+          JSON.stringify(
+            data.RawMaterials.map((m) => ({
+              componentProductId: m.rawMaterialId,
+              quantity: m.quantity,
+              unitId: m.unitId,
+            }))
+          )
+        );
+      }
+
+      if (productType === "raw") {
+        if ("BaseUnitId" in data && data.BaseUnitId) {
+          formData.append("BaseUnitId", String(data.BaseUnitId));
+        }
+        if ("PurchaseUnitId" in data && data.PurchaseUnitId) {
+          formData.append("PurchaseUnitId", String(data.PurchaseUnitId));
+        }
+        if ("ConversionFactor" in data && data.ConversionFactor !== undefined) {
+          formData.append("ConversionFactor", String(data.ConversionFactor));
         }
       }
+
+      if ("Image" in data && data.Image instanceof File) {
+        formData.append("Image", data.Image);
+      }
+
+      return formData;
+    },
+    [productType]
+  );
+
+  const onSubmit = async (data: FormValues) => {
+    const formData = buildFormData(data);
+
+    try {
+      if (isEditMode && id) {
+        formData.append("Id", id);
+
+        switch (productType) {
+          case "branched":
+            await updateProductBranched({ id: Number(id), data: formData });
+            break;
+          case "direct":
+            await updateProductDirect({ id: Number(id), data: formData });
+            break;
+          case "prepared":
+            await updateProductPrepared({ id: Number(id), data: formData });
+            break;
+          case "raw":
+            await createRawMaterial(formData);
+            break;
+          default:
+            break;
+        }
+      } else {
+        switch (productType) {
+          case "raw":
+            await createRawMaterial(formData);
+            break;
+          case "branched":
+            await createProductBranched(formData);
+            break;
+          case "prepared":
+            await createProductPrepared(formData);
+            break;
+          default:
+            await createProductDirect(formData);
+            break;
+        }
+      }
+
+      if (saveAndAddAnother && !isEditMode) {
+        reset(baseDefaultValues);
+        setMainCategoryId(undefined);
+        setSaveAndAddAnother(false);
+        return;
+      }
+
       navigate("/products");
-    } catch { }
+    } catch (error: any) {
+      notifyError(error?.response?.data?.message || error?.message || t("save_error"));
+    }
   };
 
   return (
@@ -462,7 +665,9 @@ export default function AddProduct() {
 
       <Card>
         <CardHeader className="max-md:flex max-md:flex-col">
-          <CardTitle>{t("add_new_product")}</CardTitle>
+          <CardTitle>
+            {isEditMode ? t("edit_product") : t("add_new_product")}
+          </CardTitle>
           <CardDescription>{t("add_new_product_desc")}</CardDescription>
         </CardHeader>
 
@@ -489,10 +694,7 @@ export default function AddProduct() {
           </Tabs>
 
           <FormProvider {...methods}>
-            <form
-              onSubmit={methods.handleSubmit(onSubmit)}
-              className="space-y-6"
-            >
+            <form onSubmit={methods.handleSubmit(onSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 <Controller
                   name="ProductNameAr"
@@ -517,14 +719,17 @@ export default function AddProduct() {
                     </FieldLabel>
                     <Select
                       value={mainCategoryId ? String(mainCategoryId) : ""}
-                      onValueChange={(e) => setMainCategoryId(Number(e))}
+                      onValueChange={(e) => {
+                        setMainCategoryId(Number(e));
+                        setValue("CategoryId", 0 as any, { shouldValidate: true });
+                      }}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder={t("choose_main_category")} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          {mainCategories?.map((cat) => (
+                          {mainCategories?.map((cat: any) => (
                             <SelectItem key={cat.id} value={String(cat.id)}>
                               {cat.categoryNameAr}
                             </SelectItem>
@@ -544,7 +749,10 @@ export default function AddProduct() {
                         {t("product_name_en")}
                         <span className="text-red-500">*</span>
                       </FieldLabel>
-                      <Input {...field} placeholder={t("enter_name_in_second_language")} />
+                      <Input
+                        {...field}
+                        placeholder={t("enter_name_in_second_language")}
+                      />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
@@ -568,10 +776,9 @@ export default function AddProduct() {
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder={t("choose_sub_category")} />
                           </SelectTrigger>
-
                           <SelectContent>
                             <SelectGroup>
-                              {subCategories?.map((cat) => (
+                              {subCategories?.map((cat: any) => (
                                 <SelectItem key={cat.id} value={String(cat.id)}>
                                   {cat.categoryNameAr}
                                 </SelectItem>
@@ -579,7 +786,6 @@ export default function AddProduct() {
                             </SelectGroup>
                           </SelectContent>
                         </Select>
-
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
@@ -591,8 +797,14 @@ export default function AddProduct() {
                   control={control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel className="gap-x-0">{t("product_name_ur")}</FieldLabel>
-                      <Input {...field} placeholder={t("enter_name_in_third_language")} />
+                      <FieldLabel className="gap-x-0">
+                        {t("product_name_ur")}
+                        <span className="text-red-500">*</span>
+                      </FieldLabel>
+                      <Input
+                        {...field}
+                        placeholder={t("enter_name_in_third_language")}
+                      />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
@@ -609,7 +821,11 @@ export default function AddProduct() {
                           <span className="text-red-500">*</span>
                         </FieldLabel>
                         <div className="flex gap-2">
-                          <Input {...field} placeholder={t("enter_barcode")} className="flex-1" />
+                          <Input
+                            {...field}
+                            placeholder={t("enter_barcode")}
+                            className="flex-1"
+                          />
                           <Button
                             type="button"
                             className="h-full"
@@ -643,7 +859,7 @@ export default function AddProduct() {
                           <span className="text-red-500">*</span>
                         </FieldLabel>
                         <Input
-                          {...field}
+                          value={field.value ?? ""}
                           onChange={(e) => field.onChange(Number(e.target.value))}
                           type="number"
                           placeholder={t("enter_cost")}
@@ -666,7 +882,7 @@ export default function AddProduct() {
                             <span className="text-red-500">*</span>
                           </FieldLabel>
                           <Input
-                            {...field}
+                            value={field.value ?? ""}
                             onChange={(e) => field.onChange(Number(e.target.value))}
                             type="number"
                             placeholder={t("enter_price")}
@@ -682,9 +898,11 @@ export default function AddProduct() {
                         control={control}
                         render={({ field, fieldState }) => (
                           <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel className="gap-x-0">{t("min_stock_level")}</FieldLabel>
+                            <FieldLabel className="gap-x-0">
+                              {t("min_stock_level")}
+                            </FieldLabel>
                             <Input
-                              {...field}
+                              value={field.value ?? ""}
                               onChange={(e) => field.onChange(Number(e.target.value))}
                               placeholder={t("enter_min_stock_level")}
                             />
@@ -712,7 +930,7 @@ export default function AddProduct() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectGroup>
-                                {taxesData?.map((tax) => (
+                                {taxesData?.map((tax: any) => (
                                   <SelectItem key={tax.id} value={String(tax.id)}>
                                     {tax.name}
                                   </SelectItem>
@@ -734,15 +952,24 @@ export default function AddProduct() {
                             {t("tax_calculation_method")}
                             <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <Select value={field.value} onValueChange={field.onChange}>
+                          <Select
+                            value={field.value ? String(field.value) : ""}
+                            onValueChange={(val) => field.onChange(Number(val))}
+                          >
                             <SelectTrigger className="w-full">
-                              <SelectValue placeholder={t("choose_calculation_method")} />
+                              <SelectValue
+                                placeholder={t("choose_calculation_method")}
+                              />
                             </SelectTrigger>
                             <SelectContent>
                               <SelectGroup>
                                 <SelectItem value="1">{t("no_tax")}</SelectItem>
-                                <SelectItem value="2">{t("price_includes_tax")}</SelectItem>
-                                <SelectItem value="3">{t("price_excludes_tax")}</SelectItem>
+                                <SelectItem value="2">
+                                  {t("price_includes_tax")}
+                                </SelectItem>
+                                <SelectItem value="3">
+                                  {t("price_excludes_tax")}
+                                </SelectItem>
                               </SelectGroup>
                             </SelectContent>
                           </Select>
@@ -755,8 +982,12 @@ export default function AddProduct() {
                       <div className="w-full bg-[#FFFCF2] border border-[#F3E2B4] rounded-xl p-5">
                         <div className="flex flex-col space-y-3.5">
                           <div className="flex justify-between items-center">
-                            <span className="text-slate-500 text-[15px]">{t("price_before_tax")}</span>
-                            <span className="text-slate-500 text-[15px]">{summary.basePrice}</span>
+                            <span className="text-slate-500 text-[15px]">
+                              {t("price_before_tax")}
+                            </span>
+                            <span className="text-slate-500 text-[15px]">
+                              {summary.basePrice}
+                            </span>
                           </div>
                           <div className="flex justify-between items-center">
                             <span className="text-[#D97706] text-[15px]">
@@ -766,13 +997,19 @@ export default function AddProduct() {
                               {summary.taxAmount} +
                             </span>
                           </div>
-                          <div className="border-t border-[#E8D49E] my-0.5"></div>
+                          <div className="border-t border-[#E8D49E] my-0.5" />
                           <div className="flex justify-between items-center pt-1">
-                            <span className="text-[#8B4513] font-bold text-lg">{t("final_price")}</span>
-                            <span className="text-[#8B4513] font-bold text-lg">{summary.finalPrice}</span>
+                            <span className="text-[#8B4513] font-bold text-lg">
+                              {t("final_price")}
+                            </span>
+                            <span className="text-[#8B4513] font-bold text-lg">
+                              {summary.finalPrice}
+                            </span>
                           </div>
                           <div className="flex justify-between items-center pt-1">
-                            <span className="text-[#0f5132] font-bold text-base">{t("expected_profit")}</span>
+                            <span className="text-[#0f5132] font-bold text-base">
+                              {t("expected_profit")}
+                            </span>
                             <span className="text-[#0f5132] font-bold text-base">
                               {summary.profit} ({summary.profitMargin}%)
                             </span>
@@ -790,7 +1027,11 @@ export default function AddProduct() {
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel>{t("description")}</FieldLabel>
-                        <Textarea {...field} placeholder={t("enter_description")} rows={4} />
+                        <Textarea
+                          {...field}
+                          placeholder={t("enter_description")}
+                          rows={4}
+                        />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
@@ -817,7 +1058,7 @@ export default function AddProduct() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectGroup>
-                                {units?.items?.map((unit) => (
+                                {units?.items?.map((unit: any) => (
                                   <SelectItem key={unit.id} value={String(unit.id)}>
                                     {unit.name}
                                   </SelectItem>
@@ -848,7 +1089,7 @@ export default function AddProduct() {
                             </SelectTrigger>
                             <SelectContent>
                               <SelectGroup>
-                                {units?.items?.map((unit) => (
+                                {units?.items?.map((unit: any) => (
                                   <SelectItem key={unit.id} value={String(unit.id)}>
                                     {unit.name}
                                   </SelectItem>
@@ -872,7 +1113,7 @@ export default function AddProduct() {
                               <span className="text-red-500">*</span>
                             </FieldLabel>
                             <Input
-                              {...field}
+                              value={field.value ?? ""}
                               type="number"
                               step="0.01"
                               onChange={(e) => field.onChange(Number(e.target.value))}
@@ -922,7 +1163,7 @@ export default function AddProduct() {
                                     <>
                                       {values.map((valueId: string) => {
                                         const product = productsDirect?.items?.find(
-                                          (p) => String(p.id) === valueId
+                                          (p: any) => String(p.id) === valueId
                                         );
                                         return (
                                           <ComboboxChip key={valueId}>
@@ -930,7 +1171,9 @@ export default function AddProduct() {
                                           </ComboboxChip>
                                         );
                                       })}
-                                      <ComboboxChipsInput placeholder={t("search_direct_products")} />
+                                      <ComboboxChipsInput
+                                        placeholder={t("search_direct_products")}
+                                      />
                                     </>
                                   )}
                                 </ComboboxValue>
@@ -1008,7 +1251,7 @@ export default function AddProduct() {
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectGroup>
-                                      {productRawMatrial?.items?.map((raw) => (
+                                      {productRawMatrial?.items?.map((raw: any) => (
                                         <SelectItem key={raw.id} value={String(raw.id)}>
                                           {raw.productNameAr}
                                         </SelectItem>
@@ -1033,7 +1276,7 @@ export default function AddProduct() {
                                   <span className="text-red-500">*</span>
                                 </FieldLabel>
                                 <Input
-                                  {...field}
+                                  value={field.value ?? ""}
                                   type="number"
                                   step="0.01"
                                   onChange={(e) => field.onChange(Number(e.target.value))}
@@ -1065,7 +1308,7 @@ export default function AddProduct() {
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectGroup>
-                                      {units?.items?.map((unit) => (
+                                      {units?.items?.map((unit: any) => (
                                         <SelectItem key={unit.id} value={String(unit.id)}>
                                           {unit.name}
                                         </SelectItem>
@@ -1087,16 +1330,21 @@ export default function AddProduct() {
                             onClick={() => removeRawMaterial(index)}
                           >
                             <Trash2 size={18} />
-                            <span className="lg:hidden ml-2">{t("delete_raw_material")}</span>
+                            <span className="lg:hidden ml-2">
+                              {t("delete_raw_material")}
+                            </span>
                           </Button>
                         </div>
                       </div>
                     ))}
 
-                    {(methods.formState.errors as FieldErrors<any>).RawMaterials?.root?.message && (
+                    {(methods.formState.errors as FieldErrors<any>).RawMaterials?.root
+                      ?.message && (
                       <p className="text-sm text-red-500 mt-2">
-                        {(methods.formState.errors as FieldErrors<any>).RawMaterials?.root
-                          ?.message as string}
+                        {
+                          (methods.formState.errors as FieldErrors<any>).RawMaterials
+                            ?.root?.message as string
+                        }
                       </p>
                     )}
                   </div>
@@ -1120,8 +1368,12 @@ export default function AddProduct() {
                               <div className="flex items-center justify-center rounded-full border p-2.5">
                                 <Upload className="size-6 text-muted-foreground" />
                               </div>
-                              <p className="font-medium text-sm">{t("drag_drop_image_here")}</p>
-                              <p className="text-muted-foreground text-xs">{t("or_click_to_browse")}</p>
+                              <p className="font-medium text-sm">
+                                {t("drag_drop_image_here")}
+                              </p>
+                              <p className="text-muted-foreground text-xs">
+                                {t("or_click_to_browse")}
+                              </p>
                             </div>
                             <FileUploadTrigger asChild>
                               <Button variant="outline" size="sm" className="mt-2 w-fit">
@@ -1161,6 +1413,7 @@ export default function AddProduct() {
                   variant="destructive"
                   type="button"
                   className="w-full lg:w-auto px-8 h-12"
+                  onClick={() => navigate("/products")}
                 >
                   {t("cancel")}
                 </Button>
@@ -1171,6 +1424,10 @@ export default function AddProduct() {
                     size="lg"
                     type="button"
                     className="w-full lg:w-auto px-8 h-12 text-base"
+                    onClick={() => {
+                      setSaveAndAddAnother(true);
+                      methods.handleSubmit(onSubmit)();
+                    }}
                   >
                     {t("save_and_add_another")}
                   </Button>
@@ -1180,6 +1437,7 @@ export default function AddProduct() {
                     type="submit"
                     disabled={isLoading}
                     className="w-full lg:w-auto px-8 h-12 text-base"
+                    onClick={() => setSaveAndAddAnother(false)}
                   >
                     {isLoading ? t("saving") : t("save_data")}
                   </Button>

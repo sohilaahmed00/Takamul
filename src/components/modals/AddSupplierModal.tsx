@@ -417,8 +417,8 @@ export default function AddSupplierModal({
                     {isLoading
                       ? t("loading")
                       : supplier
-                      ? t("update")
-                      : t("add_supplier")}
+                        ? t("update")
+                        : t("add_supplier")}
                   </button>
                 </div>
               </motion.div>

@@ -217,12 +217,12 @@ const EditQuantityAdjustment = () => {
       items: prev.items.map((item) =>
         item.stockInventoryId === stockInventoryId
           ? {
-              ...item,
-              [field]:
-                field === "quantityChanged" ? Number(value)
+            ...item,
+            [field]:
+              field === "quantityChanged" ? Number(value)
                 : field === "operationType" ? (value as QuantityAdjustmentOperationType)
-                : value,
-            }
+                  : value,
+          }
           : item
       ),
     }));
@@ -285,11 +285,11 @@ const EditQuantityAdjustment = () => {
               <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 shadow-lg z-10 mt-1 rounded-md overflow-y-auto max-h-60">
                 {filteredProducts.length > 0
                   ? filteredProducts.map((p) => (
-                      <button key={p.id} onClick={() => handleAddItem(p)}
-                        className="w-full p-3 text-right hover:bg-gray-50 text-sm border-b border-gray-100 last:border-0 font-bold">
-                        {p.productName} - {p.productId}
-                      </button>
-                    ))
+                    <button key={p.id} onClick={() => handleAddItem(p)}
+                      className="w-full p-3 text-right hover:bg-gray-50 text-sm border-b border-gray-100 last:border-0 font-bold">
+                      {p.productName} - {p.productId}
+                    </button>
+                  ))
                   : <div className="p-3 text-center text-sm text-gray-500 font-bold">لا توجد نتائج</div>
                 }
               </div>

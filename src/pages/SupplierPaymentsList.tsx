@@ -152,7 +152,7 @@ export default function SupplierPaymentsList() {
           </CardTitle>
 
           <CardAction>
-            <Button onClick={openAddModal} variant="default">
+            <Button size={"xl"} onClick={openAddModal} variant="default">
               <Plus size={18} />
               {t("add_supplier_payment")}
             </Button>

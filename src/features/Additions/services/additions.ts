@@ -21,7 +21,7 @@ export const createAdditions = (data: createAddition) =>
   });
 
 export const updateAddition = (id: number, data: createAddition) =>
-  httpClient<string>(`/Additions/${id}`, {
+  httpClient<{ message: string }>(`/Additions/${id}`, {
     method: "PUT",
     data,
   });

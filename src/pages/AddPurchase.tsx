@@ -95,11 +95,11 @@ export default function AddPurchase() {
     searchQuery.trim() === ""
       ? []
       : allProducts.filter((p) => {
-          const name = String(p.name || "").toLowerCase();
-          const code = String(p.code || "").toLowerCase();
-          const query = searchQuery.toLowerCase();
-          return name.includes(query) || code.includes(query);
-        });
+        const name = String(p.name || "").toLowerCase();
+        const code = String(p.code || "").toLowerCase();
+        const query = searchQuery.toLowerCase();
+        return name.includes(query) || code.includes(query);
+      });
 
   const handleSelectProduct = (product: Product) => {
     const existingItemIndex = items.findIndex(
@@ -251,8 +251,8 @@ export default function AddPurchase() {
         paid >= finalTotal
           ? PaymentStatus.PAID
           : paid > 0
-          ? PaymentStatus.PARTIAL
-          : PaymentStatus.DUE,
+            ? PaymentStatus.PARTIAL
+            : PaymentStatus.DUE,
       branch: formData.branch,
       notes: formData.notes,
     };

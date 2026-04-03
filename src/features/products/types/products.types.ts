@@ -28,6 +28,7 @@ export type ProductDirect = {
   productNameAr: string;
   productNameEn: string;
   productNameUr: string;
+  parentCategoryId: number;
   barcode: string;
   description: string | null;
   categoryName: string;
@@ -52,18 +53,23 @@ export type ProductBranch = {
   parentCategoryId: number;
   imageUrl: string | null;
   isActive: boolean;
-  children: Product[];
+  children: {
+    id: number;
+    productCode: number;
+    productNameAr: string;
+    barcode: string;
+    costPrice: number;
+    sellingPrice: number;
+  }[];
 };
+
 export type ProductRawMatrial = {
   id: number;
   productCode: number;
   productNameAr: string;
   productNameEn: string;
   productNameUr: string;
-  barcode: string;
   description: string | null;
-  categoryName: string;
-  minStockLevel: number;
   baseUnitName: string;
   purchaseUnitName: string;
   conversionFactor: number;
@@ -86,7 +92,14 @@ export type ProductPrepared = {
   taxName: string | null;
   taxCalculation: number;
   isActive: boolean;
-  components: any[];
+  components: {
+    componentProductId: number;
+    componentNameAr: string;
+    quantity: number;
+    unitCost: number;
+    totalCost: number;
+  }[];
+  minStockLevel: number;
 };
 export interface CreateProduct {
   barcode?: string;

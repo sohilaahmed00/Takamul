@@ -5,7 +5,7 @@ import type { createCustomer, Customer, GetAllCustomersResponse } from "../types
 // GET
 // ===================
 
-export const getAllCustomers = ({ page, limit, searchTerm }: { page: number; limit: number; searchTerm: string }) =>
+export const getAllCustomers = ({ page, limit, searchTerm }: { page: number; limit: number; searchTerm?: string }) =>
   httpClient<GetAllCustomersResponse>("/Customer", {
     params: {
       Page: page,

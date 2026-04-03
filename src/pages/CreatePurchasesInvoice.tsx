@@ -14,15 +14,10 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import type { CreateSalesOrder } from "@/features/sales/types/sales.types";
+import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import type { CreatePurchaseOrder } from "@/features/purchases/types/purchase.types";
 import { useCreatePurchaseOrder } from "@/features/purchases/hooks/useCreatePurchaseOrder";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
@@ -72,6 +67,7 @@ type PurchaseInvoiceType = z.infer<
 
 const CreatePurchaseInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
+  const navigate = useNavigate();
 
   const purchasesInvoiceSchema = useMemo(
     () => createPurchasesInvoiceSchema(t),
@@ -86,6 +82,7 @@ const CreatePurchaseInvoice: React.FC = () => {
   const { id } = useParams();
   const { data: purchaseOrder } = useGetPurchaseOrderById(Number(id));
   const { data: treasurys } = useGetAllTreasurys();
+  const [submitType, setSubmitType] = useState<"save" | "saveAndNew">("save");
 
   const form = useForm<PurchaseInvoiceType>({
     resolver: zodResolver(purchasesInvoiceSchema) as any,
@@ -98,7 +95,7 @@ const CreatePurchaseInvoice: React.FC = () => {
         {
           productId: 0,
           unitId: 0,
-          quantity: 1,
+          quantity: undefined,
           unitPrice: undefined as unknown as number,
           discountType: "fixed",
           discountValue: 0,
@@ -108,7 +105,7 @@ const CreatePurchaseInvoice: React.FC = () => {
       ],
       payments: [
         {
-          amount: 0,
+          amount: undefined,
           treasuryId: 0,
         },
       ],
@@ -120,7 +117,6 @@ const CreatePurchaseInvoice: React.FC = () => {
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { data: taxes } = useGetAllTaxes();
-
   const {
     fields: itemFields,
     append: appendItem,
@@ -211,6 +207,18 @@ const CreatePurchaseInvoice: React.FC = () => {
     };
 
     await createPurchaseOrder(payload);
+    if (submitType === "saveAndNew") {
+      form.reset({
+        orderDate: new Date().toISOString().split("T")[0],
+        warehouseId: 0,
+        supplierId: 0,
+        notes: "",
+        items: [{ productId: 0, unitId: 0, quantity: undefined, unitPrice: undefined, discountType: "fixed", discountValue: 0, taxId: 0 }],
+        payments: [{ amount: undefined, treasuryId: 0 }],
+      });
+    } else {
+      navigate("/purchases");
+    }
   };
 
   const summary = useMemo(() => {
@@ -602,8 +610,8 @@ const CreatePurchaseInvoice: React.FC = () => {
                                   type="button"
                                   onClick={() => toggleDiscount(index)}
                                   className={`p-2 ${isDiscOpen
-                                      ? "text-emerald-600"
-                                      : "text-zinc-400"
+                                    ? "text-emerald-600"
+                                    : "text-zinc-400"
                                     }`}
                                 >
                                   <Tag size={14} />

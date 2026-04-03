@@ -6,7 +6,7 @@ export default function LedgerStatement() {
   const { t, direction } = useLanguage();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  
+
   const data = [
     { date: '2024-03-04', basedOn: 'رصيد بداية الفترة', ref: '-', notes: '-', debit: 0, credit: 0, balance: 0 },
   ];
@@ -139,7 +139,7 @@ export default function LedgerStatement() {
               </tbody>
             </table>
           </div>
-          
+
           <div className="p-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
             <span className="text-sm text-gray-600 dark:text-gray-400">عرض 1 إلى {data.length} من {data.length} سجلات</span>
             <div className="flex items-center gap-2">
