@@ -146,11 +146,11 @@ export default function ProductsList() {
     <>
       <Card>
         <CardHeader className="max-md:flex max-md:flex-col">
-          <CardTitle>إدارة الاصناف</CardTitle>
-          <CardDescription>إدارة الأصناف المباشرة والمتفرعة والمجهزة والخامات</CardDescription>
+          <CardTitle>{t("products_management")}</CardTitle>
+          <CardDescription>{t("products_management_desc")}</CardDescription>
           <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
             <Button size={"xl"} variant={"default"} asChild>
-              <Link to={"/products/create"}>إضافة صنف</Link>
+              <Link to={"/products/create"}>{t("add_product")}</Link>
             </Button>
           </CardAction>
         </CardHeader>
@@ -158,19 +158,19 @@ export default function ProductsList() {
           <Tabs value={activeTab} onValueChange={handleTabChange} className="border border-gray-200 rounded-t-md overflow-hidden">
             <TabsList variant={"line"} className="flex overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit! pb-1 max-lg:w-full [&::-webkit-scrollbar]:hidden">
               <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
-                جميع الأصناف
+                {t("all_products")}
               </TabsTrigger>
               <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="direct">
-                الأصناف المباشرة
+                {t("direct_products")}
               </TabsTrigger>
               <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="branched">
-                الأصناف المتفرعة
+                {t("branched_products")}
               </TabsTrigger>
               <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="prepared">
-                الأصناف المجهزة
+                {t("prepared_products")}
               </TabsTrigger>
               <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="rawMaterials">
-                الخامات
+                {t("raw_materials")}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -197,7 +197,7 @@ export default function ProductsList() {
             <Column header={t("name")} sortable field="productNameAr" />
             <Column field="description" sortable header={t("description")} />
             {/* <Column field="productType" sortable header={"الكمية"} /> */}
-            <Column field="productType" sortable header={"النوع"} />
+            <Column field="productType" sortable header={t("type")} />
             <Column
               header={t("actions")}
               body={(product: Product) => (

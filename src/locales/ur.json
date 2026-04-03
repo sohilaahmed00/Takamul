@@ -1688,7 +1688,18 @@
   "or_click_to_browse": "یا براؤز کرنے کے لیے کلک کریں",
   "save_and_add_another": "محفوظ کریں اور ایک اور شامل کریں",
   "manage_additions_desc": "پروڈکٹس کے لیے اضافی آپشنز اور تبدیلیوں کا انتظام کریں جو سسٹم میں مصنوعات پر لاگو کی جا سکتی ہیں",
-  "manage_additions_title": "اضافات کا انتظام"
+  "manage_additions_title": "اضافات کا انتظام",
+
+  "products_management": "مصنوعات کا انتظام",
+  "products_management_desc": "براہ راست، شاخ دار، تیار شدہ مصنوعات اور خام مال کا انتظام کریں",
+  "add_product": "نئی پروڈکٹ شامل کریں",
+  "all_products": "تمام مصنوعات",
+  "direct_products": "براہ راست مصنوعات",
+  "branched_products": "شاخ دار مصنوعات",
+  "prepared_products": "تیار شدہ مصنوعات",
+  "raw_materials": "خام مال",
+  "type": "قسم"
+
   
 
 }
