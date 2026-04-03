@@ -5,13 +5,7 @@ import useToast from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
@@ -26,28 +20,16 @@ type Props = {
   editData?: CustomerTransaction | null;
 };
 
-export default function AddCustomerCollectionModal({
-  isOpen,
-  onClose,
-  mode = "add",
-  editData = null,
-}: Props) {
-  const { direction, t } = useLanguage();
+export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "add", editData = null }: Props) {
+  const { direction } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
 
   const { data: treasurys } = useGetAllTreasurys();
-  const { data: customersResponse } = useGetAllCustomers();
-  const customers = Array.isArray(customersResponse?.items)
-    ? customersResponse.items
-    : Array.isArray(customersResponse)
-      ? customersResponse
-      : [];
+  const { data: customers } = useGetAllCustomers({ page: 1, limit: 1000 });
 
-  const { mutateAsync: createTransaction, isPending: isCreating } =
-    useCreateCustomerTransaction();
+  const { mutateAsync: createTransaction, isPending: isCreating } = useCreateCustomerTransaction();
 
-  const { mutateAsync: updateTransaction, isPending: isUpdating } =
-    useUpdateCustomerTransaction();
+  const { mutateAsync: updateTransaction, isPending: isUpdating } = useUpdateCustomerTransaction();
 
   const isEditMode = mode === "edit";
   const isPending = isCreating || isUpdating;
@@ -62,11 +44,7 @@ export default function AddCustomerCollectionModal({
     if (!isOpen) return;
 
     if (isEditMode && editData) {
-      setTransactionDate(
-        editData.transactionDate
-          ? new Date(editData.transactionDate).toISOString().slice(0, 10)
-          : new Date().toISOString().slice(0, 10)
-      );
+      setTransactionDate(editData.transactionDate ? new Date(editData.transactionDate).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10));
       setTreasuryId(editData.treasuryId);
       setCustomerId(editData.customerId);
       setAmount(String(editData.amount ?? ""));
@@ -81,17 +59,13 @@ export default function AddCustomerCollectionModal({
     setDescription("");
   }, [isOpen, isEditMode, editData]);
 
-  const selectedCustomer = useMemo(
-    () => customers.find((c: any) => c.id === customerId),
-    [customers, customerId]
-  );
+  const selectedCustomer = useMemo(() => customers?.items?.find((c: any) => c.id === customerId), [customers, customerId]);
 
   const currentBalance = Number(selectedCustomer?.balance ?? 0);
   const amountNumber = Number(amount || 0);
   const balanceAfter = currentBalance - amountNumber;
 
-  const formatNumber = (value?: number) =>
-    Number(value ?? 0).toLocaleString("en-US");
+  const formatNumber = (value?: number) => Number(value ?? 0).toLocaleString("en-US");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,12 +134,7 @@ export default function AddCustomerCollectionModal({
         }
       }}
     >
-      <DialogContent
-        dir={direction}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-        className="w-full sm:max-w-[720px] p-0 overflow-hidden rounded-2xl"
-      >
+      <DialogContent dir={direction} onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => e.preventDefault()} className="w-full sm:max-w-[720px] p-0 overflow-hidden rounded-2xl">
         <DialogHeader className="px-5 py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold flex-wrap">
             {isEditMode ? <Pencil size={18} /> : <HandCoins size={18} />}
@@ -173,11 +142,7 @@ export default function AddCustomerCollectionModal({
           </DialogTitle>
         </DialogHeader>
 
-        <form
-          id="customerCollectionForm"
-          onSubmit={handleSubmit}
-          className="px-5 space-y-3"
-        >
+        <form id="customerCollectionForm" onSubmit={handleSubmit} className="px-5 space-y-3">
           <Field>
             <FieldLabel>{t("date")}</FieldLabel>
             <Input
@@ -290,12 +255,7 @@ export default function AddCustomerCollectionModal({
               {t("cancel")}
             </Button>
 
-            <Button
-              form="customerCollectionForm"
-              type="submit"
-              disabled={isPending}
-              className="min-w-[150px] h-10 px-6"
-            >
+            <Button form="customerCollectionForm" type="submit" disabled={isPending} className="min-w-[150px] h-10 px-6">
               {isPending && <Loader2 size={16} className="animate-spin" />}
               {isPending
                 ? isEditMode

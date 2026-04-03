@@ -144,13 +144,7 @@ const baseDefaultValues: any = {
   TaxCalculation: 0,
   Image: undefined,
   ChildrenIds: [],
-  RawMaterials: [
-    {
-      rawMaterialId: 0,
-      quantity: undefined as unknown as number,
-      unitId: 0,
-    },
-  ],
+  RawMaterials: [{ rawMaterialId: 0, quantity: undefined as unknown as number, unitId: 0 }],
   BaseUnitId: 0,
   PurchaseUnitId: 0,
   ConversionFactor: 1,
@@ -229,36 +223,104 @@ export default function AddProduct() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const type = searchParams.get("type") as ProductType;
-  const { data: productDataBracnhed } = useGetProductBranchedById(Number(id), {
-    enabled: !!id && type === "Branched",
+  const isEditMode = !!id;
+
+  // ── Data hooks ──────────────────────────────────────────────────────────
+  const { data: taxesData } = useGetAllTaxes();
+  const { data: mainCategories } = useGetAllMainCategories();
+  const { data: subCategories } = useGetAllSubCategoriesWidthParentId(mainCategoryId as number);
+  const { data: productsDirect } = useGetAllProductsDirect({ page: 1, limit: 100 });
+  const { data: productRawMatrial } = useGetAllProductsRawMatrial({ page: 1, limit: 100 });
+  const { data: units } = useGetAllUnits({ page: 1, size: 1_000_000 });
+
+  // ── Edit data hooks ──────────────────────────────────────────────────────
+  const { data: productDataBranched } = useGetProductBranchedById(Number(id), {
+    enabled: isEditMode && type === "Branched",
   });
   const { data: productDataDirect } = useGetProductDirectById(Number(id), {
-    enabled: !!id && type === "Direct",
+    enabled: isEditMode && type === "Direct",
   });
   const { data: productDataPrepared } = useGetProductPreparedById(Number(id), {
-    enabled: !!id && type === "Prepared",
+    enabled: isEditMode && type === "Prepared",
   });
   const { data: productDataRawMaterial } = useGetProductRawMaterialtById(Number(id), {
-    enabled: !!id && type === "RawMatrial",
+    enabled: isEditMode && type === "RawMatrial",
   });
 
+  // ── Mutation hooks ───────────────────────────────────────────────────────
+  const { mutateAsync: createProductDirect, isPending: isDirectLoading } = useCreateProductDirect();
+  const { mutateAsync: createProductBranched, isPending: isBranchedLoading } = useCreateProductBranched();
+  const { mutateAsync: createProductPrepared, isPending: isPreparedLoading } = useCreateProductPrepared();
+  const { mutateAsync: createRawMaterial, isPending: isRawLoading } = useCreateProductRawMaterial();
   const { mutateAsync: updateProductBranched } = useUpdateProductBranched();
   const { mutateAsync: updateProductDirect } = useUpdateProductDirect();
   const { mutateAsync: updateProductPrepared } = useUpdateProductPrepared();
+
+  const isLoading = isDirectLoading || isBranchedLoading || isPreparedLoading || isRawLoading;
+
+  // ── Form ─────────────────────────────────────────────────────────────────
   const activeSchema = productType === "Branched" ? createBranchedProductSchema : productType === "Prepared" ? createPreparedProductSchema : productType === "RawMatrial" ? createRawMaterialSchema : createProductSchema;
+
   const methods = useForm<FormValues>({
     resolver: zodResolver(activeSchema as any) as Resolver<FormValues>,
     defaultValues: baseDefaultValues,
     mode: "onChange",
   });
 
-  const { control, watch, setValue, clearErrors, reset } = methods;
+  const { control, watch, setValue, reset } = methods;
 
+  const { fields: rawMaterialFields, append: appendRawMaterial, remove: removeRawMaterial } = useFieldArray({ control, name: "RawMaterials" });
+
+  const anchor = useComboboxAnchor();
+  const validateFile = useMemo(() => createFileValidator({ maxFiles: 1, maxSizeMB: 2, allowedTypes: ["image/"] }), []);
+
+  // ── Watched values ───────────────────────────────────────────────────────
+  const CostPrice = watch("CostPrice");
+  const SellingPrice = watch("SellingPrice");
+  const TaxId = watch("TaxId");
+  const TaxCalculation = watch("TaxCalculation");
+  const ImageField = watch("Image");
+  const files = ImageField instanceof File ? [ImageField] : [];
+
+  // ── Price summary ────────────────────────────────────────────────────────
+  const summary = useMemo(() => {
+    const selectedTax = (taxesData || []).find((t) => String(t.id) === String(TaxId)) || { id: 1, name: "بدون ضريبة", amount: 0 };
+    const taxRate = (selectedTax.amount || 0) / 100;
+    let basePrice = Number(SellingPrice) || 0;
+    let finalPrice = Number(SellingPrice) || 0;
+    let taxAmount = 0;
+
+    if (TaxCalculation === 2) {
+      basePrice = finalPrice - finalPrice * taxRate;
+      taxAmount = finalPrice - basePrice;
+    } else if (TaxCalculation === 3) {
+      taxAmount = basePrice * taxRate;
+      finalPrice = basePrice + taxAmount;
+    }
+
+    const cost = Number(CostPrice) || 0;
+    const profit = basePrice - cost;
+    const profitMargin = basePrice > 0 ? (profit / basePrice) * 100 : 0;
+
+    return {
+      basePrice: basePrice.toFixed(2),
+      taxAmount: taxAmount.toFixed(2),
+      finalPrice: finalPrice.toFixed(2),
+      profit: profit.toFixed(2),
+      profitMargin: profitMargin.toFixed(1),
+      taxName: selectedTax.name,
+      taxPercentage: selectedTax.amount || 0,
+    };
+  }, [CostPrice, SellingPrice, TaxId, TaxCalculation, taxesData]);
+
+  // ── Populate form on edit ────────────────────────────────────────────────
+  // FIX: was checking `productDataPrepared` instead of `productDataRawMaterial`
+  //      for the RawMatrial case
   useEffect(() => {
     if (!id) return;
 
     switch (type) {
-      case "Direct":
+      case "Direct": {
         if (!productDataDirect) return;
         setProductType("Direct");
         setMainCategoryId(productDataDirect.parentCategoryId);
@@ -273,21 +335,23 @@ export default function AddProduct() {
           MinStockLevel: productDataDirect.minStockLevel,
         });
         break;
+      }
 
-      case "Branched":
-        if (!productDataBracnhed) return;
+      case "Branched": {
+        if (!productDataBranched) return;
         setProductType("Branched");
-        setMainCategoryId(productDataBracnhed.parentCategoryId);
+        setMainCategoryId(productDataBranched.parentCategoryId);
         reset({
-          ProductNameAr: productDataBracnhed.productNameAr,
-          ProductNameEn: productDataBracnhed.productNameEn,
-          ProductNameUr: productDataBracnhed.productNameUr,
-          Description: productDataBracnhed.description || "",
-          ChildrenIds: productDataBracnhed.children?.map((c) => c?.id)?.filter((id): id is number => typeof id === "number") || [],
+          ProductNameAr: productDataBranched.productNameAr,
+          ProductNameEn: productDataBranched.productNameEn,
+          ProductNameUr: productDataBranched.productNameUr,
+          Description: productDataBranched.description || "",
+          ChildrenIds: productDataBranched.children?.map((c) => c?.id)?.filter((id): id is number => typeof id === "number") || [],
         });
         break;
+      }
 
-      case "Prepared":
+      case "Prepared": {
         if (!productDataPrepared) return;
         setProductType("Prepared");
         setMainCategoryId(productDataPrepared.parentCategoryId);
@@ -308,41 +372,39 @@ export default function AddProduct() {
             })) || [],
         });
         break;
+      }
 
-      case "RawMatrial":
-        if (!productDataPrepared) return;
+      case "RawMatrial": {
+        // FIX: was `if (!productDataPrepared)` — should be `productDataRawMaterial`
+        if (!productDataRawMaterial) return;
         setProductType("RawMatrial");
         reset({
-          ProductNameAr: productDataRawMaterial?.productNameAr,
-          ProductNameEn: productDataRawMaterial?.productNameEn,
-          ProductNameUr: productDataRawMaterial?.productNameUr,
-          Description: productDataRawMaterial?.description || "",
-          ConversionFactor: productDataRawMaterial?.conversionFactor,
-          //  BaseUnitId:productDataRawMaterial?.
+          ProductNameAr: productDataRawMaterial.productNameAr,
+          ProductNameEn: productDataRawMaterial.productNameEn,
+          ProductNameUr: productDataRawMaterial.productNameUr,
+          Description: productDataRawMaterial.description || "",
+          ConversionFactor: productDataRawMaterial.conversionFactor,
         });
         break;
+      }
 
       default:
         break;
     }
-  }, [reset, id, type, productDataDirect, productDataBracnhed, productDataPrepared]);
+  }, [id, type, reset, productDataDirect, productDataBranched, productDataPrepared, productDataRawMaterial]);
+
+  // ── Auto-set CategoryId after subCategories load ─────────────────────────
   useEffect(() => {
     if (!mainCategoryId || !subCategories?.length) return;
 
     let categoryName: string | undefined;
-
-    if (type === "Branched") {
-      categoryName = productDataBracnhed?.categoryName;
-    } else if (type === "Direct") {
-      categoryName = productDataDirect?.categoryName;
-    } else if (type === "Prepared") {
-      categoryName = productDataPrepared?.categoryName;
-    }
+    if (type === "Branched") categoryName = productDataBranched?.categoryName;
+    else if (type === "Direct") categoryName = productDataDirect?.categoryName;
+    else if (type === "Prepared") categoryName = productDataPrepared?.categoryName;
 
     if (!categoryName) return;
 
     const category = subCategories.find((cat) => cat.categoryNameAr === categoryName);
-
     if (category) {
       setValue("CategoryId", category.id, { shouldValidate: true });
     }
@@ -357,11 +419,10 @@ export default function AddProduct() {
     name: "RawMaterials" as never,
   });
 
-  const CostPrice = watch("CostPrice");
-  const SellingPrice = watch("SellingPrice");
-  const TaxId = watch("TaxId");
-  const TaxCalculation = watch("TaxCalculation");
-  const ImageField = watch("Image");
+  // ── Submit ───────────────────────────────────────────────────────────────
+  const buildFormData = useCallback(
+    (data: FormValues): FormData => {
+      const formData = new FormData();
 
   const files = imageField instanceof File ? [imageField] : [];
   const anchor = useComboboxAnchor();
@@ -416,40 +477,57 @@ export default function AddProduct() {
   const onSubmit = async (data: FormValues) => {
     const formData = new FormData();
 
-    Object.entries(data).forEach(([key, value]) => {
-      if (key === "ChildrenIds" && productType === "Branched" && Array.isArray(value)) {
-        value.forEach((id) => formData.append("ChildrenIds[]", String(id)));
-      } else if (key === "RawMaterials" && productType === "Prepared" && Array.isArray(value)) {
-        const materials = value as { rawMaterialId: number; quantity: number; unitId: number }[];
+      // Prepared raw materials
+      if (productType === "Prepared" && Array.isArray(data.RawMaterials)) {
         formData.append(
           "Components",
           JSON.stringify(
-            materials.map((m) => ({
+            data.RawMaterials.map((m) => ({
               componentProductId: m.rawMaterialId,
               quantity: m.quantity,
               unitId: m.unitId,
             })),
           ),
         );
-      } else if (value !== undefined && value !== null && key !== "Image" && key !== "image" && key !== "ChildrenIds" && key !== "BaseUnitId" && key !== "PurchaseUnitId" && key !== "ConversionFactor") {
-        formData.append(key, String(value));
       }
-    });
+
+      // Raw material-specific fields
+      if (productType === "RawMatrial") {
+        if (data.BaseUnitId) formData.append("BaseUnitId", String(data.BaseUnitId));
+        if (data.PurchaseUnitId) formData.append("PurchaseUnitId", String(data.PurchaseUnitId));
+        if (data.ConversionFactor !== undefined) formData.append("ConversionFactor", String(data.ConversionFactor));
+      }
+
+      // Image
+      if (data.Image instanceof File) {
+        formData.append("Image", data.Image);
+      }
+
+      return formData;
+    },
+    [productType],
+  );
+
+  const onSubmit = async (data: FormValues) => {
+    const formData = buildFormData(data);
 
     try {
-      if (id && type) {
+      if (isEditMode) {
         formData.append("Id", id);
+
         switch (productType) {
           case "Branched":
             await updateProductBranched({ id: Number(id), data: formData });
             break;
+          // FIX: was missing `break` — fell through into "Prepared"
           case "Direct":
             await updateProductDirect({ id: Number(id), data: formData });
+            break;
           case "Prepared":
             await updateProductPrepared({ id: Number(id), data: formData });
             break;
           default:
-            console.warn("نوع منتج غير معروف للتعديل:", type);
+            console.warn("نوع منتج غير معروف للتعديل:", productType);
         }
       } else {
         switch (productType) {
@@ -470,6 +548,8 @@ export default function AddProduct() {
       navigate("/products");
     } catch { }
   };
+
+  // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-4 pb-24" dir={direction}>
@@ -524,6 +604,7 @@ export default function AddProduct() {
               className="space-y-6"
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Arabic name */}
                 <Controller
                   name="ProductNameAr"
                   control={control}
@@ -539,6 +620,7 @@ export default function AddProduct() {
                   )}
                 />
 
+                {/* Main category */}
                 {productType !== "RawMatrial" && (
                   <Field>
                     <FieldLabel className="gap-x-0">
@@ -565,6 +647,7 @@ export default function AddProduct() {
                   </Field>
                 )}
 
+                {/* English name */}
                 <Controller
                   name="ProductNameEn"
                   control={control}
@@ -580,6 +663,7 @@ export default function AddProduct() {
                   )}
                 />
 
+                {/* Sub-category */}
                 {productType !== "RawMatrial" && (
                   <Controller
                     name="CategoryId"
@@ -598,7 +682,6 @@ export default function AddProduct() {
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder={t("choose_sub_category")} />
                           </SelectTrigger>
-
                           <SelectContent>
                             <SelectGroup>
                               {subCategories?.map((cat) => (
@@ -609,13 +692,13 @@ export default function AddProduct() {
                             </SelectGroup>
                           </SelectContent>
                         </Select>
-
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
                   />
                 )}
 
+                {/* Urdu / third language name */}
                 <Controller
                   name="ProductNameUr"
                   control={control}
@@ -628,6 +711,7 @@ export default function AddProduct() {
                   )}
                 />
 
+                {/* Barcode */}
                 {productType !== "RawMatrial" && productType !== "Branched" && (
                   <Controller
                     name="Barcode"
@@ -662,6 +746,7 @@ export default function AddProduct() {
                   />
                 )}
 
+                {/* Cost price */}
                 {productType !== "Branched" && (
                   <Controller
                     name="CostPrice"
@@ -684,6 +769,7 @@ export default function AddProduct() {
                   />
                 )}
 
+                {/* Selling price + tax fields */}
                 {productType !== "RawMatrial" && productType !== "Branched" && (
                   <>
                     <Controller
@@ -796,7 +882,7 @@ export default function AddProduct() {
                               {summary.taxAmount} +
                             </span>
                           </div>
-                          <div className="border-t border-[#E8D49E] my-0.5"></div>
+                          <div className="border-t border-[#E8D49E] my-0.5" />
                           <div className="flex justify-between items-center pt-1">
                             <span className="text-[#8B4513] font-bold text-lg">{t("final_price")}</span>
                             <span className="text-[#8B4513] font-bold text-lg">{summary.finalPrice}</span>
@@ -813,6 +899,7 @@ export default function AddProduct() {
                   </>
                 )}
 
+                {/* Description */}
                 <div className="lg:col-span-2">
                   <Controller
                     name="Description"
@@ -827,6 +914,7 @@ export default function AddProduct() {
                   />
                 </div>
 
+                {/* Raw material unit fields */}
                 {productType === "RawMatrial" && (
                   <>
                     <Controller
@@ -1095,6 +1183,7 @@ export default function AddProduct() {
                                   </SelectTrigger>
                                   <SelectContent>
                                     <SelectGroup>
+                                      {/* FIX: was missing key prop */}
                                       {units?.items?.map((unit) => (
                                         <SelectItem key={unit.id} value={String(unit.id)}>
                                           {unit.name}

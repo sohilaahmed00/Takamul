@@ -59,12 +59,12 @@ export const updateProduct = (id: number, data: FormData) =>
     data,
   });
 export const updateProductBranched = (id: number, data: FormData) =>
-  httpClient<{ message: string }>(`/Products/branched/${id}`, {
+  httpClient<string>(`/Products/branched/${id}`, {
     method: "PUT",
     data,
   });
 export const updateProductDirect = (id: number, data: FormData) =>
-  httpClient<{ message: string }>(`/Products/direct/${id}`, {
+  httpClient<string>(`/Products/direct/${id}`, {
     method: "PUT",
     data,
   });
