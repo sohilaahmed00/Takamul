@@ -1,20 +1,29 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-    ArrowLeft, ArrowRight, Building2, Loader2,
-    MapPin, Pencil, Save, Upload, X,
+    ArrowLeft,
+    ArrowRight,
+    Building2,
+    Loader2,
+    MapPin,
+    Pencil,
+    Save,
+    Upload,
+    X,
 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-    Card, CardContent, CardHeader, CardTitle,
-} from "@/components/ui/card";
-import {
-    Combobox, ComboboxContent, ComboboxEmpty,
-    ComboboxInput, ComboboxItem, ComboboxList,
+    Combobox,
+    ComboboxContent,
+    ComboboxEmpty,
+    ComboboxInput,
+    ComboboxItem,
+    ComboboxList,
 } from "@/components/ui/combobox";
 
 import { useGetCountries } from "@/features/Location/hooks/Usegetcountries";
@@ -24,7 +33,6 @@ import { useCreateBranch } from "@/features/Branches/hooks/Usecreatebranch";
 import { useUpdateBranch } from "@/features/Branches/hooks/Useupdatebranch";
 import { useGetBranchById } from "@/features/Branches/hooks/Usegetbranchbyid";
 
-// ─── Component ────────────────────────────────────────────────────────────────
 export default function AddBranch() {
     const { t, direction } = useLanguage();
     const navigate = useNavigate();
@@ -35,12 +43,14 @@ export default function AddBranch() {
     const isViewMode = mode === "view";
     const branchId = id ? Number(id) : undefined;
 
-    const { data: branchDetail, isLoading: isLoadingDetail } = useGetBranchById(branchId);
-    const { mutateAsync: createBranch, isPending: isCreating } = useCreateBranch();
-    const { mutateAsync: updateBranch, isPending: isUpdating } = useUpdateBranch();
+    const { data: branchDetail, isLoading: isLoadingDetail } =
+        useGetBranchById(branchId);
+    const { mutateAsync: createBranch, isPending: isCreating } =
+        useCreateBranch();
+    const { mutateAsync: updateBranch, isPending: isUpdating } =
+        useUpdateBranch();
     const isPending = isCreating || isUpdating;
 
-    // ── Form State ──
     const [code, setCode] = useState("");
     const [name, setName] = useState("");
     const [businessName, setBusinessName] = useState("");
@@ -53,7 +63,6 @@ export default function AddBranch() {
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
 
-    // ── Address ──
     const [countryId, setCountryId] = useState<number | null>(null);
     const [countrySearch, setCountrySearch] = useState("");
     const [cityId, setCityId] = useState<number | null>(null);
@@ -65,16 +74,15 @@ export default function AddBranch() {
     const [subNumber, setSubNumber] = useState("");
     const [postalCode, setPostalCode] = useState("");
 
-    // ── Location Queries ──
     const { data: countries } = useGetCountries();
     const { data: cities } = useGetCities(countryId);
     const { data: states } = useGetStates(cityId);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // ── Load edit data ──
     useEffect(() => {
         if (!branchDetail) return;
+
         setCode(branchDetail.code ?? "");
         setName(branchDetail.name ?? "");
         setBusinessName(branchDetail.businessName ?? "");
@@ -94,7 +102,6 @@ export default function AddBranch() {
         setPostalCode(branchDetail.postalCode ?? "");
     }, [branchDetail]);
 
-    // ── Sync combobox labels ──
     useEffect(() => {
         const c = (countries ?? []).find((c) => c.id === countryId);
         setCountrySearch(c?.countryName ?? "");
@@ -107,47 +114,63 @@ export default function AddBranch() {
 
     useEffect(() => {
         const s = (states ?? []).find((s) => s.id === stateId);
-        // التعديل هنا: نخليه يدور على statesName اللي جاية من السيرفر
-        setStateSearch(s?.statesName || s?.statesName || "");
+        setStateSearch(s?.statesName || "");
     }, [stateId, states]);
+
     const handleCountryChange = (val: string | null) => {
         setCountryId(val ? Number(val) : null);
-        setCityId(null); setStateId(null);
-        setCitySearch(""); setStateSearch("");
+        setCityId(null);
+        setStateId(null);
+        setCitySearch("");
+        setStateSearch("");
     };
 
     const handleCityChange = (val: string | null) => {
         setCityId(val ? Number(val) : null);
-        setStateId(null); setStateSearch("");
+        setStateId(null);
+        setStateSearch("");
     };
 
-    // ── Image handling ──
-    const handleImageFile = useCallback((file: File) => {
-        if (!file.type.startsWith("image/")) {
-            notifyError(t("invalid_image") || "يرجى اختيار ملف صورة");
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const result = e.target?.result as string;
-            setImagePreview(result);
-            setImageUrl(result);
-        };
-        reader.readAsDataURL(file);
-    }, [notifyError, t]);
+    const handleImageFile = useCallback(
+        (file: File) => {
+            if (!file.type.startsWith("image/")) {
+                notifyError(t("invalid_image") || "يرجى اختيار ملف صورة");
+                return;
+            }
 
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        setIsDragging(false);
-        const file = e.dataTransfer.files[0];
-        if (file) handleImageFile(file);
-    }, [handleImageFile]);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const result = e.target?.result as string;
+                setImagePreview(result);
+                setImageUrl(result);
+            };
+            reader.readAsDataURL(file);
+        },
+        [notifyError, t]
+    );
 
-    // ── Submit ──
+    const handleDrop = useCallback(
+        (e: React.DragEvent) => {
+            e.preventDefault();
+            setIsDragging(false);
+            const file = e.dataTransfer.files[0];
+            if (file) handleImageFile(file);
+        },
+        [handleImageFile]
+    );
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!code.trim()) { notifyError(t("branch_code_required") || "كود الفرع مطلوب"); return; }
-        if (!name.trim()) { notifyError(t("branch_name_required") || "اسم الفرع مطلوب"); return; }
+
+        if (!code.trim()) {
+            notifyError(t("branch_code_required") || "كود الفرع مطلوب");
+            return;
+        }
+
+        if (!name.trim()) {
+            notifyError(t("branch_name_required") || "اسم الفرع مطلوب");
+            return;
+        }
 
         const payload = {
             code: code.trim(),
@@ -178,7 +201,12 @@ export default function AddBranch() {
             }
             navigate("/branches");
         } catch (error: any) {
-            notifyError(error?.response?.data?.message || error?.message || t("error_occurred") || "حدث خطأ أثناء الحفظ");
+            notifyError(
+                error?.response?.data?.message ||
+                error?.message ||
+                t("error_occurred") ||
+                "حدث خطأ أثناء الحفظ"
+            );
         }
     };
 
@@ -186,7 +214,6 @@ export default function AddBranch() {
 
     return (
         <div dir={direction} className="space-y-6">
-            {/* ── Page Header ── */}
             <div className="flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3">
                     <Button variant="outline" size="icon" asChild className="h-9 w-9">
@@ -198,15 +225,15 @@ export default function AddBranch() {
                         <h1 className="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
                             <Building2 size={22} className="text-[var(--primary)]" />
                             {isViewMode
-                                ? (t("view_branch") || "عرض الفرع")
+                                ? t("view_branch") || "عرض الفرع"
                                 : isEditMode
-                                    ? (t("edit_branch") || "تعديل الفرع")
-                                    : (t("add_branch") || "إضافة فرع جديد")}
+                                    ? t("edit_branch") || "تعديل الفرع"
+                                    : t("add_branch") || "إضافة فرع جديد"}
                         </h1>
                         <p className="text-sm text-[var(--text-muted)] mt-0.5">
                             {isViewMode
-                                ? (t("branch_details") || "تفاصيل بيانات الفرع")
-                                : (t("branch_form_desc") || "أدخل بيانات الفرع الخاصة بالمنشأة")}
+                                ? t("branch_details") || "تفاصيل بيانات الفرع"
+                                : t("branch_form_desc") || "أدخل بيانات الفرع الخاصة بالمنشأة"}
                         </p>
                     </div>
                 </div>
@@ -218,14 +245,16 @@ export default function AddBranch() {
                         disabled={isPending}
                         className="gap-2 min-w-[140px]"
                     >
+                        {isPending ? (
+                            <Loader2 size={16} className="animate-spin" />
+                        ) : (
+                            <Save size={16} />
+                        )}
                         {isPending
-                            ? <Loader2 size={16} className="animate-spin" />
-                            : <Save size={16} />}
-                        {isPending
-                            ? (t("saving") || "جارٍ الحفظ...")
+                            ? t("saving") || "جارٍ الحفظ..."
                             : isEditMode
-                                ? (t("save_changes") || "حفظ التعديلات")
-                                : (t("add_branch") || "إضافة الفرع")}
+                                ? t("save_changes") || "حفظ التعديلات"
+                                : t("add_branch") || "إضافة الفرع"}
                     </Button>
                 )}
 
@@ -233,7 +262,7 @@ export default function AddBranch() {
                     <Button variant="outline" asChild>
                         <Link to={`/branches/edit/${branchId}`}>
                             <Pencil size={16} />
-                            {t("edit") || "تعديل"}
+                            {t("edit")}
                         </Link>
                     </Button>
                 )}
@@ -245,7 +274,6 @@ export default function AddBranch() {
                 </div>
             ) : (
                 <form id="branchForm" onSubmit={handleSubmit} className="space-y-5">
-                    {/* ── Card 1: المعلومات الأساسية ── */}
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-base flex items-center gap-2">
@@ -254,32 +282,39 @@ export default function AddBranch() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {/* شعار الشركة */}
                             <div>
                                 <p className="text-sm font-medium text-gray-700 mb-2">
                                     {t("company_logo") || "شعار الشركة"}
                                 </p>
                                 <div
-                                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                    onDragOver={(e) => {
+                                        e.preventDefault();
+                                        setIsDragging(true);
+                                    }}
                                     onDragLeave={() => setIsDragging(false)}
                                     onDrop={handleDrop}
                                     onClick={() => !isViewMode && fileInputRef.current?.click()}
-                                    className={`
-                    relative rounded-xl border-2 border-dashed transition-colors
-                    flex items-center justify-center min-h-[120px]
-                    ${isViewMode ? "cursor-default" : "cursor-pointer"}
-                    ${isDragging
+                                    className={`relative rounded-xl border-2 border-dashed transition-colors flex items-center justify-center min-h-[120px] ${isViewMode ? "cursor-default" : "cursor-pointer"
+                                        } ${isDragging
                                             ? "border-[#2ecc71] bg-[#2ecc71]/5"
-                                            : "border-gray-200 hover:border-[#2ecc71]/50 hover:bg-gray-50"}
-                  `}
+                                            : "border-gray-200 hover:border-[#2ecc71]/50 hover:bg-gray-50"
+                                        }`}
                                 >
                                     {imagePreview ? (
                                         <div className="relative p-3">
-                                            <img src={imagePreview} alt="logo" className="h-24 object-contain rounded-lg" />
+                                            <img
+                                                src={imagePreview}
+                                                alt="logo"
+                                                className="h-24 object-contain rounded-lg"
+                                            />
                                             {!isViewMode && (
                                                 <button
                                                     type="button"
-                                                    onClick={(e) => { e.stopPropagation(); setImagePreview(null); setImageUrl(""); }}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setImagePreview(null);
+                                                        setImageUrl("");
+                                                    }}
                                                     className="absolute -top-1 -right-1 bg-white rounded-full border border-gray-200 p-0.5 shadow"
                                                 >
                                                     <X size={13} className="text-gray-500" />
@@ -294,7 +329,9 @@ export default function AddBranch() {
                                             <p className="text-sm font-medium text-gray-600">
                                                 {t("drag_drop_image") || "اسحب وأفلت الصورة هنا"}
                                             </p>
-                                            <p className="text-xs">{t("or_browse") || "أو اضغط للتصفح"}</p>
+                                            <p className="text-xs">
+                                                {t("or_browse") || "أو اضغط للتصفح"}
+                                            </p>
                                             <button
                                                 type="button"
                                                 className="mt-1 text-xs border border-gray-300 rounded-lg px-4 py-1.5 hover:bg-gray-50 text-gray-600 transition-colors"
@@ -308,12 +345,14 @@ export default function AddBranch() {
                                         type="file"
                                         accept="image/*"
                                         className="hidden"
-                                        onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageFile(f); }}
+                                        onChange={(e) => {
+                                            const f = e.target.files?.[0];
+                                            if (f) handleImageFile(f);
+                                        }}
                                     />
                                 </div>
                             </div>
 
-                            {/* Row 1: اسم النشاط / البريد / الهاتف */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 <Field>
                                     <FieldLabel>
@@ -328,6 +367,7 @@ export default function AddBranch() {
                                         readOnly={isViewMode}
                                     />
                                 </Field>
+
                                 <Field>
                                     <FieldLabel>{t("email") || "البريد الإلكتروني"}</FieldLabel>
                                     <Input
@@ -339,6 +379,7 @@ export default function AddBranch() {
                                         readOnly={isViewMode}
                                     />
                                 </Field>
+
                                 <Field>
                                     <FieldLabel>{t("phone") || "هاتف"}</FieldLabel>
                                     <Input
@@ -351,7 +392,6 @@ export default function AddBranch() {
                                 </Field>
                             </div>
 
-                            {/* Row 2: الكود / السجل / المعرف / الرقم الضريبي */}
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <Field>
                                     <FieldLabel>
@@ -366,24 +406,7 @@ export default function AddBranch() {
                                         readOnly={isViewMode}
                                     />
                                 </Field>
-                                {/* <Field>
-                  <FieldLabel>{t("commercial_register") || "السجل التجاري"}</FieldLabel>
-                  <Input
-                    value={commercialRegister}
-                    onChange={(e) => setCommercialRegister(e.target.value)}
-                    className="h-10"
-                    readOnly={isViewMode}
-                  />
-                </Field> */}
-                                {/* <Field>
-                  <FieldLabel>{t("additional_identifier") || "المعرف الإضافي"}</FieldLabel>
-                  <Input
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    className="h-10"
-                    readOnly={isViewMode}
-                  />
-                </Field> */}
+
                                 <Field>
                                     <FieldLabel>{t("tax_number") || "الرقم الضريبي"}</FieldLabel>
                                     <Input
@@ -395,7 +418,6 @@ export default function AddBranch() {
                                 </Field>
                             </div>
 
-                            {/* ملاحظات على الفاتورة */}
                             <Field>
                                 <FieldLabel>{t("invoice_footer") || "ملاحظات على الفاتورة"}</FieldLabel>
                                 <textarea
@@ -410,7 +432,6 @@ export default function AddBranch() {
                         </CardContent>
                     </Card>
 
-                    {/* ── Card 2: إعدادات العنوان ── */}
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-base flex items-center gap-2">
@@ -420,7 +441,6 @@ export default function AddBranch() {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                {/* البلد */}
                                 <Field>
                                     <FieldLabel>
                                         {t("country") || "البلد"}
@@ -452,7 +472,6 @@ export default function AddBranch() {
                                     </Combobox>
                                 </Field>
 
-                                {/* المدينة */}
                                 <Field>
                                     <FieldLabel>
                                         {t("city") || "المدينة"}
@@ -465,7 +484,11 @@ export default function AddBranch() {
                                         disabled={!countryId || isViewMode}
                                     >
                                         <ComboboxInput
-                                            placeholder={!countryId ? (t("select_country_first") || "اختر البلد أولاً") : (t("select_city") || "اختر المدينة")}
+                                            placeholder={
+                                                !countryId
+                                                    ? t("select_country_first") || "اختر البلد أولاً"
+                                                    : t("select_city") || "اختر المدينة"
+                                            }
                                             value={citySearch}
                                             onChange={(e) => setCitySearch(e.target.value)}
                                             showClear={!!cityId && !isViewMode}
@@ -484,7 +507,6 @@ export default function AddBranch() {
                                     </Combobox>
                                 </Field>
 
-                                {/* الحي */}
                                 <Field>
                                     <FieldLabel>
                                         {t("district") || "الحي"}
@@ -497,7 +519,11 @@ export default function AddBranch() {
                                         disabled={!cityId || isViewMode}
                                     >
                                         <ComboboxInput
-                                            placeholder={!cityId ? (t("select_city_first") || "اختر المدينة أولاً") : (t("select_district") || "اختر الحي")}
+                                            placeholder={
+                                                !cityId
+                                                    ? t("select_city_first") || "اختر المدينة أولاً"
+                                                    : t("select_district") || "اختر الحي"
+                                            }
                                             value={stateSearch}
                                             onChange={(e) => setStateSearch(e.target.value)}
                                             showClear={!!stateId && !isViewMode}
@@ -505,14 +531,12 @@ export default function AddBranch() {
                                         />
                                         <ComboboxContent>
                                             <ComboboxEmpty>{t("no_results") || "لا توجد نتائج"}</ComboboxEmpty>
-                                            {/* داخل قائمة الأحياء (District List) */}
                                             <ComboboxList>
                                                 {(item: any) => (
                                                     <ComboboxItem
-                                                        key={item.id.toString()} // تحويل الـ ID لنص
+                                                        key={item.id.toString()}
                                                         value={item.id.toString()}
                                                     >
-                                                        {/* عرض الاسم الصحيح */}
                                                         {item.statesName || item.stateName}
                                                     </ComboboxItem>
                                                 )}
@@ -520,7 +544,7 @@ export default function AddBranch() {
                                         </ComboboxContent>
                                     </Combobox>
                                 </Field>
-                                {/* اسم الشارع */}
+
                                 <Field>
                                     <FieldLabel>
                                         {t("street_name") || "اسم الشارع"}
@@ -547,6 +571,7 @@ export default function AddBranch() {
                                         readOnly={isViewMode}
                                     />
                                 </Field>
+
                                 <Field>
                                     <FieldLabel>{t("building_number") || "رقم المبنى"} (ex:1234)</FieldLabel>
                                     <Input
@@ -557,6 +582,7 @@ export default function AddBranch() {
                                         readOnly={isViewMode}
                                     />
                                 </Field>
+
                                 <Field>
                                     <FieldLabel>{t("sub_number") || "الرقم الفرعي"} (ex:1234)</FieldLabel>
                                     <Input
@@ -571,19 +597,23 @@ export default function AddBranch() {
                         </CardContent>
                     </Card>
 
-                    {/* ── Bottom Actions ── */}
                     {!isViewMode && (
                         <div className="flex items-center justify-end gap-3 pb-6">
                             <Button type="button" variant="outline" asChild>
                                 <Link to="/branches">{t("cancel") || "إلغاء"}</Link>
                             </Button>
-                            <Button type="submit" form="branchForm" disabled={isPending} className="min-w-[140px]">
+                            <Button
+                                type="submit"
+                                form="branchForm"
+                                disabled={isPending}
+                                className="min-w-[140px]"
+                            >
                                 {isPending && <Loader2 size={15} className="animate-spin me-1" />}
                                 {isPending
-                                    ? (t("saving") || "جارٍ الحفظ...")
+                                    ? t("saving") || "جارٍ الحفظ..."
                                     : isEditMode
-                                        ? (t("save_changes") || "حفظ التعديلات")
-                                        : (t("add_branch") || "إضافة الفرع")}
+                                        ? t("save_changes") || "حفظ التعديلات"
+                                        : t("add_branch") || "إضافة الفرع"}
                             </Button>
                         </div>
                     )}

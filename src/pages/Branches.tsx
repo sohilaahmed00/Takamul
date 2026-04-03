@@ -15,7 +15,7 @@ const Branches: React.FC = () => {
   const [form, setForm] = useState<Omit<Warehouse, 'id'>>({
     code: '',
     name: '',
-    pricingGroup: 'عام',
+    pricingGroup: t("general"),
     phone: '',
     email: '',
     address: '',
@@ -35,7 +35,7 @@ const Branches: React.FC = () => {
       setForm({
         code: branch.code || '',
         name: branch.name || '',
-        pricingGroup: branch.pricingGroup || 'عام',
+        pricingGroup: branch.pricingGroup || t("general"),
         phone: branch.phone || '',
         email: branch.email || '',
         address: branch.address || '',
@@ -53,7 +53,7 @@ const Branches: React.FC = () => {
       setForm({
         code: '',
         name: '',
-        pricingGroup: 'عام',
+        pricingGroup: t("general"),
         phone: '',
         email: '',
         address: '',
@@ -80,7 +80,7 @@ const Branches: React.FC = () => {
     setShowModal(false);
   };
 
-  const filteredBranches = warehouses.filter(w => 
+  const filteredBranches = warehouses.filter(w =>
     w.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     w.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
     w.address.toLowerCase().includes(searchTerm.toLowerCase())
@@ -91,7 +91,7 @@ const Branches: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold text-[var(--text-main)]">{t('branches')}</h1>
-          <button 
+          <button
             onClick={() => handleOpenModal()}
             className="flex items-center gap-2 bg-emerald-800 text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-all text-sm font-medium shadow-md"
           >
@@ -180,13 +180,13 @@ const Branches: React.FC = () => {
                       </td>
                       <td className="p-3">
                         <div className="flex items-center gap-2 justify-center">
-                          <button 
+                          <button
                             onClick={() => handleOpenModal(w)}
                             className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
                           >
                             <Edit2 size={16} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => deleteWarehouse(w.id)}
                             className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
                           >
@@ -221,13 +221,13 @@ const Branches: React.FC = () => {
                   ]}
                   actions={
                     <div className="flex items-center gap-2">
-                      <button 
+                      <button
                         onClick={() => handleOpenModal(w)}
                         className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                       >
                         <Edit2 size={18} />
                       </button>
-                      <button 
+                      <button
                         onClick={() => deleteWarehouse(w.id)}
                         className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                       >
@@ -268,7 +268,7 @@ const Branches: React.FC = () => {
               className="bg-white rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl my-8"
             >
               <div className="bg-emerald-800 p-4 flex items-center justify-between text-white">
-                <button 
+                <button
                   onClick={() => setShowModal(false)}
                   className="p-1 hover:bg-white/10 rounded-full transition-colors text-white/80"
                 >
@@ -311,11 +311,11 @@ const Branches: React.FC = () => {
                     <div>
                       <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('pricing_group_label')}</label>
                       <select
-                        value={form.pricingGroup || 'عام'}
+                        value={form.pricingGroup || t("general")}
                         onChange={(e) => setForm({ ...form, pricingGroup: e.target.value })}
                         className="w-full p-3 border border-gray-300 rounded-xl bg-gray-50 text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-start transition-all"
                       >
-                        <option value="عام">عام</option>
+                        <option value={t("general")}>عام</option>
                       </select>
                     </div>
                     <div>
@@ -359,7 +359,7 @@ const Branches: React.FC = () => {
                 </div>
 
                 <div className="space-y-4 text-start">
-                   <div>
+                  <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('email_address')}</label>
                     <input
                       type="email"
@@ -371,30 +371,30 @@ const Branches: React.FC = () => {
                   <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('address')} *</label>
                     <div className="border border-gray-300 rounded-xl overflow-hidden">
-                        <div className="bg-gray-100 p-2 border-b border-gray-300 flex items-center gap-4 justify-start">
-                            <span className="text-gray-400 font-bold">B</span>
-                            <span className="text-gray-400 italic">I</span>
-                            <span className="text-gray-400 underline">U</span>
-                            <div className="w-px h-4 bg-gray-300 mx-1"></div>
-                            <span className="text-gray-400">≡</span>
-                            <span className="text-gray-400">≡</span>
-                            <div className="w-px h-4 bg-gray-300 mx-1"></div>
-                            <span className="text-gray-400">∞</span>
-                            <span className="text-gray-400">{'</>'}</span>
-                            <div className="w-px h-4 bg-gray-300 mx-1"></div>
-                            <span className="text-gray-400">≡</span>
-                            <span className="text-gray-400">≡</span>
-                            <span className="text-gray-400">≡</span>
-                            <span className="text-gray-400">≡</span>
-                            <span className="text-gray-400">¶</span>
-                        </div>
-                        <textarea
-                            required
-                            value={form.address || ''}
-                            onChange={(e) => setForm({ ...form, address: e.target.value })}
-                            rows={4}
-                            className="w-full p-3 bg-white text-gray-900 focus:outline-none text-start transition-all resize-none"
-                        />
+                      <div className="bg-gray-100 p-2 border-b border-gray-300 flex items-center gap-4 justify-start">
+                        <span className="text-gray-400 font-bold">B</span>
+                        <span className="text-gray-400 italic">I</span>
+                        <span className="text-gray-400 underline">U</span>
+                        <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                        <span className="text-gray-400">≡</span>
+                        <span className="text-gray-400">≡</span>
+                        <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                        <span className="text-gray-400">∞</span>
+                        <span className="text-gray-400">{'</>'}</span>
+                        <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                        <span className="text-gray-400">≡</span>
+                        <span className="text-gray-400">≡</span>
+                        <span className="text-gray-400">≡</span>
+                        <span className="text-gray-400">≡</span>
+                        <span className="text-gray-400">¶</span>
+                      </div>
+                      <textarea
+                        required
+                        value={form.address || ''}
+                        onChange={(e) => setForm({ ...form, address: e.target.value })}
+                        rows={4}
+                        className="w-full p-3 bg-white text-gray-900 focus:outline-none text-start transition-all resize-none"
+                      />
                     </div>
                   </div>
                 </div>

@@ -200,7 +200,7 @@ export default function SystemSettings() {
                   onChange={(e) => handleUpdate('site', 'defaultCustomerGroup', e.target.value)}
                   className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]"
                 >
-                  <option value="عام">عام</option>
+                  <option value={t("general")}>عام</option>
                 </select>
               </div>
               <div>
@@ -210,7 +210,7 @@ export default function SystemSettings() {
                   onChange={(e) => handleUpdate('site', 'generalPriceGroup', e.target.value)}
                   className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]"
                 >
-                  <option value="عام">عام</option>
+                  <option value={t("general")}>عام</option>
                 </select>
               </div>
               <div>
@@ -272,7 +272,7 @@ export default function SystemSettings() {
                   onChange={(e) => handleUpdate('site', 'defaultCashier', e.target.value)}
                   className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]"
                 >
-                  <option value="تجريبي">تجريبي</option>
+                  <option value={t("demo_branch")}>تجريبي</option>
                 </select>
               </div>
               <div>

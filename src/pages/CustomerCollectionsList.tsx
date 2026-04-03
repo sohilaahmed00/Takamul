@@ -6,7 +6,6 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -21,7 +20,7 @@ import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { CustomerTransaction } from "@/features/customer-transactions/types/customerTransactions.types";
 
 export default function CustomerCollectionsList() {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -86,13 +85,13 @@ export default function CustomerCollectionsList() {
 
     try {
       await deleteTransaction(rowToDelete.id);
-      notifySuccess("تم حذف سند القبض بنجاح");
+      notifySuccess(t("delete_customer_collection_success"));
       setRowToDelete(null);
     } catch (error: any) {
       notifyError(
         error?.response?.data?.message ||
         error?.message ||
-        "حدث خطأ أثناء حذف سند القبض"
+        t("delete_customer_collection_error")
       );
     }
   };
@@ -133,7 +132,7 @@ export default function CustomerCollectionsList() {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          placeholder="ابحث باسم العميل أو الخزينة أو البيان أو المبلغ..."
+          placeholder={t("search_customer_collections")}
           className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none"
         />
       </div>
@@ -146,16 +145,14 @@ export default function CustomerCollectionsList() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <HandCoins size={20} className="text-[var(--primary)]" />
-            سند قبض           </CardTitle>
-
-          {/* <CardDescription>
-            تسجيل وعرض حركات سند القبض الوارد من العملاء
-          </CardDescription> */}
+            {t("customer_collections")}
+          </CardTitle>
 
           <CardAction>
             <Button onClick={openAddModal} variant="default">
               <Plus size={18} />
-              إضافة سند قبض             </Button>
+              {t("add_customer_collection")}
+            </Button>
           </CardAction>
         </CardHeader>
 
@@ -176,12 +173,12 @@ export default function CustomerCollectionsList() {
               dataKey="id"
               header={header}
               className="custom-green-table custom-compact-table"
-              emptyMessage="لا توجد بيانات"
+              emptyMessage={t("no_data")}
               responsiveLayout="stack"
             >
               <Column
                 field="transactionDate"
-                header="تاريخ العملية"
+                header={t("operation_date")}
                 sortable
                 body={(row) => formatDate(row.transactionDate)}
                 style={{ width: "14%" }}
@@ -190,7 +187,7 @@ export default function CustomerCollectionsList() {
 
               <Column
                 field="customerName"
-                header="اسم العميل"
+                header={t("customer_name")}
                 sortable
                 style={{ width: "20%" }}
                 bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
@@ -198,7 +195,7 @@ export default function CustomerCollectionsList() {
 
               <Column
                 field="treasuryName"
-                header="الخزينة"
+                header={t("treasury")}
                 sortable
                 style={{ width: "18%" }}
                 bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
@@ -206,7 +203,7 @@ export default function CustomerCollectionsList() {
 
               <Column
                 field="amount"
-                header="المبلغ"
+                header={t("amount")}
                 sortable
                 body={(row) => formatNumber(row.amount)}
                 style={{ width: "14%" }}
@@ -215,14 +212,14 @@ export default function CustomerCollectionsList() {
 
               <Column
                 field="description"
-                header="البيان"
+                header={t("statement")}
                 body={(row) => row.description || "-"}
                 style={{ width: "22%" }}
                 bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
               />
 
               <Column
-                header="الإجراءات"
+                header={t("actions")}
                 body={actionBodyTemplate}
                 style={{ width: "12%" }}
                 bodyStyle={{ whiteSpace: "nowrap", textAlign: "center" }}
@@ -235,11 +232,11 @@ export default function CustomerCollectionsList() {
           <div className="grid grid-cols-1 gap-4 lg:hidden mt-4">
             {isLoading ? (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
-                جاري التحميل...
+                {t("loading")}
               </div>
             ) : filteredRows.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
-                لا توجد بيانات
+                {t("no_data")}
               </div>
             ) : (
               filteredRows
@@ -263,7 +260,7 @@ export default function CustomerCollectionsList() {
 
                         <div className="min-w-0">
                           <p className="text-xs text-[var(--text-muted)]">
-                            اسم العميل
+                            {t("customer_name")}
                           </p>
                           <p className="text-sm font-bold text-[var(--text-main)] break-words">
                             {row.customerName || "-"}
@@ -279,7 +276,7 @@ export default function CustomerCollectionsList() {
                     <div className="p-4 space-y-3">
                       <div className="rounded-xl bg-[#f8fafc] p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
-                          الخزينة
+                          {t("treasury")}
                         </p>
                         <p className="text-sm font-semibold text-[var(--text-main)]">
                           {row.treasuryName || "-"}
@@ -288,7 +285,7 @@ export default function CustomerCollectionsList() {
 
                       <div className="rounded-xl bg-[#f8fafc] p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
-                          المبلغ
+                          {t("amount")}
                         </p>
                         <p className="text-sm font-semibold text-[var(--text-main)]">
                           {formatNumber(row.amount)}
@@ -297,7 +294,7 @@ export default function CustomerCollectionsList() {
 
                       <div className="rounded-xl bg-[#f8fafc] p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
-                          البيان
+                          {t("statement")}
                         </p>
                         <p className="text-sm font-semibold text-[var(--text-main)] break-words">
                           {row.description || "-"}
@@ -334,7 +331,7 @@ export default function CustomerCollectionsList() {
                   disabled={currentPage === 1}
                   className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  السابق
+                  {t("previous")}
                 </button>
 
                 <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
@@ -355,7 +352,7 @@ export default function CustomerCollectionsList() {
                   }
                   className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  التالي
+                  {t("next")}
                 </button>
               </div>
             )}
@@ -375,7 +372,7 @@ export default function CustomerCollectionsList() {
 
       <DeleteTreasuryDialog
         open={!!rowToDelete}
-        itemLabel="حركة سند القبض"
+        itemLabel={t("customer_collection_transaction")}
         itemName={rowToDelete?.customerName}
         loading={isDeleting}
         onClose={() => setRowToDelete(null)}

@@ -49,7 +49,7 @@ export default function EditUser() {
     return (
       <div className="p-8 text-center">
         <p className="text-gray-500">{t('user_not_found') || 'المستخدم غير موجود'}</p>
-        <button 
+        <button
           onClick={() => navigate('/users')}
           className="mt-4 text-primary font-bold hover:underline"
         >
@@ -90,16 +90,16 @@ export default function EditUser() {
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 text-center">
             <div className="relative inline-block mb-4">
-              <img 
-                src="https://picsum.photos/seed/avatar/200/200" 
-                alt="User" 
+              <img
+                src="https://picsum.photos/seed/avatar/200/200"
+                alt="User"
                 className="w-32 h-32 rounded-full border-4 border-gray-50 shadow-sm mx-auto object-cover"
               />
               <div className="absolute bottom-1 right-1 bg-[var(--primary)] w-4 h-4 rounded-full border-2 border-white"></div>
             </div>
             <h2 className="text-lg font-bold text-gray-900">{user.firstName} {user.lastName}</h2>
             <p className="text-sm text-gray-500 mb-4">{user.group}</p>
-            
+
             <div className="pt-4 border-t border-gray-50 space-y-3">
               <div className="flex items-center justify-center gap-2 text-xs text-gray-600">
                 <span className="truncate">{user.email}</span>
@@ -114,16 +114,16 @@ export default function EditUser() {
         <div className="lg:col-span-3 space-y-6">
           {/* Tabs */}
           <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-lg w-fit mb-2">
-            <button 
+            <button
               onClick={() => setActiveTab('edit')}
               className={cn(
                 "px-6 py-2 text-sm font-medium rounded-md transition-all",
                 activeTab === 'edit' ? "bg-white text-primary shadow-sm" : "text-gray-500 hover:text-gray-700"
               )}
             >
-              {t('edit') || 'تعديل'}
+              {t('edit')}
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('password')}
               className={cn(
                 "px-6 py-2 text-sm font-medium rounded-md transition-all",
@@ -132,7 +132,7 @@ export default function EditUser() {
             >
               {t('change_password') || 'تغيير كلمة المرور'}
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab('avatar')}
               className={cn(
                 "px-6 py-2 text-sm font-medium rounded-md transition-all",
@@ -152,12 +152,12 @@ export default function EditUser() {
 
               <AnimatePresence mode="wait">
                 {activeTab === 'edit' && (
-                  <motion.form 
+                  <motion.form
                     key="edit"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    onSubmit={handleSubmit} 
+                    onSubmit={handleSubmit}
                     className="space-y-6"
                   >
                     <div className="grid grid-cols-1 gap-6">

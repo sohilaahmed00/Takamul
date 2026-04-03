@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "@/context/LanguageContext";
 
 type Props = {
   mode?: "create";
@@ -11,13 +12,14 @@ export default function QuantityAdjustmentForm({
   onCancel,
 }: Props) {
   const navigate = useNavigate();
+  const { t, direction } = useLanguage();
 
   return (
-    <div className="rounded-2xl border bg-white p-6 shadow-sm" dir="rtl">
+    <div className="rounded-2xl border bg-white p-6 shadow-sm" dir={direction}>
       <div className="space-y-4 text-center">
-        <h2 className="text-xl font-bold">نموذج تعديل الكمية</h2>
+        <h2 className="text-xl font-bold">{t("add_quantity_adjustment")}</h2>
         <p className="text-sm text-slate-500">
-          تم توحيد الإنشاء والتعديل داخل الصفحات الجديدة الخاصة بـ Quantity Adjustments.
+          {t("qty_adjustment_unified_note")}
         </p>
 
         <div className="flex items-center justify-center gap-3">
@@ -26,7 +28,7 @@ export default function QuantityAdjustmentForm({
             onClick={() => navigate("/products/quantity-adjustments/create")}
             className="rounded-xl bg-emerald-600 px-4 py-2 text-white"
           >
-            فتح صفحة الإضافة
+            {t("open_add_page")}
           </button>
 
           <button
@@ -34,7 +36,7 @@ export default function QuantityAdjustmentForm({
             onClick={onCancel}
             className="rounded-xl border px-4 py-2"
           >
-            إلغاء
+            {t("cancel")}
           </button>
         </div>
       </div>

@@ -62,10 +62,10 @@ export default function AddExternalTransferModal({
         <DialogHeader className="px-6 py-4 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-xl">
             <Landmark size={20} />
-            {t("add_external_transfer") || "إضافة تحويل خارجي"}
+            {t("add_external_transfer")}
           </DialogTitle>
           <p className="text-sm text-gray-500">
-            {t("please_enter_transfer_info") || "أدخل بيانات التحويل الخارجي"}
+            {t("please_enter_transfer_info")}
           </p>
         </DialogHeader>
 
@@ -76,7 +76,7 @@ export default function AddExternalTransferModal({
         >
           <div className="grid grid-cols-1 gap-5">
             <Field>
-              <FieldLabel>{t("select_bank") || "اختر البنك"} *</FieldLabel>
+              <FieldLabel>{t("select_bank")} *</FieldLabel>
               <select
                 value={formData.bankId}
                 onChange={(e) =>
@@ -85,7 +85,7 @@ export default function AddExternalTransferModal({
                 className="w-full h-11 rounded-xl border border-gray-200 bg-white px-4 outline-none focus:border-[#2ecc71]"
                 required
               >
-                <option value="">{t("select_bank") || "اختر البنك"}</option>
+                <option value="">{t("select_bank")}</option>
                 {banks.map((bank) => (
                   <option key={bank.id} value={bank.id}>
                     {bank.name}
@@ -95,7 +95,7 @@ export default function AddExternalTransferModal({
             </Field>
 
             <Field>
-              <FieldLabel>{t("paid_amount") || "المبلغ"} *</FieldLabel>
+              <FieldLabel>{t("paid_amount")} *</FieldLabel>
               <Input
                 type="number"
                 value={formData.amount}
@@ -110,7 +110,7 @@ export default function AddExternalTransferModal({
             </Field>
 
             <Field>
-              <FieldLabel>{t("notes") || "ملاحظات"}</FieldLabel>
+              <FieldLabel>{t("notes")}</FieldLabel>
               <textarea
                 value={formData.notes}
                 onChange={(e) =>
@@ -126,7 +126,7 @@ export default function AddExternalTransferModal({
         <DialogFooter className="px-6 py-4 border-t border-gray-100">
           <div className="flex items-center justify-end gap-3 w-full">
             <Button type="button" variant="outline" onClick={onClose}>
-              إلغاء
+              {t("cancel")}
             </Button>
 
             <Button
@@ -136,9 +136,7 @@ export default function AddExternalTransferModal({
               className="min-w-[170px]"
             >
               {isSubmitting && <Loader2 size={18} className="animate-spin" />}
-              {isSubmitting
-                ? "جارٍ الحفظ..."
-                : t("add_external_transfer") || "إضافة تحويل خارجي"}
+              {isSubmitting ? t("saving") : t("add_external_transfer")}
             </Button>
           </div>
         </DialogFooter>

@@ -109,7 +109,7 @@ export default function InvoiceDetailsModal({
       const data = (await res.json()) as SalesOrderDetailsDTO;
       setDetails(data);
     } catch (e: any) {
-      setError(e?.message || 'Failed to load invoice details');
+      setError(e?.message || t('failed_to_load_invoice_details'));
     } finally {
       setLoading(false);
     }
@@ -139,7 +139,7 @@ export default function InvoiceDetailsModal({
     printWindow.document.write(`
       <html>
         <head>
-          <title>Invoice ${sale?.invoiceNo || ''}</title>
+          <title>${t('invoice')} ${sale?.invoiceNo || ''}</title>
           <style>
             body {
               font-family: Arial, sans-serif;
@@ -222,9 +222,9 @@ export default function InvoiceDetailsModal({
   };
 
   const handleSendEmail = () => {
-    const subject = encodeURIComponent(`Invoice ${sale?.invoiceNo || ''}`);
+    const subject = encodeURIComponent(`${t('invoice')} ${sale?.invoiceNo || ''}`);
     const body = encodeURIComponent(
-      `Invoice details\n\nInvoice No: ${sale?.invoiceNo || ''}\nCustomer: ${sale?.customer || ''}\nGrand Total: ${sale?.grandTotal?.toFixed?.(2) || '0.00'}`
+      `${t('invoice_details')}\n\n${t('invoice_number')}: ${sale?.invoiceNo || ''}\n${t('customer')}: ${sale?.customer || ''}\n${t('total_amount')}: ${sale?.grandTotal?.toFixed?.(2) || '0.00'}`
     );
     window.open(`mailto:?subject=${subject}&body=${body}`, '_self');
   };
@@ -282,7 +282,7 @@ export default function InvoiceDetailsModal({
                 <p className="text-xs text-gray-500">{t('date')}: {sale.date}</p>
                 {details?.orderStatus && (
                   <p className="text-xs text-gray-500">
-                    Status: <span className="font-bold">{details.orderStatus}</span>
+                    {t('status')}: <span className="font-bold">{details.orderStatus}</span>
                   </p>
                 )}
               </div>
@@ -299,33 +299,32 @@ export default function InvoiceDetailsModal({
 
             {loading && (
               <p className="text-sm text-gray-500 text-right">
-                {direction === 'rtl' ? 'جاري تحميل تفاصيل الفاتورة...' : 'Loading invoice details...'}
+                {t('loading_invoice_details')}
               </p>
             )}
 
             {error && (
               <p className="text-sm text-red-600 text-right">
-                {direction === 'rtl' ? 'خطأ: ' : 'Error: '}
-                {error}
+                {t('error')}: {error}
               </p>
             )}
 
             {!!details && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div className="bg-white border border-gray-200 rounded p-3">
-                  <div className="text-[11px] text-gray-500">{direction === 'rtl' ? 'الإجمالي قبل الضريبة' : 'SubTotal'}</div>
+                  <div className="text-[11px] text-gray-500">{t('subtotal_before_tax')}</div>
                   <div className="font-bold">{safeNumber(details.subTotal).toFixed(2)}</div>
                 </div>
                 <div className="bg-white border border-gray-200 rounded p-3">
-                  <div className="text-[11px] text-gray-500">{direction === 'rtl' ? 'الضريبة' : 'Tax'}</div>
+                  <div className="text-[11px] text-gray-500">{t('tax')}</div>
                   <div className="font-bold">{safeNumber(details.taxAmount).toFixed(2)}</div>
                 </div>
                 <div className="bg-white border border-gray-200 rounded p-3">
-                  <div className="text-[11px] text-gray-500">{direction === 'rtl' ? 'الخصم' : 'Discount'}</div>
+                  <div className="text-[11px] text-gray-500">{t('discount')}</div>
                   <div className="font-bold">{safeNumber(details.discountAmount).toFixed(2)}</div>
                 </div>
                 <div className="bg-white border border-gray-200 rounded p-3">
-                  <div className="text-[11px] text-gray-500">{direction === 'rtl' ? 'الإجمالي النهائي' : 'Grand Total'}</div>
+                  <div className="text-[11px] text-gray-500">{t('grand_total')}</div>
                   <div className="font-bold">{safeNumber(details.grandTotal).toFixed(2)}</div>
                 </div>
               </div>

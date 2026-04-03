@@ -56,7 +56,7 @@ export default function QuantityAdjustments() {
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
-          <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder") || "البحث..."} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
+          <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder")} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
         </div>
       </div>
     );
@@ -66,12 +66,12 @@ export default function QuantityAdjustments() {
   return (
     <Card>
       <CardHeader className="max-md:flex max-md:flex-col">
-        <CardTitle>تعديلات الكمية</CardTitle>
-        <CardDescription>إدارة وتتبع مذكرات تسوية المخزون</CardDescription>
+        <CardTitle>{t("quantity_adjustments")}</CardTitle>
+        <CardDescription>{t("quantity_adjustments_desc")}</CardDescription>
         <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
           {" "}
           <Button variant={"default"} asChild>
-            <Link to={"/products/quantity-adjustments/create"}>إضافة تعديل كمية </Link>
+            <Link to={"/products/quantity-adjustments/create"}>{t("add_quantity_adjustment")}</Link>
           </Button>
         </CardAction>
       </CardHeader>
@@ -96,9 +96,9 @@ export default function QuantityAdjustments() {
           className="custom-green-table custom-compact-table"
           dataKey="id"
         >
-          <Column header={"التاريخ"} sortable field="operationDate" body={(item: QuantityAdjustment) => formatDate(String(item?.operationDate))} />
-          <Column header="مدخل البيانات" sortable field={"performedBy"} />
-          <Column header="مذكرة" sortable field={"مذكرة"} />
+          <Column header={t("date")} sortable field="operationDate" body={(item: QuantityAdjustment) => formatDate(String(item?.operationDate))} />
+          <Column header={t("entered_by")} sortable field={"performedBy"} />
+          <Column header={t("note")} sortable field={"مذكرة"} />
           <Column
             header={t("actions")}
             body={(product: QuantityAdjustment) => (
@@ -106,7 +106,7 @@ export default function QuantityAdjustments() {
                 <Link to={`/products/quantity-adjustments/edit/${product?.id}`} className="btn-minimal-action btn-edit">
                   <Edit2 size={16} />
                 </Link>
-                <Link to={`products/quantity-adjustments/view/${product?.id}`} onClick={async () => {}} className="btn-minimal-action btn-view">
+                <Link to={`products/quantity-adjustments/view/${product?.id}`} onClick={async () => { }} className="btn-minimal-action btn-view">
                   <Eye size={16} />
                 </Link>
               </div>

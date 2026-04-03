@@ -8,7 +8,6 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -33,11 +32,16 @@ export default function AddCustomerCollectionModal({
   mode = "add",
   editData = null,
 }: Props) {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
 
   const { data: treasurys } = useGetAllTreasurys();
-  const { data: customers } = useGetAllCustomers();
+  const { data: customersResponse } = useGetAllCustomers();
+  const customers = Array.isArray(customersResponse?.items)
+    ? customersResponse.items
+    : Array.isArray(customersResponse)
+      ? customersResponse
+      : [];
 
   const { mutateAsync: createTransaction, isPending: isCreating } =
     useCreateCustomerTransaction();
@@ -78,7 +82,7 @@ export default function AddCustomerCollectionModal({
   }, [isOpen, isEditMode, editData]);
 
   const selectedCustomer = useMemo(
-    () => customers?.find((c: any) => c.id === customerId),
+    () => customers.find((c: any) => c.id === customerId),
     [customers, customerId]
   );
 
@@ -93,23 +97,23 @@ export default function AddCustomerCollectionModal({
     e.preventDefault();
 
     if (!transactionDate) {
-      notifyError("التاريخ مطلوب");
+      notifyError(t("date_required"));
       return;
     }
 
     if (!treasuryId) {
-      notifyError("اختر الخزينة");
+      notifyError(t("select_treasury"));
       return;
     }
 
     if (!customerId) {
-      notifyError("اختر العميل");
+      notifyError(t("select_customer"));
       return;
     }
 
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      notifyError("أدخل مبلغ صحيح أكبر من صفر");
+      notifyError(t("valid_amount_required"));
       return;
     }
 
@@ -123,7 +127,7 @@ export default function AddCustomerCollectionModal({
           description: description.trim() || "",
         });
 
-        notifySuccess("تم تعديل سند القبض بنجاح");
+        notifySuccess(t("edit_customer_collection_success"));
       } else {
         await createTransaction({
           customerId,
@@ -133,15 +137,15 @@ export default function AddCustomerCollectionModal({
           description: description.trim() || "",
         });
 
-        notifySuccess("تم إضافة سند القبض بنجاح");
+        notifySuccess(t("add_customer_collection_success"));
       }
 
       onClose();
     } catch (error: any) {
       notifyError(
         error?.response?.data?.message ||
-          error?.message ||
-          "حدث خطأ أثناء الحفظ"
+        error?.message ||
+        t("save_error")
       );
     }
   };
@@ -165,17 +169,8 @@ export default function AddCustomerCollectionModal({
         <DialogHeader className="px-5 py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold flex-wrap">
             {isEditMode ? <Pencil size={18} /> : <HandCoins size={18} />}
-            {isEditMode ? "تعديل سند قبض" : "إضافة سند قبض"}
-            {/* <span className="text-xs bg-[#2ecc71]/10 text-[#2ecc71] px-2 py-1 rounded-lg">
-              سند قبض
-            </span> */}
+            {isEditMode ? t("edit_customer_collection") : t("add_customer_collection")}
           </DialogTitle>
-
-          {/* <DialogDescription className="text-sm text-gray-500">
-            {isEditMode
-              ? "تعديل بيانات سند القبض"
-              : "تسجيل سند القبض من العملاء"}
-          </DialogDescription> */}
         </DialogHeader>
 
         <form
@@ -184,7 +179,7 @@ export default function AddCustomerCollectionModal({
           className="px-5 space-y-3"
         >
           <Field>
-            <FieldLabel>التاريخ</FieldLabel>
+            <FieldLabel>{t("date")}</FieldLabel>
             <Input
               type="date"
               value={transactionDate}
@@ -196,7 +191,7 @@ export default function AddCustomerCollectionModal({
           <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
             <div className="flex items-center gap-2">
               <Wallet size={16} className="text-[#2ecc71]" />
-              <h3 className="text-sm font-semibold text-gray-800">الخزينة</h3>
+              <h3 className="text-sm font-semibold text-gray-800">{t("treasury")}</h3>
             </div>
 
             <Field>
@@ -209,10 +204,10 @@ export default function AddCustomerCollectionModal({
                 }
                 className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]"
               >
-                <option value="">اختر الخزينة</option>
-                {(treasurys ?? []).map((t: any) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
+                <option value="">{t("select_treasury")}</option>
+                {(treasurys ?? []).map((tRow: any) => (
+                  <option key={tRow.id} value={tRow.id}>
+                    {tRow.name}
                   </option>
                 ))}
               </select>
@@ -222,7 +217,7 @@ export default function AddCustomerCollectionModal({
           <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
-                <FieldLabel>اسم العميل</FieldLabel>
+                <FieldLabel>{t("customer_name")}</FieldLabel>
                 <select
                   value={customerId ?? ""}
                   onChange={(e) =>
@@ -233,7 +228,7 @@ export default function AddCustomerCollectionModal({
                   disabled={isEditMode}
                   className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71] disabled:bg-gray-50 disabled:text-gray-500"
                 >
-                  <option value="">اختر العميل</option>
+                  <option value="">{t("select_customer")}</option>
                   {(customers ?? []).map((c: any) => (
                     <option key={c.id} value={c.id}>
                       {c.customerName}
@@ -243,7 +238,7 @@ export default function AddCustomerCollectionModal({
               </Field>
 
               <Field>
-                <FieldLabel>الرصيد الحالي</FieldLabel>
+                <FieldLabel>{t("current_balance")}</FieldLabel>
                 <Input
                   readOnly
                   value={formatNumber(currentBalance)}
@@ -254,7 +249,7 @@ export default function AddCustomerCollectionModal({
           </div>
 
           <Field>
-            <FieldLabel>المبلغ</FieldLabel>
+            <FieldLabel>{t("amount")}</FieldLabel>
             <Input
               type="number"
               value={amount}
@@ -265,7 +260,7 @@ export default function AddCustomerCollectionModal({
           </Field>
 
           <Field>
-            <FieldLabel>الرصيد بعد</FieldLabel>
+            <FieldLabel>{t("balance_after")}</FieldLabel>
             <Input
               readOnly
               value={formatNumber(balanceAfter)}
@@ -274,11 +269,11 @@ export default function AddCustomerCollectionModal({
           </Field>
 
           <Field>
-            <FieldLabel>البيان</FieldLabel>
+            <FieldLabel>{t("statement")}</FieldLabel>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="اكتب ملاحظات أو بيان سند القبض"
+              placeholder={t("customer_collection_statement_placeholder")}
               className="h-9"
             />
           </Field>
@@ -292,7 +287,7 @@ export default function AddCustomerCollectionModal({
               onClick={onClose}
               className="h-10 px-6"
             >
-              إلغاء
+              {t("cancel")}
             </Button>
 
             <Button
@@ -304,11 +299,11 @@ export default function AddCustomerCollectionModal({
               {isPending && <Loader2 size={16} className="animate-spin" />}
               {isPending
                 ? isEditMode
-                  ? "جارٍ التعديل..."
-                  : "جارٍ الحفظ..."
+                  ? t("updating")
+                  : t("saving")
                 : isEditMode
-                ? "حفظ التعديلات"
-                : "حفظ سند القبض"}
+                  ? t("save_changes")
+                  : t("save_customer_collection")}
             </Button>
           </div>
         </DialogFooter>

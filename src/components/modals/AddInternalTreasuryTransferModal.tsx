@@ -25,7 +25,7 @@ export default function AddInternalTreasuryTransferModal({
   isOpen,
   onClose,
 }: Props) {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
 
   const { data: treasurys } = useGetAllTreasurys();
@@ -65,22 +65,22 @@ export default function AddInternalTreasuryTransferModal({
     e.preventDefault();
 
     if (!fromTreasuryId) {
-      notifyError("اختار الخزينة المحول منها");
+      notifyError(t("select_from_treasury"));
       return;
     }
 
     if (!toTreasuryId) {
-      notifyError("اختار الخزينة المحول إليها");
+      notifyError(t("select_to_treasury"));
       return;
     }
 
     if (fromTreasuryId === toTreasuryId) {
-      notifyError("لا يمكن التحويل لنفس الخزينة");
+      notifyError(t("cannot_transfer_same_treasury"));
       return;
     }
 
     if (!amount || Number(amount) <= 0) {
-      notifyError("أدخل مبلغ تحويل صحيح");
+      notifyError(t("valid_transfer_amount"));
       return;
     }
 
@@ -93,10 +93,10 @@ export default function AddInternalTreasuryTransferModal({
         notes,
       });
 
-      notifySuccess("تم حفظ التحويل بنجاح");
+      notifySuccess(t("internal_transfer_saved_successfully"));
       onClose();
     } catch (error: any) {
-      notifyError(error?.message || "حدث خطأ أثناء حفظ التحويل");
+      notifyError(error?.message || t("save_transfer_error"));
     }
   };
 
@@ -107,23 +107,20 @@ export default function AddInternalTreasuryTransferModal({
         onOpenAutoFocus={(e) => e.preventDefault()}
         className="w-full sm:max-w-[750px] p-0 overflow-hidden rounded-2xl"
       >
-        <DialogHeader className="px-6  py-2 border-b border-gray-100">
+        <DialogHeader className="px-6 py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold">
             <ArrowLeftRight size={18} />
-            إضافة تحويل داخلي
+            {t("add_internal_transfer")}
           </DialogTitle>
-          {/* <p className="text-sm text-gray-500">
-            قم بتحويل رصيد بين الخزائن الداخلية
-          </p> */}
         </DialogHeader>
 
         <form
           id="addInternalTransferForm"
           onSubmit={handleSubmit}
-          className="px-6  space-y-2"
+          className="px-6 space-y-2"
         >
           <Field>
-            <FieldLabel>تاريخ الحركة</FieldLabel>
+            <FieldLabel>{t("movement_date")}</FieldLabel>
             <Input
               type="date"
               value={date}
@@ -135,12 +132,14 @@ export default function AddInternalTreasuryTransferModal({
           <div className="rounded-2xl border border-gray-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-3">
               <Wallet size={16} className="text-[#2ecc71]" />
-              <h3 className="text-sm font-semibold text-gray-800">من خزينة</h3>
+              <h3 className="text-sm font-semibold text-gray-800">
+                {t("from_treasury")}
+              </h3>
             </div>
 
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
-                <FieldLabel>اختر الخزينة</FieldLabel>
+                <FieldLabel>{t("select_treasury")}</FieldLabel>
                 <select
                   value={fromTreasuryId ?? ""}
                   onChange={(e) =>
@@ -150,17 +149,17 @@ export default function AddInternalTreasuryTransferModal({
                   }
                   className="w-full h-10 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]"
                 >
-                  <option value="">اختر الخزينة</option>
-                  {(treasurys ?? []).map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
+                  <option value="">{t("select_treasury")}</option>
+                  {(treasurys ?? []).map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
                     </option>
                   ))}
                 </select>
               </Field>
 
               <Field>
-                <FieldLabel>الرصيد الحالي</FieldLabel>
+                <FieldLabel>{t("current_balance")}</FieldLabel>
                 <Input
                   readOnly
                   value={formatNumber(fromTreasury?.currentBalance)}
@@ -173,12 +172,14 @@ export default function AddInternalTreasuryTransferModal({
           <div className="rounded-2xl border border-gray-200 bg-white p-4">
             <div className="flex items-center gap-2 mb-3">
               <Wallet size={16} className="text-[#2ecc71]" />
-              <h3 className="text-sm font-semibold text-gray-800">إلى خزينة</h3>
+              <h3 className="text-sm font-semibold text-gray-800">
+                {t("to_treasury")}
+              </h3>
             </div>
 
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
-                <FieldLabel>اختر الخزينة</FieldLabel>
+                <FieldLabel>{t("select_treasury")}</FieldLabel>
                 <select
                   value={toTreasuryId ?? ""}
                   onChange={(e) =>
@@ -188,17 +189,17 @@ export default function AddInternalTreasuryTransferModal({
                   }
                   className="w-full h-10 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]"
                 >
-                  <option value="">اختر الخزينة</option>
-                  {(treasurys ?? []).map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
+                  <option value="">{t("select_treasury")}</option>
+                  {(treasurys ?? []).map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
                     </option>
                   ))}
                 </select>
               </Field>
 
               <Field>
-                <FieldLabel>الرصيد الحالي</FieldLabel>
+                <FieldLabel>{t("current_balance")}</FieldLabel>
                 <Input
                   readOnly
                   value={formatNumber(toTreasury?.currentBalance)}
@@ -209,7 +210,7 @@ export default function AddInternalTreasuryTransferModal({
           </div>
 
           <Field>
-            <FieldLabel>مبلغ التحويل</FieldLabel>
+            <FieldLabel>{t("transfer_amount")}</FieldLabel>
             <Input
               type="number"
               value={amount}
@@ -220,11 +221,11 @@ export default function AddInternalTreasuryTransferModal({
           </Field>
 
           <Field>
-            <FieldLabel>البيان</FieldLabel>
+            <FieldLabel>{t("statement")}</FieldLabel>
             <Input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="اكتب ملاحظات أو بيان التحويل"
+              placeholder={t("transfer_statement_placeholder")}
               className="h-10"
             />
           </Field>
@@ -238,7 +239,7 @@ export default function AddInternalTreasuryTransferModal({
               onClick={onClose}
               className="h-10 px-6"
             >
-              إلغاء
+              {t("cancel")}
             </Button>
 
             <Button
@@ -248,7 +249,7 @@ export default function AddInternalTreasuryTransferModal({
               className="min-w-[150px] h-10 px-6"
             >
               {isPending && <Loader2 size={16} className="animate-spin" />}
-              {isPending ? "جارٍ الحفظ..." : "حفظ التحويل"}
+              {isPending ? t("saving") : t("save_transfer")}
             </Button>
           </div>
         </DialogFooter>

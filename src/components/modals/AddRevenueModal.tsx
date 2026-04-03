@@ -16,7 +16,6 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -50,7 +49,7 @@ export default function AddRevenueModal({
   editData = null,
   onSubmitData,
 }: Props) {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
   const { data: treasurys } = useGetAllTreasurys();
   const isEditMode = mode === "edit";
@@ -136,23 +135,23 @@ export default function AddRevenueModal({
     e.preventDefault();
 
     if (!date) {
-      notifyError("التاريخ مطلوب");
+      notifyError(t("date_required"));
       return;
     }
 
     if (!treasuryId) {
-      notifyError("اختر الخزينة");
+      notifyError(t("select_treasury"));
       return;
     }
 
     if (!itemId) {
-      notifyError("اختر البند");
+      notifyError(t("select_item"));
       return;
     }
 
     const parsedAmount = parseFloat(amount);
     if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
-      notifyError("أدخل مبلغ صحيح أكبر من صفر");
+      notifyError(t("valid_amount_required"));
       return;
     }
 
@@ -170,11 +169,11 @@ export default function AddRevenueModal({
       });
 
       notifySuccess(
-        isEditMode ? "تم تعديل الإيراد بنجاح" : "تم إضافة الإيراد بنجاح"
+        isEditMode ? t("edit_revenue_success") : t("add_revenue_success")
       );
       onClose();
     } catch (error: any) {
-      notifyError(error?.message || "حدث خطأ أثناء الحفظ");
+      notifyError(error?.message || t("save_error"));
     } finally {
       setIsPending(false);
     }
@@ -199,19 +198,13 @@ export default function AddRevenueModal({
         <DialogHeader className="px-5 py-3 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-base font-semibold flex-wrap">
             {isEditMode ? <Pencil size={17} /> : <HandCoins size={17} />}
-            {isEditMode ? "تعديل إيراد" : "إضافة إيراد"}
-            {/* <span className="text-[11px] bg-[#2ecc71]/10 text-[#2ecc71] px-2 py-1 rounded-lg">
-              إيراد
-            </span> */}
+            {isEditMode ? t("edit_revenue") : t("add_revenue")}
           </DialogTitle>
-          {/* <DialogDescription className="text-xs text-gray-500">
-            {isEditMode ? "تعديل بيانات الإيراد" : "تسجيل إيراد جديد"}
-          </DialogDescription> */}
         </DialogHeader>
 
         <form id="revenueForm" onSubmit={handleSubmit} className="px-5 space-y-2">
           <Field>
-            <FieldLabel>التاريخ</FieldLabel>
+            <FieldLabel>{t("date")}</FieldLabel>
             <Input
               type="date"
               value={date}
@@ -220,34 +213,37 @@ export default function AddRevenueModal({
             />
           </Field>
 
-
           <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
             <div className="flex items-center gap-2">
               <Wallet size={15} className="text-[#2ecc71]" />
-              <h3 className="text-sm font-semibold text-gray-800">الخزينة</h3>
+              <h3 className="text-sm font-semibold text-gray-800">
+                {t("treasury")}
+              </h3>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <Field>
-                <FieldLabel>الخزينة</FieldLabel>
+                <FieldLabel>{t("treasury")}</FieldLabel>
                 <select
                   value={treasuryId ?? ""}
                   onChange={(e) =>
-                    setTreasuryId(e.target.value ? Number(e.target.value) : undefined)
+                    setTreasuryId(
+                      e.target.value ? Number(e.target.value) : undefined
+                    )
                   }
                   className="w-full h-10 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71] text-sm"
                 >
-                  <option value="">اختر الخزينة</option>
-                  {treasuryRows.map((t: any) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
+                  <option value="">{t("select_treasury")}</option>
+                  {treasuryRows.map((tRow: any) => (
+                    <option key={tRow.id} value={tRow.id}>
+                      {tRow.name}
                     </option>
                   ))}
                 </select>
               </Field>
 
               <Field>
-                <FieldLabel>الرصيد الحالي</FieldLabel>
+                <FieldLabel>{t("current_balance")}</FieldLabel>
                 <Input
                   readOnly
                   value={fmt(currentBalance)}
@@ -258,7 +254,7 @@ export default function AddRevenueModal({
           </div>
 
           <Field>
-            <FieldLabel>المبلغ</FieldLabel>
+            <FieldLabel>{t("amount")}</FieldLabel>
             <Input
               type="number"
               value={amount}
@@ -269,15 +265,16 @@ export default function AddRevenueModal({
           </Field>
 
           <Field>
-            <FieldLabel>البند</FieldLabel>
+            <FieldLabel>{t("item")}</FieldLabel>
             <div className="relative">
               <div
-                className={`w-full h-10 rounded-xl border px-3 bg-white flex items-center justify-between cursor-pointer text-sm transition-colors ${isItemDropdownOpen ? "border-[#2ecc71]" : "border-gray-200"
-                  }`}
+                className={`w-full h-10 rounded-xl border px-3 bg-white flex items-center justify-between cursor-pointer text-sm transition-colors ${
+                  isItemDropdownOpen ? "border-[#2ecc71]" : "border-gray-200"
+                }`}
                 onClick={() => setIsItemDropdownOpen((v) => !v)}
               >
                 <span className={selectedItem ? "text-gray-800" : "text-gray-400"}>
-                  {selectedItem ? selectedItem.name : "اختر البند"}
+                  {selectedItem ? selectedItem.name : t("select_item")}
                 </span>
 
                 <div className="flex items-center gap-1">
@@ -295,8 +292,9 @@ export default function AddRevenueModal({
                   )}
                   <ChevronDown
                     size={15}
-                    className={`text-gray-400 transition-transform ${isItemDropdownOpen ? "rotate-180" : ""
-                      }`}
+                    className={`text-gray-400 transition-transform ${
+                      isItemDropdownOpen ? "rotate-180" : ""
+                    }`}
                   />
                 </div>
               </div>
@@ -314,7 +312,7 @@ export default function AddRevenueModal({
                         value={itemSearch}
                         onChange={(e) => setItemSearch(e.target.value)}
                         onClick={(e) => e.stopPropagation()}
-                        placeholder="ابحث عن بند..."
+                        placeholder={t("search_item_placeholder")}
                         autoFocus
                         className="w-full h-8 rounded-lg border border-gray-200 pr-8 pl-3 text-sm outline-none focus:border-[#2ecc71]"
                       />
@@ -324,17 +322,18 @@ export default function AddRevenueModal({
                   <div className="max-h-48 overflow-y-auto">
                     {filteredItems.length === 0 ? (
                       <div className="px-3 py-4 text-center text-sm text-gray-400">
-                        لا توجد بنود
+                        {t("no_items")}
                       </div>
                     ) : (
                       filteredItems.map((item) => (
                         <div
                           key={item.id}
                           onClick={() => handleSelectItem(item.id, item.name)}
-                          className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-[#2ecc71]/5 transition-colors flex items-center justify-between ${itemId === item.id
-                            ? "bg-[#2ecc71]/10 text-[#2ecc71] font-medium"
-                            : "text-gray-700"
-                            }`}
+                          className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-[#2ecc71]/5 transition-colors flex items-center justify-between ${
+                            itemId === item.id
+                              ? "bg-[#2ecc71]/10 text-[#2ecc71] font-medium"
+                              : "text-gray-700"
+                          }`}
                         >
                           {item.name}
                           {itemId === item.id && (
@@ -350,7 +349,7 @@ export default function AddRevenueModal({
           </Field>
 
           <Field>
-            <FieldLabel>الرصيد بعد</FieldLabel>
+            <FieldLabel>{t("balance_after")}</FieldLabel>
             <Input
               readOnly
               value={fmt(balanceAfter)}
@@ -359,16 +358,15 @@ export default function AddRevenueModal({
           </Field>
 
           <Field>
-            <FieldLabel>البيان</FieldLabel>
+            <FieldLabel>{t("statement")}</FieldLabel>
             <Input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="اكتب ملاحظات أو بيان الإيراد"
+              placeholder={t("revenue_statement_placeholder")}
               className="h-10"
             />
           </Field>
         </form>
-
 
         <DialogFooter className="px-8 border-t border-gray-100 h-25 flex items-center justify-end">
           <div className="flex items-center justify-end gap-3 w-full">
@@ -378,7 +376,7 @@ export default function AddRevenueModal({
               onClick={onClose}
               className="h-10 px-6 "
             >
-              إلغاء
+              {t("cancel")}
             </Button>
             <Button
               form="revenueForm"
@@ -388,10 +386,10 @@ export default function AddRevenueModal({
             >
               {isPending && <Loader2 size={15} className="animate-spin mr-1" />}
               {isPending
-                ? "جارٍ الحفظ..."
+                ? t("saving")
                 : isEditMode
-                  ? "حفظ التعديلات"
-                  : "حفظ الإيراد"}
+                ? t("save_changes")
+                : t("save_revenue")}
             </Button>
           </div>
         </DialogFooter>

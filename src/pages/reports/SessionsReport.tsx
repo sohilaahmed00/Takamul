@@ -64,7 +64,7 @@ export default function SessionsReport() {
             <div className="relative w-full md:w-64">
               <input
                 type="text"
-                placeholder="بحث..."
+                placeholder={t("search_placeholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className={cn(

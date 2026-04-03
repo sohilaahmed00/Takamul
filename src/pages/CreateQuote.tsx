@@ -19,31 +19,32 @@ import { Link } from "react-router-dom";
 import type { CreateQuotation } from "@/features/quotation/types/quotations.types";
 import { useCreateQuotation } from "@/features/quotation/hooks/useCreateQuotation";
 
-const QuoteSchema = z.object({
-  customerId: z.number().min(1, "العميل مطلوب"),
-  quotationDate: z.string().min(1, "التاريخ مطلوب"),
-  validUntil: z.string().min(1, "التاريخ مطلوب"),
-  discountAmount: z.number().min(0, "السعر لازم يكون ≥ 0"),
-  shippingCost: z.number().min(0, "السعر لازم يكون ≥ 0"),
-  notes: z.string().optional(),
-  quotationDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
-  quotationDiscountValue: z.number().min(0).default(0),
-  items: z
-    .array(
-      z.object({
-        productId: z.number().min(1, "اختر الصنف"),
-        quantity: z.number().min(1, "الكمية لازم تكون أكبر من 0"),
-        unitId: z.number().min(1, "اختر وحدة الصنف"),
-        unitPrice: z.number().min(0, "السعر لازم يكون ≥ 0"),
-        taxPercentage: z.number().min(0, "السعر لازم يكون ≥ 0"),
-        discountType: z.enum(["percentage", "fixed"]).default("fixed"),
-        discountValue: z.number().min(0).default(0),
-      }),
-    )
-    .min(1, "لازم تضيف صنف واحد على الأقل"),
-});
+const QuoteSchema = (t: (key: string) => string) =>
+  z.object({
+    customerId: z.number().min(1, t("customer_required")),
+    quotationDate: z.string().min(1, t("date_required")),
+    validUntil: z.string().min(1, t("date_required")),
+    discountAmount: z.number().min(0, t("price_must_be_gte_zero")),
+    shippingCost: z.number().min(0, t("price_must_be_gte_zero")),
+    notes: z.string().optional(),
+    quotationDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
+    quotationDiscountValue: z.number().min(0).default(0),
+    items: z
+      .array(
+        z.object({
+          productId: z.number().min(1, t("choose_product_validation")),
+          quantity: z.number().min(1, t("quantity_must_be_greater_than_zero")),
+          unitId: z.number().min(1, t("choose_product_unit")),
+          unitPrice: z.number().min(0, t("price_must_be_gte_zero")),
+          taxPercentage: z.number().min(0, t("price_must_be_gte_zero")),
+          discountType: z.enum(["percentage", "fixed"]).default("fixed"),
+          discountValue: z.number().min(0).default(0),
+        }),
+      )
+      .min(1, t("must_add_at_least_one_item")),
+  });
 
-type SalesInvoiceType = z.input<typeof QuoteSchema>;
+type SalesInvoiceType = z.input<ReturnType<typeof QuoteSchema>>;
 
 const fmt = (n: number) => new Intl.NumberFormat("ar-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
@@ -61,7 +62,8 @@ const QuoteSummaryContent: React.FC<{
   customers?: { id: number; customerName: string }[];
   products?: { id: number; productNameAr: string; taxAmount?: number }[];
   units?: { id: number; name: string }[];
-}> = ({ control, customers = [], products = [], units = [] }) => {
+  t: (key: string) => string;
+}> = ({ control, customers = [], products = [], units = [], t }) => {
   const customerId = useWatch({ control, name: "customerId" });
   const quotationDate = useWatch({ control, name: "quotationDate" });
   const validUntil = useWatch({ control, name: "validUntil" });
@@ -72,10 +74,10 @@ const QuoteSummaryContent: React.FC<{
   const discValue = Number(useWatch({ control, name: "quotationDiscountValue" })) || 0;
   const items: any[] = useWatch({ control, name: "items" }) || [];
 
-  const customerName = customers.find((c) => c.id === Number(customerId))?.customerName || "—";
+  const customerName = customers.find((c) => c.id === Number(customerId))?.customerName || t("dash");
 
   const formatDate = (d?: string) => {
-    if (!d) return "—";
+    if (!d) return t("dash");
     try {
       return new Date(d).toLocaleDateString("ar-EG", { year: "numeric", month: "long", day: "numeric" });
     } catch {
@@ -108,21 +110,21 @@ const QuoteSummaryContent: React.FC<{
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-3">بيانات العرض</p>
+        <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-3">{t("quote_data")}</p>
         <div className="space-y-2">
-          <SRow label="العميل" value={customerName} bold />
-          <SRow label="تاريخ الإصدار" value={formatDate(quotationDate)} />
-          <SRow label="صالح حتى" value={formatDate(validUntil)} />
+          <SRow label={t("customer")} value={customerName} bold />
+          <SRow label={t("issue_date")} value={formatDate(quotationDate)} />
+          <SRow label={t("valid_until")} value={formatDate(validUntil)} />
         </div>
       </div>
       <div className="border-t border-zinc-100" />
       <div>
         <div className="flex items-center justify-between mb-3">
-          <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">الأصناف</p>
+          <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest">{t("items")}</p>
           <span className="text-[10px] bg-zinc-100 text-zinc-500 font-medium px-2 py-0.5 rounded-full">{activeItems.length}</span>
         </div>
         {activeItems.length === 0 ? (
-          <p className="text-xs text-zinc-400 text-center py-4">لا توجد أصناف بعد</p>
+          <p className="text-xs text-zinc-400 text-center py-4">{t("no_items_yet")}</p>
         ) : (
           <div className="space-y-3">
             {activeItems.map((item, i) => (
@@ -134,8 +136,8 @@ const QuoteSummaryContent: React.FC<{
                       {item.qty} × {fmt(item.price)}
                     </span>
                     {item.unitName && <span className="text-xs text-zinc-400">{item.unitName}</span>}
-                    {item.disc > 0 && <span className="text-xs text-emerald-600">خصم {fmt(item.disc)}</span>}
-                    {item.tax > 0 && <span className="text-xs text-amber-500">ضريبة {fmt(item.tax)}</span>}
+                    {item.disc > 0 && <span className="text-xs text-emerald-600">{t("discount")} {fmt(item.disc)}</span>}
+                    {item.tax > 0 && <span className="text-xs text-amber-500">{t("tax")} {fmt(item.tax)}</span>}
                   </div>
                 </div>
                 <span className="text-sm font-semibold text-zinc-900 shrink-0">{fmt(item.total)}</span>
@@ -146,15 +148,15 @@ const QuoteSummaryContent: React.FC<{
       </div>
       <div className="border-t border-zinc-100" />
       <div>
-        <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-3">المبالغ</p>
+        <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-3">{t("amounts")}</p>
         <div className="space-y-1.5">
-          <SRow label="المجموع" value={fmt(subtotal)} />
-          {totalTax > 0 && <SRow label="الضريبة" value={`+ ${fmt(totalTax)}`} color="text-amber-500" />}
-          {globalDisc + discountAmount > 0 && <SRow label="الخصم" value={`- ${fmt(globalDisc + discountAmount)}`} color="text-emerald-600" />}
-          {shippingCost > 0 && <SRow label="التوصيل" value={`+ ${fmt(shippingCost)}`} />}
+          <SRow label={t("total")} value={fmt(subtotal)} />
+          {totalTax > 0 && <SRow label={t("tax")} value={`+ ${fmt(totalTax)}`} color="text-amber-500" />}
+          {globalDisc + discountAmount > 0 && <SRow label={t("discount")} value={`- ${fmt(globalDisc + discountAmount)}`} color="text-emerald-600" />}
+          {shippingCost > 0 && <SRow label={t("shipping")} value={`+ ${fmt(shippingCost)}`} />}
         </div>
         <div className="border-t border-dashed border-zinc-200 mt-3 pt-3 flex justify-between items-baseline">
-          <span className="text-xs text-zinc-500">الإجمالي النهائي</span>
+          <span className="text-xs text-zinc-500">{t("final_total")}</span>
           <span className="text-xl font-bold text-zinc-900">{fmt(grandTotal)}</span>
         </div>
       </div>
@@ -162,7 +164,7 @@ const QuoteSummaryContent: React.FC<{
         <>
           <div className="border-t border-zinc-100" />
           <div>
-            <p className="text-[10px] text-zinc-400 mb-1.5">ملاحظات</p>
+            <p className="text-[10px] text-zinc-400 mb-1.5">{t("notes")}</p>
             <p className="text-sm text-zinc-700 leading-relaxed">{notes}</p>
           </div>
         </>
@@ -179,7 +181,8 @@ const FloatingSummary: React.FC<{
   units?: { id: number; name: string }[];
   grandTotal: number;
   itemCount: number;
-}> = ({ control, customers, products, units, grandTotal, itemCount }) => {
+  t: (key: string) => string;
+}> = ({ control, customers, products, units, grandTotal, itemCount, t }) => {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -223,7 +226,7 @@ const FloatingSummary: React.FC<{
           )}
         </div>
         <div className="text-right leading-tight">
-          <p className="text-[10px] font-medium opacity-60">الإجمالي</p>
+          <p className="text-[10px] font-medium opacity-60">{t("total")}</p>
           <p className="text-sm font-bold">{fmt(grandTotal)}</p>
         </div>
       </button>
@@ -238,14 +241,14 @@ const FloatingSummary: React.FC<{
         <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 bg-zinc-50/80">
           <div className="flex items-center gap-2">
             <ReceiptText size={15} strokeWidth={1.8} className="text-zinc-500" />
-            <span className="text-sm font-semibold text-zinc-800">ملخص عرض السعر</span>
+            <span className="text-sm font-semibold text-zinc-800">{t("quote_summary")}</span>
           </div>
           <button type="button" onClick={() => setOpen(false)} className="p-1 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 transition-colors">
             <X size={15} />
           </button>
         </div>
         <div className="p-5 max-h-[60vh] overflow-y-auto">
-          <QuoteSummaryContent control={control} customers={customers} products={products} units={units} />
+          <QuoteSummaryContent control={control} customers={customers} products={products} units={units} t={t} />
         </div>
       </div>
     </>
@@ -259,7 +262,7 @@ const CreateQuote: React.FC = () => {
   const toggleDiscount = (i: number) => setDiscountOpen((prev) => ({ ...prev, [i]: !prev[i] }));
 
   const form = useForm<SalesInvoiceType>({
-    resolver: zodResolver(QuoteSchema),
+    resolver: zodResolver(QuoteSchema(t)),
     defaultValues: {
       quotationDate: new Date().toISOString().split("T")[0],
       customerId: 0,
@@ -268,7 +271,14 @@ const CreateQuote: React.FC = () => {
     },
   });
 
-  const { data: customers } = useGetAllCustomers();
+  const { control } = form;
+
+  const { data: customersResponse } = useGetAllCustomers();
+  const customers = Array.isArray(customersResponse?.items)
+    ? customersResponse.items
+    : Array.isArray(customersResponse)
+      ? customersResponse
+      : [];
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
@@ -276,10 +286,10 @@ const CreateQuote: React.FC = () => {
 
   const { fields: itemFields, append: appendItem, remove: removeItem } = useFieldArray({ control: form.control, name: "items" });
   const items = useWatch({ control: form.control, name: "items" });
-  const shippingCost = Number(useWatch({ control: form.control, name: "shippingCost" })) || 0;
-  const discAmt = Number(useWatch({ control: form.control, name: "discountAmount" })) || 0;
-  const discType = useWatch({ control: form.control, name: "quotationDiscountType" }) || "fixed";
-  const discValue = Number(useWatch({ control: form.control, name: "quotationDiscountValue" })) || 0;
+  const shippingCost = Number(useWatch({ control, name: "shippingCost" })) || 0;
+  const discAmt = Number(useWatch({ control, name: "discountAmount" })) || 0;
+  const discType = useWatch({ control, name: "quotationDiscountType" }) || "fixed";
+  const discValue = Number(useWatch({ control, name: "quotationDiscountValue" })) || 0;
 
   const calcSummary = () => {
     let subtotal = 0,
@@ -335,11 +345,11 @@ const CreateQuote: React.FC = () => {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>إضافة عرض سعر</CardTitle>
+          <CardTitle>{t("add_quote")}</CardTitle>
           <CardAction>
             <Button variant="outline" asChild>
               <Link to="/quotes">
-                الرجوع لقائمة عروض الأسعار
+                {t("back_to_quotes_list")}
                 <ArrowLeft size={16} />
               </Link>
             </Button>
@@ -350,14 +360,14 @@ const CreateQuote: React.FC = () => {
           <form onSubmit={form.handleSubmit(handleSubmit, console.log)} className="space-y-6">
             {/* البيانات الأساسية */}
             <div className="bg-white p-6 rounded-sm border border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800 mb-6">البيانات الأساسية</h2>
+              <h2 className="text-lg font-bold text-gray-800 mb-6">{t("basic_data")}</h2>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Controller
                   name="quotationDate"
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>التاريخ *</FieldLabel>
+                      <FieldLabel>{t("date")} *</FieldLabel>
                       <Input type="date" {...field} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -369,7 +379,7 @@ const CreateQuote: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>صالح لـ *</FieldLabel>
+                      <FieldLabel>{t("valid_until")} *</FieldLabel>
                       <Input type="date" {...field} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -381,8 +391,8 @@ const CreateQuote: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>العميل *</FieldLabel>
-                      <ComboboxField field={field} items={customers} valueKey="id" labelKey="customerName" placeholder="اختر العميل" />
+                      <FieldLabel>{t("customer")} *</FieldLabel>
+                      <ComboboxField field={field} items={customers} valueKey="id" labelKey="customerName" placeholder={t("choose_customer")} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
@@ -393,7 +403,7 @@ const CreateQuote: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>قيمة الخصم *</FieldLabel>
+                      <FieldLabel>{t("discount_amount_value")} *</FieldLabel>
                       <Input type="number" value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -406,8 +416,8 @@ const CreateQuote: React.FC = () => {
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>الملاحظات</FieldLabel>
-                        <Textarea {...field} placeholder="ادخل الملاحظات" />
+                        <FieldLabel>{t("notes")}</FieldLabel>
+                        <Textarea {...field} placeholder={t("enter_notes")} />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
@@ -419,17 +429,17 @@ const CreateQuote: React.FC = () => {
             {/* تفاصيل الفاتورة */}
             <div className="bg-white p-6 rounded-sm border border-gray-100">
               <div className="border-b border-zinc-200 pb-8 min-w-0">
-                <h2 className="text-lg font-bold text-zinc-900 mb-6">تفاصيل الفاتورة</h2>
+                <h2 className="text-lg font-bold text-zinc-900 mb-6">{t("invoice_details")}</h2>
                 <section className="mb-4">
-                  <h2 className="text-sm font-semibold text-zinc-500 mb-4">قائمة الأصناف</h2>
+                  <h2 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h2>
                   <div className="w-full overflow-x-auto pb-4">
                     <div className="hidden md:grid md:grid-cols-[2fr_0.8fr_1fr_1fr_1fr_1.2fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
-                      <div>اسم الصنف/الكود</div>
-                      <div>الكمية</div>
-                      <div>الوحدة</div>
-                      <div>السعر قبل الضريبة</div>
-                      <div className="text-center">ضريبة القيمة المضافة</div>
-                      <div className="text-center">الإجمالي شامل الضريبة</div>
+                      <div>{t("product_name_code")}</div>
+                      <div>{t("quantity")}</div>
+                      <div>{t("unit")}</div>
+                      <div>{t("price_before_tax")}</div>
+                      <div className="text-center">{t("vat")}</div>
+                      <div className="text-center">{t("total_including_tax")}</div>
                       <div></div>
                     </div>
 
@@ -457,13 +467,13 @@ const CreateQuote: React.FC = () => {
                                 name={`items.${index}.productId`}
                                 render={({ field, fieldState }) => (
                                   <Field data-invalid={fieldState.invalid} className="relative">
-                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">اسم الصنف/الكود</FieldLabel>
+                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_name_code")}</FieldLabel>
                                     <ComboboxField
                                       field={field}
                                       items={products?.items}
                                       valueKey="id"
                                       labelKey="productNameAr"
-                                      placeholder="اختر الصنف"
+                                      placeholder={t("choose_product")}
                                       onValueChange={(val) => {
                                         const p = products?.items?.find((p) => p.id === Number(val));
                                         if (p) form.setValue(`items.${index}.unitPrice`, p.sellingPrice);
@@ -483,7 +493,7 @@ const CreateQuote: React.FC = () => {
                                 name={`items.${index}.quantity`}
                                 render={({ field, fieldState }) => (
                                   <Field data-invalid={fieldState.invalid}>
-                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">الكمية</FieldLabel>
+                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("quantity")}</FieldLabel>
                                     <Input type="number" min={1} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
                                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                   </Field>
@@ -495,10 +505,10 @@ const CreateQuote: React.FC = () => {
                                 name={`items.${index}.unitId`}
                                 render={({ field, fieldState }) => (
                                   <Field className="relative">
-                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">الوحدة</FieldLabel>
+                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("unit")}</FieldLabel>
                                     <Select value={field.value === 0 ? "" : String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
                                       <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="الوحدة" />
+                                        <SelectValue placeholder={t("unit")} />
                                       </SelectTrigger>
                                       <SelectContent>
                                         {units?.items?.map((c) => (
@@ -522,7 +532,7 @@ const CreateQuote: React.FC = () => {
                                 name={`items.${index}.unitPrice`}
                                 render={({ field, fieldState }) => (
                                   <Field className="relative" data-invalid={fieldState.invalid}>
-                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">السعر قبل الضريبة</FieldLabel>
+                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("price_before_tax")}</FieldLabel>
                                     <Input type="number" min={0} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
                                     <div className="absolute top-full mt-1 right-0 z-10 w-full">
                                       <FieldError errors={[fieldState.error]} />
@@ -532,11 +542,11 @@ const CreateQuote: React.FC = () => {
                               />
 
                               <div className="flex items-center md:justify-center font-medium text-amber-600 mt-2 md:mt-0 px-2 h-9">
-                                <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">ضريبة القيمة المضافة:</FieldLabel>
+                                <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("vat")}:</FieldLabel>
                                 {Math.max(0, taxAmount).toLocaleString()}
                               </div>
                               <div className="flex items-center md:justify-center font-medium text-green-700 mt-2 md:mt-0 px-2 h-9">
-                                <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">الإجمالي شامل الضريبة:</FieldLabel>
+                                <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("total_including_tax")}:</FieldLabel>
                                 {Math.max(0, afterTax).toLocaleString()}
                               </div>
 
@@ -558,14 +568,14 @@ const CreateQuote: React.FC = () => {
                                   name={`items.${index}.discountType`}
                                   render={({ field }) => (
                                     <Field>
-                                      <FieldLabel className="text-xs text-zinc-500">نوع الخصم</FieldLabel>
+                                      <FieldLabel className="text-xs text-zinc-500">{t("discount_type")}</FieldLabel>
                                       <Select value={field.value || "fixed"} onValueChange={field.onChange}>
                                         <SelectTrigger className="w-full bg-white">
-                                          <SelectValue placeholder="النوع" />
+                                          <SelectValue placeholder={t("type")} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                          <SelectItem value="fixed">قيمة </SelectItem>
-                                          <SelectItem value="percentage">نسبة %</SelectItem>
+                                          <SelectItem value="fixed">{t("value")}</SelectItem>
+                                          <SelectItem value="percentage">{t("percentage")} %</SelectItem>
                                         </SelectContent>
                                       </Select>
                                     </Field>
@@ -576,7 +586,7 @@ const CreateQuote: React.FC = () => {
                                   name={`items.${index}.discountValue`}
                                   render={({ field }) => (
                                     <Field>
-                                      <FieldLabel className="text-xs text-zinc-500">قيمة الخصم</FieldLabel>
+                                      <FieldLabel className="text-xs text-zinc-500">{t("discount_value")}</FieldLabel>
                                       <Input type="number" min={0} value={field.value || 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center bg-white" />
                                     </Field>
                                   )}
@@ -590,7 +600,7 @@ const CreateQuote: React.FC = () => {
                   </div>
 
                   <button type="button" onClick={handleAddItem} className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">
-                    <Plus size={16} strokeWidth={2} /> إضافة صنف جديد
+                    <Plus size={16} strokeWidth={2} /> {t("add_new_item")}
                   </button>
                 </section>
               </div>
@@ -599,14 +609,14 @@ const CreateQuote: React.FC = () => {
             {/* Footer */}
             <div className="flex flex-col-reverse lg:flex-row justify-between gap-3   py-4 border-t border-gray-100 bg-gray-50/50 mt-8">
               <Button size="lg" variant="destructive" type="button" className="w-full lg:w-auto px-8 h-12">
-                إلغاء
+                {t("cancel")}
               </Button>
               <div className="flex flex-col lg:flex-row items-center gap-3 w-full lg:w-auto">
                 <Button variant="outline" size="lg" type="button" className="w-full lg:w-auto px-8 h-12 text-base">
-                  حفظ وإضافة آخر
+                  {t("save_and_add_another")}
                 </Button>
                 <Button size="lg" type="submit" disabled={isPending} className="w-full lg:w-auto px-8 h-12 text-base">
-                  {isPending ? "جاري الحفظ..." : "حفظ وإصدار عرض السعر"}
+                  {isPending ? t("saving") : t("save_and_issue_quote")}
                 </Button>
               </div>
             </div>
@@ -614,7 +624,7 @@ const CreateQuote: React.FC = () => {
         </CardContent>
       </Card>
 
-      <FloatingSummary control={form.control} customers={customers} products={products?.items} units={units?.items} grandTotal={grandTotal} itemCount={count} />
+      <FloatingSummary control={form.control} customers={customers} products={products?.items} units={units?.items} grandTotal={grandTotal} itemCount={count} t={t} />
     </>
   );
 };

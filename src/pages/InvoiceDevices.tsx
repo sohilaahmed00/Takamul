@@ -13,18 +13,19 @@ interface InvoiceDevice {
   address: string;
 }
 
-const initialDevices: InvoiceDevice[] = [
-  {
-    id: "1",
-    activityName: "تجريبي",
-    taxNumber: "300000000000003",
-    additionalId: "0000000000",
-    address: "0-0-0",
-  },
-];
-
 export default function InvoiceDevices() {
   const { t, direction, language } = useLanguage();
+
+  const initialDevices: InvoiceDevice[] = [
+    {
+      id: "1",
+      activityName: t("demo_branch"),
+      taxNumber: "300000000000003",
+      additionalId: "0000000000",
+      address: "0-0-0",
+    },
+  ];
+
   const [searchTerm, setSearchTerm] = useState("");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [devices, setDevices] = useState<InvoiceDevice[]>(initialDevices);

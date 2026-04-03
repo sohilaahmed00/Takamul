@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Plus, 
-  Search, 
-  Edit2, 
-  Trash2, 
+import {
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
   Eye
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
@@ -25,13 +25,13 @@ export default function PriceGroups() {
 
   // Mock data
   const [priceGroups, setPriceGroups] = useState<PriceGroup[]>([
-    { id: '1', name: 'عام' },
+    { id: '1', name: t("general") },
     { id: '2', name: 'جملة' },
     { id: '3', name: 'تجزئة' },
   ]);
 
   const filteredGroups = useMemo(() => {
-    return priceGroups.filter(group => 
+    return priceGroups.filter(group =>
       group.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [priceGroups, searchTerm]);
@@ -118,7 +118,7 @@ export default function PriceGroups() {
 
             {/* Add Button */}
             <div className="flex items-center gap-2 order-1 md:order-2">
-              <button 
+              <button
                 onClick={() => {
                   setEditingGroup(null);
                   setIsModalOpen(true);
@@ -161,21 +161,21 @@ export default function PriceGroups() {
                       <td className="p-3 border-r border-gray-100 dark:border-gray-700 font-bold text-sm">{group.name}</td>
                       <td className="p-3 border-r border-gray-100 dark:border-gray-700 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          <button 
+                          <button
                             onClick={() => openEditModal(group)}
                             className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors border border-emerald-100 dark:border-emerald-900/30"
                             title={t('edit')}
                           >
                             <Edit2 size={16} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => openDeleteModal(group)}
                             className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors border border-emerald-100 dark:border-emerald-900/30"
                             title={t('delete')}
                           >
                             <Trash2 size={16} />
                           </button>
-                          <button 
+                          <button
                             className="p-1.5 text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors border border-gray-200 dark:border-gray-600"
                             title={t('view')}
                           >
@@ -207,14 +207,14 @@ export default function PriceGroups() {
                   fields={[]}
                   actions={
                     <div className="flex flex-wrap justify-end gap-2">
-                      <button 
+                      <button
                         onClick={() => openEditModal(group)}
                         className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-100 transition-colors flex items-center gap-1 text-xs font-bold"
                       >
                         <Edit2 size={16} />
                         {t('edit')}
                       </button>
-                      <button 
+                      <button
                         onClick={() => openDeleteModal(group)}
                         className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-100 transition-colors flex items-center gap-1 text-xs font-bold"
                       >

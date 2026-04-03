@@ -11,7 +11,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogDescription,
 } from "@/components/ui/dialog";
 
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
@@ -35,11 +34,16 @@ export default function AddSupplierPaymentModal({
   mode = "add",
   editData = null,
 }: Props) {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
 
   const { data: treasurys } = useGetAllTreasurys();
-  const { data: suppliers } = useGetAllSuppliers();
+  const { data: suppliersResponse } = useGetAllSuppliers();
+  const suppliers = Array.isArray(suppliersResponse?.items)
+    ? suppliersResponse.items
+    : Array.isArray(suppliersResponse)
+      ? suppliersResponse
+      : [];
 
   const { mutateAsync: createTransaction, isPending: isCreating } =
     useCreateSupplierTransaction();
@@ -99,23 +103,23 @@ export default function AddSupplierPaymentModal({
     e.preventDefault();
 
     if (!transactionDate) {
-      notifyError("التاريخ مطلوب");
+      notifyError(t("date_required"));
       return;
     }
 
     if (!treasuryId) {
-      notifyError("اختر الخزينة");
+      notifyError(t("select_treasury"));
       return;
     }
 
     if (!supplierId) {
-      notifyError("اختر المورد");
+      notifyError(t("select_supplier"));
       return;
     }
 
     const parsedAmount = parseFloat(amount);
     if (isNaN(parsedAmount) || parsedAmount <= 0) {
-      notifyError("أدخل مبلغ صحيح أكبر من صفر");
+      notifyError(t("valid_amount_required"));
       return;
     }
 
@@ -131,7 +135,7 @@ export default function AddSupplierPaymentModal({
           description: description.trim() || "",
         });
 
-        notifySuccess("تم تعديل سند الصرف بنجاح");
+        notifySuccess(t("edit_supplier_payment_success"));
       } else {
         await createTransaction({
           supplierId,
@@ -142,15 +146,15 @@ export default function AddSupplierPaymentModal({
           description: description.trim() || "",
         });
 
-        notifySuccess("تم إضافة سند الصرف بنجاح");
+        notifySuccess(t("add_supplier_payment_success"));
       }
 
       handleClose();
     } catch (error: any) {
       notifyError(
         error?.response?.data?.message ||
-          error?.message ||
-          "حدث خطأ أثناء الحفظ"
+        error?.message ||
+        t("save_error")
       );
     }
   };
@@ -174,17 +178,8 @@ export default function AddSupplierPaymentModal({
         <DialogHeader className="px-5 py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold flex-wrap">
             {isEditMode ? <Pencil size={18} /> : <Truck size={18} />}
-            {isEditMode ? "تعديل سند صرف" : "إضافة سند صرف"}
-            {/* <span className="text-xs bg-[#2ecc71]/10 text-[#2ecc71] px-2 py-1 rounded-lg">
-              سند صرف
-            </span> */}
+            {isEditMode ? t("edit_supplier_payment") : t("add_supplier_payment")}
           </DialogTitle>
-
-          {/* <DialogDescription className="text-sm text-gray-500">
-            {isEditMode
-              ? "تعديل بيانات سند الصرف "
-              : "تسجيل سند صرف للموردين"}
-          </DialogDescription> */}
         </DialogHeader>
 
         <form
@@ -193,7 +188,7 @@ export default function AddSupplierPaymentModal({
           className="px-5 space-y-3"
         >
           <Field>
-            <FieldLabel>التاريخ</FieldLabel>
+            <FieldLabel>{t("date")}</FieldLabel>
             <Input
               type="date"
               value={transactionDate}
@@ -205,7 +200,7 @@ export default function AddSupplierPaymentModal({
           <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
             <div className="flex items-center gap-2">
               <Wallet size={16} className="text-[#2ecc71]" />
-              <h3 className="text-sm font-semibold text-gray-800">الخزينة</h3>
+              <h3 className="text-sm font-semibold text-gray-800">{t("treasury")}</h3>
             </div>
 
             <Field>
@@ -218,10 +213,10 @@ export default function AddSupplierPaymentModal({
                 }
                 className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]"
               >
-                <option value="">اختر الخزينة</option>
-                {(treasurys ?? []).map((t: any) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
+                <option value="">{t("select_treasury")}</option>
+                {(treasurys ?? []).map((tRow: any) => (
+                  <option key={tRow.id} value={tRow.id}>
+                    {tRow.name}
                   </option>
                 ))}
               </select>
@@ -231,12 +226,12 @@ export default function AddSupplierPaymentModal({
           <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
             <div className="flex items-center gap-2">
               <Truck size={16} className="text-[#2ecc71]" />
-              <h3 className="text-sm font-semibold text-gray-800">اسم الحساب</h3>
+              <h3 className="text-sm font-semibold text-gray-800">{t("account_name")}</h3>
             </div>
 
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
-                <FieldLabel>اسم المورد</FieldLabel>
+                <FieldLabel>{t("supplier_name")}</FieldLabel>
                 <select
                   value={supplierId ?? ""}
                   onChange={(e) =>
@@ -247,7 +242,7 @@ export default function AddSupplierPaymentModal({
                   disabled={isEditMode}
                   className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71] disabled:bg-gray-50 disabled:text-gray-500"
                 >
-                  <option value="">اختر المورد</option>
+                  <option value="">{t("select_supplier")}</option>
                   {(suppliers ?? []).map((s: any) => (
                     <option key={s.id} value={s.id}>
                       {s.supplierName}
@@ -257,7 +252,7 @@ export default function AddSupplierPaymentModal({
               </Field>
 
               <Field>
-                <FieldLabel>الرصيد الحالي</FieldLabel>
+                <FieldLabel>{t("current_balance")}</FieldLabel>
                 <Input
                   readOnly
                   value={formatNumber(currentBalance)}
@@ -268,7 +263,7 @@ export default function AddSupplierPaymentModal({
           </div>
 
           <Field>
-            <FieldLabel>المبلغ</FieldLabel>
+            <FieldLabel>{t("amount")}</FieldLabel>
             <Input
               type="number"
               value={amount}
@@ -279,7 +274,7 @@ export default function AddSupplierPaymentModal({
           </Field>
 
           <Field>
-            <FieldLabel>الرصيد بعد</FieldLabel>
+            <FieldLabel>{t("balance_after")}</FieldLabel>
             <Input
               readOnly
               value={formatNumber(balanceAfter)}
@@ -288,11 +283,11 @@ export default function AddSupplierPaymentModal({
           </Field>
 
           <Field>
-            <FieldLabel>البيان</FieldLabel>
+            <FieldLabel>{t("statement")}</FieldLabel>
             <Input
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="اكتب ملاحظات أو بيان سند الصرف"
+              placeholder={t("supplier_payment_statement_placeholder")}
               className="h-9"
             />
           </Field>
@@ -306,7 +301,7 @@ export default function AddSupplierPaymentModal({
               onClick={handleClose}
               className="h-10 px-6"
             >
-              إلغاء
+              {t("cancel")}
             </Button>
 
             <Button
@@ -318,11 +313,11 @@ export default function AddSupplierPaymentModal({
               {isPending && <Loader2 size={16} className="animate-spin" />}
               {isPending
                 ? isEditMode
-                  ? "جارٍ التعديل..."
-                  : "جارٍ الحفظ..."
+                  ? t("updating")
+                  : t("saving")
                 : isEditMode
-                ? "حفظ التعديلات"
-                : "حفظ سند الصرف"}
+                  ? t("save_changes")
+                  : t("save_supplier_payment")}
             </Button>
           </div>
         </DialogFooter>

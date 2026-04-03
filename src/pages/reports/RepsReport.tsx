@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  Search, 
-  FileText, 
-  ChevronDown, 
+import {
+  Search,
+  FileText,
+  ChevronDown,
   ChevronUp,
   ArrowRight,
   ArrowLeft,
@@ -12,14 +12,14 @@ import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 
 const RepsReport = () => {
-  const { dir } = useLanguage();
+  const { dir, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Mock data based on the image
   const reps = [
-    { id: '0001', name: 'عام', phone: '0', region: 'عام' },
-    { id: '345345', name: '35xcvsdf', phone: '0103055555', region: 'عام' }
+    { id: '0001', name: t("general"), phone: '0', region: t("general") },
+    { id: '345345', name: '35xcvsdf', phone: '0103055555', region: t("general") }
   ];
 
   return (
@@ -52,14 +52,14 @@ const RepsReport = () => {
             </button>
           </div>
         </div>
-        
+
         <p className="text-[var(--primary)] font-bold mb-6 text-center">عرض تقرير المندوبين</p>
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div className="relative w-full md:w-64">
             <input
               type="text"
-              placeholder="بحث"
+              placeholder={t("search_label")}
               className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-right"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -69,7 +69,7 @@ const RepsReport = () => {
 
           <div className="flex items-center gap-2">
             <span className="text-[var(--primary)]">اظهار</span>
-            <select 
+            <select
               className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               value={itemsPerPage}
               onChange={(e) => setItemsPerPage(Number(e.target.value))}

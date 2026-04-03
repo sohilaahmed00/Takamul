@@ -6,7 +6,7 @@ import { CheckSquare, Square, ChevronRight, ChevronLeft, ChevronDown } from "luc
 
 const GroupPermissions = () => {
   const { id } = useParams<{ id: string }>();
-  const { direction, language } = useLanguage();
+  const { direction, language, t } = useLanguage();
   const navigate = useNavigate();
   const { groups, updateGroup } = useGroups();
   const group = groups.find((g) => g.id === Number(id));
@@ -137,7 +137,7 @@ const GroupPermissions = () => {
     misc: { ar: "متنوع", en: "Misc" },
     view: { ar: "عرض", en: "View" },
     add: { ar: "إضافة", en: "Add" },
-    edit: { ar: "تعديل", en: "Edit" },
+    edit: { ar: t("edit"), en: "Edit" },
     delete: { ar: "حذف", en: "Delete" },
     extra: { ar: "متنوع / إضافي", en: "Misc / Extra" },
     cost: { ar: "تكلفة الصنف", en: "Cost Price" },

@@ -150,12 +150,10 @@ export default function ExternalTransfersList() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <WalletCards size={20} className="text-[var(--primary)]" />
-            كشف حساب خزينة
+            {t("treasury_statement")}
           </CardTitle>
 
-          <CardDescription>
-            {t("customize_report_below") || "يمكنك تخصيص التقرير من خلال الفلاتر بالأسفل"}
-          </CardDescription>
+          <CardDescription>{t("customize_report_below")}</CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-5">
@@ -166,10 +164,10 @@ export default function ExternalTransfersList() {
               </div>
               <div>
                 <h3 className="text-sm md:text-base font-bold text-[var(--text-main)]">
-                  فلاتر التقرير
+                  {t("report_filters")}
                 </h3>
                 <p className="text-xs md:text-sm text-[var(--text-muted)]">
-                  اختر الخزينة والفترة الزمنية لعرض كشف الحساب
+                  {t("treasury_statement_filters_desc")}
                 </p>
               </div>
             </div>
@@ -177,7 +175,7 @@ export default function ExternalTransfersList() {
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[var(--text-main)]">
-                  الخزينة
+                  {t("treasury")}
                 </label>
                 <select
                   value={filters.treasuryId ?? ""}
@@ -191,7 +189,7 @@ export default function ExternalTransfersList() {
                   }
                   className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
                 >
-                  <option value="">اختار الخزينة</option>
+                  <option value="">{t("select_treasury")}</option>
                   {(treasurys ?? []).map((treasury) => (
                     <option key={treasury.id} value={treasury.id}>
                       {treasury.name}
@@ -202,7 +200,7 @@ export default function ExternalTransfersList() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[var(--text-main)]">
-                  من تاريخ
+                  {t("from_date")}
                 </label>
                 <input
                   type="date"
@@ -216,7 +214,7 @@ export default function ExternalTransfersList() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[var(--text-main)]">
-                  إلى تاريخ
+                  {t("to_date")}
                 </label>
                 <input
                   type="date"
@@ -231,12 +229,12 @@ export default function ExternalTransfersList() {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 py-3">
                 <Button onClick={handleSearch} variant="default" size="xl" className="w-full sm:w-auto">
                   <Search size={18} />
-                  عرض
+                  {t("show")}
                 </Button>
 
                 <Button onClick={handleClear} variant="outline" size="xl" className="w-full sm:w-auto">
                   <RotateCcw size={16} />
-                  مسح
+                  {t("clear")}
                 </Button>
               </div>
             </div>
@@ -244,20 +242,22 @@ export default function ExternalTransfersList() {
 
           {submittedFilters.treasuryId && (
             <div className="rounded-2xl border border-gray-100 bg-[#f8fafc] px-4 py-3 flex flex-wrap items-center gap-2">
-              <span className="text-xs text-[var(--text-muted)]">الخزينة المختارة:</span>
+              <span className="text-xs text-[var(--text-muted)]">
+                {t("selected_treasury")}:
+              </span>
               <span className="rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">
-                {selectedTreasuryName || "الخزينة"}
+                {selectedTreasuryName || t("treasury")}
               </span>
 
               {submittedFilters.from && (
                 <span className="rounded-full px-3 py-1 text-xs font-medium bg-white border border-gray-200 text-[var(--text-main)]">
-                  من: {submittedFilters.from}
+                  {t("from")}: {submittedFilters.from}
                 </span>
               )}
 
               {submittedFilters.to && (
                 <span className="rounded-full px-3 py-1 text-xs font-medium bg-white border border-gray-200 text-[var(--text-main)]">
-                  إلى: {submittedFilters.to}
+                  {t("to")}: {submittedFilters.to}
                 </span>
               )}
             </div>
@@ -276,12 +276,12 @@ export default function ExternalTransfersList() {
               dataKey="rowId"
               className="custom-green-table custom-compact-table treasury-statement-table"
               loading={isFetching}
-              emptyMessage="لا توجد بيانات"
+              emptyMessage={t("no_data")}
               responsiveLayout="stack"
             >
               <Column
                 field="type"
-                header="نوع الحركة"
+                header={t("movement_type")}
                 sortable
                 style={{ minWidth: "12rem" }}
                 body={(rowData) => (
@@ -291,7 +291,7 @@ export default function ExternalTransfersList() {
 
               <Column
                 field="date"
-                header="التاريخ"
+                header={t("date")}
                 sortable
                 style={{ minWidth: "10rem" }}
                 body={(rowData) => (
@@ -303,7 +303,7 @@ export default function ExternalTransfersList() {
 
               <Column
                 field="number"
-                header="رقم المستند"
+                header={t("document_number")}
                 sortable
                 style={{ minWidth: "12rem" }}
                 body={(rowData) => (
@@ -313,7 +313,7 @@ export default function ExternalTransfersList() {
 
               <Column
                 field="partyName"
-                header="اسم الجهة"
+                header={t("party_name")}
                 sortable
                 style={{ minWidth: "12rem" }}
                 body={(rowData) => (
@@ -323,7 +323,7 @@ export default function ExternalTransfersList() {
 
               <Column
                 field="paymentMethod"
-                header="طريقة الدفع"
+                header={t("payment_method")}
                 sortable
                 style={{ minWidth: "11rem" }}
                 body={(rowData) => (
@@ -335,7 +335,7 @@ export default function ExternalTransfersList() {
 
               <Column
                 field="debit"
-                header="مدين"
+                header={t("debit")}
                 sortable
                 style={{ minWidth: "8rem" }}
                 body={(rowData) => (
@@ -347,7 +347,7 @@ export default function ExternalTransfersList() {
 
               <Column
                 field="credit"
-                header="دائن"
+                header={t("credit")}
                 sortable
                 style={{ minWidth: "8rem" }}
                 body={(rowData) => (
@@ -359,7 +359,7 @@ export default function ExternalTransfersList() {
 
               <Column
                 field="balance"
-                header="الرصيد"
+                header={t("balance")}
                 sortable
                 style={{ minWidth: "8rem" }}
                 body={(rowData) => (
@@ -391,7 +391,7 @@ export default function ExternalTransfersList() {
               </div>
             ) : rows.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
-                لا توجد بيانات
+                {t("no_data")}
               </div>
             ) : (
               rows
@@ -412,7 +412,7 @@ export default function ExternalTransfersList() {
 
                         <div className="min-w-0">
                           <p className="text-xs text-[var(--text-muted)]">
-                            نوع الحركة
+                            {t("movement_type")}
                           </p>
                           <p className="text-sm font-bold text-[var(--text-main)] truncate">
                             {row.type}
@@ -421,7 +421,7 @@ export default function ExternalTransfersList() {
                       </div>
 
                       <div className="shrink-0 rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">
-                        {selectedTreasuryName || "الخزينة"}
+                        {selectedTreasuryName || t("treasury")}
                       </div>
                     </div>
 
@@ -429,7 +429,7 @@ export default function ExternalTransfersList() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
-                            رقم المستند
+                            {t("document_number")}
                           </p>
                           <p className="text-sm font-semibold text-[var(--text-main)] break-all">
                             {row.number}
@@ -439,7 +439,7 @@ export default function ExternalTransfersList() {
                         <div className="shrink-0 text-left">
                           <div className="flex items-center gap-1 text-[var(--text-muted)] text-xs mb-1">
                             <CalendarDays size={14} />
-                            <span>التاريخ</span>
+                            <span>{t("date")}</span>
                           </div>
                           <p className="text-sm font-medium text-[var(--text-main)]">
                             {formatDate(row.date)}
@@ -451,7 +451,7 @@ export default function ExternalTransfersList() {
                         <div className="flex items-center gap-2 mb-1">
                           <UserRound size={14} className="text-[var(--text-muted)]" />
                           <p className="text-xs text-[var(--text-muted)]">
-                            اسم الجهة
+                            {t("party_name")}
                           </p>
                         </div>
                         <p className="text-sm font-semibold text-[var(--text-main)] break-words">
@@ -463,7 +463,7 @@ export default function ExternalTransfersList() {
                         <div className="flex items-center gap-2 mb-1">
                           <CreditCard size={14} className="text-[var(--text-muted)]" />
                           <p className="text-xs text-[var(--text-muted)]">
-                            طريقة الدفع
+                            {t("payment_method")}
                           </p>
                         </div>
                         <p className="text-sm font-semibold text-[var(--text-main)] break-words">
@@ -474,7 +474,7 @@ export default function ExternalTransfersList() {
                       <div className="grid grid-cols-3 gap-3">
                         <div className="rounded-xl bg-[#f8fafc] p-3 text-center">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
-                            مدين
+                            {t("debit")}
                           </p>
                           <p className="text-sm font-bold text-[var(--text-main)]">
                             {formatNumber(row.debit)}
@@ -483,7 +483,7 @@ export default function ExternalTransfersList() {
 
                         <div className="rounded-xl bg-[#f8fafc] p-3 text-center">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
-                            دائن
+                            {t("credit")}
                           </p>
                           <p className="text-sm font-bold text-[var(--text-main)]">
                             {formatNumber(row.credit)}
@@ -492,7 +492,7 @@ export default function ExternalTransfersList() {
 
                         <div className="rounded-xl bg-[rgba(49,201,110,0.08)] p-3 text-center border border-[rgba(49,201,110,0.14)]">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
-                            الرصيد
+                            {t("balance")}
                           </p>
                           <p className="text-sm font-bold text-[var(--primary)]">
                             {formatNumber(row.balance)}
@@ -512,7 +512,7 @@ export default function ExternalTransfersList() {
                   disabled={currentPage === 1}
                   className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  السابق
+                  {t("previous")}
                 </button>
 
                 <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
@@ -531,7 +531,7 @@ export default function ExternalTransfersList() {
                   disabled={currentPage >= Math.ceil(rows.length / entriesPerPage)}
                   className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  التالي
+                  {t("next")}
                 </button>
               </div>
             )}

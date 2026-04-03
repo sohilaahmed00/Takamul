@@ -95,7 +95,7 @@ export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps
           <DialogHeader className="py-3">
             <DialogTitle className="flex items-center gap-2 text-[#2ecc71]">
               <UserPlus size={20} />
-              {unit ? "تعديل وحدة" : " إضافة وحدة"}
+              {unit ? t("edit_unit") : t("add_unit")}
             </DialogTitle>
           </DialogHeader>
 
@@ -107,10 +107,10 @@ export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                      اسم الوحدة <span className="text-red-500">*</span>
+                      {t("unit_name")} <span className="text-red-500">*</span>
                     </FieldLabel>
 
-                    <Input {...field} placeholder="أدخل اسم الوحدة..." />
+                    <Input {...field} placeholder={t("enter_unit_name")} />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
@@ -120,8 +120,8 @@ export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>الوصف</FieldLabel>
-                    <Textarea {...field} placeholder="ادخل الوصف" rows={4} />
+                    <FieldLabel>{t("description")}</FieldLabel>
+                    <Textarea {...field} placeholder={t("enter_description")} rows={4} />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
@@ -131,7 +131,7 @@ export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps
 
           <DialogFooter>
             <Button form="addCustomerForm" className="h-12 px-6 text-base" type="submit">
-              {unit ? "تعديل وحدة" : " إضافة وحدة"}
+              {unit ? t("edit_unit") : t("add_unit")}
             </Button>
           </DialogFooter>
         </DialogContent>

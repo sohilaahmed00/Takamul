@@ -34,7 +34,7 @@ export default function A4Sales() {
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
-          <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder") || "البحث..."} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
+          <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder")} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
         </div>
       </div>
     );
@@ -52,11 +52,11 @@ export default function A4Sales() {
 
       <Card>
         <CardHeader className="">
-          <CardTitle>مبيعات A4</CardTitle>
-          <CardDescription>يمكنك إدارة ، إضافة ، تعديل فواتير البيع الخاصة بك</CardDescription>
+          <CardTitle>{t("a4_sales_heading")}</CardTitle>
+          <CardDescription>{t("manage_sales_desc")}</CardDescription>
           <CardAction>
             <Button variant={"default"} asChild>
-              <Link to={"/sales/create"}>إضافة فاتورة مبيعات</Link>
+              <Link to={"/sales/create"}>{t("add_sales_invoice")}</Link>
             </Button>
           </CardAction>
         </CardHeader>
@@ -81,14 +81,14 @@ export default function A4Sales() {
             dataKey="id"
             stripedRows={false}
           >
-            <Column header={"رقم الفاتورة"} sortable field="orderNumber" />
-            <Column header="التاريخ" sortable field="orderDate" body={(row) => new Date(row.orderDate).toLocaleDateString("ar-EG")} />
-            <Column header={"اسم العميل"} sortable field="customerName" />
-            <Column header={"الكاشير"} sortable field="createdBy" />
-            <Column header={"حالة الفاتورة"} sortable field="orderStatus" />
-            <Column header={"المجموع الكلي"} sortable field="grandTotal" />
-            <Column header={"المدفوع"} sortable field="payments" body={(rowData) => rowData.payments?.reduce((sum: number, p: Payment) => sum + p.amount, 0) ?? 0} />
-            {/* <Column header={"المبلغ المتبقي"} sortable field="" /> */}
+            <Column header={t("invoice_number")} sortable field="orderNumber" />
+            <Column header={t("date")} sortable field="orderDate" body={(row) => new Date(row.orderDate).toLocaleDateString("ar-EG")} />
+            <Column header={t("customer_name")} sortable field="customerName" />
+            <Column header={t("cashier")} sortable field="createdBy" />
+            <Column header={t("invoice_status")} sortable field="orderStatus" />
+            <Column header={t("total_amount")} sortable field="grandTotal" />
+            <Column header={t("paid_amount")} sortable field="payments" body={(rowData) => rowData.payments?.reduce((sum: number, p: Payment) => sum + p.amount, 0) ?? 0} />
+            {/* <Column header={t("remaining_amount")} sortable field="" /> */}
             <Column
               header={t("actions")}
               body={(row) => (
@@ -96,7 +96,7 @@ export default function A4Sales() {
                   <Link to={`/sales/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
                     <Edit2 size={16} />
                   </Link>
-                  <button onClick={() => {}} className="btn-minimal-action btn-compact-action text-red-500">
+                  <button onClick={() => { }} className="btn-minimal-action btn-compact-action text-red-500">
                     <Trash2 size={16} />
                   </button>
                 </div>

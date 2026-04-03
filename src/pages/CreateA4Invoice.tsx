@@ -35,9 +35,8 @@ const CreateA4Invoice: React.FC = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // For Screen 1 (Touch Screen)
-  const [activeCategory, setActiveCategory] = useState("الكل");
-  const categories = ["الكل", "مشروبات", "الوجبات المقلية", "برجر دجاج", "بروست", "بطاطس", "سندوتشات", "مأكولات خفيفة", "مطعم"];
+  const [activeCategory, setActiveCategory] = useState(t("all"));
+  const categories = [t("all"), t("drinks"), t("fried_meals"), t("chicken_burger"), t("broast"), t("fries"), t("sandwiches"), t("snacks"), t("restaurant")];
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -79,12 +78,9 @@ const CreateA4Invoice: React.FC = () => {
   const totalVat = subtotal * 0.15;
   const grandTotal = subtotal + totalVat;
 
-  // --- Screen 1: Touch Screen Layout (Green) ---
   const TouchScreenLayout = () => (
     <div className="flex h-[calc(100vh-120px)] gap-4 overflow-hidden" dir="rtl">
-      {/* Left Side: Product Selection */}
       <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-        {/* Categories */}
         <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
           {categories.map((cat) => (
             <button key={cat} onClick={() => setActiveCategory(cat)} className={cn("px-6 py-2 rounded-lg font-bold whitespace-nowrap transition-all", activeCategory === cat ? "bg-emerald-800 text-white shadow-md" : "bg-white text-emerald-800 border border-emerald-100 hover:bg-emerald-50")}>
@@ -93,13 +89,12 @@ const CreateA4Invoice: React.FC = () => {
           ))}
         </div>
 
-        {/* Product Grid */}
         <div className="flex-1 overflow-y-auto pr-2 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 pb-4">
           {allProducts.map((product) => (
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} key={product.id} onClick={() => handleAddItem(product)} className="bg-white rounded-xl border border-emerald-100 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col">
               <div className="aspect-square bg-gray-50 relative overflow-hidden group">
                 <img src={`https://picsum.photos/seed/${product.id}/200/200`} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" referrerPolicy="no-referrer" />
-                <div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">{product.price} ر.س</div>
+                <div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">{product.price} {t("sar")}</div>
               </div>
               <div className="p-3 text-right">
                 <p className="text-xs font-bold text-emerald-900 truncate">{product.name}</p>
@@ -110,34 +105,30 @@ const CreateA4Invoice: React.FC = () => {
         </div>
       </div>
 
-      {/* Right Side: Invoice Details */}
       <div className="w-[400px] bg-white rounded-2xl border border-emerald-100 shadow-lg flex flex-col overflow-hidden">
         <div className="p-4 bg-emerald-800 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
             <LayoutGrid size={20} />
-            <span className="font-bold">فاتورة مبيعات</span>
+            <span className="font-bold">{t("sales_invoice")}</span>
           </div>
-          <div className="text-xs opacity-80">F4</div>
         </div>
 
-        {/* Barcode Search */}
         <div className="p-4 border-b border-emerald-50">
           <div className="relative">
-            <input type="text" placeholder="قراءة الباركود / ابحث عن طريق اسم أو الباركود" className="w-full bg-gray-50 border border-emerald-100 rounded-lg px-4 py-2.5 text-sm text-right outline-none focus:ring-2 focus:ring-emerald-100" />
+            <input type="text" placeholder={t("barcode_search_placeholder")} className="w-full bg-gray-50 border border-emerald-100 rounded-lg px-4 py-2.5 text-sm text-right outline-none focus:ring-2 focus:ring-emerald-100" />
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400" />
           </div>
         </div>
 
-        {/* Items Table */}
         <div className="flex-1 overflow-y-auto">
           <table className="w-full text-xs text-right">
             <thead className="bg-[var(--table-header)] text-white sticky top-0 z-10">
               <tr>
                 <th className="p-2 text-center">×</th>
-                <th className="p-2">إجمالي</th>
-                <th className="p-2 text-center">الكمية</th>
-                <th className="p-2">السعر</th>
-                <th className="p-2">صنف</th>
+                <th className="p-2">{t("total")}</th>
+                <th className="p-2 text-center">{t("quantity")}</th>
+                <th className="p-2">{t("price")}</th>
+                <th className="p-2">{t("item")}</th>
               </tr>
             </thead>
             <tbody>
@@ -160,48 +151,45 @@ const CreateA4Invoice: React.FC = () => {
           </table>
         </div>
 
-        {/* Totals */}
         <div className="p-4 bg-emerald-50/50 space-y-3">
           <div className="flex justify-between text-sm">
-            <span className="text-emerald-600">الاصناف</span>
+            <span className="text-emerald-600">{t("items")}</span>
             <span className="font-bold text-emerald-900">
               {items.length} ({items.reduce((s, i) => s + i.qty, 0)})
             </span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-emerald-600">بدون ضريبة</span>
+            <span className="text-emerald-600">{t("without_tax")}</span>
             <span className="font-bold text-emerald-900">{subtotal.toFixed(2)}</span>
           </div>
           <div className="bg-emerald-900 text-white p-4 rounded-xl flex flex-col items-center gap-1 shadow-lg">
-            <span className="text-xs opacity-80 uppercase tracking-wider">إجمالي الفاتورة</span>
+            <span className="text-xs opacity-80 uppercase tracking-wider">{t("invoice_total")}</span>
             <span className="text-3xl font-black">{grandTotal.toFixed(2)}</span>
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <button className="bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 shadow-md transition-all active:scale-95">دفع (F9)</button>
-            <button className="bg-orange-500 text-white py-3 rounded-xl font-bold hover:bg-orange-600 shadow-md transition-all active:scale-95">تعليق الفاتورة (F7)</button>
+            <button className="bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 shadow-md transition-all active:scale-95">{t("pay")} (F9)</button>
+            <button className="bg-orange-500 text-white py-3 rounded-xl font-bold hover:bg-orange-600 shadow-md transition-all active:scale-95">{t("suspend_invoice")} (F7)</button>
           </div>
         </div>
       </div>
     </div>
   );
 
-  // --- Screen 2: Traditional Layout (Blue) ---
   const TraditionalLayout = () => (
     <div className="space-y-6" dir="rtl">
-      {/* Header Info */}
       <div className="bg-white rounded-2xl border border-blue-100 shadow-sm overflow-hidden">
         <div className="bg-blue-600 p-4 flex items-center justify-between text-white">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg">
               <Building size={18} />
-              <span className="text-sm font-bold">الفرع: {selectedBranch?.name}</span>
+              <span className="text-sm font-bold">{t("branch")}: {selectedBranch?.name}</span>
             </div>
             <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-lg">
               <CreditCard size={18} />
-              <span className="text-sm font-bold">خزينة: MainTreasury</span>
+              <span className="text-sm font-bold">{t("treasury")}: MainTreasury</span>
             </div>
           </div>
-          <div className="bg-white text-blue-600 px-6 py-1.5 rounded-lg font-black text-lg shadow-inner">فاتورة مبيعات</div>
+          <div className="bg-white text-blue-600 px-6 py-1.5 rounded-lg font-black text-lg shadow-inner">{t("sales_invoice")}</div>
           <div className="flex items-center gap-4 text-sm font-bold">
             <div className="flex items-center gap-2">
               <Clock size={16} />
@@ -214,11 +202,11 @@ const CreateA4Invoice: React.FC = () => {
             <div className="flex items-center gap-4 mr-4">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" name="payType" defaultChecked className="w-4 h-4 accent-blue-600" />
-                <span>نقدي</span>
+                <span>{t("cash")}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" name="payType" className="w-4 h-4 accent-blue-600" />
-                <span>آجل</span>
+                <span>{t("credit")}</span>
               </label>
             </div>
           </div>
@@ -226,9 +214,9 @@ const CreateA4Invoice: React.FC = () => {
 
         <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6 bg-blue-50/30">
           <div className="space-y-2 relative">
-            <label className="text-sm font-bold text-blue-800 block">الاسم / التليفون / الكود</label>
+            <label className="text-sm font-bold text-blue-800 block">{t("name_phone_code")}</label>
             <div className="relative">
-              <input type="text" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder="ابحث عن عميل..." className="w-full border border-blue-200 rounded-xl px-4 py-2.5 text-right outline-none focus:ring-2 focus:ring-blue-100 shadow-sm" />
+              <input type="text" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder={t("search_customer")} className="w-full border border-blue-200 rounded-xl px-4 py-2.5 text-right outline-none focus:ring-2 focus:ring-blue-100 shadow-sm" />
               <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400" />
             </div>
             {customerSearch && !selectedCustomer && (
@@ -252,30 +240,29 @@ const CreateA4Invoice: React.FC = () => {
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-sm font-bold text-blue-800 block">الرصيد الحالي</label>
+            <label className="text-sm font-bold text-blue-800 block">{t("current_balance")}</label>
             <div className="flex">
               <input type="text" readOnly value="0" className="w-full border border-blue-200 rounded-r-xl px-4 py-2.5 text-center bg-gray-50 font-bold" />
-              <span className="bg-blue-600 text-white px-4 py-2.5 rounded-l-xl flex items-center justify-center font-bold">مدين</span>
+              <span className="bg-blue-600 text-white px-4 py-2.5 rounded-l-xl flex items-center justify-center font-bold">{t("debtor")}</span>
             </div>
           </div>
           <div className="flex items-end">
-            <button className="w-full bg-blue-600 text-white py-2.5 rounded-xl font-bold hover:bg-blue-700 shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">الحساب</button>
+            <button className="w-full bg-blue-600 text-white py-2.5 rounded-xl font-bold hover:bg-blue-700 shadow-md transition-all active:scale-95 flex items-center justify-center gap-2">{t("account")}</button>
           </div>
         </div>
       </div>
 
-      {/* Table */}
       <div className="bg-white rounded-2xl border border-blue-100 shadow-sm overflow-hidden">
         <table className="w-full text-sm text-right">
           <thead className="bg-[var(--table-header)] text-white">
             <tr>
-              <th className="p-3 border-l border-blue-800/50 w-16 text-center">بالاسم</th>
-              <th className="p-3 border-l border-blue-800/50">الوحدة</th>
-              <th className="p-3 border-l border-blue-800/50">سعر الشراء</th>
-              <th className="p-3 border-l border-blue-800/50">العدد | الكمية</th>
-              <th className="p-3 border-l border-blue-800/50">سعر الشراء</th>
-              <th className="p-3 border-l border-blue-800/50">ضريبة القيمة المضافة</th>
-              <th className="p-3">الاجمالي</th>
+              <th className="p-3 border-l border-blue-800/50 w-16 text-center">{t("by_name")}</th>
+              <th className="p-3 border-l border-blue-800/50">{t("unit")}</th>
+              <th className="p-3 border-l border-blue-800/50">{t("purchase_price")}</th>
+              <th className="p-3 border-l border-blue-800/50">{t("count_quantity")}</th>
+              <th className="p-3 border-l border-blue-800/50">{t("purchase_price")}</th>
+              <th className="p-3 border-l border-blue-800/50">{t("vat")}</th>
+              <th className="p-3">{t("total")}</th>
             </tr>
           </thead>
           <tbody>
@@ -286,7 +273,7 @@ const CreateA4Invoice: React.FC = () => {
                     ×
                   </button>
                 </td>
-                <td className="p-3 border-l border-blue-50">قطعة</td>
+                <td className="p-3 border-l border-blue-50">{t("piece")}</td>
                 <td className="p-3 border-l border-blue-50">{item.price.toFixed(2)}</td>
                 <td className="p-3 border-l border-blue-50">
                   <input type="number" value={item.qty} onChange={(e) => handleUpdateQty(item.id, parseInt(e.target.value) || 1)} className="w-20 border border-blue-100 rounded px-2 py-1 text-center outline-none focus:border-blue-500" />
@@ -296,12 +283,11 @@ const CreateA4Invoice: React.FC = () => {
                 <td className="p-3 font-bold text-blue-900">{item.total.toFixed(2)}</td>
               </tr>
             ))}
-            {/* New Item Row */}
             <tr className="bg-blue-50/50">
-              <td className="p-3 border-l border-blue-100 text-center text-emerald-600 font-bold">جديد</td>
+              <td className="p-3 border-l border-blue-100 text-center text-emerald-600 font-bold">{t("new")}</td>
               <td colSpan={6} className="p-0">
                 <div className="relative">
-                  <input type="text" placeholder="ابحث عن صنف..." className="w-full bg-transparent p-3 text-right outline-none placeholder:text-blue-300 pr-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                  <input type="text" placeholder={t("search_product")} className="w-full bg-transparent p-3 text-right outline-none placeholder:text-blue-300 pr-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                   <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-300" />
                   {searchTerm && (
                     <div className="absolute top-full left-0 right-0 bg-white border border-blue-100 shadow-xl z-50 max-h-60 overflow-y-auto rounded-b-xl">
@@ -316,7 +302,7 @@ const CreateA4Invoice: React.FC = () => {
                             }}
                             className="w-full p-3 text-right hover:bg-blue-50 border-b border-blue-50 last:border-0 flex justify-between items-center"
                           >
-                            <span className="text-blue-600 font-bold">{p.price} ر.س</span>
+                            <span className="text-blue-600 font-bold">{p.price} {t("sar")}</span>
                             <span>{p.name}</span>
                           </button>
                         ))}
@@ -329,23 +315,22 @@ const CreateA4Invoice: React.FC = () => {
         </table>
       </div>
 
-      {/* Footer */}
       <div className="bg-white rounded-2xl border border-blue-100 shadow-lg p-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col items-center">
-            <span className="text-xs text-blue-600 font-bold mb-1">اجمالي الفاتورة</span>
+            <span className="text-xs text-blue-600 font-bold mb-1">{t("invoice_total")}</span>
             <span className="text-2xl font-black text-blue-900">{grandTotal.toFixed(2)}</span>
           </div>
           <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col items-center">
-            <span className="text-xs text-blue-600 font-bold mb-1">ضريبة !</span>
+            <span className="text-xs text-blue-600 font-bold mb-1">{t("tax")} !</span>
             <span className="text-2xl font-black text-blue-900">{totalVat.toFixed(2)}</span>
           </div>
           <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 flex flex-col items-center">
-            <span className="text-xs text-blue-600 font-bold mb-1">خصم !</span>
+            <span className="text-xs text-blue-600 font-bold mb-1">{t("discount")} !</span>
             <span className="text-2xl font-black text-blue-900">0.00</span>
           </div>
           <div className="bg-blue-900 p-4 rounded-xl border border-blue-800 flex flex-col items-center text-white shadow-lg">
-            <span className="text-xs opacity-80 font-bold mb-1">المطلوب سدادة</span>
+            <span className="text-xs opacity-80 font-bold mb-1">{t("amount_due")}</span>
             <span className="text-2xl font-black">{grandTotal.toFixed(2)}</span>
           </div>
         </div>
@@ -354,11 +339,11 @@ const CreateA4Invoice: React.FC = () => {
           <div className="flex items-center gap-4">
             <button className="bg-blue-600 text-white px-10 py-3 rounded-xl font-bold hover:bg-blue-700 shadow-md transition-all active:scale-95 flex items-center gap-2">
               <Save size={20} />
-              مبيعات
+              {t("sales")}
             </button>
             <label className="flex items-center gap-2 cursor-pointer text-blue-800 font-bold">
               <input type="checkbox" className="w-5 h-5 accent-blue-600" defaultChecked />
-              <span>طباعة</span>
+              <span>{t("print")}</span>
             </label>
           </div>
           <div className="flex items-center gap-2 text-blue-400">
@@ -374,19 +359,17 @@ const CreateA4Invoice: React.FC = () => {
 
   return (
     <div className="p-6 min-h-screen bg-gray-50/50">
-      {/* Breadcrumb */}
       <div className="text-sm text-gray-500 flex items-center gap-1 px-2 mb-4" dir={direction}>
         <span>{t("home")}</span>
         <span>/</span>
         <span>{t("sales")}</span>
         <span>/</span>
-        <span className="text-gray-800 font-medium">فاتورة مبيعات</span>
+        <span className="text-gray-800 font-medium">{t("sales_invoice")}</span>
       </div>
 
-      {/* Branch Selection (Hidden in production if auto-detected) */}
       <div className="mb-6 flex items-center justify-between bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
         <div className="flex items-center gap-4">
-          <label className="text-sm font-bold text-gray-600">اختر الفرع لتغيير التصميم:</label>
+          <label className="text-sm font-bold text-gray-600">{t("choose_branch_to_change_design")}</label>
           <select value={selectedBranchId} onChange={(e) => setSelectedBranchId(e.target.value)} className="border border-gray-200 rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-100">
             {warehouses.map((w) => (
               <option key={w.id} value={w.id}>
@@ -407,9 +390,9 @@ const CreateA4Invoice: React.FC = () => {
       ) : (
         <div className="flex flex-col items-center justify-center h-[60vh] text-gray-400 gap-4">
           <Building size={64} className="opacity-20" />
-          <p className="text-lg font-bold">يرجى تفعيل "إظهار شاشة اللمس" أو "إظهار شاشة 2" في إعدادات الفرع لرؤية التصميم الجديد.</p>
+          <p className="text-lg font-bold">{t("enable_touch_or_screen2_message")}</p>
           <button onClick={() => navigate("/settings/branches")} className="bg-emerald-800 text-white px-6 py-2 rounded-lg font-bold">
-            الذهاب لإعدادات الفروع
+            {t("go_to_branch_settings")}
           </button>
         </div>
       )}

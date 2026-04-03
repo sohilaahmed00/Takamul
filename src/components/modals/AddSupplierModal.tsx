@@ -12,7 +12,11 @@ interface AddSupplierModalProps {
   supplier?: any;
 }
 
-export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSupplierModalProps) {
+export default function AddSupplierModal({
+  isOpen,
+  onClose,
+  supplier,
+}: AddSupplierModalProps) {
   const { t, direction } = useLanguage();
   const { addSupplier, updateSupplier } = useSuppliers();
 
@@ -76,27 +80,27 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
     e.preventDefault();
 
     if (!formData.supplierName.trim()) {
-      return showToast("error", t("please_enter_supplier_name") || "اسم المورد مطلوب");
+      return showToast("error", t("please_enter_supplier_name"));
     }
 
     if (!formData.mobile.trim()) {
-      return showToast("error", "الموبايل مطلوب");
+      return showToast("error", t("mobile_required"));
     }
 
     if (!formData.city.trim()) {
-      return showToast("error", "المدينة مطلوبة");
+      return showToast("error", t("city_required"));
     }
 
     if (!formData.state.trim()) {
-      return showToast("error", "المحافظة/الولاية مطلوبة");
+      return showToast("error", t("state_required"));
     }
 
     if (!formData.country.trim()) {
-      return showToast("error", "الدولة مطلوبة");
+      return showToast("error", t("country_required"));
     }
 
     if (!formData.postalCode.trim()) {
-      return showToast("error", "الرمز البريدي مطلوب");
+      return showToast("error", t("postal_code_required"));
     }
 
     setIsLoading(true);
@@ -104,7 +108,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
     try {
       const payload = {
         supplierName: formData.supplierName.trim(),
-        name: formData.supplierName.trim(), // compatibility
+        name: formData.supplierName.trim(),
         taxNumber: formData.taxNumber.trim(),
         commercialRegistration: formData.commercialRegistration.trim(),
         openingBalance: Number(formData.openingBalance) || 0,
@@ -125,20 +129,30 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
 
       const supplierId = supplier?.id ?? supplier?._id ?? supplier?.supplierId;
 
-      const result = supplier ? await updateSupplier(supplierId, payload as any) : await addSupplier(payload as any);
+      const result = supplier
+        ? await updateSupplier(supplierId, payload as any)
+        : await addSupplier(payload as any);
 
       if (result?.ok || result === true) {
-        showToast("success", supplier ? t("supplier_updated_successfully") || "تم تحديث بيانات المورد بنجاح" : t("supplier_added_successfully") || "تم إضافة المورد بنجاح");
+        showToast(
+          "success",
+          supplier
+            ? t("supplier_updated_successfully")
+            : t("supplier_added_successfully")
+        );
 
         setTimeout(() => {
           onClose();
           if (!supplier) resetForm();
         }, 500);
       } else {
-        showToast("error", result?.message || "فشلت العملية");
+        showToast("error", result?.message || t("operation_failed"));
       }
     } catch (error) {
-      showToast("error", error instanceof Error ? error.message : "فشلت العملية");
+      showToast(
+        "error",
+        error instanceof Error ? error.message : t("operation_failed")
+      );
     } finally {
       setIsLoading(false);
     }
@@ -146,25 +160,46 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
 
   return (
     <>
-      <ResponsiveModal isOpen={isOpen} onClose={onClose} title={supplier ? t("edit_supplier") || "تعديل مورد" : t("add_supplier") || "إضافة مورد"} maxWidth="max-w-3xl">
+      <ResponsiveModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={supplier ? t("edit_supplier") : t("add_supplier")}
+        maxWidth="max-w-3xl"
+      >
         <div dir={direction} className="relative">
           <AnimatePresence mode="wait">
             {isOpen && (
-              <motion.div key="supplier-modal-content" initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.98 }} transition={{ duration: 0.2 }} className="bg-white rounded-2xl">
+              <motion.div
+                key="supplier-modal-content"
+                initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 16, scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+                className="bg-white rounded-2xl"
+              >
                 <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 sm:px-6 py-4 flex items-center justify-between rounded-t-2xl">
-                  <button onClick={onClose} type="button" className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400" aria-label={t("close") || "إغلاق"}>
+                  <button
+                    onClick={onClose}
+                    type="button"
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400"
+                    aria-label={t("close")}
+                  >
                     <CloseIcon size={20} />
                   </button>
 
-                  <h2 className="text-lg sm:text-xl font-bold text-[#2ecc71]">{supplier ? t("edit_supplier") || "تعديل مورد" : t("add_supplier") || "إضافة مورد"}</h2>
+                  <h2 className="text-lg sm:text-xl font-bold text-[#2ecc71]">
+                    {supplier ? t("edit_supplier") : t("add_supplier")}
+                  </h2>
                 </div>
 
                 <div className="p-4 sm:p-6 overflow-y-auto max-h-[80vh]">
-                  <p className="text-sm text-gray-500 mb-6 text-center">{t("please_enter_info_below") || "برجاء ادخال المعلومات أدناه. الحقول التي تحمل علامة * إجبارية."}</p>
+                  <p className="text-sm text-gray-500 mb-6 text-center">
+                    {t("please_enter_info_below")}
+                  </p>
 
                   <form id="supplier-form-modal" onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                      <Field label={`${t("supplier_name") || "اسم المورد"} *`}>
+                      <Field label={`${t("supplier_name")} *`}>
                         <input
                           type="text"
                           required
@@ -179,7 +214,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                         />
                       </Field>
 
-                      <Field label={`${t("mobile") || "الموبايل"} *`}>
+                      <Field label={`${t("mobile")} *`}>
                         <input
                           type="text"
                           required
@@ -194,7 +229,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                         />
                       </Field>
 
-                      <Field label={t("phone") || "هاتف"}>
+                      <Field label={t("phone")}>
                         <input
                           type="text"
                           value={formData.phone}
@@ -208,7 +243,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                         />
                       </Field>
 
-                      <Field label={t("email_address") || "البريد الإلكتروني"}>
+                      <Field label={t("email_address")}>
                         <input
                           type="email"
                           value={formData.email}
@@ -222,7 +257,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                         />
                       </Field>
 
-                      <Field label={t("tax_number") || "الرقم الضريبي"}>
+                      <Field label={t("tax_number")}>
                         <input
                           type="text"
                           value={formData.taxNumber}
@@ -236,7 +271,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                         />
                       </Field>
 
-                      <Field label={t("commercial_registration") || "السجل التجاري"}>
+                      <Field label={t("commercial_registration")}>
                         <input
                           type="text"
                           value={formData.commercialRegistration}
@@ -250,7 +285,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                         />
                       </Field>
 
-                      <Field label={t("opening_balance") || "رصيد افتتاحي"}>
+                      <Field label={t("opening_balance")}>
                         <input
                           type="number"
                           value={formData.openingBalance}
@@ -264,7 +299,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                         />
                       </Field>
 
-                      <Field label="شروط الدفع (أيام)">
+                      <Field label={t("payment_terms_days")}>
                         <input
                           type="number"
                           value={formData.paymentTerms}
@@ -279,7 +314,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                       </Field>
                     </div>
 
-                    <Field label={t("address") || "العنوان"}>
+                    <Field label={t("address")}>
                       <input
                         type="text"
                         value={formData.address}
@@ -294,7 +329,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                     </Field>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                      <Field label="المدينة *">
+                      <Field label={`${t("city")} *`}>
                         <input
                           type="text"
                           required
@@ -309,7 +344,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                         />
                       </Field>
 
-                      <Field label="المحافظة/الولاية *">
+                      <Field label={`${t("state")} *`}>
                         <input
                           type="text"
                           required
@@ -324,7 +359,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                         />
                       </Field>
 
-                      <Field label="الدولة *">
+                      <Field label={`${t("country")} *`}>
                         <input
                           type="text"
                           required
@@ -339,7 +374,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                         />
                       </Field>
 
-                      <Field label="الرمز البريدي *">
+                      <Field label={`${t("postal_code")} *`}>
                         <input
                           type="text"
                           required
@@ -356,7 +391,7 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                     </div>
 
                     <div className="flex items-center gap-3 justify-end">
-                      <span className="text-sm font-medium text-gray-700">{t("active") || "نشط"}</span>
+                      <span className="text-sm font-medium text-gray-700">{t("active")}</span>
                       <input
                         type="checkbox"
                         checked={formData.isActive}
@@ -373,8 +408,17 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
                 </div>
 
                 <div className="p-4 border-t border-gray-100 bg-gray-50 flex justify-stretch sm:justify-end">
-                  <button type="submit" form="supplier-form-modal" disabled={isLoading} className="w-full sm:w-auto bg-[#00a65a] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#008d4c] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
-                    {isLoading ? t("loading") || "جاري..." : supplier ? t("update") || "تحديث" : t("add_supplier") || "إضافة مورد"}
+                  <button
+                    type="submit"
+                    form="supplier-form-modal"
+                    disabled={isLoading}
+                    className="w-full sm:w-auto bg-[#00a65a] text-white px-6 py-3 rounded-lg font-bold hover:bg-[#008d4c] transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading
+                      ? t("loading")
+                      : supplier
+                      ? t("update")
+                      : t("add_supplier")}
                   </button>
                 </div>
               </motion.div>
@@ -383,7 +427,12 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
         </div>
       </ResponsiveModal>
 
-      <Toast isOpen={toastOpen} message={toastMsg} type={toastType} onClose={() => setToastOpen(false)} />
+      <Toast
+        isOpen={toastOpen}
+        message={toastMsg}
+        type={toastType}
+        onClose={() => setToastOpen(false)}
+      />
     </>
   );
 }
@@ -391,7 +440,9 @@ export default function AddSupplierModal({ isOpen, onClose, supplier }: AddSuppl
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-gray-700 block text-right">{label}</label>
+      <label className="text-sm font-medium text-gray-700 block text-right">
+        {label}
+      </label>
       {children}
     </div>
   );

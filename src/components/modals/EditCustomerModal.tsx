@@ -12,7 +12,11 @@ interface EditCustomerModalProps {
   customer: any;
 }
 
-export default function EditCustomerModal({ isOpen, onClose, customer }: EditCustomerModalProps) {
+export default function EditCustomerModal({
+  isOpen,
+  onClose,
+  customer,
+}: EditCustomerModalProps) {
   const { t, direction } = useLanguage();
   const { updateCustomer } = useCustomers();
 
@@ -20,8 +24,8 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
     name: "",
     email: "",
     phone: "",
-    pricingGroup: "عام",
-    customerGroup: "عام",
+    pricingGroup: t("general_group"),
+    customerGroup: t("general_group"),
     taxNumber: "",
     actualBalance: 0,
     commercialRegister: "",
@@ -58,8 +62,8 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
       name,
       email,
       phone,
-      pricingGroup: customer.pricingGroup || "عام",
-      customerGroup: customer.customerGroup || "عام",
+      pricingGroup: customer.pricingGroup || t("general_group"),
+      customerGroup: customer.customerGroup || t("general_group"),
       taxNumber,
       actualBalance: customer.actualBalance || 0,
       commercialRegister: customer.commercialRegister || "",
@@ -72,7 +76,7 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
       postalCode: customer.postalCode ?? "",
       isActive: customer.isActive ?? true,
     });
-  }, [customer, isOpen]);
+  }, [customer, isOpen, t]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +84,7 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
 
     const id = customer?.id ?? customer?.customerId ?? customer?._id;
     if (!id) {
-      showToast("error", "Customer id is missing");
+      showToast("error", t("customer_id_missing"));
       return;
     }
 
@@ -89,12 +93,12 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
     const state = formData.state.trim();
 
     if (!address || !city || !state) {
-      showToast("error", "العنوان + المدينة + المحافظة/الولاية حقول إجبارية");
+      showToast("error", t("customer_required_address_city_state"));
       return;
     }
 
     if (formData.isTaxable && !formData.taxNumber.trim()) {
-      showToast("error", "الرقم الضريبي مطلوب");
+      showToast("error", t("tax_number_required"));
       return;
     }
 
@@ -124,13 +128,13 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
       const res = await updateCustomer(id, updates as any);
 
       if (res?.ok || res === true) {
-        showToast("success", t("operation_completed_successfully") || "تم التعديل بنجاح");
+        showToast("success", t("operation_completed_successfully"));
         setTimeout(() => onClose(), 400);
       } else {
-        showToast("error", res?.message || "فشل التعديل");
+        showToast("error", res?.message || t("update_failed"));
       }
     } catch {
-      showToast("error", "فشل التعديل");
+      showToast("error", t("update_failed"));
     } finally {
       setSubmitting(false);
     }
@@ -138,28 +142,51 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
 
   return (
     <>
-      <ResponsiveModal isOpen={isOpen} onClose={onClose} title={t("edit_customer") || "تعديل العميل"} maxWidth="max-w-4xl">
+      <ResponsiveModal
+        isOpen={isOpen}
+        onClose={onClose}
+        title={t("edit_customer")}
+        maxWidth="max-w-4xl"
+      >
         <div dir={direction} className="relative">
           <AnimatePresence mode="wait">
             {isOpen && (
-              <motion.div key="edit-customer-modal-content" initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.98 }} transition={{ duration: 0.2 }} className="bg-white rounded-2xl">
-                {/* Custom Header */}
+              <motion.div
+                key="edit-customer-modal-content"
+                initial={{ opacity: 0, y: 16, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 16, scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+                className="bg-white rounded-2xl"
+              >
                 <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 sm:px-6 py-4 flex items-center justify-between rounded-t-2xl">
-                  <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors p-1" aria-label={t("close") || "إغلاق"}>
+                  <button
+                    onClick={onClose}
+                    className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+                    aria-label={t("close")}
+                  >
                     <X size={22} />
                   </button>
 
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg sm:text-xl font-bold text-[#2ecc71]">{t("edit_customer") || "تعديل العميل"}</h2>
+                    <h2 className="text-lg sm:text-xl font-bold text-[#2ecc71]">
+                      {t("edit_customer")}
+                    </h2>
                   </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-                  <p className="text-center text-gray-500 text-sm leading-6">برجاء ادخال المعلومات أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية.</p>
+                <form
+                  onSubmit={handleSubmit}
+                  className="p-4 sm:p-6 space-y-6 max-h-[80vh] overflow-y-auto"
+                >
+                  <p className="text-center text-gray-500 text-sm leading-6">
+                    {t("please_enter_info_below")}
+                  </p>
 
-                  {/* Customer Type */}
                   <div className="bg-[#fff9e6] p-4 rounded-xl border border-[#ffeeba] space-y-3">
-                    <p className="text-center font-bold text-[#856404] text-sm sm:text-base">برجاء تحديد نوع العميل</p>
+                    <p className="text-center font-bold text-[#856404] text-sm sm:text-base">
+                      {t("please_select_customer_type")}
+                    </p>
 
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-8">
                       <label className="flex items-center gap-2 cursor-pointer">
@@ -176,21 +203,29 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
                           }
                           className="w-4 h-4 accent-[#2ecc71]"
                         />
-                        <span className="text-sm font-medium text-gray-700">فرد / شركة (غير مسجل بالضريبة)</span>
+                        <span className="text-sm font-medium text-gray-700">
+                          {t("individual_or_company_not_tax_registered")}
+                        </span>
                       </label>
 
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input type="radio" name="isTaxable" checked={formData.isTaxable} onChange={() => setFormData({ ...formData, isTaxable: true })} className="w-4 h-4 accent-[#2ecc71]" />
-                        <span className="text-sm font-medium text-gray-700">شركة (مسجل بالضريبة)</span>
+                        <input
+                          type="radio"
+                          name="isTaxable"
+                          checked={formData.isTaxable}
+                          onChange={() => setFormData({ ...formData, isTaxable: true })}
+                          className="w-4 h-4 accent-[#2ecc71]"
+                        />
+                        <span className="text-sm font-medium text-gray-700">
+                          {t("company_tax_registered")}
+                        </span>
                       </label>
                     </div>
                   </div>
 
-                  {/* Form Grid */}
                   <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-                    {/* Left Block */}
                     <div className="space-y-4 border border-gray-100 p-4 rounded-xl bg-white">
-                      <Field label="مجموعة العملاء">
+                      <Field label={t("customer_group")}>
                         <select
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71] bg-gray-50"
                           value={formData.customerGroup}
@@ -201,11 +236,11 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
                             })
                           }
                         >
-                          <option value="عام">عام</option>
+                          <option value={t("general_group")}>{t("general_group")}</option>
                         </select>
                       </Field>
 
-                      <Field label="مجموعة التسعيرة">
+                      <Field label={t("pricing_group")}>
                         <select
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71] bg-gray-50"
                           value={formData.pricingGroup}
@@ -216,23 +251,39 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
                             })
                           }
                         >
-                          <option value="عام">عام</option>
+                          <option value={t("general_group")}>{t("general_group")}</option>
                         </select>
                       </Field>
 
-                      <Field label="اسم العميل *">
-                        <input type="text" required className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+                      <Field label={`${t("customer_name")} *`}>
+                        <input
+                          type="text"
+                          required
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        />
                       </Field>
 
-                      <Field label="هاتف">
-                        <input type="text" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} />
+                      <Field label={t("phone")}>
+                        <input
+                          type="text"
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        />
                       </Field>
 
-                      <Field label="عنوان البريد الإلكتروني">
-                        <input type="email" className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
+                      <Field label={t("email_address")}>
+                        <input
+                          type="email"
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        />
                       </Field>
 
-                      <Field label="السجل التجاري">
+                      <Field label={t("commercial_register")}>
                         <input
                           type="text"
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
@@ -246,7 +297,7 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
                         />
                       </Field>
 
-                      <Field label="رصيد افتتاحي *( المديونية بالسالب)">
+                      <Field label={t("opening_balance_with_negative_note")}>
                         <input
                           type="number"
                           required
@@ -261,7 +312,7 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
                         />
                       </Field>
 
-                      <Field label="الحد الائتماني">
+                      <Field label={t("credit_limit")}>
                         <input
                           type="number"
                           required
@@ -277,7 +328,9 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
                       </Field>
 
                       <div className="flex items-start sm:items-center gap-2 justify-end">
-                        <span className="text-sm font-bold text-[#2ecc71] text-right leading-5">ايقاف البيع في حالة وجود مبالغ مستحقة</span>
+                        <span className="text-sm font-bold text-[#2ecc71] text-right leading-5">
+                          {t("stop_selling_if_overdue")}
+                        </span>
                         <input
                           type="checkbox"
                           checked={formData.stopSellingOverdue}
@@ -292,7 +345,9 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
                       </div>
 
                       <div className="flex items-center gap-2 justify-end">
-                        <span className="text-sm font-bold text-[#2ecc71]">{t("active") || "نشط"}</span>
+                        <span className="text-sm font-bold text-[#2ecc71]">
+                          {t("active")}
+                        </span>
                         <input
                           type="checkbox"
                           checked={formData.isActive}
@@ -307,9 +362,8 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
                       </div>
                     </div>
 
-                    {/* Right Block */}
                     <div className="space-y-4 border border-gray-100 p-4 rounded-xl bg-white">
-                      <Field label="العنوان *">
+                      <Field label={`${t("address")} *`}>
                         <input
                           type="text"
                           required
@@ -324,15 +378,27 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
                         />
                       </Field>
 
-                      <Field label="المدينة *">
-                        <input type="text" required className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} />
+                      <Field label={`${t("city")} *`}>
+                        <input
+                          type="text"
+                          required
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
+                          value={formData.city}
+                          onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        />
                       </Field>
 
-                      <Field label="المحافظة/الولاية *">
-                        <input type="text" required className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]" value={formData.state} onChange={(e) => setFormData({ ...formData, state: e.target.value })} />
+                      <Field label={`${t("state")} *`}>
+                        <input
+                          type="text"
+                          required
+                          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
+                          value={formData.state}
+                          onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                        />
                       </Field>
 
-                      <Field label="الرمز البريدي">
+                      <Field label={t("postal_code")}>
                         <input
                           type="text"
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
@@ -347,7 +413,7 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
                       </Field>
 
                       {formData.isTaxable && (
-                        <Field label="الرقم الضريبي *">
+                        <Field label={`${t("tax_number")} *`}>
                           <input
                             type="text"
                             required
@@ -365,10 +431,13 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
                     </div>
                   </div>
 
-                  {/* Submit */}
                   <div className="flex justify-stretch sm:justify-end pt-2">
-                    <button type="submit" disabled={submitting} className="w-full sm:w-auto bg-[#00a65a] text-white px-6 sm:px-10 py-3 rounded-lg font-bold hover:bg-[#008d4c] transition-colors shadow-md disabled:opacity-60">
-                      {submitting ? "جارٍ الحفظ..." : "حفظ التعديلات"}
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="w-full sm:w-auto bg-[#00a65a] text-white px-6 sm:px-10 py-3 rounded-lg font-bold hover:bg-[#008d4c] transition-colors shadow-md disabled:opacity-60"
+                    >
+                      {submitting ? t("saving") : t("save_changes")}
                     </button>
                   </div>
                 </form>
@@ -378,7 +447,12 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
         </div>
       </ResponsiveModal>
 
-      <Toast isOpen={toastOpen} message={toastMsg} type={toastType} onClose={() => setToastOpen(false)} />
+      <Toast
+        isOpen={toastOpen}
+        message={toastMsg}
+        type={toastType}
+        onClose={() => setToastOpen(false)}
+      />
     </>
   );
 }
@@ -386,7 +460,9 @@ export default function EditCustomerModal({ isOpen, onClose, customer }: EditCus
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-bold text-[#2ecc71] text-right">{label}</label>
+      <label className="block text-sm font-bold text-[#2ecc71] text-right">
+        {label}
+      </label>
       {children}
     </div>
   );

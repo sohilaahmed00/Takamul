@@ -2,52 +2,53 @@ import { Button } from "@/components/ui/button";
 import { Barcode, CircleArrowRight, Pause, Plus, RotateCw } from "lucide-react";
 import { useState } from "react";
 import { Home, Users, LayoutGrid, DollarSign, ClipboardList, BarChart2, Settings, LogOut } from "lucide-react";
+import { useLanguage } from "@/context/LanguageContext";
 
 const NAV_ITEMS = [
-  { id: "home",      icon: Home,          label: "Home"      },
-  { id: "customers", icon: Users,         label: "Customers" },
-  { id: "tables",    icon: LayoutGrid,    label: "Tables"    },
-  { id: "cashier",   icon: DollarSign,    label: "Cashier"   },
-  { id: "orders",    icon: ClipboardList, label: "Orders"    },
-  { id: "reports",   icon: BarChart2,     label: "Reports"   },
-  { id: "settings",  icon: Settings,      label: "Settings"  },
+  { id: "home", icon: Home, label: "home" },
+  { id: "customers", icon: Users, label: "customers" },
+  { id: "tables", icon: LayoutGrid, label: "tables" },
+  { id: "cashier", icon: DollarSign, label: "cashier" },
+  { id: "orders", icon: ClipboardList, label: "orders" },
+  { id: "reports", icon: BarChart2, label: "reports" },
+  { id: "settings", icon: Settings, label: "settings" },
 ];
 
 // ─── DATA ────────────────────────────────────────────────────────────────────
 const MENU_DATA = [
-  { name: "Schezwan Egg Noodles",     price: 24, cat: "Lunch",     e: "🍜" },
-  { name: "Stir Egg Fry Udon Noodles",price: 24, cat: "Lunch",     e: "🍝" },
-  { name: "Thai Style Fried Noodles", price: 24, cat: "Lunch",     e: "🍛" },
-  { name: "Chinese Prawn Spaghetti",  price: 24, cat: "Lunch",     e: "🦐" },
-  { name: "Japanese Soba Noodles",    price: 24, cat: "Lunch",     e: "🍱" },
-  { name: "Chilli Garlic Thai Noodles",price:24, cat: "Lunch",     e: "🌶️" },
-  { name: "Thai Style Fried Noodles", price: 24, cat: "Starters",  e: "🍢" },
-  { name: "Schezwan Egg Noodles",     price: 24, cat: "Starters",  e: "🥘" },
-  { name: "Spring Rolls",             price: 12, cat: "Starters",  e: "🌯" },
-  { name: "Stir Egg Fry Udon",        price: 24, cat: "Breakfast", e: "🍳" },
-  { name: "Chilli Garlic Thai",       price: 24, cat: "Breakfast", e: "🥗" },
-  { name: "Lemon Dessert",            price: 18, cat: "Deserts",   e: "🍋" },
-  { name: "Ice Cream Sundae",         price: 14, cat: "Deserts",   e: "🍨" },
-  { name: "Fresh Juice",              price: 8,  cat: "Beverages", e: "🥤" },
-  { name: "Iced Coffee",              price: 10, cat: "Beverages", e: "☕" },
-  { name: "Grilled Chicken",          price: 28, cat: "Supper",    e: "🍗" },
-  { name: "BBQ Ribs",                 price: 32, cat: "Supper",    e: "🥩" },
+  { name: "Schezwan Egg Noodles", price: 24, cat: "Lunch", e: "🍜" },
+  { name: "Stir Egg Fry Udon Noodles", price: 24, cat: "Lunch", e: "🍝" },
+  { name: "Thai Style Fried Noodles", price: 24, cat: "Lunch", e: "🍛" },
+  { name: "Chinese Prawn Spaghetti", price: 24, cat: "Lunch", e: "🦐" },
+  { name: "Japanese Soba Noodles", price: 24, cat: "Lunch", e: "🍱" },
+  { name: "Chilli Garlic Thai Noodles", price: 24, cat: "Lunch", e: "🌶️" },
+  { name: "Thai Style Fried Noodles", price: 24, cat: "Starters", e: "🍢" },
+  { name: "Schezwan Egg Noodles", price: 24, cat: "Starters", e: "🥘" },
+  { name: "Spring Rolls", price: 12, cat: "Starters", e: "🌯" },
+  { name: "Stir Egg Fry Udon", price: 24, cat: "Breakfast", e: "🍳" },
+  { name: "Chilli Garlic Thai", price: 24, cat: "Breakfast", e: "🥗" },
+  { name: "Lemon Dessert", price: 18, cat: "Deserts", e: "🍋" },
+  { name: "Ice Cream Sundae", price: 14, cat: "Deserts", e: "🍨" },
+  { name: "Fresh Juice", price: 8, cat: "Beverages", e: "🥤" },
+  { name: "Iced Coffee", price: 10, cat: "Beverages", e: "☕" },
+  { name: "Grilled Chicken", price: 28, cat: "Supper", e: "🍗" },
+  { name: "BBQ Ribs", price: 32, cat: "Supper", e: "🥩" },
 ];
 
 const CATS = ["Starters", "Breakfast", "Lunch", "Supper", "Deserts", "Beverages"];
 
 const CUSTOMERS = [
-  { name: "Benjamin Cole", email: "ben.cole@gmail.com",  date: "16/11/2024" },
-  { name: "Monica Bill",   email: "m.bill@gmail.com",    date: "16/11/2024" },
-  { name: "Tyler Cox",     email: "tyler.cox@gmail.com", date: "16/11/2024" },
-  { name: "Janary Foi",    email: "jan.foi@gmail.com",   date: "19/12/2024" },
+  { name: "Benjamin Cole", email: "ben.cole@gmail.com", date: "16/11/2024" },
+  { name: "Monica Bill", email: "m.bill@gmail.com", date: "16/11/2024" },
+  { name: "Tyler Cox", email: "tyler.cox@gmail.com", date: "16/11/2024" },
+  { name: "Janary Foi", email: "jan.foi@gmail.com", date: "19/12/2024" },
 ];
 
 const INITIAL_CART = [
-  { name: "Schezwan Egg Noodles",     price: 25, qty: 1, note: "",                     op: null },
-  { name: "Spicy Shrimp Soup",        price: 40, qty: 2, note: "Medium- Half Grilled", op: 50   },
-  { name: "Thai Style Fried Noodles", price: 40, qty: 2, note: "Medium",               op: 50   },
-  { name: "Fried Basil",              price: 75, qty: 3, note: ""                               },
+  { name: "Schezwan Egg Noodles", price: 25, qty: 1, note: "", op: null },
+  { name: "Spicy Shrimp Soup", price: 40, qty: 2, note: "Medium- Half Grilled", op: 50 },
+  { name: "Thai Style Fried Noodles", price: 40, qty: 2, note: "Medium", op: 50 },
+  { name: "Fried Basil", price: 75, qty: 3, note: "" },
 ];
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
@@ -59,32 +60,32 @@ function calcTotals(cart, discount) {
 }
 
 // ─── CART PANEL ──────────────────────────────────────────────────────────────
-function CartPanel({ cart, setCart, discount, setDiscount, onProceed, onHold }) {
+function CartPanel({ cart, setCart, discount, setDiscount, onProceed, onHold, t }) {
   const [expandedIdx, setExpandedIdx] = useState(null);
-  const [activeTab,   setActiveTab]   = useState("add");
-  const [discType,    setDiscType]    = useState("pct");
-  const [discInput,   setDiscInput]   = useState("");
+  const [activeTab, setActiveTab] = useState("add");
+  const [discType, setDiscType] = useState("pct");
+  const [discInput, setDiscInput] = useState("");
 
   const { sub, tax, pay } = calcTotals(cart, discount);
 
-  const toggleExpand  = (idx)    => setExpandedIdx(expandedIdx === idx ? null : idx);
-  const removeItem    = (idx)    => { setCart(p => p.filter((_, i) => i !== idx)); if (expandedIdx === idx) setExpandedIdx(null); };
-  const changeQty     = (idx, d) => setCart(p => p.map((item, i) => i === idx ? { ...item, qty: Math.max(1, item.qty + d) } : item));
-  const applyDiscount = ()       => {
+  const toggleExpand = (idx) => setExpandedIdx(expandedIdx === idx ? null : idx);
+  const removeItem = (idx) => { setCart(p => p.filter((_, i) => i !== idx)); if (expandedIdx === idx) setExpandedIdx(null); };
+  const changeQty = (idx, d) => setCart(p => p.map((item, i) => i === idx ? { ...item, qty: Math.max(1, item.qty + d) } : item));
+  const applyDiscount = () => {
     const val = parseFloat(discInput) || 0;
     setDiscount(discType === "pct" ? Math.round((sub * val) / 100) : val);
     setActiveTab("add"); setDiscInput("");
   };
 
-  const TABS       = ["add", "discount", "coupon", "note"];
-  const TAB_LABELS = { add: "Add", discount: "Discount", coupon: "Coupon Code", note: "Note" };
+  const TABS = ["add", "discount", "coupon", "note"];
+  const TAB_LABELS = { add: t("add") || "Add", discount: t("discount") || "Discount", coupon: t("coupon_code") || "Coupon Code", note: t("notes") || "Note" };
 
   return (
     <div className="bg-white flex flex-col" style={{ width: 450 }}>
 
       {/* Head */}
       <div className="px-3 py-2.5 border-b border-gray-100 flex items-center justify-between gap-2">
-        <Button size="sm" className="text-xs!" variant="outline"><Plus />Add Customer</Button>
+        <Button size="sm" className="text-xs!" variant="outline"><Plus />{t("add_customer") || "Add Customer"}</Button>
         <div className="flex items-center gap-1">
           <Button size="icon-sm" className="text-sm!" variant="outline"><RotateCw /></Button>
           <Button size="icon-sm" className="text-sm!" variant="outline"><Barcode /></Button>
@@ -95,7 +96,7 @@ function CartPanel({ cart, setCart, discount, setDiscount, onProceed, onHold }) 
       {/* Items */}
       <div className="flex-1 overflow-y-auto px-2 py-1.5 space-y-1">
         {cart.length === 0 ? (
-          <div className="p-5 text-center text-gray-400 text-xs">Cart is empty</div>
+          <div className="p-5 text-center text-gray-400 text-xs">{t("cart_empty") || "Cart is empty"}</div>
         ) : cart.map((item, idx) => {
           const isOpen = expandedIdx === idx;
           return (
@@ -117,15 +118,15 @@ function CartPanel({ cart, setCart, discount, setDiscount, onProceed, onHold }) 
               {isOpen && (
                 <div className={`pl-3.5 pr-3 pb-3 pt-1 flex gap-3 items-end ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
                   <div className="flex-1">
-                    <div className="text-xs text-gray-400 mb-1.5">Quantity</div>
+                    <div className="text-xs text-gray-400 mb-1.5">{t("quantity") || "Quantity"}</div>
                     <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
                       <button onClick={() => changeQty(idx, -1)} className="px-2.5 py-1.5 bg-white text-gray-500 hover:bg-gray-50 text-sm font-bold">−</button>
                       <span className="flex-1 py-1.5 text-xs font-semibold text-center border-x border-gray-200">{item.qty}</span>
-                      <button onClick={() => changeQty(idx,  1)} className="px-2.5 py-1.5 bg-white text-gray-500 hover:bg-gray-50 text-sm font-bold">+</button>
+                      <button onClick={() => changeQty(idx, 1)} className="px-2.5 py-1.5 bg-white text-gray-500 hover:bg-gray-50 text-sm font-bold">+</button>
                     </div>
                   </div>
                   <div className="flex-1">
-                    <div className="text-xs text-gray-400 mb-1.5">Discount(%)</div>
+                    <div className="text-xs text-gray-400 mb-1.5">{t("discount") || "Discount"}(%)</div>
                     <input className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none text-right font-semibold focus:border-primary/40" defaultValue="0" />
                   </div>
                 </div>
@@ -152,13 +153,13 @@ function CartPanel({ cart, setCart, discount, setDiscount, onProceed, onHold }) 
         {activeTab === "add" && (
           <div className="px-3 pt-2.5 pb-3">
             <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-              <span>Subtotal</span><span className="font-semibold text-gray-800">${sub.toFixed(2)}</span>
+              <span>{t("subtotal") || "Subtotal"}</span><span className="font-semibold text-gray-800">${sub.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-              <span>Tax</span><span className="font-semibold text-gray-800">${tax.toFixed(2)}</span>
+              <span>{t("tax_label") || "Tax"}</span><span className="font-semibold text-gray-800">${tax.toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-xs mb-1.5 items-center">
-              <span className={discount > 0 ? "text-primary font-semibold" : "text-gray-500"}>Discount</span>
+              <span className={discount > 0 ? "text-primary font-semibold" : "text-gray-500"}>{t("discount") || "Discount"}</span>
               <div className="flex items-center gap-1">
                 <span className={`font-semibold ${discount > 0 ? "text-gray-800" : "text-gray-400"}`}>-${discount.toFixed(2)}</span>
                 {discount > 0 && (
@@ -167,36 +168,36 @@ function CartPanel({ cart, setCart, discount, setDiscount, onProceed, onHold }) 
               </div>
             </div>
             <div className="flex justify-between text-sm font-black text-gray-800 mt-2 pt-1 border-t border-gray-100 mb-3">
-              <span>Payable Amount</span><span>${pay.toFixed(2)}</span>
+              <span>{t("payable_amount") || "Payable Amount"}</span><span>${pay.toFixed(2)}</span>
             </div>
             <div className="flex gap-2">
-              <Button onClick={onHold}    className="flex-1" variant="outline">Hold Cart<Pause /></Button>
-              <Button onClick={onProceed} className="flex-1">Proceed<CircleArrowRight /></Button>
+              <Button onClick={onHold} className="flex-1" variant="outline">{t("hold_cart") || "Hold Cart"}<Pause /></Button>
+              <Button onClick={onProceed} className="flex-1">{t("proceed") || "Proceed"}<CircleArrowRight /></Button>
             </div>
           </div>
         )}
 
         {activeTab === "discount" && (
           <div className="p-3">
-            <div className="text-sm font-bold text-gray-800 mb-3">Add Discount</div>
+            <div className="text-sm font-bold text-gray-800 mb-3">{t("add_discount") || "Add Discount"}</div>
             <div className="flex gap-2 mb-3 items-center">
               <button onClick={() => setDiscType("flat")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "flat" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>$</button>
-              <button onClick={() => setDiscType("pct")}  className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "pct"  ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>%</button>
+              <button onClick={() => setDiscType("pct")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "pct" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>%</button>
               <input value={discInput} onChange={e => setDiscInput(e.target.value)} className="flex-1 h-12 px-3 border border-gray-200 rounded-xl text-sm outline-none text-right font-semibold focus:border-primary/40 bg-white" placeholder="0" type="number" min="0" />
             </div>
             <div className="flex gap-2">
-              <Button className="flex-1" onClick={() => setActiveTab("add")} variant="destructive">Cancel</Button>
-              <Button className="flex-1" onClick={applyDiscount}>Add</Button>
+              <Button className="flex-1" onClick={() => setActiveTab("add")} variant="destructive">{t("cancel") || "Cancel"}</Button>
+              <Button className="flex-1" onClick={applyDiscount}>{t("add") || "Add"}</Button>
             </div>
           </div>
         )}
 
         {activeTab === "coupon" && (
           <div className="p-3">
-            <input className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 focus:border-primary/40" placeholder="Enter coupon code..." />
+            <input className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 focus:border-primary/40" placeholder={t("enter_coupon_code") || "Enter coupon code..."} />
             <div className="flex gap-2">
-              <Button className="flex-1" onClick={() => setActiveTab("add")} variant="destructive">Cancel</Button>
-              <Button className="flex-1">Apply</Button>
+              <Button className="flex-1" onClick={() => setActiveTab("add")} variant="destructive">{t("cancel") || "Cancel"}</Button>
+              <Button className="flex-1">{t("apply") || "Apply"}</Button>
             </div>
           </div>
         )}
@@ -225,7 +226,7 @@ function HoldModal({ onClose, onConfirm }) {
         <div className="text-xs text-gray-400 mb-1">Cart Note</div>
         <input autoFocus value={note} onChange={e => setNote(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm outline-none focus:border-primary/50 mb-4" placeholder="Enter the note for holding cart" />
         <div className="flex gap-2">
-          <button onClick={onClose}                           className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-500 font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
+          <button onClick={onClose} className="flex-1 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-500 font-semibold hover:bg-gray-50 transition-colors">Cancel</button>
           <button onClick={() => onConfirm(note || "No note")} className="flex-1 py-2.5 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-colors">Proceed</button>
         </div>
       </div>
@@ -362,8 +363,8 @@ function OrdersScreen() {
         <div className="flex-1 overflow-y-auto border-t border-gray-100 pt-2">
           {[
             { qty: 1, name: "Schezwan Egg Noodles", price: "$25.00" },
-            { qty: 2, name: "Spicy Shrimp Soup",    price: "$40.00", note: "Medium- Half Grilled", disc: "10% Disc · $10 · $50.00" },
-            { qty: 1, name: "Fried Basil",           price: "$25.00" },
+            { qty: 2, name: "Spicy Shrimp Soup", price: "$40.00", note: "Medium- Half Grilled", disc: "10% Disc · $10 · $50.00" },
+            { qty: 1, name: "Fried Basil", price: "$25.00" },
           ].map((item, i) => (
             <div key={i} className="flex justify-between mb-2.5 text-xs">
               <div className="flex-1">
@@ -377,7 +378,7 @@ function OrdersScreen() {
           ))}
         </div>
         <div className="border-t border-gray-100 pt-2.5 mt-2">
-          {[["Subtotal","$200.00"],["Tax","$45.00"],["Discount","-$50.00"]].map(([l,v]) => (
+          {[["Subtotal", "$200.00"], ["Tax", "$45.00"], ["Discount", "-$50.00"]].map(([l, v]) => (
             <div key={l} className="flex justify-between text-xs text-gray-500 mb-1"><span>{l}</span><span>{v}</span></div>
           ))}
           <div className="flex justify-between text-sm font-black text-gray-800 my-1.5"><span>Grand Total</span><span>$195.00</span></div>
@@ -391,16 +392,16 @@ function OrdersScreen() {
 }
 
 function CashierScreen({ onBack, onConfirm }) {
-  const [npRaw,        setNpRaw]        = useState("20000");
+  const [npRaw, setNpRaw] = useState("20000");
   const [activePayTab, setActivePayTab] = useState("Cash");
 
   const dollars = (parseInt(npRaw) / 100).toFixed(2);
-  const payable  = 195;
-  const balance  = parseInt(npRaw) / 100 - payable;
+  const payable = 195;
+  const balance = parseInt(npRaw) / 100 - payable;
 
   const npKey = k => setNpRaw(prev => {
     if (k === "del") return prev.length > 1 ? prev.slice(0, -1) : "0";
-    if (k === "00")  return prev + "00";
+    if (k === "00") return prev + "00";
     return prev === "0" ? k : prev + k;
   });
 
@@ -414,8 +415,8 @@ function CashierScreen({ onBack, onConfirm }) {
         <div className="bg-white rounded-xl border border-gray-100 p-3.5 mb-3">
           {[
             { qty: 1, name: "Schezwan Egg Noodles", price: "$25.00" },
-            { qty: 2, name: "Spicy Shrimp Soup",    price: "$40.00", note: "Medium- Half Grilled", disc: "10% Disc · $10 · $50.00" },
-            { qty: 1, name: "Fried Basil",           price: "$25.00" },
+            { qty: 2, name: "Spicy Shrimp Soup", price: "$40.00", note: "Medium- Half Grilled", disc: "10% Disc · $10 · $50.00" },
+            { qty: 1, name: "Fried Basil", price: "$25.00" },
           ].map((item, i) => (
             <div key={i} className="flex justify-between py-2 border-b border-gray-50 text-xs gap-2">
               <div className="flex-1">
@@ -428,7 +429,7 @@ function CashierScreen({ onBack, onConfirm }) {
             </div>
           ))}
           <div className="pt-2.5 mt-1">
-            {[["Subtotal","$200.00"],["Tax","$45.00"],["Discount","-$50.00"]].map(([l,v]) => (
+            {[["Subtotal", "$200.00"], ["Tax", "$45.00"], ["Discount", "-$50.00"]].map(([l, v]) => (
               <div key={l} className="flex justify-between text-xs text-gray-500 mb-1"><span>{l}</span><span>{v}</span></div>
             ))}
             <div className="flex justify-between text-sm font-black text-gray-800 mt-1.5"><span>Grand Total</span><span>$195.00</span></div>
@@ -471,7 +472,7 @@ function CashierScreen({ onBack, onConfirm }) {
         </div>
         <div className="bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-right text-2xl font-black text-gray-800 mb-3">${dollars}</div>
         <div className="grid grid-cols-3 gap-1.5 flex-1">
-          {["1","2","3","4","5","6","7","8","9","00","0","del"].map(k => (
+          {["1", "2", "3", "4", "5", "6", "7", "8", "9", "00", "0", "del"].map(k => (
             <button key={k} onClick={() => npKey(k)}
               className={`py-0 rounded-lg text-base font-bold border transition-colors
                 ${k === "del" ? "bg-primary/5 text-primary border-primary/20 hover:bg-primary/10" : "bg-white text-gray-700 border-gray-100 hover:bg-gray-50"}`}
@@ -533,12 +534,13 @@ function PlaceholderScreen({ label }) {
 
 // ─── MAIN APP ────────────────────────────────────────────────────────────────
 export default function RestroPos() {
-  const [screen,        setScreen]        = useState("home");
-  const [cart,          setCart]          = useState(INITIAL_CART);
-  const [discount,      setDiscount]      = useState(0);
-  const [heldCarts,     setHeldCarts]     = useState([]);
+  const { t, direction } = useLanguage();
+  const [screen, setScreen] = useState("home");
+  const [cart, setCart] = useState(INITIAL_CART);
+  const [discount, setDiscount] = useState(0);
+  const [heldCarts, setHeldCarts] = useState([]);
   const [showHoldModal, setShowHoldModal] = useState(false);
-  const [successInfo,   setSuccessInfo]   = useState({ method: "Cash", amount: "0.00" });
+  const [successInfo, setSuccessInfo] = useState({ method: "Cash", amount: "0.00" });
 
   const handleHold = () => setShowHoldModal(true);
 
@@ -592,7 +594,7 @@ export default function RestroPos() {
         {/* Avatar */}
         <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20 mb-1">
           <img src="https://i.pravatar.cc/32" alt="user" className="w-full h-full object-cover"
-            onError={e => { e.target.style.display="none"; e.target.parentElement.innerHTML='<div style="width:100%;height:100%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>'; }} />
+            onError={e => { e.target.style.display = "none"; e.target.parentElement.innerHTML = '<div style="width:100%;height:100%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>'; }} />
         </div>
 
         {/* Logout */}
@@ -612,19 +614,19 @@ export default function RestroPos() {
             <input className="w-full pl-4 pr-10 py-2 border border-gray-200 rounded-xl text-sm outline-none bg-white focus:border-primary/40 text-gray-500" placeholder="Search products....." />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
               <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
               </svg>
             </span>
           </div>
           <button className="text-gray-400 hover:text-gray-600 transition-colors">
             <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" />
             </svg>
           </button>
           <button className="text-green-500 hover:text-green-600 transition-colors">
             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/>
-              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1" fill="currentColor"/>
+              <path d="M5 12.55a11 11 0 0 1 14.08 0" /><path d="M1.42 9a16 16 0 0 1 21.16 0" />
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0" /><circle cx="12" cy="20" r="1" fill="currentColor" />
             </svg>
           </button>
           <Button size="lg" className="text-base! px-4">Select Table</Button>
@@ -632,15 +634,15 @@ export default function RestroPos() {
 
         {/* Screen Content */}
         <div className="flex flex-1 overflow-hidden">
-          {screen === "home"      && <HomeScreen      cart={cart} setCart={setCart} discount={discount} setDiscount={setDiscount} onProceed={() => setScreen("cashier")} onHold={handleHold} />}
+          {screen === "home" && <HomeScreen cart={cart} setCart={setCart} discount={discount} setDiscount={setDiscount} onProceed={() => setScreen("cashier")} onHold={handleHold} />}
           {screen === "customers" && <CustomersScreen cart={cart} setCart={setCart} discount={discount} setDiscount={setDiscount} onProceed={() => setScreen("cashier")} onHold={handleHold} />}
-          {screen === "orders"    && <OrdersScreen />}
-          {screen === "cashier"   && <CashierScreen   onBack={() => setScreen("home")} onConfirm={handleConfirmPayment} />}
-          {screen === "success"   && <SuccessScreen   method={successInfo.method} amount={successInfo.amount} onNewOrder={() => setScreen("home")} />}
-          {screen === "hold-list" && <HoldListScreen  heldCarts={heldCarts} onRestore={restoreHold} onNewOrder={() => setScreen("home")} />}
-          {screen === "tables"    && <PlaceholderScreen label="Tables" />}
-          {screen === "reports"   && <PlaceholderScreen label="Reports" />}
-          {screen === "settings"  && <PlaceholderScreen label="Settings" />}
+          {screen === "orders" && <OrdersScreen />}
+          {screen === "cashier" && <CashierScreen onBack={() => setScreen("home")} onConfirm={handleConfirmPayment} />}
+          {screen === "success" && <SuccessScreen method={successInfo.method} amount={successInfo.amount} onNewOrder={() => setScreen("home")} />}
+          {screen === "hold-list" && <HoldListScreen heldCarts={heldCarts} onRestore={restoreHold} onNewOrder={() => setScreen("home")} />}
+          {screen === "tables" && <PlaceholderScreen label="Tables" />}
+          {screen === "reports" && <PlaceholderScreen label="Reports" />}
+          {screen === "settings" && <PlaceholderScreen label="Settings" />}
         </div>
       </div>
     </div>
