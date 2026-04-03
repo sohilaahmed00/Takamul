@@ -209,7 +209,7 @@ const PaymentMethods: React.FC = () => {
                 <span className="font-bold text-lg">{editingMethod ? t("edit_payment_method") : t("add_payment_method")}</span>
               </div>
               <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                <div className="text-sm text-emerald-800 text-right leading-relaxed font-bold">{editingMethod ? "يرجى تحديث المعلومات الواردة أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية ." : "برجاء ادخال المعلومات أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية ."}</div>
+                <div className="text-sm text-emerald-800 text-right leading-relaxed font-bold">{editingMethod ? "يرجى تحديث المعلومات الواردة أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية ." : t("mandatory_fields_note")}</div>
 
                 <div className="space-y-4 text-right">
                   <div>

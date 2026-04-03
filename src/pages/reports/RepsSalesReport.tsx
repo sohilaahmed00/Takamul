@@ -3,12 +3,12 @@ import { FileText, FileSpreadsheet, ChevronDown, ChevronUp, RefreshCw } from 'lu
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function RepsSalesReport() {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const data = [
-    { name: 'عام', total: '23774.3500' },
+    { name: t("general"), total: '23774.3500' },
   ];
 
   return (

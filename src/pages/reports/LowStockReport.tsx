@@ -3,14 +3,14 @@ import { FileText, FileSpreadsheet, Printer, Camera, RefreshCw } from 'lucide-re
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function LowStockReport() {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [branch, setBranch] = useState('مغسلة سيارات');
 
   const data = [
     { code: '21212121212121', number: '', category: 'المشروبات / mashrubat', name: 'مياه', qty: '1.00-', alertQty: '50.00' },
-    { code: '6291100277919', number: '', category: 'عام', name: 'غسول نايتشرز باونتي 150مل', qty: '0.00', alertQty: '10.00' },
+    { code: '6291100277919', number: '', category: t("general"), name: 'غسول نايتشرز باونتي 150مل', qty: '0.00', alertQty: '10.00' },
   ];
 
   return (

@@ -13,19 +13,26 @@ interface ItemModalProps {
   item?: Item | null;
 }
 
-export default function ItemModal({ isOpen, onClose, item = null }: ItemModalProps) {
-  const { direction } = useLanguage();
+export default function ItemModal({
+  isOpen,
+  onClose,
+  item = null,
+}: ItemModalProps) {
+  const { direction, t } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
   const isEdit = !!item;
 
   const [name, setName] = useState("");
   const [isActive, setIsActive] = useState(true);
 
-  const { mutateAsync: createItemMutation, isPending: isCreating } = useCreateItem();
-  const { mutateAsync: updateItemMutation, isPending: isUpdating } = useUpdateItem();
+  const { mutateAsync: createItemMutation, isPending: isCreating } =
+    useCreateItem();
+  const { mutateAsync: updateItemMutation, isPending: isUpdating } =
+    useUpdateItem();
 
   useEffect(() => {
     if (!isOpen) return;
+
     if (item) {
       setName(item.name || "");
       setIsActive(item.isActive);
@@ -41,40 +48,60 @@ export default function ItemModal({ isOpen, onClose, item = null }: ItemModalPro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) { notifyError("اسم البند مطلوب"); return; }
+
+    if (!name.trim()) {
+      notifyError(t("item_name_required"));
+      return;
+    }
 
     try {
       if (isEdit && item) {
-        await updateItemMutation({ id: item.id, data: { name: name.trim(), isActive } });
-        notifySuccess("تم تعديل البند بنجاح");
+        await updateItemMutation({
+          id: item.id,
+          data: { name: name.trim(), isActive },
+        });
+        notifySuccess(t("edit_item_success"));
       } else {
         await createItemMutation({ name: name.trim() });
-        notifySuccess("تم إضافة البند بنجاح");
+        notifySuccess(t("add_item_success"));
       }
+
       onClose();
     } catch {
-      notifyError("حدث خطأ ما، حاول مرة أخرى");
+      notifyError(t("generic_try_again"));
     }
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4">
-      <div dir={direction} className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div
+        dir={direction}
+        className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl"
+      >
         <div className="flex items-center justify-between border-b px-6 py-4">
-          <h2 className="text-lg font-bold">{isEdit ? "تعديل بند" : "إضافة بند"}</h2>
-          <button type="button" onClick={onClose} className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100">
+          <h2 className="text-lg font-bold">
+            {isEdit ? t("edit_item") : t("add_item")}
+          </h2>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100"
+          >
             <X size={18} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5 p-6">
           <div>
-            <label className="mb-2 block text-sm font-medium">اسم البند</label>
+            <label className="mb-2 block text-sm font-medium">
+              {t("item_name")}
+            </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="أدخل اسم البند"
+              placeholder={t("enter_item_name")}
               className="h-10 w-full rounded-xl border px-3 outline-none focus:ring-2 focus:ring-[var(--primary)]"
             />
           </div>
@@ -88,15 +115,24 @@ export default function ItemModal({ isOpen, onClose, item = null }: ItemModalPro
                 onChange={(e) => setIsActive(e.target.checked)}
                 className="h-4 w-4 accent-[var(--primary)]"
               />
-              <label htmlFor="item-active" className="text-sm font-medium">نشط</label>
+              <label htmlFor="item-active" className="text-sm font-medium">
+                {t("active")}
+              </label>
             </div>
           )}
 
           <div className="flex items-center justify-end gap-3 pt-2">
-            <Button type="button" variant="outline" onClick={onClose}>إلغاء</Button>
+            <Button type="button" variant="outline" onClick={onClose}>
+              {t("cancel")}
+            </Button>
+
             <Button type="submit" disabled={isPending}>
               {isPending && <Loader2 size={15} className="animate-spin mr-1" />}
-              {isPending ? "جارٍ الحفظ..." : isEdit ? "حفظ التعديلات" : "إضافة"}
+              {isPending
+                ? t("saving")
+                : isEdit
+                  ? t("save_changes")
+                  : t("add_item")}
             </Button>
           </div>
         </form>

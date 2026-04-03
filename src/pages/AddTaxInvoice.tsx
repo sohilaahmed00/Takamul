@@ -1,6 +1,6 @@
-import React from 'react';
-import { useLanguage } from '@/context/LanguageContext';
-import { motion } from 'framer-motion';
+import React from "react";
+import { useLanguage } from "@/context/LanguageContext";
+import { motion } from "framer-motion";
 
 export default function AddTaxInvoice() {
   const { t, direction } = useLanguage();
@@ -12,10 +12,8 @@ export default function AddTaxInvoice() {
       className="p-4"
       dir={direction}
     >
-      <h1 className="text-xl font-bold mb-4">
-        {t('add_tax_invoice')}
-      </h1>
-      <p>{t('coming_soon') || 'This feature is coming soon.'}</p>
+      <h1 className="text-xl font-bold mb-4">{t("add_tax_invoice")}</h1>
+      <p>{t("coming_soon") || "This feature is coming soon."}</p>
     </motion.div>
   );
 }

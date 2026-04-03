@@ -93,55 +93,55 @@ const AddGroupModal: React.FC<AddGroupModalProps> = ({ isOpen, onClose }) => {
     <>
       {toastElement}
 
-      <ResponsiveModal isOpen={isOpen} onClose={onClose} title={t("add_group") || t("add_new_group") || "إضافة تصنيف"} maxWidth="max-w-2xl">
+      <ResponsiveModal isOpen={isOpen} onClose={onClose} title={t("add_group")} maxWidth="max-w-2xl">
         <div dir={direction} className="relative">
           <AnimatePresence mode="wait">
             {isOpen && (
               <motion.div key="add-group-modal-content" initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: 0.98 }} transition={{ duration: 0.2 }} className="bg-white rounded-2xl">
                 <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm border-b border-gray-100 px-4 sm:px-6 py-4 flex items-center justify-between rounded-t-2xl">
-                  <button onClick={onClose} type="button" className="text-gray-400 hover:text-gray-600 transition-colors p-1" aria-label={t("close") || "إغلاق"}>
+                  <button onClick={onClose} type="button" className="text-gray-400 hover:text-gray-600 transition-colors p-1" aria-label={t("close")}>
                     <X size={22} />
                   </button>
 
                   <div className="flex items-center gap-2 text-[#2ecc71]">
-                    <h2 className="text-lg sm:text-xl font-bold">{t("add_group") || t("add_new_group") || "إضافة تصنيف"}</h2>
+                    <h2 className="text-lg sm:text-xl font-bold">{t("add_group")}</h2>
                     <PlusCircle size={22} />
                   </div>
                 </div>
 
                 <form onSubmit={handleAddGroup} className="p-4 sm:p-6 space-y-6 max-h-[80vh] overflow-y-auto">
-                  <p className="text-sm text-gray-500 text-center">{t("mandatory_fields") || "برجاء إدخال البيانات المطلوبة. الحقول التي تحمل * إجبارية."}</p>
+                  <p className="text-sm text-gray-500 text-center">{t("mandatory_fields")}</p>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-                    <Field label={`${t("group_name") || "اسم التصنيف"} *`}>
+                    <Field label={`${t("group_name")} *`}>
                       <input type="text" value={groupName} onChange={(e) => setGroupName(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] focus:ring-1 focus:ring-[#2ecc71]/20" required />
                     </Field>
 
-                    <Field label={t("group_name_secondary_lang") || "الاسم باللغة الثانية"}>
+                    <Field label={t("group_name_secondary_lang")}>
                       <input type="text" value={groupNameSecondary} onChange={(e) => setGroupNameSecondary(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] focus:ring-1 focus:ring-[#2ecc71]/20" placeholder="English name" />
                     </Field>
 
-                    <Field label={t("product_name_third_lang") || "الاسم باللغة الثالثة"}>
+                    <Field label={t("product_name_third_lang")}>
                       <input type="text" value={groupNameUr} onChange={(e) => setGroupNameUr(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] focus:ring-1 focus:ring-[#2ecc71]/20" placeholder="Urdu name" />
                     </Field>
 
                     <div className="md:col-span-2">
-                      <Field label={`${t("description") || "الوصف"}`}>
+                      <Field label={t("description")}>
                         <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] focus:ring-1 focus:ring-[#2ecc71]/20 resize-none" rows={4} />
                       </Field>
                     </div>
 
                     <div className="md:col-span-2">
-                      <Field label={t("group_image") || "صورة التصنيف"}>
+                      <Field label={t("group_image")}>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                           <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
 
                           <button type="button" onClick={() => fileInputRef.current?.click()} className="bg-[#00a65a] text-white px-4 py-2.5 rounded-lg text-sm hover:bg-[#008d4c] transition-colors flex items-center justify-center gap-2">
                             <Upload size={16} />
-                            {t("browse") || "استعراض"}
+                            {t("browse")}
                           </button>
 
-                          <input type="text" value={fileName} className="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none bg-gray-50" readOnly placeholder={direction === "rtl" ? "لم يتم اختيار ملف" : "No file selected"} />
+                          <input type="text" value={fileName} className="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none bg-gray-50" readOnly placeholder={t("no_file_chosen")} />
                         </div>
                       </Field>
                     </div>
@@ -149,7 +149,7 @@ const AddGroupModal: React.FC<AddGroupModalProps> = ({ isOpen, onClose }) => {
 
                   <div className="flex justify-stretch sm:justify-end pt-4 border-t border-gray-100">
                     <button type="submit" disabled={submitting} className="w-full sm:w-auto bg-[#00a65a] text-white px-6 sm:px-10 py-3 rounded-lg font-bold hover:bg-[#008d4c] transition-colors shadow-md disabled:opacity-60">
-                      {submitting ? t("saving") || "جارٍ الحفظ..." : t("add_group") || t("add_new_group") || "إضافة تصنيف"}
+                      {submitting ? t("saving") : t("add_group")}
                     </button>
                   </div>
                 </form>

@@ -161,7 +161,7 @@ export default function GiftCards() {
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
-          <input type="text" value={globalFilterValue} placeholder={t("search_placeholder") || "البحث..."} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
+          <input type="text" value={globalFilterValue} placeholder={t("search_placeholder")} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
         </div>
       </div>
     );
@@ -309,7 +309,7 @@ export default function GiftCards() {
     //                       <button
     //                         onClick={() => setModal({ mode: 'edit', card })}
     //                         className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-    //                         title="تعديل"
+    //                         title={t("edit")}
     //                       >
     //                         <Edit2 size={15} />
     //                       </button>
@@ -473,10 +473,10 @@ export default function GiftCards() {
             header={t("actions")}
             body={(purchase) => (
               <div className="space-x-2">
-                <Link to={`/purchases/edit/${purchase?.id}`} onClick={async () => {}} className="btn-minimal-action btn-edit">
+                <Link to={`/purchases/edit/${purchase?.id}`} onClick={async () => { }} className="btn-minimal-action btn-edit">
                   <Edit2 size={16} />
                 </Link>
-                <button onClick={async () => {}} className="btn-minimal-action btn-delete">
+                <button onClick={async () => { }} className="btn-minimal-action btn-delete">
                   <Trash2 size={16} />
                 </button>
               </div>

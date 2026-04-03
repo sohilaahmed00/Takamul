@@ -33,7 +33,7 @@ interface CartItem extends Product {
 type ProductId = Product['id'];
 
 export default function POS() {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const { products, loading: productsLoading } = useProducts();
   const { posSettings, systemSettings } = useSettings();
   const { warehouses } = useWarehouses();
@@ -73,7 +73,7 @@ export default function POS() {
   const [customer, setCustomer] = useState({
     company: 'شخص عام',
     name: 'عميل نقدي',
-    group: 'عام',
+    group: t("general"),
     phone: '0000000000',
     address: '',
     taxId: '',
@@ -83,7 +83,7 @@ export default function POS() {
     creditLimit: '0',
     stopSelling: false,
     taxStatus: 'unregistered',
-    pricingGroup: 'عام',
+    pricingGroup: t("general"),
   });
 
   const [editCustomerData, setEditCustomerData] = useState({ ...customer });
@@ -443,7 +443,7 @@ export default function POS() {
 
               <input
                 type="text"
-                placeholder="ابحث بالاسم أو الباركود..."
+                placeholder={t('search') || 'ابحث بالاسم أو الباركود...'}
                 className="w-full border-2 border-gray-300 rounded-lg py-2.5 text-sm font-bold outline-none focus:border-[#0c4a3b] bg-white"
                 style={{ paddingRight: '40px', paddingLeft: '16px' }}
                 value={searchQuery}
@@ -942,7 +942,7 @@ export default function POS() {
           >
             <Building size={16} />
             <span className="text-sm font-bold">
-              {selectedBranch?.name || 'الفرع الرئيسي'}
+              {selectedBranch?.name || t("main_branch")}
             </span>
           </div>
 
@@ -1015,10 +1015,10 @@ export default function POS() {
       {selectedBranch?.showScreen2 && !selectedBranch?.showTouchScreen
         ? renderTraditionalScreen()
         : selectedBranch?.showTouchScreen && !selectedBranch?.showScreen2
-        ? renderTouchScreen()
-        : selectedBranch?.showTouchScreen
-        ? renderTouchScreen()
-        : renderTraditionalScreen()}
+          ? renderTouchScreen()
+          : selectedBranch?.showTouchScreen
+            ? renderTouchScreen()
+            : renderTraditionalScreen()}
 
       {showSubProductsModal && currentParentProduct && (
         <div

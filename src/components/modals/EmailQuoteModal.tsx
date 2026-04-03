@@ -40,7 +40,7 @@ export default function EmailQuoteModal({ isOpen, onClose }: EmailQuoteModalProp
                 <input type="text" className="takamol-input" />
               </div>
               <div className="space-y-2">
-                <label className="takamol-label">BCC</label>
+                <label className="takamol-label">{t('bcc')}</label>
                 <input type="text" className="takamol-input" />
               </div>
             </div>

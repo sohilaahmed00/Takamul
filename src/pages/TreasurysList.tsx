@@ -3,7 +3,14 @@ import { Edit2, Plus, Search, Trash2, Wallet } from "lucide-react";
 import { Column } from "primereact/column";
 import { DataTable, type DataTablePageEvent } from "primereact/datatable";
 import { Button } from "@/components/ui/button";
-import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 
@@ -67,10 +74,12 @@ export default function TreasurysList() {
 
     try {
       const res = await deleteTreasury(deleteTarget.id);
-      notifySuccess(typeof res === "string" ? res : "تم حذف الخزينة بنجاح");
+      notifySuccess(
+        typeof res === "string" ? res : t("treasury_deleted_successfully")
+      );
       setDeleteTarget(null);
     } catch (error: any) {
-      notifyError(error?.message || "حدث خطأ أثناء حذف الخزينة");
+      notifyError(error?.message || t("delete_treasury_error"));
     }
   };
 
@@ -92,7 +101,7 @@ export default function TreasurysList() {
               setSearchTerm(e.target.value);
               setCurrentPage(1);
             }}
-            placeholder={t("treasury_search_placeholder") || "ابحث عن خزينة"}
+            placeholder={t("treasury_search_placeholder")}
             className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none"
           />
         </div>
@@ -108,12 +117,10 @@ export default function TreasurysList() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Wallet size={20} className="text-[var(--primary)]" />
-            {t("treasuries_page_title") || "إدارة الخزائن"}
+            {t("treasuries_page_title")}
           </CardTitle>
 
-          <CardDescription>
-            {t("customize_report_below") || "إدارة الخزائن وإضافة وتعديل وحذف الخزائن"}
-          </CardDescription>
+          <CardDescription>{t("treasuries_page_desc")}</CardDescription>
 
           <CardAction>
             <Button
@@ -124,7 +131,7 @@ export default function TreasurysList() {
               }}
             >
               <Plus size={18} />
-              {t("add_treasury_btn") || "إضافة خزينة"}
+              {t("add_treasury_btn")}
             </Button>
           </CardAction>
         </CardHeader>
@@ -147,19 +154,19 @@ export default function TreasurysList() {
                 dataKey="id"
                 header={header}
                 className="custom-green-table custom-compact-table"
-                emptyMessage={t("no_data") || "لا توجد بيانات"}
+                emptyMessage={t("no_data")}
                 responsiveLayout="stack"
               >
                 <Column
                   field="id"
-                  header={t("treasury_code") || "الكود"}
+                  header={t("treasury_code")}
                   sortable
                   style={{ minWidth: "10rem", whiteSpace: "nowrap" }}
                 />
 
                 <Column
                   field="name"
-                  header={t("treasury_name") || "اسم الخزينة"}
+                  header={t("treasury_name")}
                   sortable
                   style={{ minWidth: "16rem" }}
                   body={(row: TreasuryRow) => (
@@ -171,7 +178,7 @@ export default function TreasurysList() {
 
                 <Column
                   field="openingBalance"
-                  header={t("treasury_opening_balance") || "الرصيد الافتتاحي"}
+                  header={t("treasury_opening_balance")}
                   sortable
                   style={{ minWidth: "12rem", whiteSpace: "nowrap" }}
                   body={(row: TreasuryRow) => formatNumber(row.openingBalance)}
@@ -179,14 +186,14 @@ export default function TreasurysList() {
 
                 <Column
                   field="currentBalance"
-                  header={t("treasury_current_balance") || "الرصيد الحالي"}
+                  header={t("treasury_current_balance")}
                   sortable
                   style={{ minWidth: "12rem", whiteSpace: "nowrap" }}
                   body={(row: TreasuryRow) => formatNumber(row.currentBalance)}
                 />
 
                 <Column
-                  header={t("actions") || "الإجراءات"}
+                  header={t("actions")}
                   style={{ minWidth: "9rem", whiteSpace: "nowrap" }}
                   body={(row: TreasuryRow) => (
                     <div className="space-x-2">
@@ -215,7 +222,7 @@ export default function TreasurysList() {
           <div className="lg:hidden space-y-3">
             {filteredTreasurys.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
-                {t("no_data") || "لا توجد بيانات"}
+                {t("no_data")}
               </div>
             ) : (
               filteredTreasurys
@@ -236,7 +243,7 @@ export default function TreasurysList() {
 
                         <div className="min-w-0">
                           <p className="text-xs text-[var(--text-muted)]">
-                            {t("treasury_name") || "اسم الخزينة"}
+                            {t("treasury_name")}
                           </p>
                           <p className="text-sm font-bold text-[var(--text-main)] break-words">
                             {row.name}
@@ -252,7 +259,7 @@ export default function TreasurysList() {
                     <div className="p-4 space-y-3">
                       <div className="rounded-xl bg-[#f8fafc] p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
-                          {t("treasury_opening_balance") || "الرصيد الافتتاحي"}
+                          {t("treasury_opening_balance")}
                         </p>
                         <p className="text-sm font-semibold text-[var(--text-main)]">
                           {formatNumber(row.openingBalance)}
@@ -261,7 +268,7 @@ export default function TreasurysList() {
 
                       <div className="rounded-xl bg-[#f8fafc] p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
-                          {t("treasury_current_balance") || "الرصيد الحالي"}
+                          {t("treasury_current_balance")}
                         </p>
                         <p className="text-sm font-semibold text-[var(--text-main)]">
                           {formatNumber(row.currentBalance)}
@@ -298,7 +305,7 @@ export default function TreasurysList() {
                   disabled={currentPage === 1}
                   className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t("previous") || "السابق"}
+                  {t("previous")}
                 </button>
 
                 <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
@@ -319,7 +326,7 @@ export default function TreasurysList() {
                   }
                   className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {t("next") || "التالي"}
+                  {t("next")}
                 </button>
               </div>
             )}
@@ -339,7 +346,7 @@ export default function TreasurysList() {
       <DeleteTreasuryDialog
         open={!!deleteTarget}
         itemName={deleteTarget?.name}
-        itemLabel="الخزينة"
+        itemLabel={t("treasury")}
         loading={isDeleting}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleConfirmDelete}

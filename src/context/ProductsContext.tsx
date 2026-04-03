@@ -245,7 +245,7 @@ export const ProductsProvider: React.FC<{ children: ReactNode }> = ({ children }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE = AUTH_API_BASE || "http://takamulerp.runasp.net";
+  const API_BASE = import.meta.env.DEV ? "" : AUTH_API_BASE || "http://takamulerp.runasp.net";
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("takamul_token");

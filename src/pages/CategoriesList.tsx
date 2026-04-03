@@ -65,7 +65,7 @@ export default function CategoriesList() {
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
-          <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder") || "البحث..."} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
+          <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder")} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
         </div>
       </div>
     );
@@ -75,8 +75,8 @@ export default function CategoriesList() {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>إدارة الاصناف</CardTitle>
-          <CardDescription>إدارة الأصناف المباشرة والمتفرعة والمجهزة والخامات</CardDescription>
+          <CardTitle>{t("manage_categories_title")}</CardTitle>
+          <CardDescription>{t("categories_description")}</CardDescription>
           <CardAction>
             <Button variant={"default"} onClick={() => setIsAddModalOpen(true)}>
               إضافة تصنيف{" "}

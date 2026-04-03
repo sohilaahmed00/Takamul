@@ -6,7 +6,6 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -21,7 +20,7 @@ import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { SupplierTransaction } from "@/features/supplier-transactions/types/supplierTransactions.types";
 
 export default function SupplierPaymentsList() {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -89,13 +88,13 @@ export default function SupplierPaymentsList() {
 
     try {
       await deleteTransaction(rowToDelete.id);
-      notifySuccess("تم حذف سند الصرف بنجاح");
+      notifySuccess(t("delete_supplier_payment_success"));
       setRowToDelete(null);
     } catch (error: any) {
       notifyError(
         error?.response?.data?.message ||
         error?.message ||
-        "حدث خطأ أثناء حذف سند الصرف"
+        t("delete_supplier_payment_error")
       );
     }
   };
@@ -136,7 +135,7 @@ export default function SupplierPaymentsList() {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          placeholder="ابحث باسم المورد أو الخزينة أو البيان أو المبلغ..."
+          placeholder={t("search_supplier_payments")}
           className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none"
         />
       </div>
@@ -149,16 +148,14 @@ export default function SupplierPaymentsList() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Truck size={20} className="text-[var(--primary)]" />
-            سند صرف          </CardTitle>
-
-          {/* <CardDescription>
-            تسجيل وعرض حركات سند الصرف الصادر للموردين
-          </CardDescription> */}
+            {t("supplier_payments")}
+          </CardTitle>
 
           <CardAction>
             <Button size={"xl"} onClick={openAddModal} variant="default">
               <Plus size={18} />
-              إضافة سند صرف            </Button>
+              {t("add_supplier_payment")}
+            </Button>
           </CardAction>
         </CardHeader>
 
@@ -179,12 +176,12 @@ export default function SupplierPaymentsList() {
               dataKey="id"
               header={header}
               className="custom-green-table custom-compact-table"
-              emptyMessage="لا توجد بيانات"
+              emptyMessage={t("no_data")}
               responsiveLayout="stack"
             >
               <Column
                 field="transactionDate"
-                header="تاريخ العملية"
+                header={t("operation_date")}
                 sortable
                 body={(row) => formatDate(row.transactionDate)}
                 style={{ width: "16%" }}
@@ -193,7 +190,7 @@ export default function SupplierPaymentsList() {
 
               <Column
                 field="supplierName"
-                header="اسم المورد"
+                header={t("supplier_name")}
                 sortable
                 style={{ width: "22%" }}
                 bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
@@ -201,7 +198,7 @@ export default function SupplierPaymentsList() {
 
               <Column
                 field="treasuryName"
-                header="الخزينة"
+                header={t("treasury")}
                 sortable
                 style={{ width: "18%" }}
                 bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
@@ -209,7 +206,7 @@ export default function SupplierPaymentsList() {
 
               <Column
                 field="amount"
-                header="المبلغ"
+                header={t("amount")}
                 sortable
                 body={(row) => formatNumber(row.amount)}
                 style={{ width: "14%" }}
@@ -218,14 +215,14 @@ export default function SupplierPaymentsList() {
 
               <Column
                 field="description"
-                header="البيان"
+                header={t("statement")}
                 body={(row) => row.description || "-"}
                 style={{ width: "18%" }}
                 bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
               />
 
               <Column
-                header="الإجراءات"
+                header={t("actions")}
                 body={actionBodyTemplate}
                 style={{ width: "12%" }}
                 bodyStyle={{ whiteSpace: "nowrap", textAlign: "center" }}
@@ -238,11 +235,11 @@ export default function SupplierPaymentsList() {
           <div className="grid grid-cols-1 gap-4 lg:hidden mt-4">
             {isLoading ? (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
-                جاري التحميل...
+                {t("loading")}
               </div>
             ) : filteredRows.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
-                لا توجد بيانات
+                {t("no_data")}
               </div>
             ) : (
               filteredRows
@@ -263,7 +260,7 @@ export default function SupplierPaymentsList() {
 
                         <div className="min-w-0">
                           <p className="text-xs text-[var(--text-muted)]">
-                            اسم المورد
+                            {t("supplier_name")}
                           </p>
                           <p className="text-sm font-bold text-[var(--text-main)] break-words">
                             {row.supplierName || "-"}
@@ -279,7 +276,7 @@ export default function SupplierPaymentsList() {
                     <div className="p-4 space-y-3">
                       <div className="rounded-xl bg-[#f8fafc] p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
-                          الخزينة
+                          {t("treasury")}
                         </p>
                         <p className="text-sm font-semibold text-[var(--text-main)]">
                           {row.treasuryName || "-"}
@@ -288,7 +285,7 @@ export default function SupplierPaymentsList() {
 
                       <div className="rounded-xl bg-[#f8fafc] p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
-                          المبلغ
+                          {t("amount")}
                         </p>
                         <p className="text-sm font-semibold text-[var(--text-main)]">
                           {formatNumber(row.amount)}
@@ -297,7 +294,7 @@ export default function SupplierPaymentsList() {
 
                       <div className="rounded-xl bg-[#f8fafc] p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
-                          البيان
+                          {t("statement")}
                         </p>
                         <p className="text-sm font-semibold text-[var(--text-main)] break-words">
                           {row.description || "-"}
@@ -334,7 +331,7 @@ export default function SupplierPaymentsList() {
                   disabled={currentPage === 1}
                   className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  السابق
+                  {t("previous")}
                 </button>
 
                 <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
@@ -355,7 +352,7 @@ export default function SupplierPaymentsList() {
                   }
                   className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  التالي
+                  {t("next")}
                 </button>
               </div>
             )}
@@ -375,7 +372,7 @@ export default function SupplierPaymentsList() {
 
       <DeleteTreasuryDialog
         open={!!rowToDelete}
-        itemLabel="هذا سند الصرف"
+        itemLabel={t("this_supplier_payment")}
         loading={isDeleting}
         onClose={() => setRowToDelete(null)}
         onConfirm={handleDelete}

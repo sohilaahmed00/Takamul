@@ -139,7 +139,7 @@ export default function Branches() {
           >
             <Column
               field="code"
-              header={t("branch_code") || "الكود"}
+              header={t("branch_code")}
               sortable
               style={{ minWidth: "8rem" }}
               bodyStyle={{ whiteSpace: "nowrap" }}

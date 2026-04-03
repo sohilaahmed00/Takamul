@@ -74,7 +74,7 @@ export default function IncomeStatement() {
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="text"
-                placeholder="بحث..."
+                placeholder={t("search_placeholder")}
                 className="w-full pr-10 pl-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-[var(--primary)]/20 outline-none transition-all"
               />
             </div>

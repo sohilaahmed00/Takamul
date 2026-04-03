@@ -65,7 +65,7 @@ export default function TreasuryModal({
     e.preventDefault();
 
     if (!name.trim()) {
-      notifyError(t('treasury_name_required') || "اسم الخزينة مطلوب");
+      notifyError(t("treasury_name_required"));
       return;
     }
 
@@ -76,18 +76,18 @@ export default function TreasuryModal({
           name: name.trim(),
           openingBalance: Number(openingBalance || 0),
         });
-        notifySuccess("تم تعديل الخزينة بنجاح");
+        notifySuccess(t("treasury_updated_successfully"));
       } else {
         await createTreasury({
           name: name.trim(),
           openingBalance: Number(openingBalance || 0),
         });
-        notifySuccess("تمت إضافة الخزينة بنجاح");
+        notifySuccess(t("treasury_created_successfully"));
       }
 
       onClose();
     } catch (error: any) {
-      notifyError(error?.message || "حدث خطأ أثناء الحفظ");
+      notifyError(error?.message || t("save_error"));
     }
   };
 
@@ -100,13 +100,8 @@ export default function TreasuryModal({
         <DialogHeader className="px-6 py-4 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-xl">
             <Wallet size={20} />
-            {isEdit ? t('treasury_modal_title_edit') || "تعديل خزينة" : t('treasury_modal_title_add') || "إضافة خزينة"}
+            {isEdit ? t("treasury_modal_title_edit") : t("treasury_modal_title_add")}
           </DialogTitle>
-          {/* <p className="text-sm text-gray-500">
-            {isEdit
-              ? "يمكنك تعديل اسم الخزينة والرصيد الافتتاحي"
-              : "أدخل بيانات الخزينة الجديدة"}
-          </p> */}
         </DialogHeader>
 
         <form
@@ -122,17 +117,17 @@ export default function TreasuryModal({
             <div className="grid grid-cols-1 gap-5">
               <Field>
                 <FieldLabel>
-                  {t('treasury_name_label') || 'اسم الخزينة'} <span className="text-red-500">*</span>
+                  {t("treasury_name_label")} <span className="text-red-500">*</span>
                 </FieldLabel>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="أدخل اسم الخزينة"
+                  placeholder={t("enter_treasury_name")}
                 />
               </Field>
 
               <Field>
-                <FieldLabel>{t('treasury_opening_balance') || 'الرصيد الافتتاحي'}</FieldLabel>
+                <FieldLabel>{t("treasury_opening_balance")}</FieldLabel>
                 <Input
                   type="number"
                   value={openingBalance}
@@ -146,8 +141,13 @@ export default function TreasuryModal({
 
         <DialogFooter className="px-8 py-8 border-t border-gray-100">
           <div className="flex items-center justify-end gap-3 w-full">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              {t('cancel') || 'إلغاء'}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
+              {t("cancel")}
             </Button>
 
             <Button
@@ -158,10 +158,10 @@ export default function TreasuryModal({
             >
               {isSubmitting && <Loader2 size={18} className="animate-spin" />}
               {isSubmitting
-                ? "جارٍ الحفظ..."
+                ? t("saving")
                 : isEdit
-                  ? "حفظ التعديلات"
-                  : "إضافة خزينة"}
+                ? t("save_changes")
+                : t("add_treasury_btn")}
             </Button>
           </div>
         </DialogFooter>

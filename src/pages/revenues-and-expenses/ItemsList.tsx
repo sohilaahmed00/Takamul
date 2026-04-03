@@ -21,7 +21,7 @@ import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { Item } from "@/features/items/types/items.types";
 
 export default function ItemsList() {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -68,22 +68,21 @@ export default function ItemsList() {
 
     try {
       await deleteItem(itemToDelete.id);
-      notifySuccess("تم حذف البند بنجاح");
+      notifySuccess(t("delete_item_success"));
       setItemToDelete(null);
     } catch {
-      notifyError("حدث خطأ أثناء حذف البند");
+      notifyError(t("delete_item_error"));
     }
   };
 
   const statusBodyTemplate = (row: Item) => (
     <span
-      className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${
-        row.isActive
+      className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${row.isActive
           ? "bg-green-100 text-green-700"
           : "bg-red-100 text-red-700"
-      }`}
+        }`}
     >
-      {row.isActive ? "نشط" : "غير نشط"}
+      {row.isActive ? t("active") : t("inactive")}
     </span>
   );
 
@@ -120,7 +119,7 @@ export default function ItemsList() {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          placeholder="ابحث باسم البند..."
+          placeholder={t("search_item")}
           className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none"
         />
       </div>
@@ -133,17 +132,15 @@ export default function ItemsList() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ListChecks size={20} className="text-[var(--primary)]" />
-            البنود
+            {t("items")}
           </CardTitle>
 
-          <CardDescription>
-            إدارة البنود المستخدمة في الإيرادات والمصروفات
-          </CardDescription>
+          <CardDescription>{t("items_desc")}</CardDescription>
 
           <CardAction>
             <Button onClick={openAddModal} variant="default">
               <Plus size={18} />
-              إضافة بند
+              {t("add_item")}
             </Button>
           </CardAction>
         </CardHeader>
@@ -165,23 +162,23 @@ export default function ItemsList() {
               dataKey="id"
               header={header}
               className="custom-green-table custom-compact-table"
-              emptyMessage="لا توجد بيانات"
+              emptyMessage={t("no_data")}
               responsiveLayout="stack"
             >
               <Column
                 field="name"
-                header="اسم البند"
+                header={t("item_name")}
                 sortable
                 style={{ width: "45%" }}
                 bodyStyle={{ whiteSpace: "normal", wordBreak: "break-word" }}
               />
               <Column
-                header="الحالة"
+                header={t("status")}
                 body={statusBodyTemplate}
                 style={{ width: "25%" }}
               />
               <Column
-                header="الإجراءات"
+                header={t("actions")}
                 body={actionBodyTemplate}
                 style={{ width: "20%" }}
                 bodyStyle={{ whiteSpace: "nowrap", textAlign: "center" }}
@@ -194,11 +191,11 @@ export default function ItemsList() {
           <div className="grid grid-cols-1 gap-4 lg:hidden mt-4">
             {isLoading ? (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
-                جاري التحميل...
+                {t("loading")}
               </div>
             ) : rows.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
-                لا توجد بيانات
+                {t("no_data")}
               </div>
             ) : (
               paginatedMobileRows.map((row) => (
@@ -219,7 +216,7 @@ export default function ItemsList() {
                   <div className="p-4 space-y-3">
                     <div className="rounded-xl bg-[#f8fafc] p-3">
                       <p className="text-xs text-[var(--text-muted)] mb-1">
-                        الحالة
+                        {t("status")}
                       </p>
                       <div className="pt-1">{statusBodyTemplate(row)}</div>
                     </div>
@@ -255,7 +252,7 @@ export default function ItemsList() {
                 disabled={currentPage === 1}
                 className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                السابق
+                {t("previous")}
               </button>
 
               <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
@@ -272,7 +269,7 @@ export default function ItemsList() {
                 disabled={currentPage >= totalPages}
                 className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                التالي
+                {t("next")}
               </button>
             </div>
           )}
@@ -287,7 +284,7 @@ export default function ItemsList() {
 
       <DeleteTreasuryDialog
         open={!!itemToDelete}
-        itemLabel="هذا البند"
+        itemLabel={t("this_item")}
         loading={isDeleting}
         onClose={() => setItemToDelete(null)}
         onConfirm={handleDelete}

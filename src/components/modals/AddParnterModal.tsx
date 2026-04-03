@@ -1,32 +1,37 @@
 import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { UserPlus } from "lucide-react";
+import * as z from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useLanguage } from "@/context/LanguageContext";
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-
 import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
 import { Input } from "../ui/input";
-
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { useGetAllCountries } from "@/features/locations/hooks/useGetAllCountries";
 import { useGetCityWithCountryId } from "@/features/locations/hooks/useGetCityWithCountryId";
 import { useGetStatesWithCityId } from "@/features/locations/hooks/useGetStatesWithCityId";
+
 import { useCreateCustomer } from "@/features/customers/hooks/useCreateCustomer";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useUpdateCustomer } from "@/features/customers/hooks/useUpdateCustomer";
-import useToast from "@/hooks/useToast";
-import axios from "axios";
 import type { createCustomer, Customer } from "@/features/customers/types/customers.types";
-import type { createSupplier, Supplier } from "@/features/suppliers/types/suppliers.types";
+
 import { useCreateSupplier } from "@/features/suppliers/hooks/useCreateSupplier";
 import { useUpdateSupplier } from "@/features/suppliers/hooks/useUpdateSupplier";
+import type { createSupplier, Supplier } from "@/features/suppliers/types/suppliers.types";
+
+import useToast from "@/hooks/useToast";
 
 interface AddParnterModalProps {
   isOpen: boolean;
@@ -35,21 +40,27 @@ interface AddParnterModalProps {
   type?: "supplier" | "customer";
 }
 
-export const createPartnerSchema = () =>
+export const createPartnerSchema = (t: (key: string) => string) =>
   z
     .object({
-      name: z.string().min(3, "الاسم يجب أن يكون 3 أحرف على الأقل"),
+      name: z.string().min(3, t("validation_name_min_3")),
 
-      phone: z.string().regex(/^\d+$/, "أرقام فقط").min(10, "رقم الهاتف غير صحيح"),
+      phone: z
+        .string()
+        .regex(/^\d+$/, t("validation_numbers_only"))
+        .min(10, t("validation_phone_invalid")),
 
       mobile: z
         .string()
         .optional()
         .refine((val) => !val || /^\d+$/.test(val), {
-          message: "أرقام فقط",
+          message: t("validation_numbers_only"),
         }),
 
-      commercialRegister: z.string().min(1, "السجل التجاري مطلوب").regex(/^\d+$/, "أرقام فقط"),
+      commercialRegister: z
+        .string()
+        .min(1, t("validation_commercial_register_required"))
+        .regex(/^\d+$/, t("validation_numbers_only")),
 
       isTaxable: z.boolean(),
 
@@ -60,20 +71,22 @@ export const createPartnerSchema = () =>
       stateId: z.number().optional(),
 
       address: z.string().optional(),
+      district: z.string().optional(),
+      streetName: z.string().optional(),
       postalCode: z.string().optional(),
 
       buildingNumber: z
         .string()
         .optional()
         .refine((val) => !val || /^\d+$/.test(val), {
-          message: "أرقام فقط",
+          message: t("validation_numbers_only"),
         }),
 
       additionalNumber: z
         .string()
         .optional()
         .refine((val) => !val || /^\d+$/.test(val), {
-          message: "أرقام فقط",
+          message: t("validation_numbers_only"),
         }),
     })
     .superRefine((data, ctx) => {
@@ -81,7 +94,7 @@ export const createPartnerSchema = () =>
         if (!data.taxNumber) {
           ctx.addIssue({
             path: ["taxNumber"],
-            message: "الرقم الضريبي مطلوب",
+            message: t("validation_tax_number_required"),
             code: z.ZodIssueCode.custom,
           });
         }
@@ -89,7 +102,7 @@ export const createPartnerSchema = () =>
         if (!data.countryId) {
           ctx.addIssue({
             path: ["countryId"],
-            message: "يجب اختيار الدولة",
+            message: t("validation_country_required"),
             code: z.ZodIssueCode.custom,
           });
         }
@@ -97,7 +110,7 @@ export const createPartnerSchema = () =>
         if (!data.cityId) {
           ctx.addIssue({
             path: ["cityId"],
-            message: "يجب اختيار المنطقة",
+            message: t("validation_region_required"),
             code: z.ZodIssueCode.custom,
           });
         }
@@ -105,7 +118,7 @@ export const createPartnerSchema = () =>
         if (!data.stateId) {
           ctx.addIssue({
             path: ["stateId"],
-            message: "يجب اختيار المدينة",
+            message: t("validation_city_required"),
             code: z.ZodIssueCode.custom,
           });
         }
@@ -113,7 +126,23 @@ export const createPartnerSchema = () =>
         if (!data.address || data.address.length < 5) {
           ctx.addIssue({
             path: ["address"],
-            message: "العنوان مطلوب",
+            message: t("validation_address_required"),
+            code: z.ZodIssueCode.custom,
+          });
+        }
+
+        if (!data.district) {
+          ctx.addIssue({
+            path: ["district"],
+            message: t("validation_district_required"),
+            code: z.ZodIssueCode.custom,
+          });
+        }
+
+        if (!data.streetName) {
+          ctx.addIssue({
+            path: ["streetName"],
+            message: t("validation_street_required"),
             code: z.ZodIssueCode.custom,
           });
         }
@@ -121,7 +150,7 @@ export const createPartnerSchema = () =>
         if (!data.postalCode) {
           ctx.addIssue({
             path: ["postalCode"],
-            message: "الرمز البريدي مطلوب",
+            message: t("validation_postal_code_required"),
             code: z.ZodIssueCode.custom,
           });
         }
@@ -129,7 +158,7 @@ export const createPartnerSchema = () =>
         if (!data.buildingNumber) {
           ctx.addIssue({
             path: ["buildingNumber"],
-            message: "رقم المبنى مطلوب",
+            message: t("validation_building_number_required"),
             code: z.ZodIssueCode.custom,
           });
         }
@@ -137,23 +166,30 @@ export const createPartnerSchema = () =>
         if (!data.additionalNumber) {
           ctx.addIssue({
             path: ["additionalNumber"],
-            message: "الرقم الإضافي مطلوب",
+            message: t("validation_additional_number_required"),
             code: z.ZodIssueCode.custom,
           });
         }
       }
     });
-export default function AddParnterModal({ isOpen, onClose, partner, type }: AddParnterModalProps) {
-  const { t } = useLanguage();
 
-  const { data: countriesData } = useGetAllCountries();
+export default function AddParnterModal({
+  isOpen,
+  onClose,
+  partner,
+  type = "customer",
+}: AddParnterModalProps) {
+  const { t, direction } = useLanguage();
   const { mutateAsync: createCustomer } = useCreateCustomer();
   const { mutateAsync: updateSupplier } = useUpdateSupplier();
   const { mutateAsync: createSupplier } = useCreateSupplier();
   const { mutateAsync: updateCustomer } = useUpdateCustomer();
-  const { notifyError, notifySuccess } = useToast();
-  const isSupplier = type == "supplier";
-  const schema = createPartnerSchema();
+  const { notifySuccess, notifyError } = useToast();
+
+  const isSupplier = type === "supplier";
+  const schema = createPartnerSchema(t);
+
+  const { data: countriesData } = useGetAllCountries();
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -162,6 +198,8 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
       phone: "",
       mobile: "",
       address: "",
+      district: "",
+      streetName: "",
       postalCode: "",
       taxNumber: "",
       commercialRegister: "",
@@ -169,17 +207,22 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
       countryId: 0,
       cityId: 0,
       stateId: 0,
+      buildingNumber: "",
+      additionalNumber: "",
     },
   });
+
   useEffect(() => {
     if (!isOpen) return;
 
     if (partner && "customerName" in partner) {
       form.reset({
-        name: partner?.customerName ?? "",
+        name: partner.customerName ?? "",
         phone: partner.phone ?? "",
         mobile: partner.mobile ?? "",
         address: partner.address ?? "",
+        district: "",
+        streetName: "",
         postalCode: partner.postalCode ?? "",
         taxNumber: partner.taxNumber ?? "",
         commercialRegister: "",
@@ -187,20 +230,26 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
         countryId: 0,
         cityId: 0,
         stateId: 0,
+        buildingNumber: "",
+        additionalNumber: "",
       });
     } else if (partner && "supplierName" in partner) {
       form.reset({
-        name: partner?.supplierName ?? "",
+        name: partner.supplierName ?? "",
         phone: partner.phone ?? "",
         mobile: partner.mobile ?? "",
         address: partner.address ?? "",
+        district: "",
+        streetName: "",
         postalCode: partner.postalCode ?? "",
         taxNumber: partner.taxNumber ?? "",
-        commercialRegister: "",
+        commercialRegister: partner.commercialRegister ?? "",
         isTaxable: !!partner.taxNumber,
         countryId: 0,
         cityId: 0,
         stateId: 0,
+        buildingNumber: "",
+        additionalNumber: "",
       });
     } else {
       form.reset({
@@ -208,6 +257,8 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
         phone: "",
         mobile: "",
         address: "",
+        district: "",
+        streetName: "",
         postalCode: "",
         taxNumber: "",
         commercialRegister: "",
@@ -215,23 +266,24 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
         countryId: 0,
         cityId: 0,
         stateId: 0,
+        buildingNumber: "",
+        additionalNumber: "",
       });
     }
-  }, [partner, isOpen]);
+  }, [partner, isOpen, form]);
+
   const countryId = form.watch("countryId");
   const cityId = form.watch("cityId");
   const isTaxable = form.watch("isTaxable");
 
   const { data: citiesData } = useGetCityWithCountryId(countryId);
-  const { data: statesdata } = useGetStatesWithCityId(cityId);
+  const { data: statesData } = useGetStatesWithCityId(cityId);
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
     try {
       const selectedCountry = countriesData?.find((c) => c.id === data.countryId);
-
       const selectedCity = citiesData?.find((c) => c.id === data.cityId);
-
-      const selectedState = statesdata?.find((s) => s.id === data.stateId);
+      const selectedState = statesData?.find((s) => s.id === data.stateId);
 
       type CreatePartnerPayload = createCustomer | createSupplier;
       let payload: CreatePartnerPayload;
@@ -247,13 +299,13 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
           country: selectedCountry?.countryName ?? "",
           postalCode: data.postalCode ?? "",
           taxNumber: data.taxNumber ?? "",
-          buildingNumber: "",
-          additionalNumber: "",
-          commercialRegister: data?.commercialRegister ?? "",
+          buildingNumber: data.buildingNumber ?? "",
+          additionalNumber: data.additionalNumber ?? "",
+          commercialRegister: data.commercialRegister ?? "",
         };
       } else {
         payload = {
-          customerName: data?.name,
+          customerName: data.name,
           phone: data.phone,
           mobile: data.mobile || "",
           address: data.address || "",
@@ -267,281 +319,324 @@ export default function AddParnterModal({ isOpen, onClose, partner, type }: AddP
 
       if (partner) {
         if (isSupplier) {
-          const res = await updateSupplier({ id: partner?.id, data: payload as createSupplier });
-          notifySuccess("تم تعديل المورد بنجاح");
+          await updateSupplier({ id: partner.id, data: payload as createSupplier });
+          notifySuccess(t("supplier_updated_successfully"));
         } else {
-          const res = await updateCustomer({ id: partner?.id, data: payload as createCustomer });
-          notifySuccess("تم تعديل العميل بنجاح");
+          await updateCustomer({ id: partner.id, data: payload as createCustomer });
+          notifySuccess(t("customer_updated_successfully"));
         }
       } else {
         if (isSupplier) {
           await createSupplier(payload as createSupplier);
-          notifySuccess("تم إضافة المورد بنجاح");
+          notifySuccess(t("supplier_added_successfully"));
         } else {
           await createCustomer(payload as createCustomer);
-          notifySuccess("تم إضافة العميل بنجاح");
+          notifySuccess(t("customer_added_successfully"));
         }
       }
+
       form.reset();
       onClose();
-    } catch (error) {}
+    } catch (error: any) {
+      notifyError(error?.response?.data?.message || error?.message || t("save_error"));
+    }
   };
 
   return (
-    <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="sm:max-w-[800px] md:max-w-[1000px] lg:max-w-screen-sm">
-          <DialogHeader className="py-3">
-            <DialogTitle className="flex items-center gap-2 text-[#2ecc71]">
-              <UserPlus size={20} />
-              {partner ? (isSupplier ? t("edit_supplier") || "تعديل المورد" : t("edit_customer") || "تعديل العميل") : isSupplier ? t("add_supplier") || "إضافة مورد" : t("add_customer") || "إضافة عميل"}
-            </DialogTitle>
-          </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent dir={direction} className="sm:max-w-[800px] md:max-w-[1000px] lg:max-w-screen-sm">
+        <DialogHeader className="py-3">
+          <DialogTitle className="flex items-center gap-2 text-[#2ecc71]">
+            <UserPlus size={20} />
+            {partner
+              ? isSupplier
+                ? t("edit_supplier")
+                : t("edit_customer")
+              : isSupplier
+              ? t("add_supplier")
+              : t("add_customer")}
+          </DialogTitle>
+        </DialogHeader>
 
-          <form id="addCustomerForm" onSubmit={form.handleSubmit(onSubmit)} className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-2">
+        <form
+          id="addPartnerForm"
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-2">
+            <Controller
+              name="name"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>
+                    {isSupplier ? t("supplier_name") : t("customer_name")} *
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    placeholder={
+                      isSupplier
+                        ? t("enter_supplier_name")
+                        : t("enter_customer_name")
+                    }
+                  />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="phone"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>{t("mobile")} *</FieldLabel>
+                  <Input {...field} type="number" placeholder={t("enter_mobile")} />
+                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                </Field>
+              )}
+            />
+
+            <div className="col-span-2">
               <Controller
-                name="name"
+                name="commercialRegister"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>{isSupplier ? "اسم المورد *" : "اسم العميل *"}</FieldLabel>
-
-                    <Input {...field} placeholder="أدخل اسم العميل..." />
+                    <FieldLabel>{t("commercial_register")} *</FieldLabel>
+                    <Input
+                      {...field}
+                      type="number"
+                      placeholder={t("enter_commercial_register")}
+                    />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
               />
+            </div>
 
-              {/* هاتف */}
-              <Controller
-                name="phone"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>رقم الجوال*</FieldLabel>
+            <div className="col-span-1 md:col-span-2 bg-white border border-gray-200 rounded-2xl p-5 my-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-base font-bold text-gray-800">
+                    {t("national_address")}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {t("tax_registration_helper_text")}
+                  </p>
+                </div>
 
-                    <Input {...field} type="number" placeholder="أدخل رقم الجوال..." />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-
-              {/* موبايل */}
-
-              {/* سجل تجاري */}
-              <div className="col-span-2">
                 <Controller
-                  name="commercialRegister"
+                  name="isTaxable"
                   control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>السجل التجاري*</FieldLabel>
-                      <Input {...field} type="number" placeholder="أدخل رقم السجل التجاري..." />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
+                  render={({ field }) => (
+                    <Switch
+                      className="scale-130 cursor-pointer"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
                   )}
                 />
               </div>
 
-              {/* التسجيل الضريبي */}
-
-              <div className="col-span-1 md:col-span-2 bg-white border border-gray-200 rounded-2xl p-5 my-2">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-base font-bold text-gray-800">العنوان الوطني</h3>
-
-                    <p className="text-sm text-gray-500 mt-1">قم بتفعيل هذا الخيار إذا كان العميل مسجلاً في ضريبة القيمة المضافة.</p>
-                  </div>
-
-                  <Controller name="isTaxable" control={form.control} render={({ field }) => <Switch className="scale-130 cursor-pointer" checked={field.value} onCheckedChange={field.onChange} />} />
-                </div>
-
-                {isTaxable && (
-                  <div className="mt-5 pt-5 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <Controller
-                      name="taxNumber"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>الرقم الضريبي *</FieldLabel>
-                          <Input {...field} placeholder="أدخل الرقم الضريبي..." />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* الدولة */}
-
               {isTaxable && (
-                <>
+                <div className="mt-5 pt-5 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300">
                   <Controller
-                    name="countryId"
+                    name="taxNumber"
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>الدولة *</FieldLabel>
-                        <Select
-                          value={field.value ? String(field.value) : ""}
-                          onValueChange={(value) => {
-                            field.onChange(Number(value));
-                            form.setValue("cityId", 0);
-                            form.setValue("stateId", 0);
-                          }}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="اختر الدولة..." />
-                          </SelectTrigger>
-
-                          <SelectContent>
-                            <SelectGroup>
-                              {countriesData?.map((c) => (
-                                <SelectItem key={c.id} value={String(c.id)}>
-                                  {c.countryName}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
+                        <FieldLabel>{t("tax_number")} *</FieldLabel>
+                        <Input {...field} placeholder={t("enter_tax_number")} />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
                   />
-
-                  {/* المدينة */}
-
-                  <Controller
-                    name="cityId"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>منطقة *</FieldLabel>
-                        <Select
-                          value={field.value ? String(field.value) : ""}
-                          onValueChange={(value) => {
-                            field.onChange(Number(value));
-                            form.setValue("stateId", 0);
-                          }}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="اختر المنطقة..." />
-                          </SelectTrigger>
-
-                          <SelectContent>
-                            <SelectGroup>
-                              {citiesData?.map((c) => (
-                                <SelectItem key={c.id} value={String(c.id)}>
-                                  {c.cityName}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-
-                  {/* المحافظة */}
-
-                  <Controller
-                    name="stateId"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>المدينة *</FieldLabel>
-                        <Select value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="اختر المدينة..." />
-                          </SelectTrigger>
-
-                          <SelectContent>
-                            <SelectGroup>
-                              {statesdata?.map((s) => (
-                                <SelectItem key={s.id} value={String(s.id)}>
-                                  {s.statesName}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-
-                  <Field>
-                    <Controller
-                      name="postalCode"
-                      control={form.control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>الحي*</FieldLabel>
-                          <Input {...field} placeholder="أدخل الحي..." />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-                  </Field>
-                  <Controller
-                    name="postalCode"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>اسم الشارع*</FieldLabel>
-                        <Input {...field} placeholder="أدخل اسم الشارع..." />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                  <Controller
-                    name="additionalNumber"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>الرقم الإضافي*</FieldLabel>
-                        <Input {...field} placeholder="أدخل الرقم الإضافي..." />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                  <Controller
-                    name="buildingNumber"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>رقم المبنى*</FieldLabel>
-                        <Input {...field} placeholder="أدخل رقم المبنى..." />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                  <Controller
-                    name="postalCode"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>الرمز البريدي*</FieldLabel>
-                        <Input {...field} placeholder="أدخل الرمز البريدي..." />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                </>
+                </div>
               )}
             </div>
-          </form>
 
-          <DialogFooter>
-            <Button form="addCustomerForm" className="h-12 px-6 text-base" type="submit">
-              {partner ? (isSupplier ? "تعديل المورد" : "تعديل العميل") : isSupplier ? "إضافة مورد" : "إضافة عميل"}{" "}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+            {isTaxable && (
+              <>
+                <Controller
+                  name="countryId"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>{t("country")} *</FieldLabel>
+                      <Select
+                        value={field.value ? String(field.value) : ""}
+                        onValueChange={(value) => {
+                          field.onChange(Number(value));
+                          form.setValue("cityId", 0);
+                          form.setValue("stateId", 0);
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={t("select_country")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {countriesData?.map((c) => (
+                              <SelectItem key={c.id} value={String(c.id)}>
+                                {c.countryName}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+
+                <Controller
+                  name="cityId"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>{t("region")} *</FieldLabel>
+                      <Select
+                        value={field.value ? String(field.value) : ""}
+                        onValueChange={(value) => {
+                          field.onChange(Number(value));
+                          form.setValue("stateId", 0);
+                        }}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={t("select_region")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {citiesData?.map((c) => (
+                              <SelectItem key={c.id} value={String(c.id)}>
+                                {c.cityName}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+
+                <Controller
+                  name="stateId"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>{t("city")} *</FieldLabel>
+                      <Select
+                        value={field.value ? String(field.value) : ""}
+                        onValueChange={(value) => field.onChange(Number(value))}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder={t("select_city")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {statesData?.map((s) => (
+                              <SelectItem key={s.id} value={String(s.id)}>
+                                {s.statesName}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+
+                <Controller
+                  name="district"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>{t("district")} *</FieldLabel>
+                      <Input {...field} placeholder={t("enter_district")} />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+
+                <Controller
+                  name="streetName"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>{t("street_name")} *</FieldLabel>
+                      <Input {...field} placeholder={t("enter_street_name")} />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+
+                <Controller
+                  name="additionalNumber"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>{t("additional_number")} *</FieldLabel>
+                      <Input {...field} placeholder={t("enter_additional_number")} />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+
+                <Controller
+                  name="buildingNumber"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>{t("building_number")} *</FieldLabel>
+                      <Input {...field} placeholder={t("enter_building_number")} />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+
+                <Controller
+                  name="postalCode"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>{t("postal_code")} *</FieldLabel>
+                      <Input {...field} placeholder={t("enter_postal_code")} />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+
+                <Controller
+                  name="address"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid} className="md:col-span-2">
+                      <FieldLabel>{t("address")} *</FieldLabel>
+                      <Input {...field} placeholder={t("enter_address")} />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+              </>
+            )}
+          </div>
+        </form>
+
+        <DialogFooter>
+          <Button form="addPartnerForm" className="h-12 px-6 text-base" type="submit">
+            {partner
+              ? isSupplier
+                ? t("edit_supplier")
+                : t("edit_customer")
+              : isSupplier
+              ? t("add_supplier")
+              : t("add_customer")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

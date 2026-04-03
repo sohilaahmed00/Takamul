@@ -12,7 +12,7 @@ const Delegates: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingDelegate, setEditingDelegate] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [form, setForm] = useState({ code: '', name: '', phone: '', region: 'عام' });
+  const [form, setForm] = useState({ code: '', name: '', phone: '', region: t("general") });
 
   const handleOpenModal = (delegate?: any) => {
     if (delegate) {
@@ -20,7 +20,7 @@ const Delegates: React.FC = () => {
       setForm({ code: delegate.code, name: delegate.name, phone: delegate.phone, region: delegate.region });
     } else {
       setEditingDelegate(null);
-      setForm({ code: '', name: '', phone: '', region: 'عام' });
+      setForm({ code: '', name: '', phone: '', region: t("general") });
     }
     setShowModal(true);
   };
@@ -35,7 +35,7 @@ const Delegates: React.FC = () => {
     setShowModal(false);
   };
 
-  const filteredDelegates = delegates.filter(d => 
+  const filteredDelegates = delegates.filter(d =>
     d.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     d.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
     d.phone.toLowerCase().includes(searchTerm.toLowerCase())
@@ -45,7 +45,7 @@ const Delegates: React.FC = () => {
     <div className="p-6 space-y-6" dir={direction}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-[var(--text-main)]">{t('delegates_and_employees')}</h1>
-        <button 
+        <button
           onClick={() => handleOpenModal()}
           className="flex items-center gap-2 bg-[var(--primary)] text-white px-4 py-2 rounded-lg hover:bg-opacity-90 transition-all text-sm font-medium"
         >
@@ -115,13 +115,13 @@ const Delegates: React.FC = () => {
                     <tr key={`desktop-${d.id}`} className="border-b border-[var(--border)] hover:bg-[var(--bg-main)]/50 transition-colors">
                       <td className="p-3">
                         <div className="flex items-center gap-2 justify-center">
-                          <button 
+                          <button
                             onClick={() => handleOpenModal(d)}
                             className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
                           >
                             <Edit2 size={16} />
                           </button>
-                          <button 
+                          <button
                             onClick={() => deleteDelegate(d.id)}
                             className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-md transition-colors"
                           >
@@ -158,13 +158,13 @@ const Delegates: React.FC = () => {
                   ]}
                   actions={
                     <div className="flex items-center gap-2">
-                      <button 
+                      <button
                         onClick={() => handleOpenModal(d)}
                         className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                       >
                         <Edit2 size={18} />
                       </button>
-                      <button 
+                      <button
                         onClick={() => deleteDelegate(d.id)}
                         className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
                       >
@@ -205,7 +205,7 @@ const Delegates: React.FC = () => {
               className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl"
             >
               <div className="bg-primary p-4 flex items-center justify-between text-white">
-                <button 
+                <button
                   onClick={() => setShowModal(false)}
                   className="p-1 hover:bg-white/10 rounded-full transition-colors text-white/80"
                 >
@@ -254,14 +254,14 @@ const Delegates: React.FC = () => {
                   <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('region')}</label>
                     <div className="flex gap-2">
-                       <select
+                      <select
                         value={form.region}
                         onChange={(e) => setForm({ ...form, region: e.target.value })}
                         className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all"
                       >
-                        <option value="عام">عام</option>
+                        <option value={t("general")}>عام</option>
                       </select>
-                      <button 
+                      <button
                         type="button"
                         className="bg-emerald-600 text-white px-4 py-2 rounded-xl hover:bg-emerald-700 transition-all font-bold whitespace-nowrap"
                       >

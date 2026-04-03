@@ -123,10 +123,10 @@ function mapProductLite(item: any): ProductLite {
 
 function getNatureLabel(n: ProductNature): string {
   switch (n) {
-    case "basic": return "الصنف المباشر";
-    case "prepared": return "الصنف المجهز";
-    case "sub": return "الصنف المتفرع";
-    case "materials": return "الخامة";
+    case "basic": return t("direct_product_type");
+    case "prepared": return t("prepared_product_type");
+    case "sub": return t("branched_product_type");
+    case "materials": return t("raw_material_type");
   }
 }
 
@@ -144,10 +144,10 @@ function detectNature(item: any): ProductNature {
   // Check every possible field the API might use
   const t = [
     item?.productType, item?.ProductType,
-    item?.type,        item?.Type,
-    item?.nature,      item?.Nature,
+    item?.type, item?.Type,
+    item?.nature, item?.Nature,
     item?.productNature, item?.ProductNature,
-    item?.category,    item?.categoryName,
+    item?.category, item?.categoryName,
   ].map(v => (v ?? "").toString().toLowerCase()).join("|");
 
   if (t.includes("prepared") || t.includes("مجهز")) return "prepared";
@@ -173,9 +173,9 @@ const apiFetchProduct = (id: string): Promise<any> =>
 // Try each type-specific endpoint to determine product nature
 const apiFetchProductByType = async (id: string): Promise<{ nature: ProductNature; data: any }> => {
   const endpoints: Array<{ nature: ProductNature; path: string }> = [
-    { nature: "basic",     path: `/api/Products/direct/${id}` },
-    { nature: "sub",       path: `/api/Products/branched/${id}` },
-    { nature: "prepared",  path: `/api/Products/prepared/${id}` },
+    { nature: "basic", path: `/api/Products/direct/${id}` },
+    { nature: "sub", path: `/api/Products/branched/${id}` },
+    { nature: "prepared", path: `/api/Products/prepared/${id}` },
     { nature: "materials", path: `/api/Products/raw-material/${id}` },
   ];
   for (const ep of endpoints) {
@@ -285,9 +285,9 @@ export default function EditProduct() {
     if (stateNature) {
       // Try the type-specific GET endpoint
       const getEndpoints: Record<ProductNature, string> = {
-        basic:     `/api/Products/direct/${id}`,
-        sub:       `/api/Products/branched/${id}`,
-        prepared:  `/api/Products/prepared/${id}`,
+        basic: `/api/Products/direct/${id}`,
+        sub: `/api/Products/branched/${id}`,
+        prepared: `/api/Products/prepared/${id}`,
         materials: `/api/Products/raw-material/${id}`,
       };
       try {
@@ -303,8 +303,8 @@ export default function EditProduct() {
 
   const { data: typeData, isLoading: loadingType } = useQuery({
     queryKey: ["productByType", id, stateNature],
-    queryFn:  apiFetchSpecific,
-    enabled:  Boolean(id),
+    queryFn: apiFetchSpecific,
+    enabled: Boolean(id),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -345,7 +345,7 @@ export default function EditProduct() {
   const matList: ProductLite[] = useMemo(() => (Array.isArray(rawMatsRaw) ? rawMatsRaw : []).map(mapProductLite), [rawMatsRaw]);
   // For display purposes in prepared edit — include all products so existing components show correctly
   const matListForDisplay: ProductLite[] = useMemo(() => {
-    const rawIds = new Set((Array.isArray(rawMatsRaw) ? rawMatsRaw : []).map((p:any) => String(p?.id ?? "")));
+    const rawIds = new Set((Array.isArray(rawMatsRaw) ? rawMatsRaw : []).map((p: any) => String(p?.id ?? "")));
     const all = (Array.isArray(allProductsRaw) ? allProductsRaw : []).map(mapProductLite);
     return all; // show all for display, but warn if non-raw-material is selected
   }, [rawMatsRaw, allProductsRaw]);
@@ -413,12 +413,12 @@ export default function EditProduct() {
         const unitNameResolved = c?.unitName ?? c?.unitNameAr ??
           (unitIdStr ? (unitsForPrepared.find(u => u.id === unitIdStr)?.name ?? UNITS_LIST.find(u => u.id === unitIdStr)?.name) : undefined);
         return {
-          materialId:   String(matId),
+          materialId: String(matId),
           materialName: String(matName),
-          quantity:     Number(c?.quantity ?? 1),
-          unitId:       unitIdStr,
-          unitName:     unitNameResolved,
-          cost:         Number(c?.unitCost ?? c?.costPrice ?? c?.cost ?? 0),
+          quantity: Number(c?.quantity ?? 1),
+          unitId: unitIdStr,
+          unitName: unitNameResolved,
+          cost: Number(c?.unitCost ?? c?.costPrice ?? c?.cost ?? 0),
         };
       });
     })();
@@ -427,21 +427,21 @@ export default function EditProduct() {
 
     setForm(prev => ({
       ...prev,
-      name:             String(specific?.productNameAr ?? p?.productNameAr ?? ""),
-      nameLang2:        String(specific?.productNameEn ?? p?.productNameEn ?? ""),
-      nameLang3:        String(specific?.productNameUr ?? p?.productNameUr ?? ""),
-      code:             String(specific?.barcode ?? specific?.productCode ?? p?.barcode ?? ""),
-      cost:             parsePrice(specific?.costPrice ?? p?.costPrice),
-      sellingPrice:     parsePrice(specific?.sellingPrice ?? p?.sellingPrice),
-      categoryId:       resolvedCatId,
-      alertQuantity:    String(specific?.minStockLevel ?? p?.minStockLevel ?? "0"),
-      details:          String(specific?.description ?? p?.description ?? ""),
+      name: String(specific?.productNameAr ?? p?.productNameAr ?? ""),
+      nameLang2: String(specific?.productNameEn ?? p?.productNameEn ?? ""),
+      nameLang3: String(specific?.productNameUr ?? p?.productNameUr ?? ""),
+      code: String(specific?.barcode ?? specific?.productCode ?? p?.barcode ?? ""),
+      cost: parsePrice(specific?.costPrice ?? p?.costPrice),
+      sellingPrice: parsePrice(specific?.sellingPrice ?? p?.sellingPrice),
+      categoryId: resolvedCatId,
+      alertQuantity: String(specific?.minStockLevel ?? p?.minStockLevel ?? "0"),
+      details: String(specific?.description ?? p?.description ?? ""),
       conversionFactor: String(specific?.conversionFactor ?? p?.conversionFactor ?? "1"),
-      baseUnitId:       specific?.baseUnitId ? String(specific.baseUnitId) : "",
-      purchaseUnitId:   specific?.purchaseUnitId ? String(specific.purchaseUnitId) : "",
-      parentProductIds:   childrenIds,
+      baseUnitId: specific?.baseUnitId ? String(specific.baseUnitId) : "",
+      purchaseUnitId: specific?.purchaseUnitId ? String(specific.purchaseUnitId) : "",
+      parentProductIds: childrenIds,
       parentProductNames: childrenNames,
-      materials:          components,
+      materials: components,
     }));
 
     const imgUrl = specific?.imageUrl ?? p?.imageUrl;
@@ -604,10 +604,10 @@ export default function EditProduct() {
   // NOTE: raw-material PUT uses application/json; others use multipart/form-data
 
   const buildFD = (): FormData => {
-    const taxId       = (!vatIncluded && selectedVat) ? selectedVat.id : NO_TAX_ID;
-    const taxCalc     = (!vatIncluded && selectedVat) ? "Excludestax" : "Includestax";
+    const taxId = (!vatIncluded && selectedVat) ? selectedVat.id : NO_TAX_ID;
+    const taxCalc = (!vatIncluded && selectedVat) ? "Excludestax" : "Includestax";
     const priceToSend = String(finalSellingPrice);
-    const catId       = resolvedCategoryId();
+    const catId = resolvedCategoryId();
 
     switch (productNature) {
 
@@ -616,17 +616,17 @@ export default function EditProduct() {
       // Optional: Barcode, ProductNameEn/Ur, Description, MinStockLevel, TaxId, CategoryId, Image
       case "basic": {
         const fd = new FormData();
-        fd.append("ProductNameAr",  form.name.trim());
-        fd.append("ProductNameEn",  form.nameLang2.trim());
-        fd.append("ProductNameUr",  form.nameLang3.trim());
+        fd.append("ProductNameAr", form.name.trim());
+        fd.append("ProductNameEn", form.nameLang2.trim());
+        fd.append("ProductNameUr", form.nameLang3.trim());
         if (String(form.code || "").trim()) fd.append("Barcode", String(form.code).trim());
-        if (form.details.trim())            fd.append("Description", form.details.trim());
+        if (form.details.trim()) fd.append("Description", form.details.trim());
         const catNum = Number(catId);
-        if (catNum > 0)                     fd.append("CategoryId", String(catNum));
-        fd.append("CostPrice",      form.cost);
-        fd.append("SellingPrice",   priceToSend);
-        fd.append("MinStockLevel",  form.alertQuantity || "0");
-        fd.append("TaxId",          String(taxId));
+        if (catNum > 0) fd.append("CategoryId", String(catNum));
+        fd.append("CostPrice", form.cost);
+        fd.append("SellingPrice", priceToSend);
+        fd.append("MinStockLevel", form.alertQuantity || "0");
+        fd.append("TaxId", String(taxId));
         fd.append("TaxCalculation", taxCalc);
         if (imageFile) fd.append("Image", imageFile);
         return fd;
@@ -637,9 +637,9 @@ export default function EditProduct() {
       case "materials": {
         const fd = new FormData();
         fd.append("ProductNameAr", form.name.trim());
-        fd.append("CostPrice",     String(Number(form.cost) || 0));
-        if (form.baseUnitId)       fd.append("BaseUnitId",       String(Number(form.baseUnitId)));
-        if (form.purchaseUnitId)   fd.append("PurchaseUnitId",   String(Number(form.purchaseUnitId)));
+        fd.append("CostPrice", String(Number(form.cost) || 0));
+        if (form.baseUnitId) fd.append("BaseUnitId", String(Number(form.baseUnitId)));
+        if (form.purchaseUnitId) fd.append("PurchaseUnitId", String(Number(form.purchaseUnitId)));
         if (form.conversionFactor) fd.append("ConversionFactor", form.conversionFactor);
         return fd;
       }
@@ -652,7 +652,7 @@ export default function EditProduct() {
         fd.append("ProductNameAr", form.name.trim());
         fd.append("ProductNameEn", form.nameLang2.trim());
         fd.append("ProductNameUr", form.nameLang3.trim());
-        fd.append("Description",   form.details.trim());
+        fd.append("Description", form.details.trim());
         // Don't send CategoryId — causes 500 DB constraint error in branched PUT
         form.parentProductIds.forEach(pid => fd.append("ChildrenIds", pid));
         if (imageFile) fd.append("Image", imageFile);
@@ -664,23 +664,23 @@ export default function EditProduct() {
       // Optional: ProductNameEn, ProductNameUr, Barcode, Description, CategoryId, TaxCalculation, Image, Components
       case "prepared": {
         const fd = new FormData();
-        fd.append("ProductNameAr",  form.name.trim());
-        fd.append("ProductNameEn",  form.nameLang2.trim());
-        fd.append("ProductNameUr",  form.nameLang3.trim());
+        fd.append("ProductNameAr", form.name.trim());
+        fd.append("ProductNameEn", form.nameLang2.trim());
+        fd.append("ProductNameUr", form.nameLang3.trim());
         if (String(form.code || "").trim()) fd.append("Barcode", String(form.code).trim());
-        if (form.details.trim())            fd.append("Description", form.details.trim());
+        if (form.details.trim()) fd.append("Description", form.details.trim());
         const catNum = Number(catId);
-        if (catNum > 0)                     fd.append("CategoryId", String(catNum));
-        fd.append("SellingPrice",   priceToSend);
-        fd.append("TaxId",          String(taxId));
+        if (catNum > 0) fd.append("CategoryId", String(catNum));
+        fd.append("SellingPrice", priceToSend);
+        fd.append("TaxId", String(taxId));
         fd.append("TaxCalculation", taxCalc);
         if (imageFile) fd.append("Image", imageFile);
         if (form.materials.length > 0) {
           fd.append("Components", JSON.stringify(
             form.materials.map(m => ({
               componentProductId: Number(m.materialId),
-              quantity:           Number(m.quantity),
-              unitId:             Number(m.unitId) || 1,
+              quantity: Number(m.quantity),
+              unitId: Number(m.unitId) || 1,
             }))
           ));
         }
@@ -1074,7 +1074,7 @@ export default function EditProduct() {
                               <td className="p-3 font-bold text-gray-800">{m.materialName}</td>
                               <td className="p-3 text-center">{m.quantity}</td>
                               <td className="p-3 text-center text-gray-600">
-                                {m.unitName || 
+                                {m.unitName ||
                                   (m.unitId ? (unitsForPrepared.find(u => u.id === m.unitId)?.name || UNITS_LIST.find(u => u.id === m.unitId)?.name || m.unitId) : "—")
                                 }
                               </td>
@@ -1135,7 +1135,7 @@ export default function EditProduct() {
                     <option value="">
                       {!form.categoryId ? "اختر التصنيف الرئيسي أولًا"
                         : loadingSub ? "⏳ جاري التحميل..."
-                        : "اختياري — اختر تصنيفاً فرعياً"}
+                          : "اختياري — اختر تصنيفاً فرعياً"}
                     </option>
                     {subCats.map(c => (
                       <option key={String(c.id)} value={String(c.id)}>{getDisplayName(c, direction)}</option>

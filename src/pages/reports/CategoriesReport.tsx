@@ -3,12 +3,12 @@ import { FileText, FileSpreadsheet, Network, ChevronDown, ChevronUp, ExternalLin
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function CategoriesReport() {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const data = [
-    { id: 'c003', name: 'عام', buy: '102.00', sell: '282.00', buyVal: '4,446.58', sellVal: '8,956.10', profit: '4,509.52' },
+    { id: 'c003', name: t("general"), buy: '102.00', sell: '282.00', buyVal: '4,446.58', sellVal: '8,956.10', profit: '4,509.52' },
   ];
 
   return (

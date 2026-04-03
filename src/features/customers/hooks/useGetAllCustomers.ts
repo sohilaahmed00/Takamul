@@ -8,3 +8,4 @@ export const useGetAllCustomers = ({ page, limit, searchTerm }: { page: number; 
     queryKey: customersKeys.list({ page, limit, searchTerm }),
     queryFn: () => getAllCustomers({ page, limit, searchTerm }),
   });
+};

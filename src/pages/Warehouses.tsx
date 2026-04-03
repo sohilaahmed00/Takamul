@@ -15,7 +15,7 @@ const Warehouses: React.FC = () => {
   const [form, setForm] = useState<Omit<Warehouse, "id">>({
     code: "",
     name: "",
-    pricingGroup: "عام",
+    pricingGroup: t("general"),
     phone: "",
     email: "",
     address: "",
@@ -35,7 +35,7 @@ const Warehouses: React.FC = () => {
       setForm({
         code: warehouse.code || "",
         name: warehouse.name || "",
-        pricingGroup: warehouse.pricingGroup || "عام",
+        pricingGroup: warehouse.pricingGroup || t("general"),
         phone: warehouse.phone || "",
         email: warehouse.email || "",
         address: warehouse.address || "",
@@ -53,7 +53,7 @@ const Warehouses: React.FC = () => {
       setForm({
         code: "",
         name: "",
-        pricingGroup: "عام",
+        pricingGroup: t("general"),
         phone: "",
         email: "",
         address: "",
@@ -252,8 +252,8 @@ const Warehouses: React.FC = () => {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-bold text-[var(--primary)] mb-1.5">{t("pricing_group_label")}</label>
-                      <select value={form.pricingGroup || "عام"} onChange={(e) => setForm({ ...form, pricingGroup: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-[var(--primary)]/10 outline-none text-right transition-all">
-                        <option value="عام">عام</option>
+                      <select value={form.pricingGroup || t("general")} onChange={(e) => setForm({ ...form, pricingGroup: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-[var(--primary)]/10 outline-none text-right transition-all">
+                        <option value={t("general")}>عام</option>
                       </select>
                     </div>
                     <div>

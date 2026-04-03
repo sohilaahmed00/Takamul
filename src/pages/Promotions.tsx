@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { usePromotions } from '../context/PromotionsContext';
-import { Plus, Search, Trash2, Edit2,  LayoutGrid } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, LayoutGrid } from 'lucide-react';
 import { cn } from '../lib/utils';
 import MobileDataCard from '@/components/MobileDataCard';
 
 const Promotions: React.FC = () => {
   const { t, language, direction } = useLanguage();
-  const { 
-    specialPromotions, 
-    generalPromotions, 
-    addSpecialPromotion, 
+  const {
+    specialPromotions,
+    generalPromotions,
+    addSpecialPromotion,
     updateSpecialPromotion,
     deleteSpecialPromotion,
     addGeneralPromotion,
@@ -41,7 +41,7 @@ const Promotions: React.FC = () => {
     startDate: '2021-06-01',
     endDate: '2021-07-01',
     discount: 0,
-    branch: 'تجريبي'
+    branch: t("demo_branch")
   });
 
   const handleAddSpecial = (e: React.FormEvent) => {
@@ -90,7 +90,7 @@ const Promotions: React.FC = () => {
     // Reset or keep? The image shows it as a persistent form
   };
 
-  const filteredSpecial = specialPromotions.filter(p => 
+  const filteredSpecial = specialPromotions.filter(p =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.basicItem.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -159,7 +159,7 @@ const Promotions: React.FC = () => {
 
                     {/* Add Button */}
                     <div className="flex items-center gap-2 order-1 md:order-2">
-                      <button 
+                      <button
                         onClick={() => { setShowAddSpecial(true); setEditingPromotion(null); }}
                         className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm font-bold shadow-sm"
                       >
@@ -207,13 +207,13 @@ const Promotions: React.FC = () => {
                               <td className="p-3 border-r border-gray-100 dark:border-gray-700 text-sm font-mono">{p.endDate}</td>
                               <td className="p-3 border-r border-gray-100 dark:border-gray-700">
                                 <div className="flex items-center gap-2 justify-center">
-                                  <button 
+                                  <button
                                     onClick={() => handleEditSpecial(p)}
                                     className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors border border-emerald-100 dark:border-emerald-900/30"
                                   >
                                     <Edit2 size={16} />
                                   </button>
-                                  <button 
+                                  <button
                                     onClick={() => deleteSpecialPromotion(p.id)}
                                     className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors border border-emerald-100 dark:border-emerald-900/30"
                                   >
@@ -245,13 +245,13 @@ const Promotions: React.FC = () => {
                         ]}
                         actions={
                           <div className="flex justify-end gap-2">
-                            <button 
+                            <button
                               onClick={() => deleteSpecialPromotion(p.id)}
                               className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-100 transition-colors"
                             >
                               <Trash2 size={18} />
                             </button>
-                            <button 
+                            <button
                               onClick={() => handleEditSpecial(p)}
                               className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-100 transition-colors"
                             >
@@ -297,7 +297,7 @@ const Promotions: React.FC = () => {
                         {editingPromotion ? t('edit_special_promotion') : t('add_special_promotion')}
                       </span>
                     </div>
-                    <button 
+                    <button
                       onClick={() => { setShowAddSpecial(false); setEditingPromotion(null); }}
                       className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-2xl leading-none"
                     >
@@ -472,7 +472,7 @@ const Promotions: React.FC = () => {
                       onChange={(e) => setGeneralForm({ ...generalForm, branch: e.target.value })}
                       className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary outline-none"
                     >
-                      <option value="تجريبي">تجريبي</option>
+                      <option value={t("demo_branch")}>تجريبي</option>
                     </select>
                   </div>
                 </div>

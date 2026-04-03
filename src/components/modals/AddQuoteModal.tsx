@@ -80,7 +80,7 @@ const AddQuoteModal: React.FC<AddQuoteModalProps> = ({ isOpen, onClose }) => {
             <tbody>
               <tr className="border-b border-gray-100 dark:border-gray-800">
                 <td colSpan={5} className="p-8 text-center text-gray-400 italic">
-                  {t("no_items_added") || "لا توجد أصناف مضافة"}
+                  {t("no_items_added")}
                 </td>
               </tr>
             </tbody>

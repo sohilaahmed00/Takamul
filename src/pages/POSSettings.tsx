@@ -103,13 +103,13 @@ const POSSettings: React.FC = () => {
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("default_category")} *</label>
                   <select value={posSettings.config.defaultCategory} onChange={(e) => handleUpdate("config", "defaultCategory", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]">
-                    <option value="عام">عام</option>
+                    <option value={t("general")}>عام</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("default_cashier")} *</label>
                   <select value={posSettings.config.defaultCashier} onChange={(e) => handleUpdate("config", "defaultCashier", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]">
-                    <option value="تجريبي">تجريبي</option>
+                    <option value={t("demo_branch")}>تجريبي</option>
                   </select>
                 </div>
                 <div>

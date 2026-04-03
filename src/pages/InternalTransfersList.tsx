@@ -82,7 +82,7 @@ export default function InternalTransfersList() {
             setSearchTerm(e.target.value);
             setCurrentPage(1);
           }}
-          placeholder="ابحث باسم الخزينة أو البيان أو المبلغ..."
+          placeholder={t("search_internal_transfers")}
           className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none"
         />
       </div>
@@ -95,17 +95,15 @@ export default function InternalTransfersList() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ArrowLeftRight size={20} className="text-[var(--primary)]" />
-            تحويلات داخلية
+            {t("internal_transfers")}
           </CardTitle>
 
-          <CardDescription>
-            {t("customize_report_below") || "يمكنك تخصيص التقرير من خلال الخيارات بالأسفل"}
-          </CardDescription>
+          <CardDescription>{t("customize_report_below")}</CardDescription>
 
           <CardAction>
             <Button onClick={() => setIsAddModalOpen(true)} variant="default">
               <Plus size={18} />
-              إضافة تحويل داخلي
+              {t("add_internal_transfer")}
             </Button>
           </CardAction>
         </CardHeader>
@@ -123,13 +121,13 @@ export default function InternalTransfersList() {
                 className="custom-green-table custom-compact-table"
                 stripedRows={false}
                 loading={isFetching}
-                emptyMessage="لا توجد بيانات"
+                emptyMessage={t("no_data")}
                 header={header}
                 responsiveLayout="stack"
               >
                 <Column
                   field="date"
-                  header="التاريخ"
+                  header={t("date")}
                   sortable
                   style={{ minWidth: "9rem", whiteSpace: "nowrap" }}
                   body={(rowData) => formatDate(rowData.date)}
@@ -137,21 +135,21 @@ export default function InternalTransfersList() {
 
                 <Column
                   field="fromTreasuryName"
-                  header="من خزينة"
+                  header={t("from_treasury")}
                   sortable
                   style={{ minWidth: "12rem", whiteSpace: "nowrap" }}
                 />
 
                 <Column
                   field="toTreasuryName"
-                  header="إلى خزينة"
+                  header={t("to_treasury")}
                   sortable
                   style={{ minWidth: "12rem", whiteSpace: "nowrap" }}
                 />
 
                 <Column
                   field="amount"
-                  header="المبلغ"
+                  header={t("amount")}
                   sortable
                   style={{ minWidth: "8rem", whiteSpace: "nowrap" }}
                   body={(rowData) => formatNumber(rowData.amount)}
@@ -159,7 +157,7 @@ export default function InternalTransfersList() {
 
                 <Column
                   field="notes"
-                  header="البيان"
+                  header={t("statement")}
                   style={{ minWidth: "16rem" }}
                   body={(rowData) => rowData.notes || "-"}
                 />
@@ -187,7 +185,7 @@ export default function InternalTransfersList() {
               </div>
             ) : filteredTransfers.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
-                لا توجد بيانات
+                {t("no_data")}
               </div>
             ) : (
               filteredTransfers
@@ -210,7 +208,7 @@ export default function InternalTransfersList() {
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs text-[var(--text-muted)]">
-                            تحويل داخلي
+                            {t("internal_transfer")}
                           </p>
                           <p className="text-sm font-bold text-[var(--text-main)]">
                             {formatDate(row.date)}
@@ -227,7 +225,7 @@ export default function InternalTransfersList() {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="rounded-xl bg-[#f8fafc] p-3">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
-                            من خزينة
+                            {t("from_treasury")}
                           </p>
                           <p className="text-sm font-semibold text-[var(--text-main)] break-words">
                             {row.fromTreasuryName}
@@ -236,7 +234,7 @@ export default function InternalTransfersList() {
 
                         <div className="rounded-xl bg-[#f8fafc] p-3">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
-                            إلى خزينة
+                            {t("to_treasury")}
                           </p>
                           <p className="text-sm font-semibold text-[var(--text-main)] break-words">
                             {row.toTreasuryName}
@@ -246,7 +244,7 @@ export default function InternalTransfersList() {
 
                       <div className="rounded-xl bg-[#f8fafc] p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
-                          البيان
+                          {t("statement")}
                         </p>
                         <p className="text-sm text-[var(--text-main)] break-words">
                           {row.notes || "-"}
