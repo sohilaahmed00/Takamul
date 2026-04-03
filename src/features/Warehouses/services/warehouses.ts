@@ -1,7 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import type { CreateWarehousePayload, UpdateWarehousePayload } from "../types/Warehouses.types";
-import type { Warehouse } from "@/context/WarehousesContext";
-// import { Warehouse, CreateWarehousePayload, UpdateWarehousePayload } from "../types/Warehouses.types";
+import type { CreateWarehousePayload, UpdateWarehousePayload, Warehouse } from "../types/Warehouses.types";
 
 /** جلب كل المخازن */
 export const getAllWarehouses = () => 

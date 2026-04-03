@@ -1,9 +1,9 @@
 "use client";
 
 import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { createSupplier } from "../types/suppliers.types";
-import { updateSupplier } from "../services/suppliers";
-import { suppliersKeys } from "../keys/suppliers.keys";
+import type { createSupplier } from "@/features/suppliers/types/suppliers.types";
+import { updateSupplier } from "@/features/suppliers/services/suppliers";
+import { suppliersKeys } from "@/features/suppliers/keys/suppliers.keys";
 
 type UpdateSupplierPayload = {
   id: number;

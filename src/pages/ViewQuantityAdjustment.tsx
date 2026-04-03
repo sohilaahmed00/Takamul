@@ -27,7 +27,7 @@ export default function ViewQuantityAdjustment() {
     pageSize: 500,
     search: "",
   });
-  const inventoryOptions = inventoryResponse?.data ?? [];
+  const inventoryOptions = inventoryResponse?.items ?? [];
 
   const rows = useMemo(() => {
     return (data?.items ?? []).map((item) => {

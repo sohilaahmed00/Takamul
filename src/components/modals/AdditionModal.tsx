@@ -56,7 +56,7 @@ export default function AdditionModal({
       form.reset({
         additionNameAr: addition.additionNameAr ?? "",
         additionNameEn: addition.additionNameEn ?? "",
-        additionNameUr: addition.additionNameUr ?? "",
+        // additionNameUr: addition.additionNameUr ?? "",
       });
     } else {
       form.reset({

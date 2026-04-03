@@ -31,7 +31,7 @@ export default function AddQuote() {
 
   const [date, setDate] = useState("14:17:00 23/02/2026");
   const [refNo, setRefNo] = useState(
-    `${systemSettings?.prefixes?.quote || "QUO-"}${Math.floor(
+    `${systemSettings?.prefixes?.quotes || "QUO-"}${Math.floor(
       Math.random() * 1000000
     ).toString()}`
   );

@@ -109,7 +109,7 @@ const EditQuantityAdjustment = () => {
     search: "",
   });
 
-  const inventoryOptions = inventoryResponse?.data ?? [];
+  const inventoryOptions = inventoryResponse?.items ?? [];
 
   // ✅ Seed form from API data — items now come from bulk-adjustments which includes them
   useEffect(() => {

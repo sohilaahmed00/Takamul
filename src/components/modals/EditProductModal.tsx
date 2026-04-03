@@ -116,9 +116,9 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
       nameUr: product.nameUr ?? product.name ?? "",
       code: product.code ?? "",
       category: product.category ?? "",
-      cost: product.cost ?? "",
-      price: product.price ?? "",
-      alertQuantity: product.alertQuantity ?? "",
+      cost: String(product.cost ?? ""),
+      price: String(product.price ?? ""),
+      alertQuantity: String(product.alertQuantity ?? ""),
       productType: product.productType === "branched" ? "branched" : product.productType === "direct" ? "direct" : "prepared",
       imageUrl: product.image ?? "",
     });

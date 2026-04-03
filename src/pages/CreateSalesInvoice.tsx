@@ -103,10 +103,11 @@ const CreateSalesInvoice: React.FC = () => {
     },
   });
 
-  const { data: customers } = useGetAllCustomers();
+  const { data: customersResponse } = useGetAllCustomers();
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
+  const customers = customersResponse?.items ?? [];
 
   const { data: salesOrder, isLoading: isLoadingOrder } = useGetSalesOrderById(isEditMode ? Number(id) : undefined);
 
@@ -116,7 +117,7 @@ const CreateSalesInvoice: React.FC = () => {
   useEffect(() => {
     if (!salesOrder || !isEditMode) return;
     if (!customers || !wareHouses || !products?.items || !units?.items) return;
-    const customer = customers?.find((c) => c.customerName === salesOrder.customerName);
+    const customer = customers.find((c) => c.customerName === salesOrder.customerName);
     const warehouse = wareHouses?.find((w) => w.warehouseName === salesOrder.warehouseName);
 
     form.reset({
@@ -126,13 +127,13 @@ const CreateSalesInvoice: React.FC = () => {
       notes: (salesOrder as any).notes ?? "",
 
       items: salesOrder.items.map((item) => {
-        console.log(item);
+        const product = products?.items?.find((p) => p.id === item.productId);
 
         return {
           productId: item?.productId,
           unitId: item?.unitId,
           quantity: item.quantity,
-          price: item.lineTotal ?? product?.sellingPrice ?? 0,
+          price: (item as any).unitPrice ?? product?.sellingPrice ?? 0,
           discountType: item.discountValue > 0 ? "fixed" : item.discountPercentage > 0 ? "percentage" : "fixed",
           discountValue: item.discountValue > 0 ? item.discountValue : item.discountPercentage,
         };
@@ -294,7 +295,7 @@ const CreateSalesInvoice: React.FC = () => {
                   return (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>{t("customer")} *</FieldLabel>
-                      <ComboboxField field={field} items={customers?.items} valueKey="id" labelKey="customerName" placeholder={t("choose_customer")} />
+                      <ComboboxField field={field} items={customers} valueKey="id" labelKey="customerName" placeholder={t("choose_customer")} />
 
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -371,7 +372,7 @@ const CreateSalesInvoice: React.FC = () => {
                                     onValueChange={(val) => {
                                       const product = products?.items?.find((p) => p.id === Number(val));
                                       if (product) {
-                                        form.setValue(`items.${index}.price`, p.sellingPrice);
+                                        form.setValue(`items.${index}.price`, product.sellingPrice);
                                       }
                                     }}
                                   />

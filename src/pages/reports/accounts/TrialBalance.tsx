@@ -3,7 +3,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { FileText, Download, Printer, Share2, Search } from 'lucide-react';
 
 export default function TrialBalance() {
-  const { direction } = useLanguage();
+  const { t, direction } = useLanguage();
   
   const data = [
     { code: '1', name: 'الأصول', prevDebit: 0, prevCredit: 0, periodDebit: 0, periodCredit: 0, afterDebit: 0, afterCredit: 0 },

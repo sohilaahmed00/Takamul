@@ -133,7 +133,7 @@ export default function AddSupplierModal({
         ? await updateSupplier(supplierId, payload as any)
         : await addSupplier(payload as any);
 
-      if (result?.ok || result === true) {
+      if (result?.ok === true) {
         showToast(
           "success",
           supplier

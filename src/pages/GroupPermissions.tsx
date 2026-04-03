@@ -184,7 +184,11 @@ const GroupPermissions = () => {
     bonds: { ar: "السندات", en: "Bonds" },
   };
 
-  const getLabel = (key: string) => labels[key]?.[language] || key;
+  const getLabel = (key: string) =>
+    labels[key]?.[language as "ar" | "en" | "ur"] ||
+    labels[key]?.en ||
+    labels[key]?.ar ||
+    key;
 
   const PermissionTree = ({ label, checked, onToggle, children, level = 0, moduleId }: { label: string; checked: boolean; onToggle: () => void; children?: React.ReactNode; level?: number; moduleId?: string; key?: string | number }) => {
     const isExpanded = moduleId ? expanded[moduleId] : true;

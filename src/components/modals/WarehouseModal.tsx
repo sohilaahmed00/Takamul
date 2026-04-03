@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Loader2, Warehouse } from "lucide-react";
+import { Loader2, Warehouse as WarehouseIcon } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 import {
@@ -71,7 +71,14 @@ export default function WarehouseModal({
 
     try {
       if (isEdit) {
-        await updateWh({ id: warehouseId, data: formData });
+        await updateWh({ 
+          id: warehouseId, 
+          warehouseName: formData.warehouseName,
+          address: formData.address,
+          city: "Cairo",
+          state: "Egypt",
+          capacity: 0,
+        } as any);
         notifySuccess(t("record_updated_successfully") || "تم التعديل بنجاح");
       } else {
         await createWh(formData);
@@ -89,7 +96,7 @@ export default function WarehouseModal({
       <DialogContent dir={direction} className="sm:max-w-[600px]">
         <DialogHeader className="border-b pb-3">
           <DialogTitle className="flex items-center gap-2 text-[var(--primary)]">
-            <Warehouse size={20} />
+            <WarehouseIcon size={20} />
             {isEdit
               ? t("edit_warehouse") || "تعديل مخزن"
               : t("add_warehouse") || "إضافة مخزن جديد"}

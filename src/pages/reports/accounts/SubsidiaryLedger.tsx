@@ -4,7 +4,7 @@ import { FileText, Download, Printer, Share2, Search, Calendar, Users, UserPlus,
 import { cn } from '@/lib/utils';
 
 export default function SubsidiaryLedger() {
-  const { direction } = useLanguage();
+  const { t, direction } = useLanguage();
   const [activeTab, setActiveTab] = useState('movements');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');

@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 
 const BankReport = () => {
-  const { dir } = useLanguage();
+  const { dir, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
 

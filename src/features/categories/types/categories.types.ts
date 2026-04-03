@@ -22,4 +22,6 @@ export interface createSupplier {
   paymentTerms?: number;
 }
 
+export type CreateCategory = Omit<Category, 'id'>;
+
 export type GetAllCategoriesResponse = Category[];

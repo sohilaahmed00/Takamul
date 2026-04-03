@@ -1,13 +1,13 @@
 import { httpClient } from "@/api/httpClient";
-import type { GiftCardApi, CreateGiftCardPayload, UpdateGiftCardPayload } from "../types/giftCard.types";
+import type { GiftCard, CreateGiftCardPayload, UpdateGiftCardPayload } from "../types/giftCard.types";
 
-export async function getGiftCards(): Promise<GiftCardApi[]> {
-  const response = await httpClient<GiftCardApi[]>("/GiftCards", { method: "GET" });
+export async function getGiftCards(): Promise<GiftCard[]> {
+  const response = await httpClient<GiftCard[]>("/GiftCards", { method: "GET" });
   return Array.isArray(response) ? response : [];
 }
 
-export async function getGiftCardById(id: number): Promise<GiftCardApi> {
-  return await httpClient<GiftCardApi>(`/GiftCards/${id}`, { method: "GET" });
+export async function getGiftCardById(id: number): Promise<GiftCard> {
+  return await httpClient<GiftCard>(`/GiftCards/${id}`, { method: "GET" });
 }
 
 export async function createGiftCard(payload: CreateGiftCardPayload): Promise<any> {

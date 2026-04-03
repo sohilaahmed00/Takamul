@@ -40,3 +40,5 @@ export interface CreateGiftCardPayload {
 export interface UpdateGiftCardPayload extends CreateGiftCardPayload {
   id: number;
 }
+
+export type GiftCardApi = GiftCard;

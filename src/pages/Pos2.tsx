@@ -273,7 +273,7 @@ function HomeScreen({ cart, setCart, discount, setDiscount, onProceed, onHold })
           ))}
         </div>
       </div>
-      <CartPanel cart={cart} setCart={setCart} discount={discount} setDiscount={setDiscount} onProceed={onProceed} onHold={onHold} />
+      <CartPanel cart={cart} setCart={setCart} discount={discount} setDiscount={setDiscount} onProceed={onProceed} onHold={onHold} t={(key) => key} />
     </div>
   );
 }
@@ -318,7 +318,7 @@ function CustomersScreen({ cart, setCart, discount, setDiscount, onProceed, onHo
           </div>
         ))}
       </div>
-      <CartPanel cart={cart} setCart={setCart} discount={discount} setDiscount={setDiscount} onProceed={onProceed} onHold={onHold} />
+      <CartPanel cart={cart} setCart={setCart} discount={discount} setDiscount={setDiscount} onProceed={onProceed} onHold={onHold} t={(key) => key} />
     </div>
   );
 }
@@ -594,7 +594,7 @@ export default function RestroPos() {
         {/* Avatar */}
         <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20 mb-1">
           <img src="https://i.pravatar.cc/32" alt="user" className="w-full h-full object-cover"
-            onError={e => { e.target.style.display = "none"; e.target.parentElement.innerHTML = '<div style="width:100%;height:100%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>'; }} />
+            onError={e => { const target = e.target as HTMLImageElement; if (target.style) target.style.display = "none"; if (target.parentElement) target.parentElement.innerHTML = '<div style="width:100%;height:100%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>'; }} />
         </div>
 
         {/* Logout */}

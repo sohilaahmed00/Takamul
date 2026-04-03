@@ -22,6 +22,15 @@ export interface Treasury {
   currentBalance?: number;
 }
 
+export interface Bank {
+  id: string;
+  code: string;
+  name: string;
+  openingBalance: number;
+  currentBalance?: number;
+  notes?: string;
+}
+
 export interface ExternalTransfer {
   id: string;
   date: string;

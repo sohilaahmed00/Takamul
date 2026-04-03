@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 
 const PurchasesReport = () => {
-  const { dir } = useLanguage();
+  const { t, dir } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);

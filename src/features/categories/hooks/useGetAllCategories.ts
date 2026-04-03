@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { GetAllCategoriesResponse } from "../types/categories.types";
+import type { GetAllCategoriesResponse } from "@/features/categories/types/categories.types";
 import { categoriesKeys } from "../keys/categories.keys";
 import { getAllCategories, getAllMainCategories } from "../services/categories";
 

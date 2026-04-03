@@ -48,12 +48,12 @@ const CreateA4Invoice: React.FC = () => {
     if (existing) {
       setItems(items.map((item) => (item.productId === product.id ? { ...item, qty: item.qty + 1, total: (item.qty + 1) * item.price * 1.15 } : item)));
     } else {
-      const price = parseFloat(product.price);
+      const price = Number(product.price || 0);
       setItems([
         ...items,
         {
           id: Math.random().toString(36).slice(2, 11),
-          productId: product.id,
+          productId: String(product.id),
           name: product.name,
           code: product.code,
           price: price,
@@ -222,13 +222,13 @@ const CreateA4Invoice: React.FC = () => {
             {customerSearch && !selectedCustomer && (
               <div className="absolute top-full left-0 right-0 bg-white border border-blue-100 shadow-xl z-50 max-h-48 overflow-y-auto rounded-b-xl mt-1">
                 {customers
-                  .filter((c) => c.name.includes(customerSearch) || c.phone.includes(customerSearch))
+                  .filter((c) => (c.name ?? "").includes(customerSearch) || (c.phone ?? "").includes(customerSearch))
                   .map((c) => (
                     <button
                       key={c.id}
                       onClick={() => {
                         setSelectedCustomer(c);
-                        setCustomerSearch(c.name);
+                        setCustomerSearch(c.name || "");
                       }}
                       className="w-full p-3 text-right hover:bg-blue-50 border-b border-blue-50 last:border-0"
                     >

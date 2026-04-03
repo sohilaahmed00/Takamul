@@ -88,7 +88,7 @@ const CreatePurchaseInvoice: React.FC = () => {
   const { data: treasurys } = useGetAllTreasurys();
 
   const form = useForm<PurchaseInvoiceType>({
-    resolver: zodResolver(purchasesInvoiceSchema),
+    resolver: zodResolver(purchasesInvoiceSchema) as any,
     defaultValues: {
       orderDate: new Date().toISOString().split("T")[0],
       warehouseId: 0,

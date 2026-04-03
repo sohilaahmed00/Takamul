@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 
 const InventoryTransfersReport = () => {
-  const { dir } = useLanguage();
+  const { t, dir } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
 

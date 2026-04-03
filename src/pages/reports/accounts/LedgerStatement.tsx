@@ -3,7 +3,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { FileText, Download, Printer, Share2, Search, Calendar } from 'lucide-react';
 
 export default function LedgerStatement() {
-  const { direction } = useLanguage();
+  const { t, direction } = useLanguage();
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   

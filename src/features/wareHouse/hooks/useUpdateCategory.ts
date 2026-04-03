@@ -1,9 +1,9 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateCategory } from "../services/categories";
-import type { CreateCategory } from "../types/categories.types";
-import { categoriesKeys } from "../keys/categories.keys";
+import { updateCategory } from "@/features/categories/services/categories";
+import type { CreateCategory } from "@/features/categories/types/categories.types";
+import { categoriesKeys } from "@/features/categories/keys/categories.keys";
 
 type UpdateCategoryPayload = {
   id: number;
@@ -14,7 +14,7 @@ export function useUpdateCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: UpdateCategoryPayload) => updateCategory(id, data),
+    mutationFn: ({ id, data }: UpdateCategoryPayload) => updateCategory(id, data as any),
     onSuccess: (response) => {
       console.log(response);
       queryClient.invalidateQueries({

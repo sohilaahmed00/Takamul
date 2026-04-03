@@ -58,13 +58,13 @@ export default function AddPurchaseCSV() {
 
   const filteredSuppliers = suppliers.filter(
     (s) =>
-      s.name.toLowerCase().includes(supplierSearch.toLowerCase()) ||
-      s.phone.includes(supplierSearch)
+      String(s.name || "").toLowerCase().includes(supplierSearch.toLowerCase()) ||
+      String(s.phone || "").includes(supplierSearch)
   );
 
-  const handleSupplierSelect = (id: number, name: string) => {
-    setFormData({ ...formData, supplier: id.toString(), supplierName: name });
-    setSupplierSearch(name);
+  const handleSupplierSelect = (id: number, name?: string) => {
+    setFormData({ ...formData, supplier: id.toString(), supplierName: name || "" });
+    setSupplierSearch(name || "");
     setIsSupplierDropdownOpen(false);
   };
 

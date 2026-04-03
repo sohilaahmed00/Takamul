@@ -3,7 +3,7 @@ import { useLanguage } from '@/context/LanguageContext';
 import { FileText, Download, Printer, Share2, Search } from 'lucide-react';
 
 export default function IncomeStatement() {
-  const { direction } = useLanguage();
+  const { t, direction } = useLanguage();
   
   const data = [
     { code: '11110', name: 'بيلا', debit: 0, credit: 0, balance: 0 },

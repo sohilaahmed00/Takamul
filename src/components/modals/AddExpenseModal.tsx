@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetItems } from "@/features/items/hooks/useGetItems";
-import type { Expense } from "@/features/expenses/types/Expenses.types";
+import type { Expense } from "@/features/expenses/types/expenses.types";
 
 type SubmitPayload = {
   id?: number;

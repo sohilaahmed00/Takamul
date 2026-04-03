@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { suppliersKeys } from "../keys/suppliers.keys";
-import { getSupplierById } from "../services/suppliers";
-import type { Supplier } from "../types/suppliers.types";
+import { suppliersKeys } from "@/features/suppliers/keys/suppliers.keys";
+import { getSupplierById } from "@/features/suppliers/services/suppliers";
+import type { Supplier } from "@/features/suppliers/types/suppliers.types";
 
 export const useGetSupplierById = (id?: number) =>
   useQuery<Supplier>({

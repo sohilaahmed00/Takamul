@@ -58,7 +58,7 @@ export default function AddPurchase() {
 
   const [formData, setFormData] = useState({
     date: new Date().toISOString().slice(0, 16),
-    refNo: `${systemSettings?.prefixes?.purchase || "PUR-"}${Math.floor(
+    refNo: `${systemSettings?.prefixes?.purchases || "PUR-"}${Math.floor(
       Math.random() * 1000000
     )}`,
     purchaseType: "warehouse",
@@ -266,7 +266,7 @@ export default function AddPurchase() {
     if (confirm(t("confirm_reset_form") || "Are you sure you want to reset the form?")) {
       setFormData({
         date: new Date().toISOString().slice(0, 16),
-        refNo: `${systemSettings?.prefixes?.purchase || "PUR-"}${Math.floor(
+        refNo: `${systemSettings?.prefixes?.purchases || "PUR-"}${Math.floor(
           Math.random() * 1000000
         )}`,
         purchaseType: "warehouse",
