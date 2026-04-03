@@ -4,7 +4,7 @@ import type {
   ExpensesResponse,
   CreateExpensePayload,
   UpdateExpensePayload,
-} from "../types/Expenses.types";
+} from "../types/expenses.types";
 
 export const getAllExpenses = (
   params: { page?: number; pageSize?: number; searchTerm?: string } = {}

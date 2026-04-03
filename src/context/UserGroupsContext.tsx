@@ -17,6 +17,7 @@ export interface UserGroup {
 
 interface UserGroupsContextType {
   userGroups: UserGroup[];
+  groups: UserGroup[];
   addUserGroup: (group: Omit<UserGroup, 'id'>) => void;
   updateUserGroup: (id: string, group: Partial<UserGroup>) => void;
   deleteUserGroup: (id: string) => void;
@@ -76,7 +77,7 @@ export const UserGroupsProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   return (
-    <UserGroupsContext.Provider value={{ userGroups, addUserGroup, updateUserGroup, deleteUserGroup }}>
+    <UserGroupsContext.Provider value={{ userGroups, groups: userGroups, addUserGroup, updateUserGroup, deleteUserGroup }}>
       {children}
     </UserGroupsContext.Provider>
   );

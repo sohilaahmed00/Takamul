@@ -145,215 +145,177 @@ function CartPanel({ cart, setCart, discount, setDiscount, onProceed, onHold, t 
           </Button>
         </div>
 
-      {/* Items */}
-      <div className="flex-1 overflow-y-auto px-2 py-1.5 space-y-1">
-        {cart.length === 0 ? (
-          <div className="p-5 text-center text-gray-400 text-xs">{t("cart_empty") || "Cart is empty"}</div>
-        ) : cart.map((item, idx) => {
-          const isOpen = expandedIdx === idx;
-          return (
-            <div key={idx} className={`rounded-lg relative transition-all ${idx % 2 === 0 ? "bg-white" : "bg-[#f6f6f6]"}`}>
-              {isOpen && <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 rounded-l-md z-10" />}
-              <div onClick={() => toggleExpand(idx)} className="flex items-start gap-1.5 cursor-pointer py-2 pr-2 pl-3.5">
-                <span className={`text-xs text-gray-400 pt-0.5 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}>›</span>
-                <span className="text-xs text-gray-500 min-w-3 font-medium">{idx + 1}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-bold text-gray-800 truncate mb-1">{item.name}</div>
-                  {item.note && <div className="text-xs text-gray-400">{item.note}</div>}
+        {/* Items */}
+        <div className="flex-1 overflow-y-auto px-2 py-1.5 space-y-1">
+          {cart.length === 0 ? (
+            <div className="p-5 text-center text-gray-400 text-xs">{t("cart_empty") || "Cart is empty"}</div>
+          ) : cart.map((item, idx) => {
+            const isOpen = expandedIdx === idx;
+            return (
+              <div key={idx} className={`rounded-lg relative transition-all ${idx % 2 === 0 ? "bg-white" : "bg-[#f6f6f6]"}`}>
+                {isOpen && <div className="absolute left-0 top-0 bottom-0 w-1 bg-green-500 rounded-l-md z-10" />}
+                <div onClick={() => toggleExpand(idx)} className="flex items-start gap-1.5 cursor-pointer py-2 pr-2 pl-3.5">
+                  <span className={`text-xs text-gray-400 pt-0.5 transition-transform duration-200 ${isOpen ? "rotate-90" : ""}`}>›</span>
+                  <span className="text-xs text-gray-500 min-w-3 font-medium">{idx + 1}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs font-bold text-gray-800 truncate mb-1">{item.name}</div>
+                    {item.note && <div className="text-xs text-gray-400">{item.note}</div>}
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-xs font-bold text-gray-800">${(item.price * item.qty).toFixed(2)}</div>
+                    {item.op && <div className="text-xs text-gray-300 line-through">${(item.op * item.qty).toFixed(2)}</div>}
+                  </div>
+                  <button onClick={e => { e.stopPropagation(); removeItem(idx); }} className="text-white bg-[#a1a1a1] rounded-full size-4 flex items-center justify-center hover:bg-red-400 text-[14px] pe-[0.5px] pb-[1.5px] shrink-0 transition-colors">×</button>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <div className="text-xs font-bold text-gray-800">${(item.price * item.qty).toFixed(2)}</div>
-                  {item.op && <div className="text-xs text-gray-300 line-through">${(item.op * item.qty).toFixed(2)}</div>}
-                </div>
-                <button onClick={e => { e.stopPropagation(); removeItem(idx); }} className="text-white bg-[#a1a1a1] rounded-full size-4 flex items-center justify-center hover:bg-red-400 text-[14px] pe-[0.5px] pb-[1.5px] shrink-0 transition-colors">×</button>
+                {isOpen && (
+                  <div className={`pl-3.5 pr-3 pb-3 pt-1 flex gap-3 items-end ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
+                    <div className="flex-1">
+                      <div className="text-xs text-gray-400 mb-1.5">{t("quantity") || "Quantity"}</div>
+                      <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
+                        <button onClick={() => changeQty(idx, -1)} className="px-2.5 py-1.5 bg-white text-gray-500 hover:bg-gray-50 text-sm font-bold">−</button>
+                        <span className="flex-1 py-1.5 text-xs font-semibold text-center border-x border-gray-200">{item.qty}</span>
+                        <button onClick={() => changeQty(idx, 1)} className="px-2.5 py-1.5 bg-white text-gray-500 hover:bg-gray-50 text-sm font-bold">+</button>
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-xs text-gray-400 mb-1.5">{t("discount") || "Discount"}(%)</div>
+                      <input className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none text-right font-semibold focus:border-primary/40" defaultValue="0" />
+                    </div>
+                  </div>
+                )}
               </div>
-              {isOpen && (
-                <div className={`pl-3.5 pr-3 pb-3 pt-1 flex gap-3 items-end ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
-                  <div className="flex-1">
-                    <div className="text-xs text-gray-400 mb-1.5">{t("quantity") || "Quantity"}</div>
-                    <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
-                      <button onClick={() => changeQty(idx, -1)} className="px-2.5 py-1.5 bg-white text-gray-500 hover:bg-gray-50 text-sm font-bold">−</button>
-                      <span className="flex-1 py-1.5 text-xs font-semibold text-center border-x border-gray-200">{item.qty}</span>
-                      <button onClick={() => changeQty(idx, 1)} className="px-2.5 py-1.5 bg-white text-gray-500 hover:bg-gray-50 text-sm font-bold">+</button>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-xs text-gray-400 mb-1.5">{t("discount") || "Discount"}(%)</div>
-                    <input className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none text-right font-semibold focus:border-primary/40" defaultValue="0" />
-                  </div>
-                </div>
-              )}
+            );
+          })}
+        </div>
+
+
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            removeItem(idx);
+          }}
+          className="text-white bg-[#a1a1a1] rounded-full size-4 flex items-center justify-center hover:bg-red-400 text-[14px] pe-[0.5px] pb-[1.5px] shrink-0 transition-colors"
+        >
+          ×
+        </button>
+      </AccordionTrigger>
+
+      <AccordionContent>
+        <div className={`pl-3.5 pr-3 pb-3 pt-1 flex gap-3 items-end ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
+          <div className="flex-1">
+            <div className="text-xs text-gray-400 mb-1.5">Quantity</div>
+            <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
+              <button onClick={() => changeQty(idx, -1)} className="px-2.5 py-1.5 bg-white text-gray-500 hover:bg-gray-50 text-sm font-bold">
+                −
+              </button>
+              <span className="flex-1 py-1.5 text-xs font-semibold text-center border-x border-gray-200">{item.qty}</span>
+              <button onClick={() => changeQty(idx, 1)} className="px-2.5 py-1.5 bg-white text-gray-500 hover:bg-gray-50 text-sm font-bold">
+                +
+              </button>
             </div>
-          );
-        })}
-      </div>
-
-                    {/* السعر */}
-                    <div className="text-right flex-shrink-0">
-                      <div className="text-xs font-bold text-gray-800">${(item.price * item.qty).toFixed(2)}</div>
-                      {item.op && <div className="text-xs text-gray-300 line-through">${(item.op * item.qty).toFixed(2)}</div>}
-                    </div>
-
-                    {/* حذف */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeItem(idx);
-                      }}
-                      className="text-white bg-[#a1a1a1] rounded-full size-4 flex items-center justify-center hover:bg-red-400 text-[14px] pe-[0.5px] pb-[1.5px] shrink-0 transition-colors"
-                    >
-                      ×
-                    </button>
-                  </AccordionTrigger>
-
-                  <AccordionContent>
-                    <div className={`pl-3.5 pr-3 pb-3 pt-1 flex gap-3 items-end ${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`}>
-                      <div className="flex-1">
-                        <div className="text-xs text-gray-400 mb-1.5">Quantity</div>
-                        <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
-                          <button onClick={() => changeQty(idx, -1)} className="px-2.5 py-1.5 bg-white text-gray-500 hover:bg-gray-50 text-sm font-bold">
-                            −
-                          </button>
-                          <span className="flex-1 py-1.5 text-xs font-semibold text-center border-x border-gray-200">{item.qty}</span>
-                          <button onClick={() => changeQty(idx, 1)} className="px-2.5 py-1.5 bg-white text-gray-500 hover:bg-gray-50 text-sm font-bold">
-                            +
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-xs text-gray-400 mb-1.5">Discount(%)</div>
-                        <input className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none text-right font-semibold focus:border-primary/40" defaultValue="0" />
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
+          </div>
+          <div className="flex-1">
+            <div className="text-xs text-gray-400 mb-1.5">Discount(%)</div>
+            <input className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs outline-none text-right font-semibold focus:border-primary/40" defaultValue="0" />
+          </div>
+        </div>
+      </AccordionContent>
+    </AccordionItem>
+  ))}
             </Accordion>
           )}
         </div>
 
-        {activeTab === "add" && (
-          <div className="px-3 pt-2.5 pb-3">
-            <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-              <span>{t("subtotal") || "Subtotal"}</span><span className="font-semibold text-gray-800">${sub.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-              <span>{t("tax_label") || "Tax"}</span><span className="font-semibold text-gray-800">${tax.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between text-xs mb-1.5 items-center">
-              <span className={discount > 0 ? "text-primary font-semibold" : "text-gray-500"}>{t("discount") || "Discount"}</span>
-              <div className="flex items-center gap-1">
-                <span className={`font-semibold ${discount > 0 ? "text-gray-800" : "text-gray-400"}`}>-${discount.toFixed(2)}</span>
-                {discount > 0 && (
-                  <button onClick={() => setDiscount(0)} className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-300 leading-none">×</button>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-between text-sm font-black text-gray-800 mt-2 pt-1 border-t border-gray-100 mb-3">
-              <span>{t("payable_amount") || "Payable Amount"}</span><span>${pay.toFixed(2)}</span>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={onHold} className="flex-1" variant="outline">{t("hold_cart") || "Hold Cart"}<Pause /></Button>
-              <Button onClick={onProceed} className="flex-1">{t("proceed") || "Proceed"}<CircleArrowRight /></Button>
-            </div>
-          </div>
-
-          {activeTab === "add" && (
-            <div className="px-3 pt-2.5 pb-3">
-              <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-                <span>Subtotal</span>
-                <span className="font-semibold text-gray-800">${sub.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-                <span>Tax</span>
-                <span className="font-semibold text-gray-800">${tax.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-xs mb-1.5 items-center">
-                <span className={discount > 0 ? "text-primary font-semibold" : "text-gray-500"}>Discount</span>
-                <div className="flex items-center gap-1">
-                  <span className={`font-semibold ${discount > 0 ? "text-gray-800" : "text-gray-400"}`}>-${discount.toFixed(2)}</span>
-                  {discount > 0 && (
-                    <button onClick={() => setDiscount(0)} className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-300 leading-none">
-                      ×
-                    </button>
-                  )}
-                </div>
-              </div>
-              <div className="flex justify-between text-sm font-black text-gray-800 mt-2 pt-1 border-t border-gray-100 mb-3">
-                <span>Payable Amount</span>
-                <span>${pay.toFixed(2)}</span>
-              </div>
-              <div className="flex gap-2">
-                <Button size={"2xl"} onClick={onHold} className="flex-1" variant="outline">
-                  Hold Cart
-                  <Pause />
-                </Button>
-                <Button size={"2xl"} onClick={onProceed} className="flex-1">
-                  Proceed
-                  <CircleArrowRight />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "discount" && (
-            <div className="p-3">
-              <div className="text-sm font-bold text-gray-800 mb-3">Add Discount</div>
-              <div className="flex gap-2 mb-3 items-center">
-                <button onClick={() => setDiscType("flat")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "flat" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>
-                  $
-                </button>
-                <button onClick={() => setDiscType("pct")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "pct" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>
-                  %
-                </button>
-                <input value={discInput} onChange={(e) => setDiscInput(e.target.value)} className="flex-1 h-12 px-3 border border-gray-200 rounded-xl text-sm outline-none text-right font-semibold focus:border-primary/40 bg-white" placeholder="0" type="number" min="0" />
-              </div>
-              <div className="flex gap-2">
-                <Button size={"2xl"} className="flex-1" onClick={() => setActiveTab("add")} variant="outline">
-                  Cancel
-                </Button>
-                <Button size={"2xl"} className="flex-1" onClick={applyDiscount}>
-                  Add
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "coupon" && (
-            <div className="p-3">
-              <Input className="mb-2" placeholder="Enter coupon code..." />
-              <div className="flex gap-2">
-                <Button size={"2xl"} className="flex-1" onClick={() => setActiveTab("add")} variant="outline">
-                  Cancel
-                </Button>
-                <Button size={"2xl"} className="flex-1">
-                  Apply
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {activeTab === "note" && (
-            <div className="p-3">
-              <textarea className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 resize-none focus:border-primary/40" rows={2} placeholder="Add order note..." />
-              <div className="flex gap-2">
-                <Button size={"2xl"} className="flex-1" variant="outline">
-                  Clear
-                </Button>
-                <Button size={"2xl"} className="flex-1">
-                  Save
-                </Button>
-              </div>
-            </div>
+  { activeTab === "add" && (
+    <div className="px-3 pt-2.5 pb-3">
+      <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+        <span>{t("subtotal") || "Subtotal"}</span><span className="font-semibold text-gray-800">${sub.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+        <span>{t("tax_label") || "Tax"}</span><span className="font-semibold text-gray-800">${tax.toFixed(2)}</span>
+      </div>
+      <div className="flex justify-between text-xs mb-1.5 items-center">
+        <span className={discount > 0 ? "text-primary font-semibold" : "text-gray-500"}>{t("discount") || "Discount"}</span>
+        <div className="flex items-center gap-1">
+          <span className={`font-semibold ${discount > 0 ? "text-gray-800" : "text-gray-400"}`}>-${discount.toFixed(2)}</span>
+          {discount > 0 && (
+            <button onClick={() => setDiscount(0)} className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-300 leading-none">×</button>
           )}
         </div>
       </div>
-      <AddParnterModal
-        isOpen={openDialog}
-        onClose={() => {
-          setOpenDialog(false);
-        }}
-      />
+      <div className="flex justify-between text-sm font-black text-gray-800 mt-2 pt-1 border-t border-gray-100 mb-3">
+        <span>{t("payable_amount") || "Payable Amount"}</span><span>${pay.toFixed(2)}</span>
+      </div>
+      <div className="flex gap-2">
+        <Button onClick={onHold} className="flex-1" variant="outline">{t("hold_cart") || "Hold Cart"}<Pause /></Button>
+        <Button onClick={onProceed} className="flex-1">{t("proceed") || "Proceed"}<CircleArrowRight /></Button>
+      </div>
+    </div>
+
+{
+  activeTab === "discount" && (
+    <div className="p-3">
+      <div className="text-sm font-bold text-gray-800 mb-3">Add Discount</div>
+      <div className="flex gap-2 mb-3 items-center">
+        <button onClick={() => setDiscType("flat")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "flat" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>
+          $
+        </button>
+        <button onClick={() => setDiscType("pct")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "pct" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>
+          %
+        </button>
+        <input value={discInput} onChange={(e) => setDiscInput(e.target.value)} className="flex-1 h-12 px-3 border border-gray-200 rounded-xl text-sm outline-none text-right font-semibold focus:border-primary/40 bg-white" placeholder="0" type="number" min="0" />
+      </div>
+      <div className="flex gap-2">
+        <Button size={"2xl"} className="flex-1" onClick={() => setActiveTab("add")} variant="outline">
+          Cancel
+        </Button>
+        <Button size={"2xl"} className="flex-1" onClick={applyDiscount}>
+          Add
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+{
+  activeTab === "coupon" && (
+    <div className="p-3">
+      <Input className="mb-2" placeholder="Enter coupon code..." />
+      <div className="flex gap-2">
+        <Button size={"2xl"} className="flex-1" onClick={() => setActiveTab("add")} variant="outline">
+          Cancel
+        </Button>
+        <Button size={"2xl"} className="flex-1">
+          Apply
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+{
+  activeTab === "note" && (
+    <div className="p-3">
+      <textarea className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 resize-none focus:border-primary/40" rows={2} placeholder="Add order note..." />
+      <div className="flex gap-2">
+        <Button size={"2xl"} className="flex-1" variant="outline">
+          Clear
+        </Button>
+        <Button size={"2xl"} className="flex-1">
+          Save
+        </Button>
+      </div>
+    </div>
+  )
+}
+        </div >
+      </div >
+  <AddParnterModal
+    isOpen={openDialog}
+    onClose={() => {
+      setOpenDialog(false);
+    }}
+  />
     </>
   );
 }
@@ -476,7 +438,7 @@ function HomeScreen({ cart, setCart, discount, setDiscount, onProceed, onHold })
         </div>
       )}
       <CartPanel cart={cart} setCart={setCart} discount={discount} setDiscount={setDiscount} onProceed={onProceed} onHold={onHold} />
-    </div>
+    </div >
   );
 }
 
@@ -520,7 +482,7 @@ function CustomersScreen({ cart, setCart, discount, setDiscount, onProceed, onHo
           </div>
         ))}
       </div>
-      <CartPanel cart={cart} setCart={setCart} discount={discount} setDiscount={setDiscount} onProceed={onProceed} onHold={onHold} />
+      <CartPanel cart={cart} setCart={setCart} discount={discount} setDiscount={setDiscount} onProceed={onProceed} onHold={onHold} t={(key) => key} />
     </div>
   );
 }
@@ -1014,7 +976,7 @@ export default function RestroPos() {
         {/* Avatar */}
         <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20 mb-1">
           <img src="https://i.pravatar.cc/32" alt="user" className="w-full h-full object-cover"
-            onError={e => { e.target.style.display = "none"; e.target.parentElement.innerHTML = '<div style="width:100%;height:100%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>'; }} />
+            onError={e => { const target = e.target as HTMLImageElement; if (target.style) target.style.display = "none"; if (target.parentElement) target.parentElement.innerHTML = '<div style="width:100%;height:100%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>'; }} />
         </div>
 
         {/* Logout */}

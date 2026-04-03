@@ -16,7 +16,7 @@ export function useUpdateCustomer() {
     mutationFn: ({ id, data }: UpdateCustomerPayload) => updateCustomer(id, data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: customersKeys.list(),
+        queryKey: customersKeys.list({ page: 1, limit: 10, searchTerm: "" }),
       });
     },
     // onError: (error) => {

@@ -164,15 +164,6 @@ function AppRoutes() {
         {/* <Route path="/pos" element={<POSPage />} /> */}
         <Route path="/pos" element={<AppLayout />} />
 
-    return (
-        <>
-            <Routes>
-                <Route path="/" element={<Login />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/verify-otp" element={<VerifyOTP />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/pos" element={<POSPage />} />
-
                 <Route element={<Layout />}>
                     <Route path="/dashboard" element={<Dashboard />} />
 

@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetItems } from "@/features/items/hooks/useGetItems";
-import type { Expense } from "@/features/expenses/types/Expenses.types";
+import type { Expense } from "@/features/expenses/types/expenses.types";
 
 type SubmitPayload = {
   id?: number;
@@ -268,9 +268,8 @@ export default function AddExpenseModal({
             <FieldLabel>{t("item")}</FieldLabel>
             <div className="relative">
               <div
-                className={`w-full h-10 rounded-xl border px-3 bg-white flex items-center justify-between cursor-pointer text-sm transition-colors ${
-                  isItemDropdownOpen ? "border-[#2ecc71]" : "border-gray-200"
-                }`}
+                className={`w-full h-10 rounded-xl border px-3 bg-white flex items-center justify-between cursor-pointer text-sm transition-colors ${isItemDropdownOpen ? "border-[#2ecc71]" : "border-gray-200"
+                  }`}
                 onClick={() => setIsItemDropdownOpen((v) => !v)}
               >
                 <span className={selectedItem ? "text-gray-800" : "text-gray-400"}>
@@ -292,9 +291,8 @@ export default function AddExpenseModal({
                   )}
                   <ChevronDown
                     size={15}
-                    className={`text-gray-400 transition-transform ${
-                      isItemDropdownOpen ? "rotate-180" : ""
-                    }`}
+                    className={`text-gray-400 transition-transform ${isItemDropdownOpen ? "rotate-180" : ""
+                      }`}
                   />
                 </div>
               </div>
@@ -329,11 +327,10 @@ export default function AddExpenseModal({
                         <div
                           key={item.id}
                           onClick={() => handleSelectItem(item.id, item.name)}
-                          className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-[#2ecc71]/5 transition-colors flex items-center justify-between ${
-                            itemId === item.id
+                          className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-[#2ecc71]/5 transition-colors flex items-center justify-between ${itemId === item.id
                               ? "bg-[#2ecc71]/10 text-[#2ecc71] font-medium"
                               : "text-gray-700"
-                          }`}
+                            }`}
                         >
                           {item.name}
                           {itemId === item.id && (
@@ -353,9 +350,8 @@ export default function AddExpenseModal({
             <Input
               readOnly
               value={fmt(balanceAfter)}
-              className={`h-10 bg-gray-50 text-center font-semibold ${
-                balanceAfter >= 0 ? "text-[#2ecc71]" : "text-red-500"
-              }`}
+              className={`h-10 bg-gray-50 text-center font-semibold ${balanceAfter >= 0 ? "text-[#2ecc71]" : "text-red-500"
+                }`}
             />
           </Field>
 
@@ -390,8 +386,8 @@ export default function AddExpenseModal({
               {isPending
                 ? t("saving")
                 : isEditMode
-                ? t("save_changes")
-                : t("save_expense")}
+                  ? t("save_changes")
+                  : t("save_expense")}
             </Button>
           </div>
         </DialogFooter>

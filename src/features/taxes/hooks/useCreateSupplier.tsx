@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { createSupplier } from "../types/suppliers.types";
-import { suppliersKeys } from "../keys/suppliers.keys";
-import { createSuppliers } from "../services/suppliers";
+import type { createSupplier } from "@/features/suppliers/types/suppliers.types";
+import { suppliersKeys } from "@/features/suppliers/keys/suppliers.keys";
+import { createSuppliers } from "@/features/suppliers/services/suppliers";
 
 export function useCreateSupplier() {
   const queryClient = useQueryClient();

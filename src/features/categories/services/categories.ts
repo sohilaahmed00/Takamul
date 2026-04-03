@@ -1,6 +1,6 @@
 import { httpClient } from "@/api/httpClient";
 import type { Category, GetAllCategoriesResponse } from "../types/categories.types";
-import type { CreateCategory } from "@/features/sales/types/categories.types";
+import type { CreateCategory } from "../types/categories.types";
 
 // ===================
 // GET

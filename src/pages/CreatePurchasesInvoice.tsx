@@ -14,9 +14,6 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHouses";
-import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
-import { useWatch } from "react-hook-form";
 import type { CreateSalesOrder } from "@/features/sales/types/sales.types";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
@@ -70,6 +67,7 @@ type PurchaseInvoiceType = z.infer<
 
 const CreatePurchaseInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
+  const navigate = useNavigate();
 
   const purchasesInvoiceSchema = useMemo(
     () => createPurchasesInvoiceSchema(t),
@@ -87,7 +85,7 @@ const CreatePurchaseInvoice: React.FC = () => {
   const [submitType, setSubmitType] = useState<"save" | "saveAndNew">("save");
 
   const form = useForm<PurchaseInvoiceType>({
-    resolver: zodResolver(purchasesInvoiceSchema),
+    resolver: zodResolver(purchasesInvoiceSchema) as any,
     defaultValues: {
       orderDate: new Date().toISOString().split("T")[0],
       warehouseId: 0,
@@ -612,8 +610,8 @@ const CreatePurchaseInvoice: React.FC = () => {
                                   type="button"
                                   onClick={() => toggleDiscount(index)}
                                   className={`p-2 ${isDiscOpen
-                                      ? "text-emerald-600"
-                                      : "text-zinc-400"
+                                    ? "text-emerald-600"
+                                    : "text-zinc-400"
                                     }`}
                                 >
                                   <Tag size={14} />

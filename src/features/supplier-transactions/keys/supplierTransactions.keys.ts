@@ -5,4 +5,5 @@ export const supplierTransactionsKeys = {
     [...supplierTransactionsKeys.lists(), filters] as const,
   details: () => [...supplierTransactionsKeys.all, "detail"] as const,
   detail: (id: number) => [...supplierTransactionsKeys.details(), id] as const,
-};
+  totalBySupplier: (supplierId?: number) => [...supplierTransactionsKeys.all, "totalBySupplier", supplierId] as const,
+}

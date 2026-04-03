@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { createSalesOrders } from "../services/sales";
-import type { CreateSalesOrder } from "../types/sales.types";
-import { salesKeys } from "../keys/sales.keys";
+import { createSalesOrders } from "@/features/sales/services/sales";
+import type { CreateSalesOrder } from "@/features/sales/types/sales.types";
+import { salesKeys } from "@/features/sales/keys/sales.keys";
 import axios from "axios";
 import useToast from "@/hooks/useToast";
 import { handleApiError } from "@/lib/handleApiError";
@@ -20,8 +20,8 @@ export function useCreateSalesOrders() {
       });
       notifySuccess(response?.message)
     },
-       onError: (error) => handleApiError(error, notifyError),
+    onError: (error) => handleApiError(error, notifyError),
 
-   
+
   });
 }

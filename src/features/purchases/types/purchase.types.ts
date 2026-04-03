@@ -8,12 +8,22 @@ export interface Purchase {
   orderDate: string;
   expectedDeliveryDate: string;
   orderStatus: "UnConfirmed" | "Confirmed";
-
+  warehouseId?: number;
+  notes?: string;
+  payments?: {
+    amount: number;
+    treasuryId: number;
+    notes?: string;
+    paymentMethod?: string;
+  }[];
   items: {
     productId: number;
     unitId: number;
     quantity: number;
     unitPrice: number;
+    discountValue?: number;
+    discountPercentage?: number;
+    lineTotal?: number;
   }[];
 }
 export type CreatePurchaseOrder = {

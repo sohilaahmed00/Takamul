@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  Search, 
-  FileText, 
-  ChevronDown, 
+import {
+  Search,
+  FileText,
+  ChevronDown,
   ChevronUp,
   ArrowRight,
   ArrowLeft,
@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 
 const EmployeesReport = () => {
-  const { dir } = useLanguage();
+  const { t, dir } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -61,7 +61,7 @@ const EmployeesReport = () => {
             </button>
           </div>
         </div>
-        
+
         <p className="text-[var(--primary)] font-bold mb-6 text-center">الرجاء الضغط التقرير بغية التحقق من تقرير الخبراء.</p>
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
@@ -78,7 +78,7 @@ const EmployeesReport = () => {
 
           <div className="flex items-center gap-2">
             <span className="text-[var(--primary)] font-bold">اظهار</span>
-            <select 
+            <select
               className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               value={itemsPerPage}
               onChange={(e) => setItemsPerPage(Number(e.target.value))}

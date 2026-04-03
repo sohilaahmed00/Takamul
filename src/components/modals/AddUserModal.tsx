@@ -18,16 +18,20 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
     email: "",
     usernameEmail: "",
     phone: "",
+    gender: "male" as "male" | "female",
     group: "Admin",
     status: "active" as const,
     company: "",
+    defaultPaymentMethod: "network",
+    defaultPaymentCompany: "none",
+    defaultInvoiceType: "delivery",
+    notifyEmail: true,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     addUser({
       ...formData,
-      id: Math.random().toString(36).substr(2, 9),
     });
     onClose();
   };

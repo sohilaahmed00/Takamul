@@ -243,7 +243,7 @@ export default function AddParnterModal({
         streetName: "",
         postalCode: partner.postalCode ?? "",
         taxNumber: partner.taxNumber ?? "",
-        commercialRegister: partner.commercialRegister ?? "",
+        // commercialRegister: partner.commercialRegister ?? "",
         isTaxable: !!partner.taxNumber,
         countryId: 0,
         cityId: 0,

@@ -127,7 +127,7 @@ export default function EditCustomerModal({
     try {
       const res = await updateCustomer(id, updates as any);
 
-      if (res?.ok || res === true) {
+      if (res?.ok === true) {
         showToast("success", t("operation_completed_successfully"));
         setTimeout(() => onClose(), 400);
       } else {

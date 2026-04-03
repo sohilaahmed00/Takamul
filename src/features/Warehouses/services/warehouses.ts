@@ -1,22 +1,20 @@
 import { httpClient } from "@/api/httpClient";
-import type { CreateWarehousePayload, UpdateWarehousePayload } from "../types/Warehouses.types";
-import type { Warehouse } from "@/context/WarehousesContext";
-// import { Warehouse, CreateWarehousePayload, UpdateWarehousePayload } from "../types/Warehouses.types";
+import type { CreateWarehousePayload, UpdateWarehousePayload, Warehouse } from "../types/Warehouses.types";
 
 /** جلب كل المخازن */
-export const getAllWarehouses = () => 
+export const getAllWarehouses = () =>
   httpClient<Warehouse[]>("/Warehouse");
 
 /** جلب مخزن بالـ ID */
-export const getWarehouseById = (id: number) => 
+export const getWarehouseById = (id: number) =>
   httpClient<Warehouse>(`/Warehouse/${id}`);
 
 /** جلب مخازن فرع معين */
-export const getWarehousesByBranch = (branchId: number) => 
+export const getWarehousesByBranch = (branchId: number) =>
   httpClient<Warehouse[]>(`/Warehouse/branch/${branchId}`);
 
 /** إضافة مخزن جديد - (تستخدم Schema الـ POST) */
-export const createWarehouse = (data: CreateWarehousePayload) => 
+export const createWarehouse = (data: CreateWarehousePayload) =>
   httpClient<Warehouse>("/Warehouse", {
     method: "POST",
     data: {
@@ -29,7 +27,7 @@ export const createWarehouse = (data: CreateWarehousePayload) =>
   });
 
 /** تحديث مخزن - (تستخدم Schema الـ PUT المختلفة تماماً) */
-export const updateWarehouse = (data: UpdateWarehousePayload) => 
+export const updateWarehouse = (data: UpdateWarehousePayload) =>
   httpClient<string>(`/Warehouse/${data.id}`, { // السيرفر بيرجع نص "تم تعديل بيانات المخزن"
     method: "PUT",
     data: {
@@ -42,7 +40,7 @@ export const updateWarehouse = (data: UpdateWarehousePayload) =>
   });
 
 /** حذف مخزن */
-export const deleteWarehouse = (id: number) => 
+export const deleteWarehouse = (id: number) =>
   httpClient<void>(`/Warehouse/${id}`, {
     method: "DELETE",
   });

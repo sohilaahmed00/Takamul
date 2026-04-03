@@ -3,9 +3,14 @@ import type { GetAllCustomersResponse } from "../types/customers.types";
 import { customersKeys } from "../keys/customers.keys";
 import { getAllCustomers } from "../services/customers";
 
-export const useGetAllCustomers = ({ page, limit, searchTerm }: { page: number; limit: number; searchTerm?: string }) =>
+type GetAllCustomersParams = {
+  page?: number;
+  limit?: number;
+  searchTerm?: string;
+};
+
+export const useGetAllCustomers = ({ page = 1, limit = 1000, searchTerm }: GetAllCustomersParams = {}) =>
   useQuery<GetAllCustomersResponse>({
     queryKey: customersKeys.list({ page, limit, searchTerm }),
     queryFn: () => getAllCustomers({ page, limit, searchTerm }),
   });
-};

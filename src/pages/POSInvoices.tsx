@@ -47,10 +47,10 @@ export default function POSSales() {
   const navigate = useNavigate();
 
   // الحماية من الـ Context الفارغ
-  const salesContext = useSales() || {};
+  const salesContext = (useSales() || {}) as any;
   const safeSales = Array.isArray(salesContext.sales) && salesContext.sales.length > 0 ? salesContext.sales : mockSales;
-  const addSale = salesContext.addSale || (() => {});
-  const deleteSale = salesContext.deleteSale || (() => {});
+  const addSale = salesContext.addSale || (() => { });
+  const deleteSale = salesContext.deleteSale || (() => { });
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showCount, setShowCount] = useState(10);

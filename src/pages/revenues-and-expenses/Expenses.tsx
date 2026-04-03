@@ -20,7 +20,7 @@ import { useUpdateExpense } from "@/features/expenses/hooks/useUpdateExpense";
 import { useDeleteExpense } from "@/features/expenses/hooks/useDeleteExpense";
 import AddExpenseModal from "@/components/modals/AddExpenseModal";
 import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
-import type { Expense } from "@/features/expenses/types/Expenses.types";
+import type { Expense } from "@/features/expenses/types/expenses.types";
 
 export default function Expenses() {
   const { direction, t } = useLanguage();

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { 
-  Search, 
-  FileText, 
-  FileSpreadsheet, 
-  Download, 
-  ChevronDown, 
+import {
+  Search,
+  FileText,
+  FileSpreadsheet,
+  Download,
+  ChevronDown,
   ChevronUp,
   ArrowRight,
   ArrowLeft,
@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 
 const ExpensesReport = () => {
-  const { dir } = useLanguage();
+  const { t, dir } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -61,7 +61,7 @@ const ExpensesReport = () => {
 
       <div className="bg-white p-4 border-x border-gray-200">
         <p className="text-[var(--primary)] font-medium mb-4">الرجاء استخدام الجدول أدناه للتنقل أو تصفية النتائج.</p>
-        
+
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div className="relative w-full md:w-64">
             <input
@@ -76,7 +76,7 @@ const ExpensesReport = () => {
 
           <div className="flex items-center gap-2">
             <span className="text-[var(--primary)]">اظهار</span>
-            <select 
+            <select
               className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               value={itemsPerPage}
               onChange={(e) => setItemsPerPage(Number(e.target.value))}

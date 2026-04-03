@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-import { createSalesOrders } from "../services/sales";
-import type { CreateSalesOrder } from "../types/sales.types";
-import { salesKeys } from "../keys/sales.keys";
+import { createSalesOrders } from "@/features/sales/services/sales";
+import type { CreateSalesOrder } from "@/features/sales/types/sales.types";
+import { salesKeys } from "@/features/sales/keys/sales.keys";
 
 export function useCreateSalesOrders() {
   const queryClient = useQueryClient();

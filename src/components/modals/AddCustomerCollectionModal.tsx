@@ -21,7 +21,7 @@ type Props = {
 };
 
 export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "add", editData = null }: Props) {
-  const { direction } = useLanguage();
+  const { direction, t } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
 
   const { data: treasurys } = useGetAllTreasurys();
@@ -59,8 +59,10 @@ export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "ad
     setDescription("");
   }, [isOpen, isEditMode, editData]);
 
-  const selectedCustomer = useMemo(() => customers?.items?.find((c: any) => c.id === customerId), [customers, customerId]);
-
+  const selectedCustomer = useMemo(
+    () => customers?.items?.find((c: any) => c.id === customerId),
+    [customers, customerId]
+  );
   const currentBalance = Number(selectedCustomer?.balance ?? 0);
   const amountNumber = Number(amount || 0);
   const balanceAfter = currentBalance - amountNumber;
@@ -194,11 +196,12 @@ export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "ad
                   className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71] disabled:bg-gray-50 disabled:text-gray-500"
                 >
                   <option value="">{t("select_customer")}</option>
-                  {(customers ?? []).map((c: any) => (
+                  {(customers?.items ?? []).map((c: any) => (
                     <option key={c.id} value={c.id}>
                       {c.customerName}
                     </option>
                   ))}
+                  
                 </select>
               </Field>
 

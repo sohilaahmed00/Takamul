@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 export default function AddUser() {
   const { t, direction } = useLanguage();
   const { addUser } = useUsers();
-  const { groups } = useUserGroups();
+  const { userGroups } = useUserGroups();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -212,7 +212,7 @@ export default function AddUser() {
                 className={inputClasses}
                 required
               >
-                {groups.map((group) => (
+                {userGroups.map((group) => (
                   <option key={group.id} value={group.name}>
                     {group.name}
                   </option>

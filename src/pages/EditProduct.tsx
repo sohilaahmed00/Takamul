@@ -121,7 +121,7 @@ function mapProductLite(item: any): ProductLite {
   };
 }
 
-function getNatureLabel(n: ProductNature): string {
+function getNatureLabel(n: ProductNature, t: (key: string) => string): string {
   switch (n) {
     case "basic": return t("direct_product_type");
     case "prepared": return t("prepared_product_type");
@@ -188,16 +188,16 @@ const apiFetchProductByType = async (id: string): Promise<{ nature: ProductNatur
 };
 
 const apiFetchMainCats = (): Promise<any[]> =>
-  fetchJson(`${REAL_API}/api/ProductCategories/MainCategory`, { method: "GET" });
+  (fetchJson(`${REAL_API}/api/ProductCategories/MainCategory`, { method: "GET" }) as Promise<any>).catch(() => []);
 
 const apiFetchSubCats = (id: string): Promise<any[]> =>
-  fetchJson(`${REAL_API}/api/ProductCategories/SubCategory/${encodeURIComponent(id)}`, { method: "GET" }).catch(() => []);
+  (fetchJson(`${REAL_API}/api/ProductCategories/SubCategory/${encodeURIComponent(id)}`, { method: "GET" }) as Promise<any>).catch(() => []);
 
 const apiFetchAllProducts = (): Promise<any[]> =>
-  fetchJson(`${REAL_API}/api/Products`, { method: "GET" }).catch(() => []);
+  (fetchJson(`${REAL_API}/api/Products`, { method: "GET" }) as Promise<any>).catch(() => []);
 
 const apiFetchRaw = (): Promise<any[]> =>
-  fetchJson(`${REAL_API}/api/Products/raw-material`, { method: "GET" }).catch(() => []);
+  (fetchJson(`${REAL_API}/api/Products/raw-material`, { method: "GET" }) as Promise<any>).catch(() => []);
 
 const apiFetchTaxes = (): Promise<TaxOption[]> =>
   fetchJson<TaxOption[]>(`${REAL_API}/api/Taxes`, { method: "GET" }).catch(() => []);
@@ -541,7 +541,7 @@ export default function EditProduct() {
         const msg = err?.message ?? "";
         // If 404: endpoint missing in backend — show Arabic message
         if (msg.includes("404") || msg.includes("Not Found")) {
-          throw new Error(`تعديل ${getNatureLabel(productNature as ProductNature)} غير متاح حالياً — يرجى التواصل مع المطور لإضافة endpoint التعديل`);
+          throw new Error(`تعديل ${getNatureLabel(productNature as ProductNature, t)} غير متاح حالياً — يرجى التواصل مع المطور لإضافة endpoint التعديل`);
         }
         throw err;
       }
@@ -739,13 +739,13 @@ export default function EditProduct() {
         <span>/</span>
         <span className="cursor-pointer hover:text-[var(--primary)]" onClick={() => navigate("/products")}>{t("products")}</span>
         <span>/</span>
-        <span className="text-gray-800 font-medium">تعديل {getNatureLabel(productNature)}</span>
+        <span className="text-gray-800 font-medium">تعديل {getNatureLabel(productNature, t)}</span>
       </div>
 
       {/* Header */}
       <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center gap-3">
         <Edit2 size={22} className="text-[var(--primary)]" />
-        <h1 className="text-xl font-bold text-gray-800">تعديل {getNatureLabel(productNature)}: {form.name || "…"}</h1>
+        <h1 className="text-xl font-bold text-gray-800">تعديل {getNatureLabel(productNature, t)}: {form.name || "…"}</h1>
       </div>
 
       {/* Notice for prepared — components must be raw-materials */}
@@ -779,7 +779,7 @@ export default function EditProduct() {
                 )}>
                   <input type="radio" disabled checked={productNature === nature} className="w-5 h-5 accent-white" />
                   {getNatureIcon(nature)}
-                  <span className="font-bold">{getNatureLabel(nature)}</span>
+                  <span className="font-bold">{getNatureLabel(nature, t)}</span>
                 </label>
               ))}
             </div>
@@ -797,7 +797,7 @@ export default function EditProduct() {
               {/* Name AR */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  اسم {getNatureLabel(productNature)} (عربي) <span className="text-red-500">*</span>
+                  اسم {getNatureLabel(productNature, t)} (عربي) <span className="text-red-500">*</span>
                 </label>
                 <input type="text" name="name" value={form.name} onChange={handleChange}
                   className={cn("takamol-input", errors.name && "border-red-400")} placeholder="أدخل الاسم بالعربية..." />
@@ -1169,7 +1169,7 @@ export default function EditProduct() {
               {productNature !== "materials" && (
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">
-                    صورة {getNatureLabel(productNature)}
+                    صورة {getNatureLabel(productNature, t)}
                   </label>
                   {fileName && !imageFile && (
                     <div className="mb-2">

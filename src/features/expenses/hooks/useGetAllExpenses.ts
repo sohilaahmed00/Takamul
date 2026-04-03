@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getAllExpenses } from "../services/expenses";
 import { expensesKeys } from "../keys/expenses.keys";
-import type { GetExpensesParams } from "../types/Expenses.types";
+import type { GetExpensesParams } from "../types/expenses.types";
 
 export const useGetAllExpenses = (params: GetExpensesParams = {}) =>
   useQuery({

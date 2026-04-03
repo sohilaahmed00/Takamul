@@ -133,7 +133,7 @@ export default function AddSupplierModal({
         ? await updateSupplier(supplierId, payload as any)
         : await addSupplier(payload as any);
 
-      if (result?.ok || result === true) {
+      if (result?.ok === true) {
         showToast(
           "success",
           supplier
@@ -417,8 +417,8 @@ export default function AddSupplierModal({
                     {isLoading
                       ? t("loading")
                       : supplier
-                      ? t("update")
-                      : t("add_supplier")}
+                        ? t("update")
+                        : t("add_supplier")}
                   </button>
                 </div>
               </motion.div>

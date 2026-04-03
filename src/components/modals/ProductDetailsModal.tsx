@@ -230,7 +230,7 @@ export default function ProductDetailsModal({
               {/* Footer */}
               <div className="p-4 sm:p-6 bg-[var(--bg-main)] border-t border-[var(--border)] flex flex-wrap items-center justify-center gap-3 shrink-0">
                 <button
-                  onClick={() => onDelete(product.id)}
+                  onClick={() => onDelete(Number(product.id))}
                   className="flex-1 min-w-[120px] bg-red-600 text-white px-4 py-2.5 rounded-xl hover:bg-red-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
                 >
                   <Trash2 size={16} />
@@ -238,7 +238,7 @@ export default function ProductDetailsModal({
                 </button>
 
                 <button
-                  onClick={() => onEdit(product.id)}
+                  onClick={() => onEdit(Number(product.id))}
                   className="flex-1 min-w-[120px] bg-yellow-500 text-white px-4 py-2.5 rounded-xl hover:bg-yellow-600 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
                 >
                   <Edit size={16} />

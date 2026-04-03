@@ -5,17 +5,7 @@ import useToast from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
-<<<<<<< dev
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-=======
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
->>>>>>> main
 
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
@@ -32,7 +22,6 @@ type Props = {
 
 const DEFAULT_TRANSACTION_TYPE = "PurchaseInvoice";
 
-<<<<<<< dev
 export default function AddSupplierPaymentModal({
   isOpen,
   onClose,
@@ -40,10 +29,6 @@ export default function AddSupplierPaymentModal({
   editData = null,
 }: Props) {
   const { direction, t } = useLanguage();
-=======
-export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add", editData = null }: Props) {
-  const { direction } = useLanguage();
->>>>>>> main
   const { notifyError, notifySuccess } = useToast();
 
   const { data: treasurys } = useGetAllTreasurys();
@@ -86,8 +71,10 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
     setDescription("");
   }, [isOpen, isEditMode, editData]);
 
-  const selectedSupplier = useMemo(() => suppliers?.items?.find((s: any) => s.id === supplierId), [suppliers, supplierId]);
-
+  const selectedSupplier = useMemo(
+  () => suppliers?.find((s: any) => s.id === supplierId),
+  [suppliers, supplierId]
+);
   const currentBalance = Number(selectedSupplier?.balance ?? 0);
   const amountNumber = Number(amount || 0);
   const balanceAfter = currentBalance - amountNumber;
@@ -150,15 +137,11 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
 
       handleClose();
     } catch (error: any) {
-<<<<<<< dev
       notifyError(
         error?.response?.data?.message ||
         error?.message ||
         t("save_error")
       );
-=======
-      notifyError(error?.response?.data?.message || error?.message || "حدث خطأ أثناء الحفظ");
->>>>>>> main
     }
   };
 
@@ -182,7 +165,6 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
 
         <form id="supplierPaymentForm" onSubmit={handleSubmit} className="px-5 space-y-3">
           <Field>
-<<<<<<< dev
             <FieldLabel>{t("date")}</FieldLabel>
             <Input
               type="date"
@@ -190,10 +172,6 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
               onChange={(e) => setTransactionDate(e.target.value)}
               className="h-9"
             />
-=======
-            <FieldLabel>التاريخ</FieldLabel>
-            <Input type="date" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} className="h-9" />
->>>>>>> main
           </Field>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
@@ -203,7 +181,6 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
             </div>
 
             <Field>
-<<<<<<< dev
               <select
                 value={treasuryId ?? ""}
                 onChange={(e) =>
@@ -217,13 +194,6 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
                 {(treasurys ?? []).map((tRow: any) => (
                   <option key={tRow.id} value={tRow.id}>
                     {tRow.name}
-=======
-              <select value={treasuryId ?? ""} onChange={(e) => setTreasuryId(e.target.value ? Number(e.target.value) : undefined)} className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]">
-                <option value="">اختر الخزينة</option>
-                {(treasurys ?? []).map((t: any) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
->>>>>>> main
                   </option>
                 ))}
               </select>
@@ -238,7 +208,6 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
 
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
-<<<<<<< dev
                 <FieldLabel>{t("supplier_name")}</FieldLabel>
                 <select
                   value={supplierId ?? ""}
@@ -252,12 +221,6 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
                 >
                   <option value="">{t("select_supplier")}</option>
                   {(suppliers ?? []).map((s: any) => (
-=======
-                <FieldLabel>اسم المورد</FieldLabel>
-                <select value={supplierId ?? ""} onChange={(e) => setSupplierId(e.target.value ? Number(e.target.value) : undefined)} disabled={isEditMode} className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71] disabled:bg-gray-50 disabled:text-gray-500">
-                  <option value="">اختر المورد</option>
-                  {(suppliers?.items ?? []).map((s: any) => (
->>>>>>> main
                     <option key={s.id} value={s.id}>
                       {s.supplierName}
                     </option>
@@ -266,23 +229,17 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
               </Field>
 
               <Field>
-<<<<<<< dev
                 <FieldLabel>{t("current_balance")}</FieldLabel>
                 <Input
                   readOnly
                   value={formatNumber(currentBalance)}
                   className="h-9 bg-gray-50 text-center"
                 />
-=======
-                <FieldLabel>الرصيد الحالي</FieldLabel>
-                <Input readOnly value={formatNumber(currentBalance)} className="h-9 bg-gray-50 text-center" />
->>>>>>> main
               </Field>
             </div>
           </div>
 
           <Field>
-<<<<<<< dev
             <FieldLabel>{t("amount")}</FieldLabel>
             <Input
               type="number"
@@ -310,26 +267,11 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
               placeholder={t("supplier_payment_statement_placeholder")}
               className="h-9"
             />
-=======
-            <FieldLabel>المبلغ</FieldLabel>
-            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="h-9" />
-          </Field>
-
-          <Field>
-            <FieldLabel>الرصيد بعد</FieldLabel>
-            <Input readOnly value={formatNumber(balanceAfter)} className="h-9 bg-gray-50 text-center text-[#2ecc71] font-semibold" />
-          </Field>
-
-          <Field>
-            <FieldLabel>البيان</FieldLabel>
-            <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="اكتب ملاحظات أو بيان سند الصرف" className="h-9" />
->>>>>>> main
           </Field>
         </form>
 
         <DialogFooter className="px-5 py-7 border-t border-gray-100">
           <div className="flex justify-end gap-3 w-full px-2">
-<<<<<<< dev
             <Button
               type="button"
               variant="outline"
@@ -337,15 +279,10 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
               className="h-10 px-6"
             >
               {t("cancel")}
-=======
-            <Button type="button" variant="outline" onClick={handleClose} className="h-10 px-6">
-              إلغاء
->>>>>>> main
             </Button>
 
             <Button form="supplierPaymentForm" type="submit" disabled={isPending} className="min-w-[150px] h-10 px-6">
               {isPending && <Loader2 size={16} className="animate-spin" />}
-<<<<<<< dev
               {isPending
                 ? isEditMode
                   ? t("updating")
@@ -353,9 +290,6 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
                 : isEditMode
                   ? t("save_changes")
                   : t("save_supplier_payment")}
-=======
-              {isPending ? (isEditMode ? "جارٍ التعديل..." : "جارٍ الحفظ...") : isEditMode ? "حفظ التعديلات" : "حفظ سند الصرف"}
->>>>>>> main
             </Button>
           </div>
         </DialogFooter>
