@@ -671,7 +671,10 @@
   "received_by": "تم الاستلام من قبل",
   "received_from": "استلمنا من السيد",
   "receiver": "المستلم",
+  "recent_operations": "أحدث العمليات",
+  "recent_sales": "أحدث المبيعات",
   "recent_transactions": "أحدث العمليات",
+  "total_subscriptions": "إجمالي الاشتراكات",
   "recipient": "المستلم",
   "records": "سجلات",
   "recovery_email_sent_desc": "إذا كان هذا الحساب موجوداً، فقد تم إرسال تعليمات استعادة كلمة المرور إلى بريدك الإلكتروني.",
@@ -713,6 +716,7 @@
   "sale_ref_no": "الرقم المرجعي للبيع",
   "sale_status": "حالة فاتورة المبيعات *",
   "sales": "المبيعات",
+  "sales_report": "تقرير المبيعات",
   "sales_a4_quick": "مبيعات A4",
   "sales_all_branches": "المبيعات (جميع الفروع)",
   "sales_fees": "رسوم البيع",
@@ -894,7 +898,7 @@
   "use_employee_points_program": "استخدام برنامج نقاط الموظف",
   "user_groups": "مجموعات المستخدمين",
   "username_email": "اسم المستخدم / البريد الإلكتروني",
-  "users": "المستخدمين والأجهزة",
+  "users": "المستخدمين",
   "users_list": "قائمة المستخدمين",
   "value": "القيمة",
   "variants": "المتغيرات",
@@ -1465,7 +1469,6 @@
   "invoice_summary": "ملخص الفاتورة",
   "cancel_and_return": "إلغاء والعودة",
   "save_and_issue_invoice": "حفظ وإصدار الفاتورة",
-  
   "quantity_adjustments": "تعديلات الكمية",
   "quantity_adjustments_desc": "إدارة وتتبع مذكرات تسوية المخزون",
   "entered_by": "مدخل البيانات",
@@ -1574,9 +1577,9 @@
   "save_and_issue_invoice": "حفظ وإصدار الفاتورة",
   "item": "الصنف",
   "sales_invoice": "فاتورة مبيعات",
-  "sales_title": "مبيعات",  
-  "manage_additions_title":"إدارة الإضافات",
-  "manage_additions_desc":"إدارة الإضافات الخاصة بالأصناف مثل الخيارات الإضافية والتعديلات التي يمكن تطبيقها على المنتجات داخل النظام.",
+  "sales_title": "مبيعات",
+  "manage_additions_title": "إدارة الإضافات",
+  "manage_additions_desc": "إدارة الإضافات الخاصة بالأصناف مثل الخيارات الإضافية والتعديلات التي يمكن تطبيقها على المنتجات داخل النظام.",
   "quantity_adjustments_title": "تعديلات الكميات",
   "quantity_adjustments_desc": "إدارة وتتبع ملاحظات تعديل المخزون",
   "warehouses_title": "المستودعات",
@@ -1608,7 +1611,6 @@
   "validation_unit_name_required": "اسم الوحدة مطلوب",
   "validation_unit_name_min_2": "يجب أن يكون اسم الوحدة على الأقل حرفين",
   "validation_unit_name_unique": "يجب أن يكون اسم الوحدة فريدًا",
-
   "add_customer_group": "إضافة مجموعة عملاء",
   "edit_customer_group": "تعديل مجموعة عملاء",
   "group_name": "اسم المجموعة",
@@ -1622,7 +1624,6 @@
   "customer_group_delete_error": "حدث خطأ أثناء حذف مجموعة العملاء",
   "customer_group_duplicate_success": "تم نسخ مجموعة العملاء بنجاح",
   "customer_group_duplicate_error": "حدث خطأ أثناء نسخ مجموعة العملاء",
-
   "validation_name_min_3": "يجب أن يكون الاسم 3 أحرف على الأقل",
   "validation_numbers_only": "أرقام فقط",
   "validation_phone_invalid": "رقم الهاتف غير صحيح",
@@ -1637,7 +1638,6 @@
   "validation_postal_code_required": "الرمز البريدي مطلوب",
   "validation_building_number_required": "رقم المبنى مطلوب",
   "validation_additional_number_required": "الرقم الإضافي مطلوب",
-
   "enter_supplier_name": "أدخل اسم المورد...",
   "enter_customer_name": "أدخل اسم العميل...",
   "enter_mobile": "أدخل رقم الجوال...",
@@ -1662,7 +1662,6 @@
   "enter_address": "أدخل العنوان...",
   "customer_updated_successfully": "تم تحديث العميل بنجاح",
   "customer_added_successfully": "تمت إضافة العميل بنجاح",
-
   "edit_addition": "تعديل الإضافة",
   "add_new_addition": "إضافة جديدة",
   "addition_name_ar": "اسم الإضافة (عربي)",
@@ -1673,7 +1672,6 @@
   "enter_addition_name_ur": "أدخل اسم الإضافة بالأردو...",
   "addition_added_successfully": "تمت إضافة الإضافة بنجاح",
   "addition_updated_successfully": "تم تحديث الإضافة بنجاح",
-
   "add_new_product": "إضافة منتج جديد",
   "add_new_product_desc": "يمكنك إضافة منتج جديد بشكل عادي",
   "direct_product": "منتج مباشر",
@@ -1720,8 +1718,24 @@
   "branched_products": "الأصناف المتفرعة",
   "prepared_products": "الأصناف المجهزة",
   "raw_materials": "الخامات",
-  "type": "النوع"
-
-
-
+  "type": "النوع",
+  "net_profit": "صافي الربح",
+  "total_revenue": "إجمالي الإيرادات",
+  "total_expenses": "إجمالي المصروفات",
+  "active_customers": "العملاء النشطين",
+  "overdue_balance": "مبالغ متأخرة",
+  "less_30_days": "أقل من 30 يوم",
+  "range_30_60_days": "من 30 الي 60 يوم",
+  "range_60_90_days": "من 60 الي 90 يوم",
+  "range_90_120_days": "من 90 الي 120 يوم",
+  "range_120_150_days": "من 120 الي 150 يوم",
+  "more_150_days": "أكبر من 150 يوم",
+  "customize_report_below": "يرجى تخصيص التقرير أدناه",
+  "income_statement": "قائمة الدخل",
+  "confirmed": "مؤكدة",
+  "not_confirmed": "غير مؤكدة",
+  "customer_aging_report": "تقرير أعمار ديون العملاء",
+  "check_customer_debts_below": "تحقق من مديونيات العملاء أدناه",
+  "purchases_report": "تقرير المشتريات",
+  "total_purchases_report": "مجموع المشتريات"
 }

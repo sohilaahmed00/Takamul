@@ -1,132 +1,185 @@
-import { useState } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
-import MobileDataCard from '@/components/MobileDataCard';
+import { Link } from 'react-router-dom';
+import { Edit2, Trash2, ShoppingCart, Truck, FileText, Users, UserPlus } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+
+// Hooks
+import { useGetAllSales } from '@/features/sales/hooks/useGetAllSales';
+import { useGetAllPurchases } from '@/features/purchases/hooks/useGetAllSales';
+import { useGetAllQuotations } from '@/features/quotation/hooks/useGetAllQuotations';
+import { useGetAllSuppliers } from '@/features/suppliers/hooks/useGetAllSuppliers';
+import { useGetAllCustomers } from '@/features/customers/hooks/useGetAllCustomers';
+import formatDate from '@/lib/formatDate';
 
 export default function RecentTransactions() {
-  const [activeTab, setActiveTab] = useState('sales');
   const { t, direction } = useLanguage();
+  const [activeTab, setActiveTab] = useState('sales');
+
+  const { data: salesOrders } = useGetAllSales(1, 5);
+  const { data: purchases } = useGetAllPurchases({ page: 1, limit: 5, searchTerm: "" });
+  const { data: quotations } = useGetAllQuotations();
+  const { data: suppliers } = useGetAllSuppliers();
+  const { data: customersResponse } = useGetAllCustomers({ page: 1, limit: 5 });
 
   const tabs = [
-    { id: 'sales', label: t('sales') },
-    { id: 'quotes', label: t('quotes') },
-    { id: 'purchases', label: t('purchases') },
-    { id: 'transfers', label: t('stock_transfers') },
-    { id: 'customers', label: t('customers') },
-    { id: 'suppliers', label: t('suppliers') },
-  ];
-
-  const salesData = [
-    { id: 1, date: '16/02/2026 20:39:44', invoice: '504', ref: 'SALE/POS2026/02/0610', customer: t('general_person'), status: t('completed'), total: '150.00', payment: t('paid') },
-    { id: 2, date: '16/02/2026 20:39:34', invoice: '503', ref: 'SALE/POS2026/02/0609', customer: t('general_person'), status: t('completed'), total: '400.00', payment: t('paid') },
-    { id: 3, date: '16/02/2026 20:25:58', invoice: '502', ref: 'SALE/POS2026/02/0608', customer: t('general_person'), status: t('completed'), total: '500.00', payment: t('paid') },
-    { id: 4, date: '16/02/2026 20:24:03', invoice: '501', ref: 'SALE/POS2026/02/0607', customer: t('general_person'), status: t('completed'), total: '500.00', payment: t('paid') },
-    { id: 5, date: '16/02/2026 19:13:23', invoice: '500', ref: 'SALE/POS2026/02/0606', customer: t('general_person'), status: t('completed'), total: '250.00', payment: t('paid') },
+    { id: 'sales', label: t('sales') || 'المبيعات', icon: ShoppingCart },
+    { id: 'purchases', label: t('purchases') || 'المشتريات', icon: Truck },
+    { id: 'quotes', label: t('quotes') || 'عروض الأسعار', icon: FileText },
+    { id: 'suppliers', label: t('suppliers') || 'الموردين', icon: Users },
+    { id: 'customers', label: t('customers') || 'العملاء', icon: UserPlus },
   ];
 
   return (
     <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden" dir={direction}>
-      <div className="border-b border-[var(--border)]">
-        <div className="flex overflow-x-auto">
-          {tabs?.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "px-6 py-4 text-sm font-medium whitespace-nowrap transition-colors relative",
-                activeTab === tab.id 
-                  ? "text-[var(--primary)]" 
-                  : "text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-[var(--bg-main)]/50"
-              )}
-            >
-              {tab.label}
-              {activeTab === tab.id && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[var(--primary)]" />
-              )}
-            </button>
-          ))}
+      {/* Header and Tabs */}
+      <div className="p-4 border-b border-[var(--border)] bg-gray-50/50">
+        <h2 className="text-lg font-bold text-[var(--text-main)] mb-4">{t('recent_operations') || 'العمليات الأخيرة'}</h2>
+        <div className="flex overflow-x-auto hide-scrollbar gap-2">
+          {tabs.map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors",
+                  activeTab === tab.id
+                    ? "bg-[var(--primary)] text-white shadow-sm"
+                    : "bg-white text-[var(--text-main)] border border-[var(--border)] hover:bg-gray-50"
+                )}
+              >
+                <Icon size={16} />
+                {tab.label}
+              </button>
+            )
+          })}
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Tab Panels */}
+      <div className="p-4">
         {activeTab === 'sales' && (
-          <>
-            {/* Desktop Table */}
-            <table className={`hidden md:table w-full min-w-[1200px] text-sm ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
-              <thead className="bg-[var(--table-header)] text-white font-medium">
-                <tr>
-                  <th className="px-6 py-3 whitespace-nowrap">{t('id')}</th>
-                  <th className="px-6 py-3 whitespace-nowrap">{t('date')}</th>
-                  <th className="px-6 py-3 whitespace-nowrap">{t('invoice_no')}</th>
-                  <th className="px-6 py-3 whitespace-nowrap">{t('ref_no')}</th>
-                  <th className="px-6 py-3 whitespace-nowrap">{t('customer')}</th>
-                  <th className="px-6 py-3 text-center whitespace-nowrap">{t('status')}</th>
-                  <th className="px-6 py-3 whitespace-nowrap">{t('total')}</th>
-                  <th className="px-6 py-3 text-center whitespace-nowrap">{t('payment_status')}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {salesData?.map((item) => (
-                  <tr key={item.id} className="hover:bg-[var(--bg-main)]/30 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-[var(--text-main)]">{item.id}</td>
-                    <td className="px-6 py-4 text-[var(--text-muted)] whitespace-nowrap" dir="ltr">{item.date}</td>
-                    <td className="px-6 py-4 font-medium whitespace-nowrap text-[var(--text-main)]">{item.invoice}</td>
-                    <td className="px-6 py-4 text-[var(--text-muted)] whitespace-nowrap">{item.ref}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-[var(--text-main)]">{item.customer}</td>
-                    <td className="px-6 py-4 text-center whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-bold whitespace-nowrap text-[var(--text-main)]">{item.total}</td>
-                    <td className="px-6 py-4 text-center whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
-                        {item.payment}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Mobile View */}
-            <div className="md:hidden space-y-4 p-4">
-              {salesData?.map((item) => (
-                <MobileDataCard
-                  key={item.id}
-                  title={item.ref}
-                  subtitle={item.date}
-                  fields={[
-                    { label: t('invoice_no'), value: item.invoice },
-                    { label: t('customer'), value: item.customer },
-                    { label: t('total'), value: item.total, isBold: true },
-                    { 
-                      label: t('status'), 
-                      value: (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200">
-                          {item.status}
-                        </span>
-                      ) 
-                    },
-                    { 
-                      label: t('payment_status'), 
-                      value: (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-100 text-green-800 border border-green-200">
-                          {item.payment}
-                        </span>
-                      ) 
-                    },
-                  ]}
-                />
-              ))}
-            </div>
-          </>
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <DataTable
+              value={salesOrders?.items?.slice(0, 5) || []}
+              responsiveLayout="stack"
+              className="custom-green-table custom-compact-table"
+              dataKey="id"
+              emptyMessage={t("no_data")}
+            >
+              <Column header={t("invoice_number")} field="orderNumber" />
+              <Column header={t("date")} body={(row) => new Date(row.orderDate).toLocaleDateString("ar-EG")} />
+              <Column header={t("customer_name")} field="customerName" />
+              <Column header={t("cashier")} field="createdBy" />
+              <Column header={t("invoice_status")} field="orderStatus" />
+              <Column header={t("total_amount")} field="grandTotal" />
+              <Column header={t("paid_amount")} body={(rowData) => rowData.payments?.reduce((sum: number, p: any) => sum + p.amount, 0) ?? 0} />
+              <Column header={t("actions")} body={(row) => (
+                <div className="flex gap-2">
+                  <Link to={`/sales/edit/${row?.id}`} className="btn-minimal-action btn-compact-action"><Edit2 size={16} /></Link>
+                  <button className="btn-minimal-action btn-compact-action text-red-500"><Trash2 size={16} /></button>
+                </div>
+              )} />
+            </DataTable>
+          </div>
         )}
-        
-        {activeTab !== 'sales' && (
-            <div className="p-8 text-center text-[var(--text-muted)]">
-                {t('no_data_display')}
-            </div>
+
+        {activeTab === 'purchases' && (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <DataTable
+              value={purchases?.items?.slice(0, 5) || []}
+              responsiveLayout="stack"
+              className="custom-green-table custom-compact-table"
+              dataKey="id"
+              emptyMessage={t("no_data")}
+            >
+              <Column header={t("date")} body={(row) => formatDate(row.orderDate)} />
+              <Column header={t("invoice_number")} field="purchaseOrderNumber" />
+              <Column header={t("supplier_name")} field="supplierName" />
+              <Column header={t("purchase_order_status")} field="orderStatus" />
+              <Column header={t("actions")} body={(row) => (
+                <div className="space-x-2">
+                  <Link to={`/purchases/edit/${row?.id}`} className="btn-minimal-action btn-edit"><Edit2 size={16} /></Link>
+                  <button className="btn-minimal-action btn-delete text-red-500"><Trash2 size={16} /></button>
+                </div>
+              )} />
+            </DataTable>
+          </div>
+        )}
+
+        {activeTab === 'quotes' && (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <DataTable
+              value={quotations?.slice(0, 5) || []}
+              responsiveLayout="stack"
+              className="custom-green-table custom-compact-table"
+              dataKey="id"
+              emptyMessage={t("no_data")}
+            >
+              <Column header={t("invoice_number")} field="quotationNumber" />
+              <Column header={t("date")} body={(row) => formatDate(row.quotationDate)} />
+              <Column header={t("customer_name")} field="customerName" />
+              <Column header={t("quote_status")} field="status" />
+              <Column header={t("subtotal")} field="subTotal" />
+              <Column header={t("tax_amount")} field="taxAmount" />
+              <Column header={t("discount_amount")} field="discountAmount" />
+              <Column header={t("total_amount")} field="grandTotal" />
+              <Column header={t("actions")} body={(row) => (
+                <div className="flex gap-2">
+                  <button className="btn-minimal-action btn-compact-action"><Edit2 size={16} /></button>
+                  <button className="btn-minimal-action btn-compact-action text-red-500"><Trash2 size={16} /></button>
+                </div>
+              )} />
+            </DataTable>
+          </div>
+        )}
+
+        {activeTab === 'suppliers' && (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <DataTable
+              value={suppliers?.items?.slice(0, 5) || []}
+              responsiveLayout="stack"
+              className="custom-green-table custom-compact-table"
+              dataKey="id"
+              emptyMessage={t("no_data")}
+            >
+              <Column field="supplierName" header={t("name")} />
+              <Column field="phone" header={t("phone")} />
+              <Column field="taxNumber" header={t("tax_number")} />
+              <Column header={t("actions")} body={(row) => (
+                <div className="space-x-2">
+                  <button className="btn-minimal-action btn-compact-action"><Edit2 size={16} /></button>
+                  <button className="btn-minimal-action btn-compact-action text-red-500"><Trash2 size={16} /></button>
+                </div>
+              )} />
+            </DataTable>
+          </div>
+        )}
+
+        {activeTab === 'customers' && (
+          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <DataTable
+              value={customersResponse?.items?.slice(0, 5) || []}
+              responsiveLayout="stack"
+              className="custom-green-table custom-compact-table"
+              dataKey="id"
+              emptyMessage={t("no_customers_found") || t("no_data")}
+            >
+              <Column field="customerCode" header={t("code")} sortable style={{ width: "10%" }} />
+              <Column field="customerName" header={t("name")} sortable style={{ width: "30%" }} />
+              <Column field="phone" header={t("phone")} style={{ width: "20%" }} />
+              <Column field="city" header={t("city")} style={{ width: "20%" }} />
+              <Column header={t("actions")} style={{ width: "20%" }} body={(row) => (
+                <div className="flex gap-2">
+                  <button className="btn-minimal-action btn-compact-action"><Edit2 size={16} /></button>
+                  <button className="btn-minimal-action btn-compact-action text-red-500"><Trash2 size={16} /></button>
+                </div>
+              )} />
+            </DataTable>
+          </div>
         )}
       </div>
     </div>
