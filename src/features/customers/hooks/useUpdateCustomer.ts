@@ -1,9 +1,10 @@
-"use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateCustomer } from "../services/customers";
 import { customersKeys } from "../keys/customers.keys";
 import type { createCustomer } from "../types/customers.types";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
+import useToast from "@/hooks/useToast";
+import { handleApiError } from "@/lib/handleApiError";
 
 type UpdateCustomerPayload = {
   id: number;
@@ -12,15 +13,15 @@ type UpdateCustomerPayload = {
 
 export function useUpdateCustomer() {
   const queryClient = useQueryClient();
+  const { notifyError, notifySuccess } = useToast();
   return useMutation({
     mutationFn: ({ id, data }: UpdateCustomerPayload) => updateCustomer(id, data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: customersKeys.list({ page: 1, limit: 10, searchTerm: "" }),
+        queryKey: customersKeys.all,
       });
+      handleApiSuccess(response, notifySuccess);
     },
-    // onError: (error) => {
-    //   console.error("API ERROR ", error);
-    // },
+    onError: (error) => handleApiError(error, notifyError),
   });
 }

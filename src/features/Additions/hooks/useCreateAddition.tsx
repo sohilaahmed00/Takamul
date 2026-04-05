@@ -5,6 +5,7 @@ import { createAdditions } from "../services/additions";
 import type { createAddition } from "../types/additions.types";
 import axios from "axios";
 import { handleApiError } from "@/lib/handleApiError";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 export function useCreateAddition() {
   const queryClient = useQueryClient();
@@ -15,7 +16,7 @@ export function useCreateAddition() {
       queryClient.invalidateQueries({
         queryKey: additionsKeys.list(),
       });
-      notifySuccess(response?.message);
+      handleApiSuccess(response, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

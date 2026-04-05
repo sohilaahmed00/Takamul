@@ -410,6 +410,7 @@
   "generate_code": "توليد كود",
   "gift_cards": "قائمة كروت الهدايا",
   "gift_cards_list": "قائمة كروت الهدايا",
+  "manage_gift_cards": "إدارة كروت الهدايا",
   "gift_cards_table_desc": "الرجاء استخدام الجدول أدناه للتنقل أو تصفية النتائج.",
   "grand_total": "المجموع الكلي",
   "greetings": "تحية طيبة",
@@ -1721,6 +1722,7 @@
   "prepared_products": "الأصناف المجهزة",
   "raw_materials": "الخامات",
   "type": "النوع"
+  
 
 
 

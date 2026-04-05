@@ -1,5 +1,6 @@
 export function handleApiError(error: unknown, notifyError: (msg: string) => void) {
   if (typeof error === "string") {
+    console.log(error);
     notifyError(error);
     return;
   }

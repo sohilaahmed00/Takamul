@@ -6,6 +6,7 @@ import { handleApiError } from "@/lib/handleApiError";
 import type { CreatePurchaseOrder } from "../types/purchase.types";
 import { createPurchaseOrder } from "../services/purchases";
 import { purchasesKeys } from "../keys/purchases.keys";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 export function useCreatePurchaseOrder() {
   const queryClient = useQueryClient();
@@ -17,7 +18,7 @@ export function useCreatePurchaseOrder() {
       queryClient.invalidateQueries({
         queryKey: purchasesKeys.all,
       });
-      notifySuccess(response?.message);
+      handleApiSuccess(response, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

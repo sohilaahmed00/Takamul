@@ -1,22 +1,22 @@
-import CategoriesList from "@/pages/CategoriesList";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { categoriesKeys } from "../keys/categories.keys";
-import { createCategory } from "../services/categories";
+import { salesKeys } from "../keys/sales.keys";
 import useToast from "@/hooks/useToast";
-import axios from "axios";
 import { handleApiError } from "@/lib/handleApiError";
 import { handleApiSuccess } from "@/lib/handleApiSuccess";
+import { createTakwayOrder } from "../services/pos";
+import { CreateTakeawayOrder } from "../types/pos.types";
 
-export function useCreateCategory() {
+export function useCreateTakwayOrder() {
   const queryClient = useQueryClient();
   const { notifyError, notifySuccess } = useToast();
   return useMutation({
-    mutationFn: (data: FormData) => createCategory(data),
+    mutationFn: (data: CreateTakeawayOrder) => createTakwayOrder(data),
     onSuccess: (response) => {
+      console.log(response);
       queryClient.invalidateQueries({
-        queryKey: categoriesKeys.all,
+        queryKey: salesKeys.all,
       });
-      handleApiSuccess(response, notifySuccess);
+      handleApiSuccess(response?.message, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/card";
 
 export default function Additions() {
-  const { t, direction } = useLanguage();
+  const { t, direction, language } = useLanguage();
   const { data: additions } = useGetAllAdditions();
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -109,7 +109,11 @@ export default function Additions() {
               body={(addition: Addition) => (
                 <div className="cell-data-stack">
                   <span className="customer-name-main">
-                    {addition.additionNameAr}
+                    {language === "en" 
+                      ? addition.additionNameEn || addition.additionNameAr 
+                      : language === "ur" 
+                      ? addition.additionNameUr || addition.additionNameAr 
+                      : addition.additionNameAr}
                   </span>
                 </div>
               )}

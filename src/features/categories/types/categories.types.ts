@@ -7,6 +7,14 @@ export interface Category {
   parentCategoryId: number | null;
   isActive: number;
   imageUrl: string;
+  subCategories: {
+    id: number;
+    categoryNameAr: string;
+    categoryNameEn: string;
+    categoryNameUr: string;
+    description: string;
+    imageUrl: string;
+  }[];
 }
 export interface createSupplier {
   supplierName: string;
@@ -22,6 +30,6 @@ export interface createSupplier {
   paymentTerms?: number;
 }
 
-export type CreateCategory = Omit<Category, 'id'>;
+export type CreateCategory = Omit<Category, "id">;
 
 export type GetAllCategoriesResponse = Category[];

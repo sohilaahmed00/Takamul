@@ -1,74 +1,115 @@
-import { useState } from "react";
-import { MENU_DATA, CATS } from "@/constants/data";
+import { useEffect, useState } from "react";
 import { usePos } from "@/context/PosContext";
-import type { CartItem } from "@/constants/data";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
+import { useGetAllMainCategories } from "@/features/categories/hooks/useGetAllMainCategories";
+import { Product, ProductBranch } from "@/features/products/types/products.types";
+import { useGetProductBranchedById } from "@/features/products/hooks/useGetProductBranchedById";
+import { CartItem } from "@/constants/data";
 
 export default function HomePage() {
-  const { setCart } = usePos();
-  const [currentCat, setCurrentCat] = useState("Lunch");
-  const [currentSubCat, setCurrentSubCat] = useState<string | null>(null);
-  const [childrenModal, setChildrenModal] = useState<{ item: any } | null>(null);
+  const { setCart, cart } = usePos();
+  const [currentCat, setCurrentCat] = useState<number | null>(null);
+  const [currentSubCat, setCurrentSubCat] = useState<number | null>(null);
+  const [childrenModal, setChildrenModal] = useState<ProductBranch["children"] | null>(null);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [modalTitle, setModalTitle] = useState<string>("");
+
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000 });
+  const { data: mainCategories } = useGetAllMainCategories();
+  const { data: productPranched } = useGetProductBranchedById(selectedProductId);
 
-  const activeCat = CATS.find((c) => c.id === currentCat);
+  const activeCat = mainCategories?.find((c) => c.id === currentCat);
 
-  const addToCart = (item: { productNameAr: string; sellingPrice: number }) => {
+  const filteredProducts = products?.items.filter((item) => {
+    if (currentSubCat) return item.categoryId === currentSubCat;
+    if (currentCat) return item.categoryId === currentCat;
+    return true;
+  });
+
+  const addToCart = (item: { id: number; productNameAr: string; sellingPrice: number; taxAmount: number; taxCalculation: number }) => {
     setCart((prev) => {
-      const existing = prev.find((i) => i.name === item.productNameAr);
-      if (existing) return prev.map((i) => (i.name === item.productNameAr ? { ...i, qty: i.qty + 1 } : i));
-      return [...prev, { name: item.productNameAr, price: item.sellingPrice, qty: 1, note: "", op: null }];
+      const existing = prev.find((i) => i.productId === item.id);
+      if (existing) {
+        return prev.map((i) => (i.productId === item.id ? { ...i, qty: i.qty + 1 } : i));
+      }
+      return [
+        ...prev,
+        {
+          name: item.productNameAr,
+          price: item.sellingPrice,
+          qty: 1,
+          note: "",
+          op: null,
+          taxamount: item.taxAmount,
+          productId: item.id,
+          taxCalculation: item.taxCalculation,
+        },
+      ];
     });
   };
 
-  const handleMenuClick = (item: any) => {
-    if (item.children?.length) {
-      setChildrenModal({ item });
+  const handleMenuClick = (item: Product) => {
+    if (item.productType == "Branched") {
+      setSelectedProductId(null);
+      setTimeout(() => setSelectedProductId(item?.id), 0);
     } else {
-      addToCart(item);
+      addToCart({
+        id: item.id,
+        productNameAr: item.productNameAr,
+        sellingPrice: item.priceBeforeTax,
+        taxAmount: item.taxAmount,
+        taxCalculation: item.taxCalculation,
+      });
     }
   };
+  useEffect(() => {
+    if (productPranched?.children) {
+      setModalTitle(productPranched.productNameAr);
+      setChildrenModal(productPranched.children);
+      setSelectedProductId(null);
+    }
+  }, [productPranched]);
 
   return (
     <div className="flex-1 p-3 overflow-y-auto bg-gray-50 h-full">
       {/* Main category pills */}
       <div className="flex gap-1.5 mb-2 flex-wrap">
-        {CATS.map((c) => (
+        {mainCategories?.map((c) => (
           <button
             key={c.id}
             onClick={() => {
-              setCurrentCat(c.id);
+              setCurrentCat(c.id === currentCat ? null : c.id);
               setCurrentSubCat(null);
             }}
             className={`px-3.5 py-1.5 rounded-full text-xs border transition-colors
               ${c.id === currentCat ? "bg-primary text-white border-primary font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/40"}`}
           >
-            {c.label}
+            {c.categoryNameAr}
           </button>
         ))}
       </div>
 
       {/* Sub-category pills */}
-      {activeCat?.children?.length ? (
+      {activeCat?.subCategories?.length ? (
         <div className="flex gap-1.5 mb-3 flex-wrap">
-          {activeCat.children.map((sub) => (
+          {activeCat.subCategories.map((sub) => (
             <button
-              key={sub}
-              onClick={() => setCurrentSubCat(currentSubCat === sub ? null : sub)}
+              key={sub.id}
+              onClick={() => setCurrentSubCat(currentSubCat === sub.id ? null : sub.id)}
               className={`px-3 py-1 rounded-full text-xs border transition-colors
-                ${currentSubCat === sub ? "bg-primary/10 text-primary border-primary/30 font-semibold" : "bg-white text-gray-400 border-gray-200 hover:border-primary/30"}`}
+                ${currentSubCat === sub.id ? "bg-primary/10 text-primary border-primary/30 font-semibold" : "bg-white text-gray-400 border-gray-200 hover:border-primary/30"}`}
             >
-              {sub}
+              {sub.categoryNameAr}
             </button>
           ))}
         </div>
       ) : null}
 
       {/* Menu grid */}
-      <div className="grid grid-cols-5 gap-2">
-        {products?.items.map((item, i) => (
+      <div className="grid lg:grid-cols-5 3xl:grid-cols-6 gap-2">
+        {filteredProducts?.map((item, i) => (
           <div key={i} onClick={() => handleMenuClick(item)} className="bg-white rounded-xl p-2.5 text-center border border-gray-100 cursor-pointer hover:shadow-md hover:border-primary/40 transition-all">
-            <div className="w-16 h-16 rounded-full bg-primary/5 mx-auto mb-2 flex items-center justify-center text-3xl">{/* <img src={item?.imageUrl} alt="" /> */}</div>
+            <div className="w-16 h-16 rounded-full bg-primary/5 mx-auto mb-2 flex items-center justify-center overflow-hidden">{item.imageUrl ? <img src={item.imageUrl} alt={item.productNameAr} className="w-full h-full object-cover rounded-full" /> : <span className="text-2xl"></span>}</div>
             <div className="text-xs font-semibold text-gray-700 mb-0.5 leading-tight">{item.productNameAr}</div>
             <div className="text-xs font-bold text-primary">${item.sellingPrice}.00</div>
           </div>
@@ -79,19 +120,26 @@ export default function HomePage() {
       {childrenModal && (
         <div className="absolute inset-0 bg-black/35 flex items-center justify-center z-50 rounded-xl">
           <div className="bg-white rounded-2xl p-5 w-72">
-            <div className="text-sm font-black text-gray-800 mb-4">{childrenModal.item.name}</div>
+            <div className="text-sm font-black text-gray-800 mb-4">{modalTitle}</div>
             <div className="space-y-2">
-              {childrenModal.item.children.map((child: any, i: number) => (
+              {childrenModal.map((child: ProductBranch["children"][number], i: number) => (
                 <button
                   key={i}
                   onClick={() => {
-                    addToCart(child);
+                    const pro = {
+                      id: child?.id,
+                      productNameAr: child?.productNameAr,
+                      sellingPrice: child?.sellingPrice,
+                      taxAmount: 0,
+                      taxCalculation: 1,
+                    };
+                    addToCart(pro);
                     setChildrenModal(null);
                   }}
                   className="w-full flex justify-between items-center px-3 py-2.5 border border-gray-200 rounded-lg hover:border-primary/40 hover:bg-primary/5 transition-colors"
                 >
-                  <span className="text-sm font-semibold text-gray-700">{child.name}</span>
-                  <span className="text-sm font-bold text-primary">${child.price}.00</span>
+                  <span className="text-sm font-semibold text-gray-700">{child.productNameAr}</span>
+                  <span className="text-sm font-bold text-primary">${child.sellingPrice}.00</span>
                 </button>
               ))}
             </div>

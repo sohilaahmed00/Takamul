@@ -2,6 +2,8 @@ import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query"
 import { categoriesKeys } from "../keys/categories.keys";
 import { updateCategory } from "../services/categories";
 import useToast from "@/hooks/useToast";
+import { handleApiError } from "@/lib/handleApiError";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 type UpdateCategoryPayload = {
   id: number;
@@ -17,21 +19,8 @@ export function useUpdateCategory() {
       queryClient.invalidateQueries({
         queryKey: categoriesKeys.list(),
       });
+      handleApiSuccess(response, notifySuccess);
     },
-    onError: (error: any) => {
-      const res = error?.response?.data;
-      console.log(res);
-      if (res?.errors) {
-        Object.values(res.errors)
-          .flat()
-          .forEach((message) => {
-            notifyError(String(message));
-          });
-      } else if (res) {
-        notifyError(res);
-      } else {
-        notifyError("حدث خطأ غير متوقع");
-      }
-    },
+    onError: (error) => handleApiError(error, notifyError),
   });
 }

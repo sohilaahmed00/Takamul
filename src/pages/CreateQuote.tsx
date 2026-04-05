@@ -136,8 +136,16 @@ const QuoteSummaryContent: React.FC<{
                       {item.qty} × {fmt(item.price)}
                     </span>
                     {item.unitName && <span className="text-xs text-zinc-400">{item.unitName}</span>}
-                    {item.disc > 0 && <span className="text-xs text-emerald-600">{t("discount")} {fmt(item.disc)}</span>}
-                    {item.tax > 0 && <span className="text-xs text-amber-500">{t("tax")} {fmt(item.tax)}</span>}
+                    {item.disc > 0 && (
+                      <span className="text-xs text-emerald-600">
+                        {t("discount")} {fmt(item.disc)}
+                      </span>
+                    )}
+                    {item.tax > 0 && (
+                      <span className="text-xs text-amber-500">
+                        {t("tax")} {fmt(item.tax)}
+                      </span>
+                    )}
                   </div>
                 </div>
                 <span className="text-sm font-semibold text-zinc-900 shrink-0">{fmt(item.total)}</span>
@@ -274,11 +282,7 @@ const CreateQuote: React.FC = () => {
   const { control } = form;
 
   const { data: customersResponse } = useGetAllCustomers();
-  const customers = Array.isArray(customersResponse?.items)
-    ? customersResponse.items
-    : Array.isArray(customersResponse)
-      ? customersResponse
-      : [];
+  const customers = Array.isArray(customersResponse?.items) ? customersResponse.items : Array.isArray(customersResponse) ? customersResponse : [];
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});

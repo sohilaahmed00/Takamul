@@ -11,10 +11,7 @@ type HttpClientOptions = {
   responseType?: "json" | "blob";
 };
 
-export async function httpClient<T>(
-  url: string,
-  options?: HttpClientOptions
-): Promise<T> {
+export async function httpClient<T>(url: string, options?: HttpClientOptions): Promise<T> {
   try {
     const response = await axiosClient({
       url,
@@ -28,21 +25,7 @@ export async function httpClient<T>(
     return response.data as T;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      const responseData = error.response?.data;
-
-      if (typeof responseData === "string") {
-        throw new Error(responseData);
-      }
-
-      if (responseData?.message) {
-        throw new Error(responseData.message);
-      }
-
-      if (responseData?.title) {
-        throw new Error(responseData.title);
-      }
-
-      throw new Error(error.message || "حدث خطأ أثناء الاتصال بالسيرفر");
+      throw error.response?.data ?? new Error("حدث خطأ أثناء الاتصال بالسيرفر");
     }
 
     if (error instanceof Error) {

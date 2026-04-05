@@ -1,5 +1,3 @@
-"use client";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateCategory } from "@/features/categories/services/categories";
 import type { CreateCategory } from "@/features/categories/types/categories.types";
@@ -10,9 +8,8 @@ type UpdateCategoryPayload = {
   data: CreateCategory;
 };
 
-export function useUpdateCategory() {
+export function useUpdateSalesOrder() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: ({ id, data }: UpdateCategoryPayload) => updateCategory(id, data as any),
     onSuccess: (response) => {

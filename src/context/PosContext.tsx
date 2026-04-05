@@ -1,5 +1,12 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
 import { INITIAL_CART, calcTotals, type CartItem, type HeldCart, type Screen, type OrderType, type NetworkSpeed } from "@/constants/data";
+import { Customer } from "@/features/customers/types/customers.types";
+import { useCreateTakwayOrder } from "@/features/pos/hooks/useCreateTakeawayOrder";
+import { CreateTakeawayOrder } from "@/features/pos/types/pos.types";
+import { useNavigate } from "react-router-dom";
+import { GiftCard } from "@/features/gift-cards/types/giftCard.types";
+import useToast from "@/hooks/useToast";
+import { useCreateDeliveryOrder } from "@/features/pos/hooks/useCreateDeliveryOrder";
 
 // ─── CONTEXT SHAPE ────────────────────────────────────────────────────────────
 interface PosContextValue {
@@ -33,6 +40,19 @@ interface PosContextValue {
   selectedDelivery: string | null;
   setSelectedDelivery: (d: string | null) => void;
 
+  //customer
+  selectedCustomer: Customer | null;
+  setSelectedCustomer: (c: Customer | null) => void;
+
+  selectedGiftCardId: number | null;
+  setSelectedGiftCardId: (g: number | null) => void;
+
+  selectedVaultId: number | null;
+  setSelectedVaultId: (id: number | null) => void;
+
+  paidAmount: number;
+  setPaidAmount: React.Dispatch<React.SetStateAction<number>>;
+
   // Network
   networkSpeed: NetworkSpeed;
 }
@@ -41,7 +61,9 @@ const PosContext = createContext<PosContextValue | null>(null);
 
 export function PosProvider({ children }: { children: ReactNode }) {
   const [screen, setScreen] = useState<Screen>("home");
-  const [cart, setCart] = useState<CartItem[]>(INITIAL_CART);
+  const navigate = useNavigate();
+  const { notifyError, notifySuccess } = useToast();
+  const [cart, setCart] = useState<CartItem[]>([]);
   const [discount, setDiscount] = useState(0);
   const [heldCarts, setHeldCarts] = useState<HeldCart[]>([]);
   const [showHoldModal, setShowHoldModal] = useState(false);
@@ -50,6 +72,12 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
   const [selectedDelivery, setSelectedDelivery] = useState<string | null>(null);
   const [networkSpeed, setNetworkSpeed] = useState<NetworkSpeed>("fast");
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [paidAmount, setPaidAmount] = useState(0);
+  const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
+  const { mutateAsync: createDeliveryOrder } = useCreateDeliveryOrder();
+  const [selectedGiftCardId, setSelectedGiftCardId] = useState<number | null>(null);
+  const [selectedVaultId, setSelectedVaultId] = useState<number | null>(null);
 
   useEffect(() => {
     const connection = (navigator as any).connection;
@@ -68,13 +96,13 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const handleHold = () => setShowHoldModal(true);
 
   const confirmHold = (note: string) => {
-    const { pay } = calcTotals(cart, discount);
+    const { total } = calcTotals(cart, discount);
     setHeldCarts((prev) => [
       ...prev,
       {
         note,
         items: [...cart],
-        total: pay,
+        total,
         time: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
       },
     ]);
@@ -91,16 +119,72 @@ export function PosProvider({ children }: { children: ReactNode }) {
     setScreen("home");
   };
 
-  const handleConfirmPayment = (method: string, amount: string) => {
-    setSuccessInfo({ method, amount });
-    setCart([]);
-    setDiscount(0);
-    setScreen("success");
+  const handleConfirmPayment = async (method: string, amount: string) => {
+    if (!selectedVaultId) {
+      notifyError("اختر الخزنة");
+      return;
+    }
+
+    const payments = [
+      {
+        amount: paidAmount,
+        treasuryId: selectedVaultId,
+        // paymentMethod: "Cash",
+        notes: "",
+      },
+    ];
+
+    const items = cart.map((cat) => ({
+      productId: cat?.productId,
+      quantity: cat?.qty,
+      discountValue: cat?.itemDiscount?.type === "flat" ? cat?.itemDiscount?.value : 0,
+      discountPercentage: cat?.itemDiscount?.type === "pct" ? cat?.itemDiscount?.value : 0,
+    }));
+
+    const basePayload = {
+      customerId: selectedCustomer?.id,
+      warehouseId: 1,
+      notes: "zz",
+      globalDiscountValue: 0,
+      globalDiscountPercentage: discount,
+      giftCardId: selectedGiftCardId,
+      additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
+      items,
+      payments,
+    };
+
+    try {
+      if (orderType === "takeaway") {
+        await createTakwayOrder(basePayload as CreateTakeawayOrder);
+      } else if (orderType === "dine-in") {
+        // await createDineInOrder({ ...basePayload, tableId: selectedTable });
+      } else if (orderType === "delivery") {
+        await createDeliveryOrder(basePayload);
+      }
+
+      setSuccessInfo({ method, amount });
+      setCart([]);
+      setDiscount(0);
+      setSelectedCustomer(null);
+      setSelectedGiftCardId(null);
+      setSelectedVaultId(null);
+      setScreen("home");
+    } catch (e) {
+      notifyError("حدث خطأ أثناء إتمام الطلب");
+    }
   };
 
   return (
     <PosContext.Provider
       value={{
+        selectedVaultId,
+        setSelectedVaultId,
+        selectedGiftCardId,
+        setSelectedGiftCardId,
+        paidAmount,
+        setPaidAmount,
+        selectedCustomer,
+        setSelectedCustomer,
         screen,
         setScreen,
         cart,

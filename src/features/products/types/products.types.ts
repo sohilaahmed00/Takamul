@@ -13,7 +13,7 @@ export type Product = {
   description: string | null;
   sellingPrice: number;
   costPrice: number;
-  taxCalculation: string;
+  taxCalculation: number;
   isActive: boolean;
   imageUrl: string;
   parentProductId: number;
@@ -21,6 +21,8 @@ export type Product = {
   productType: "Direct" | "Prepared" | "Branched" | "RawMatrial";
   taxAmount: number;
   taxId: number;
+  priceBeforeTax: number;
+  balance: number;
 };
 export type ProductDirect = {
   id: number;

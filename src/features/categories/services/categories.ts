@@ -18,13 +18,13 @@ export const getAllSubCategoriesWithParentId = (id: number) => httpClient<GetAll
 // // ===================
 
 export const createCategory = (data: FormData) =>
-  httpClient<GetAllCategoriesResponse>("/ProductCategories/create", {
+  httpClient<{ message: string }>("/ProductCategories/create", {
     method: "POST",
     data,
   });
 
 export const updateCategory = (id: number, data: FormData) =>
-  httpClient<Category>(`/ProductCategories/${id}`, {
+  httpClient<{ message: string }>(`/ProductCategories/${id}`, {
     method: "PUT",
     data,
   });
