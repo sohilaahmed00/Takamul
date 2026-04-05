@@ -197,10 +197,8 @@ export default function ProductsList() {
           >
             <Column header={t("name")} sortable field="productNameAr" />
             <Column field="description" sortable header={t("description")} />
-            <Column field="taxAmount" sortable header={"قيمة الضرايب"} />
             <Column field="balance" sortable header={"الكمية"} />
             <Column field="costPrice" sortable header={"سعر الشراء"} />
-            <Column field="sellingPrice" sortable header={"سعر البيع"} />
             <Column
               header="قيمة الضريبة"
               body={(row: Product) => {
@@ -221,6 +219,8 @@ export default function ProductsList() {
                 return tax.toFixed(2);
               }}
             />
+            <Column field="sellingPrice" sortable header={"سعر البيع"} />
+
             <Column field="productType" sortable header={"النوع"} />
             <Column
               header={t("actions")}
