@@ -4,7 +4,7 @@ import { productsKeys } from "../keys/products.keys";
 import { getProductBranchedById, getProductById } from "../services/products";
 
 type QueryOptions = Omit<UseQueryOptions<ProductBranch>, "queryKey" | "queryFn">;
-export const useGetProductBranchedById = (id: number, options?: QueryOptions) =>
+export const useGetProductBranchedById = (id?: number, options?: QueryOptions) =>
   useQuery<ProductBranch>({
     queryKey: productsKeys.detail(id),
     queryFn: () => getProductBranchedById(id),

@@ -69,7 +69,7 @@ export default function QuotesList() {
         <CardTitle>{t("quotes")}</CardTitle>
         <CardDescription>{t("quotes_desc")}</CardDescription>
         <CardAction>
-          <Button variant={"default"} asChild>
+          <Button size="xl" variant={"default"} asChild>
             <Link to={"/quotes/create"}>{t("add_quote")}</Link>
           </Button>
         </CardAction>

@@ -19,6 +19,8 @@ import CashierPage from "../pages/Cashierpage";
 import { SuccessPage } from "../pages/SuccessPage";
 import { HoldListPage } from "../pages/Holdlistpage";
 import { PlaceholderPage } from "../pages/PlaceholderPage";
+import { ToastContainer } from "react-toastify";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 function PageContent() {
   const { screen } = usePos();
@@ -52,6 +54,8 @@ export default function AppLayout() {
 
   return (
     <div className="relative flex h-screen bg-gray-100 overflow-hidden rounded-xl border border-gray-200" style={{ minHeight: 600 }}>
+      <ToastContainer pauseOnHover={false} />
+
       {/* Global overlay modal */}
       {showHoldModal && <HoldModal onClose={() => setShowHoldModal(false)} onConfirm={confirmHold} />}
 
@@ -66,12 +70,15 @@ export default function AppLayout() {
         {/* Content row: page content + optional right panel */}
         <div className="flex flex-1 overflow-hidden">
           {/* Page takes all remaining horizontal space */}
-          <div className="flex-1 overflow-y-auto min-w-0 p-4 bg-gray-50">
-            <PageContent />
-          </div>
+          <TooltipProvider>
+            {/* Page */}
+            <div className="flex-1 overflow-y-auto min-w-0 p-4 bg-gray-50">
+              <PageContent />
+            </div>
 
-          {/* Right panel: CartPanel or CashierPanel or nothing */}
-          <RightPanel />
+            {/* Right Panel */}
+            <RightPanel />
+          </TooltipProvider>
         </div>
       </div>
     </div>

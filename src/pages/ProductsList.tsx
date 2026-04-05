@@ -44,7 +44,7 @@ export default function ProductsList() {
       SearchTerm: globalFilterValue,
     },
     {
-      enabled: activeTab === "direct",
+      enabled: activeTab === "Direct",
     },
   );
 
@@ -55,7 +55,7 @@ export default function ProductsList() {
       SearchTerm: globalFilterValue,
     },
     {
-      enabled: activeTab === "branched",
+      enabled: activeTab === "Branched",
     },
   );
   const { data: productsPrepared } = useGetAllProductsPrepared(
@@ -65,7 +65,7 @@ export default function ProductsList() {
       SearchTerm: globalFilterValue,
     },
     {
-      enabled: activeTab === "prepared",
+      enabled: activeTab === "Prepared",
     },
   );
 
@@ -76,7 +76,7 @@ export default function ProductsList() {
       SearchTerm: globalFilterValue,
     },
     {
-      enabled: activeTab === "rawMaterials",
+      enabled: activeTab === "RawMatrial",
     },
   );
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,6 +85,7 @@ export default function ProductsList() {
     setCurrentPage(1);
   };
   const handleTabChange = (newTab: string) => {
+    console.log(activeTab);
     setActiveTab(newTab);
     setGlobalFilterValue("");
     setCurrentPage(1);
@@ -111,28 +112,28 @@ export default function ProductsList() {
           loading: !products?.items,
         };
 
-      case "direct":
+      case "Direct":
         return {
           items: productsDirect?.items || [],
           total: productsDirect?.totalCount || 0,
           loading: !productsDirect?.items,
         };
 
-      case "branched":
+      case "Branched":
         return {
           items: productsBranched?.items || [],
           total: productsBranched?.totalCount || 0,
           loading: !productsBranched?.items,
         };
 
-      case "prepared":
+      case "Prepared":
         return {
           items: productsPrepared?.items || [],
           total: productsPrepared?.totalCount || 0,
           loading: !productsPrepared?.items,
         };
 
-      case "rawMaterials":
+      case "RawMatrial":
         return {
           items: productsRawMaterials?.items || [],
           total: productsRawMaterials?.totalCount || 0,
@@ -146,11 +147,11 @@ export default function ProductsList() {
     <>
       <Card>
         <CardHeader className="max-md:flex max-md:flex-col">
-          <CardTitle>{t("products_management")}</CardTitle>
-          <CardDescription>{t("products_management_desc")}</CardDescription>
+          <CardTitle>إدارة الاصناف</CardTitle>
+          <CardDescription>إدارة الأصناف المباشرة والمتفرعة والمجهزة والخامات</CardDescription>
           <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
             <Button size={"xl"} variant={"default"} asChild>
-              <Link to={"/products/create"}>{t("add_product")}</Link>
+              <Link to={"/products/create"}>إضافة صنف</Link>
             </Button>
           </CardAction>
         </CardHeader>
@@ -158,19 +159,19 @@ export default function ProductsList() {
           <Tabs value={activeTab} onValueChange={handleTabChange} className="border border-gray-200 rounded-t-md overflow-hidden">
             <TabsList variant={"line"} className="flex overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit! pb-1 max-lg:w-full [&::-webkit-scrollbar]:hidden">
               <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
-                {t("all_products")}
+                جميع الأصناف
               </TabsTrigger>
-              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="direct">
-                {t("direct_products")}
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="Direct">
+                الأصناف المباشرة
               </TabsTrigger>
-              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="branched">
-                {t("branched_products")}
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="Branched">
+                الأصناف المتفرعة
               </TabsTrigger>
-              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="prepared">
-                {t("prepared_products")}
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="Prepared">
+                الأصناف المجهزة
               </TabsTrigger>
-              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="rawMaterials">
-                {t("raw_materials")}
+              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="RawMatrial">
+                الخامات
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -196,13 +197,36 @@ export default function ProductsList() {
           >
             <Column header={t("name")} sortable field="productNameAr" />
             <Column field="description" sortable header={t("description")} />
-            {/* <Column field="productType" sortable header={"الكمية"} /> */}
-            <Column field="productType" sortable header={t("type")} />
+            <Column field="balance" sortable header={"الكمية"} />
+            <Column field="costPrice" sortable header={"سعر الشراء"} />
+            <Column
+              header="قيمة الضريبة"
+              body={(row: Product) => {
+                const qty = row.balance > 0 ? row.balance : 1;
+                const price = row.sellingPrice * qty;
+                const rate = row.taxAmount / 100;
+
+                let tax = 0;
+
+                if (row.taxCalculation === 1) {
+                  tax = 0;
+                } else if (row.taxCalculation === 2) {
+                  tax = price - price / (1 + rate);
+                } else if (row.taxCalculation === 3) {
+                  tax = price * rate;
+                }
+
+                return tax.toFixed(2);
+              }}
+            />
+            <Column field="sellingPrice" sortable header={"سعر البيع"} />
+
+            <Column field="productType" sortable header={"النوع"} />
             <Column
               header={t("actions")}
               body={(product: Product) => (
                 <div className="space-x-2">
-                  <Link to={`/products/edit/${product?.id}?type=${product?.productType}`} className="btn-minimal-action btn-edit">
+                  <Link to={`/products/edit/${product?.id}?type=${activeTab == "allProducts" ? product?.productType : activeTab}`} className="btn-minimal-action btn-edit">
                     <Edit2 size={16} />
                   </Link>
                   <button

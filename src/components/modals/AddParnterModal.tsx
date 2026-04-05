@@ -10,14 +10,7 @@ import { Button } from "../ui/button";
 import { Switch } from "../ui/switch";
 import { Input } from "../ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { useGetAllCountries } from "@/features/locations/hooks/useGetAllCountries";
 import { useGetCityWithCountryId } from "@/features/locations/hooks/useGetCityWithCountryId";
@@ -45,10 +38,7 @@ export const createPartnerSchema = (t: (key: string) => string) =>
     .object({
       name: z.string().min(3, t("validation_name_min_3")),
 
-      phone: z
-        .string()
-        .regex(/^\d+$/, t("validation_numbers_only"))
-        .min(10, t("validation_phone_invalid")),
+      phone: z.string().regex(/^\d+$/, t("validation_numbers_only")).min(10, t("validation_phone_invalid")),
 
       mobile: z
         .string()
@@ -57,10 +47,7 @@ export const createPartnerSchema = (t: (key: string) => string) =>
           message: t("validation_numbers_only"),
         }),
 
-      commercialRegister: z
-        .string()
-        .min(1, t("validation_commercial_register_required"))
-        .regex(/^\d+$/, t("validation_numbers_only")),
+      commercialRegister: z.string().min(1, t("validation_commercial_register_required")).regex(/^\d+$/, t("validation_numbers_only")),
 
       isTaxable: z.boolean(),
 
@@ -173,12 +160,7 @@ export const createPartnerSchema = (t: (key: string) => string) =>
       }
     });
 
-export default function AddParnterModal({
-  isOpen,
-  onClose,
-  partner,
-  type = "customer",
-}: AddParnterModalProps) {
+export default function AddParnterModal({ isOpen, onClose, partner, type = "customer" }: AddParnterModalProps) {
   const { t, direction } = useLanguage();
   const { mutateAsync: createCustomer } = useCreateCustomer();
   const { mutateAsync: updateSupplier } = useUpdateSupplier();
@@ -348,38 +330,19 @@ export default function AddParnterModal({
         <DialogHeader className="py-3">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71]">
             <UserPlus size={20} />
-            {partner
-              ? isSupplier
-                ? t("edit_supplier")
-                : t("edit_customer")
-              : isSupplier
-              ? t("add_supplier")
-              : t("add_customer")}
+            {partner ? (isSupplier ? t("edit_supplier") : t("edit_customer")) : isSupplier ? t("add_supplier") : t("add_customer")}
           </DialogTitle>
         </DialogHeader>
 
-        <form
-          id="addPartnerForm"
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4"
-        >
+        <form id="addPartnerForm" onSubmit={form.handleSubmit(onSubmit)} className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-2">
             <Controller
               name="name"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>
-                    {isSupplier ? t("supplier_name") : t("customer_name")} *
-                  </FieldLabel>
-                  <Input
-                    {...field}
-                    placeholder={
-                      isSupplier
-                        ? t("enter_supplier_name")
-                        : t("enter_customer_name")
-                    }
-                  />
+                  <FieldLabel>{isSupplier ? t("supplier_name") : t("customer_name")} *</FieldLabel>
+                  <Input {...field} placeholder={isSupplier ? t("enter_supplier_name") : t("enter_customer_name")} />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
@@ -404,11 +367,7 @@ export default function AddParnterModal({
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>{t("commercial_register")} *</FieldLabel>
-                    <Input
-                      {...field}
-                      type="number"
-                      placeholder={t("enter_commercial_register")}
-                    />
+                    <Input {...field} type="number" placeholder={t("enter_commercial_register")} />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
@@ -418,25 +377,11 @@ export default function AddParnterModal({
             <div className="col-span-1 md:col-span-2 bg-white border border-gray-200 rounded-2xl p-5 my-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-base font-bold text-gray-800">
-                    {t("national_address")}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {t("tax_registration_helper_text")}
-                  </p>
+                  <h3 className="text-base font-bold text-gray-800">{t("national_address")}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{t("tax_registration_helper_text")}</p>
                 </div>
 
-                <Controller
-                  name="isTaxable"
-                  control={form.control}
-                  render={({ field }) => (
-                    <Switch
-                      className="scale-130 cursor-pointer"
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
-                  )}
-                />
+                <Controller name="isTaxable" control={form.control} render={({ field }) => <Switch className="scale-130 cursor-pointer" checked={field.value} onCheckedChange={field.onChange} />} />
               </div>
 
               {isTaxable && (
@@ -527,10 +472,7 @@ export default function AddParnterModal({
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>{t("city")} *</FieldLabel>
-                      <Select
-                        value={field.value ? String(field.value) : ""}
-                        onValueChange={(value) => field.onChange(Number(value))}
-                      >
+                      <Select value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder={t("select_city")} />
                         </SelectTrigger>
@@ -562,7 +504,7 @@ export default function AddParnterModal({
                 />
 
                 <Controller
-                  name="streetName"
+                  name="address"
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
@@ -627,13 +569,7 @@ export default function AddParnterModal({
 
         <DialogFooter>
           <Button form="addPartnerForm" className="h-12 px-6 text-base" type="submit">
-            {partner
-              ? isSupplier
-                ? t("edit_supplier")
-                : t("edit_customer")
-              : isSupplier
-              ? t("add_supplier")
-              : t("add_customer")}
+            {partner ? (isSupplier ? t("edit_supplier") : t("edit_customer")) : isSupplier ? t("add_supplier") : t("add_customer")}
           </Button>
         </DialogFooter>
       </DialogContent>

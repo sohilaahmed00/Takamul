@@ -78,7 +78,7 @@ export default function CategoriesList() {
           <CardTitle>{t("manage_categories_title")}</CardTitle>
           <CardDescription>{t("categories_description")}</CardDescription>
           <CardAction>
-            <Button variant={"default"} onClick={() => setIsAddModalOpen(true)}>
+            <Button size="xl" variant={"default"} onClick={() => setIsAddModalOpen(true)}>
               إضافة تصنيف{" "}
             </Button>
           </CardAction>

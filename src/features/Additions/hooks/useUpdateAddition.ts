@@ -4,6 +4,8 @@ import { updateAddition } from "../services/additions";
 import type { createAddition } from "../types/additions.types";
 import { additionsKeys } from "../keys/additions.keys";
 import axios from "axios";
+import { handleApiError } from "@/lib/handleApiError";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 type UpdateCategoryPayload = {
   id: number;
@@ -19,23 +21,8 @@ export function useUpdateAddition() {
       queryClient.invalidateQueries({
         queryKey: additionsKeys.list(),
       });
-      notifySuccess(response?.message);
+      handleApiSuccess(response, notifySuccess);
     },
-    onError: (error) => {
-      if (axios.isAxiosError(error)) {
-        const res = error?.response?.data;
-        if (res?.errors) {
-          Object.values(res.errors)
-            .flat()
-            .forEach((message) => {
-              notifyError(String(message));
-            });
-        } else if (res) {
-          notifyError(res);
-        } else {
-          notifyError("حدث خطأ غير متوقع");
-        }
-      }
-    },
+    onError: (error) => handleApiError(error, notifyError),
   });
 }

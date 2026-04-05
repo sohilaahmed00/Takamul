@@ -5,13 +5,7 @@ import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import type { CreateSalesOrder } from "@/features/sales/types/sales.types";
@@ -41,14 +35,12 @@ const createPurchasesInvoiceSchema = (t: (key: string) => string) =>
           productId: z.number().min(1, t("choose_product")),
           unitId: z.coerce.number().min(1, t("choose_product_unit")),
           quantity: z.number().min(1, t("quantity_must_be_greater_than_zero")),
-          unitPrice: z
-            .number({ required_error: t("unit_cost_required") })
-            .min(0, t("price_must_be_greater_or_equal_zero")),
+          unitPrice: z.number({ required_error: t("unit_cost_required") }).min(0, t("price_must_be_greater_or_equal_zero")),
           discountType: z.enum(["percentage", "fixed"]).default("fixed"),
           discountValue: z.number().min(0).default(0),
           taxType: z.enum(["percentage", "fixed"]).default("fixed"),
           taxId: z.number().min(1, t("please_select_tax")),
-        })
+        }),
       )
       .min(1, t("must_add_at_least_one_item")),
     payments: z
@@ -56,28 +48,22 @@ const createPurchasesInvoiceSchema = (t: (key: string) => string) =>
         z.object({
           amount: z.number().min(1, t("amount_must_be_greater_than_zero")),
           treasuryId: z.number().min(1, t("choose_treasury")),
-        })
+        }),
       )
       .min(1, t("must_add_at_least_one_payment")),
   });
 
-type PurchaseInvoiceType = z.infer<
-  ReturnType<typeof createPurchasesInvoiceSchema>
->;
+type PurchaseInvoiceType = z.infer<ReturnType<typeof createPurchasesInvoiceSchema>>;
 
 const CreatePurchaseInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
 
-  const purchasesInvoiceSchema = useMemo(
-    () => createPurchasesInvoiceSchema(t),
-    [t]
-  );
+  const purchasesInvoiceSchema = useMemo(() => createPurchasesInvoiceSchema(t), [t]);
 
   const { mutateAsync: createPurchaseOrder } = useCreatePurchaseOrder();
   const [discountOpen, setDiscountOpen] = useState<Record<number, boolean>>({});
-  const toggleDiscount = (i: number) =>
-    setDiscountOpen((prev) => ({ ...prev, [i]: !prev[i] }));
+  const toggleDiscount = (i: number) => setDiscountOpen((prev) => ({ ...prev, [i]: !prev[i] }));
 
   const { id } = useParams();
   const { data: purchaseOrder } = useGetPurchaseOrderById(Number(id));
@@ -85,7 +71,9 @@ const CreatePurchaseInvoice: React.FC = () => {
   const [submitType, setSubmitType] = useState<"save" | "saveAndNew">("save");
 
   const form = useForm<PurchaseInvoiceType>({
-    resolver: zodResolver(purchasesInvoiceSchema) as any,
+    resolver: zodResolver(purchasesInvoiceSchema),
+    shouldFocusError: true,
+
     defaultValues: {
       orderDate: new Date().toISOString().split("T")[0],
       warehouseId: 0,
@@ -162,9 +150,9 @@ const CreatePurchaseInvoice: React.FC = () => {
       payments:
         purchaseOrder.payments?.length > 0
           ? purchaseOrder.payments.map((payment) => ({
-            amount: payment.amount,
-            treasuryId: payment.treasuryId,
-          }))
+              amount: payment.amount,
+              treasuryId: payment.treasuryId,
+            }))
           : [{ amount: 0, treasuryId: 0 }],
     });
   }, [purchaseOrder, products, units, form]);
@@ -193,10 +181,8 @@ const CreatePurchaseInvoice: React.FC = () => {
         unitId: Number(item.unitId),
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        discountPercentage:
-          item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
-        discountValue:
-          item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
+        discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
+        discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
         taxId: item.taxId,
       })),
       payments: data.payments.map((payment) => ({
@@ -235,8 +221,7 @@ const CreatePurchaseInvoice: React.FC = () => {
       const taxRate = tax?.amount || 0;
 
       const gross = qty * price;
-      const discount =
-        discType === "fixed" ? discValue * qty : gross * (discValue / 100);
+      const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
 
       const beforeTax = Math.max(0, gross - discount);
       const vat = beforeTax * (taxRate / 100);
@@ -263,7 +248,7 @@ const CreatePurchaseInvoice: React.FC = () => {
       <CardHeader>
         <CardTitle>{t("add_purchase_invoice")}</CardTitle>
         <CardAction>
-          <Button variant="outline" asChild>
+          <Button size="xl" variant="outline" asChild>
             <Link to="/purchases">
               {t("back_to_purchases")}
               <ArrowLeft size={16} />
@@ -280,9 +265,7 @@ const CreatePurchaseInvoice: React.FC = () => {
           className="space-y-6"
         >
           <div className="bg-white p-6 rounded-sm border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-800 mb-6">
-              {t("basic_data")}
-            </h2>
+            <h2 className="text-lg font-bold text-gray-800 mb-6">{t("basic_data")}</h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <Controller
@@ -294,9 +277,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                       {t("date")} <span className="text-red-500">*</span>
                     </FieldLabel>
                     <Input type="date" {...field} />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}
               />
@@ -310,16 +291,8 @@ const CreatePurchaseInvoice: React.FC = () => {
                       <FieldLabel>
                         {t("warehouse")} <span className="text-red-500">*</span>
                       </FieldLabel>
-                      <ComboboxField
-                        field={field}
-                        items={wareHouses}
-                        valueKey="id"
-                        labelKey="warehouseName"
-                        placeholder={t("choose_warehouse")}
-                      />
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
+                      <ComboboxField field={field} items={wareHouses} valueKey="id" labelKey="warehouseName" placeholder={t("choose_warehouse")} />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   );
                 }}
@@ -334,17 +307,8 @@ const CreatePurchaseInvoice: React.FC = () => {
                       <FieldLabel>
                         {t("supplier")} <span className="text-red-500">*</span>
                       </FieldLabel>
-                      <ComboboxField
-                        field={field}
-                        items={suppliers?.items}
-                        valueKey="id"
-                        labelKey="supplierName"
-                        placeholder={t("choose_supplier")}
-                        onValueChange={(val) => Number(val)}
-                      />
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
+                      <ComboboxField field={field} items={suppliers?.items} valueKey="id" labelKey="supplierName" placeholder={t("choose_supplier")} onValueChange={(val) => Number(val)} />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   );
                 }}
@@ -358,9 +322,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>{t("notes")}</FieldLabel>
                       <Textarea {...field} placeholder={t("enter_notes")} />
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
                 />
@@ -370,14 +332,10 @@ const CreatePurchaseInvoice: React.FC = () => {
 
           <div className="bg-white p-6 rounded-sm border border-gray-100">
             <div className="col-span-3 border-b border-zinc-200 pb-8 min-w-0">
-              <h2 className="text-lg font-bold text-zinc-900 mb-6">
-                {t("invoice_details")}
-              </h2>
+              <h2 className="text-lg font-bold text-zinc-900 mb-6">{t("invoice_details")}</h2>
 
               <section className="mb-4">
-                <h2 className="text-sm font-semibold text-zinc-500 mb-4">
-                  {t("items_list")}
-                </h2>
+                <h2 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h2>
 
                 <div className="w-full overflow-x-auto pb-4">
                   <div>
@@ -395,29 +353,17 @@ const CreatePurchaseInvoice: React.FC = () => {
 
                     <div className="space-y-3 mt-3">
                       {itemFields.map((item, index) => {
-                        const qty = Number(
-                          form.watch(`items.${index}.quantity`) || 0
-                        );
-                        const price = Number(
-                          form.watch(`items.${index}.unitPrice`) || 0
-                        );
-                        const discType =
-                          form.watch(`items.${index}.discountType`) || "fixed";
-                        const discValue = Number(
-                          form.watch(`items.${index}.discountValue`) || 0
-                        );
+                        const qty = Number(form.watch(`items.${index}.quantity`) || 0);
+                        const price = Number(form.watch(`items.${index}.unitPrice`) || 0);
+                        const discType = form.watch(`items.${index}.discountType`) || "fixed";
+                        const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
 
                         const taxId = form.watch(`items.${index}.taxId`);
-                        const tax = taxes?.find(
-                          (taxItem) => taxItem.id === Number(taxId)
-                        );
+                        const tax = taxes?.find((taxItem) => taxItem.id === Number(taxId));
                         const taxRate = tax?.amount || 0;
 
                         const gross = qty * price;
-                        const discount =
-                          discType === "fixed"
-                            ? discValue * qty
-                            : gross * (discValue / 100);
+                        const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                         const beforeTax = Math.max(0, gross - discount);
                         const vatAmount = beforeTax * (taxRate / 100);
                         const afterTax = beforeTax + vatAmount;
@@ -438,20 +384,13 @@ const CreatePurchaseInvoice: React.FC = () => {
                                       labelKey="productNameAr"
                                       placeholder={t("choose_product")}
                                       onValueChange={(val) => {
-                                        const product = products?.items?.find(
-                                          (p) => p.id === Number(val)
-                                        );
+                                        const product = products?.items?.find((p) => p.id === Number(val));
                                         if (product) {
-                                          form.setValue(
-                                            `items.${index}.unitPrice`,
-                                            product.sellingPrice
-                                          );
+                                          form.setValue(`items.${index}.unitPrice`, product.sellingPrice);
                                         }
                                       }}
                                     />
-                                    {fieldState?.error && (
-                                      <FieldError errors={[fieldState.error]} />
-                                    )}
+                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                                   </Field>
                                 )}
                               />
@@ -461,35 +400,19 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 name={`items.${index}.unitId`}
                                 render={({ field, fieldState }) => (
                                   <Field>
-                                    <Select
-                                      value={
-                                        field.value === 0
-                                          ? ""
-                                          : String(field.value)
-                                      }
-                                      onValueChange={(val) =>
-                                        field.onChange(Number(val))
-                                      }
-                                    >
+                                    <Select value={field.value === 0 ? "" : String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
                                       <SelectTrigger className="w-full">
-                                        <SelectValue
-                                          placeholder={t("unit")}
-                                        />
+                                        <SelectValue placeholder={t("unit")} />
                                       </SelectTrigger>
                                       <SelectContent>
                                         {units?.items?.map((unitItem) => (
-                                          <SelectItem
-                                            key={unitItem.id}
-                                            value={String(unitItem.id)}
-                                          >
+                                          <SelectItem key={unitItem.id} value={String(unitItem.id)}>
                                             {unitItem.name}
                                           </SelectItem>
                                         ))}
                                       </SelectContent>
                                     </Select>
-                                    {fieldState?.error && (
-                                      <FieldError errors={[fieldState.error]} />
-                                    )}
+                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                                   </Field>
                                 )}
                               />
@@ -499,25 +422,8 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 name={`items.${index}.unitPrice`}
                                 render={({ field, fieldState }) => (
                                   <Field>
-                                    <Input
-                                      type="number"
-                                      value={
-                                        field.value === undefined
-                                          ? ""
-                                          : field.value
-                                      }
-                                      onChange={(e) =>
-                                        field.onChange(
-                                          e.target.value === ""
-                                            ? undefined
-                                            : Number(e.target.value)
-                                        )
-                                      }
-                                      className="text-center"
-                                    />
-                                    {fieldState?.error && (
-                                      <FieldError errors={[fieldState.error]} />
-                                    )}
+                                    <Input type="number" value={field.value === undefined ? "" : field.value} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} className="text-center" />
+                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                                   </Field>
                                 )}
                               />
@@ -527,18 +433,8 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 name={`items.${index}.quantity`}
                                 render={({ field, fieldState }) => (
                                   <Field>
-                                    <Input
-                                      type="number"
-                                      min={1}
-                                      value={field.value}
-                                      onChange={(e) =>
-                                        field.onChange(Number(e.target.value))
-                                      }
-                                      className="text-center"
-                                    />
-                                    {fieldState?.error && (
-                                      <FieldError errors={[fieldState.error]} />
-                                    )}
+                                    <Input type="number" min={1} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                                   </Field>
                                 )}
                               />
@@ -554,33 +450,19 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 name={`items.${index}.taxId`}
                                 render={({ field, fieldState }) => (
                                   <Field>
-                                    <Select
-                                      value={
-                                        field.value === 0
-                                          ? ""
-                                          : String(field.value)
-                                      }
-                                      onValueChange={(val) =>
-                                        field.onChange(Number(val))
-                                      }
-                                    >
+                                    <Select value={field.value === 0 ? "" : String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
                                       <SelectTrigger className="w-full">
                                         <SelectValue placeholder={t("tax")} />
                                       </SelectTrigger>
                                       <SelectContent>
                                         {taxes?.map((taxItem) => (
-                                          <SelectItem
-                                            key={taxItem.id}
-                                            value={String(taxItem.id)}
-                                          >
+                                          <SelectItem key={taxItem.id} value={String(taxItem.id)}>
                                             {taxItem.name}
                                           </SelectItem>
                                         ))}
                                       </SelectContent>
                                     </Select>
-                                    {fieldState?.error && (
-                                      <FieldError errors={[fieldState.error]} />
-                                    )}
+                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                                   </Field>
                                 )}
                               />
@@ -598,22 +480,11 @@ const CreatePurchaseInvoice: React.FC = () => {
                               </div>
 
                               <div className="flex items-center justify-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => removeItem(index)}
-                                  className="p-2 text-zinc-400 hover:text-red-500"
-                                >
+                                <button type="button" onClick={() => removeItem(index)} className="p-2 text-zinc-400 hover:text-red-500">
                                   <Trash2 size={16} />
                                 </button>
 
-                                <button
-                                  type="button"
-                                  onClick={() => toggleDiscount(index)}
-                                  className={`p-2 ${isDiscOpen
-                                    ? "text-emerald-600"
-                                    : "text-zinc-400"
-                                    }`}
-                                >
+                                <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-600" : "text-zinc-400"}`}>
                                   <Tag size={14} />
                                 </button>
                               </div>
@@ -625,60 +496,31 @@ const CreatePurchaseInvoice: React.FC = () => {
                                   control={form.control}
                                   name={`items.${index}.discountType`}
                                   render={({ field }) => (
-                                    <Select
-                                      value={field.value}
-                                      onValueChange={field.onChange}
-                                    >
+                                    <Select value={field.value} onValueChange={field.onChange}>
                                       <SelectTrigger className="w-full">
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
-                                        <SelectItem value="fixed">
-                                          {t("fixed_value")}
-                                        </SelectItem>
-                                        <SelectItem value="percentage">
-                                          {t("percentage")}
-                                        </SelectItem>
+                                        <SelectItem value="fixed">{t("fixed_value")}</SelectItem>
+                                        <SelectItem value="percentage">{t("percentage")}</SelectItem>
                                       </SelectContent>
                                     </Select>
                                   )}
                                 />
 
-                                <Controller
-                                  control={form.control}
-                                  name={`items.${index}.discountValue`}
-                                  render={({ field }) => (
-                                    <Input
-                                      type="number"
-                                      value={field.value}
-                                      onChange={(e) =>
-                                        field.onChange(Number(e.target.value))
-                                      }
-                                    />
-                                  )}
-                                />
+                                <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} />} />
                               </div>
                             )}
                           </div>
                         );
                       })}
 
-                      {(form.formState.errors.items?.root?.message ||
-                        form.formState.errors.items?.message) && (
-                          <p className="text-red-500 text-sm text-center py-2">
-                            {form.formState.errors.items?.root?.message ||
-                              form.formState.errors.items?.message}
-                          </p>
-                        )}
+                      {(form.formState.errors.items?.root?.message || form.formState.errors.items?.message) && <p className="text-red-500 text-sm text-center py-2">{form.formState.errors.items?.root?.message || form.formState.errors.items?.message}</p>}
                     </div>
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleAddItem}
-                  className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
-                >
+                <button type="button" onClick={handleAddItem} className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">
                   <Plus size={16} strokeWidth={2} />
                   {t("add_new_item")}
                 </button>
@@ -689,113 +531,66 @@ const CreatePurchaseInvoice: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-2 space-y-4">
               {paymentFields.map((payment, index) => (
-                <div
-                  key={payment.id}
-                  className="flex flex-col sm:flex-row gap-3 items-start bg-gray-50/50 p-3 rounded-lg border border-gray-100"
-                >
+                <div key={payment.id} className="flex flex-col sm:flex-row gap-3 items-start bg-gray-50/50 p-3 rounded-lg border border-gray-100">
                   <div className="w-full flex-1">
-                    <label className="text-xs text-gray-500 mb-1 block">
-                      {t("amount")}
-                    </label>
+                    <label className="text-xs text-gray-500 mb-1 block">{t("amount")}</label>
                     <Controller
                       control={form.control}
                       name={`payments.${index}.amount`}
                       render={({ field, fieldState }) => (
                         <Field className="relative" data-invalid={fieldState.invalid}>
-                          <Input
-                            type="number"
-                            placeholder="0.00"
-                            value={field.value === 0 ? "" : field.value}
-                            onChange={(e) =>
-                              field.onChange(
-                                e.target.value === ""
-                                  ? 0
-                                  : Number(e.target.value)
-                              )
-                            }
-                            className="bg-white"
-                          />
-                          {fieldState?.error && (
-                            <FieldError errors={[fieldState.error]} />
-                          )}
+                          <Input type="number" placeholder="0.00" value={field.value === 0 ? "" : field.value} onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))} className="bg-white" />
+                          {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
                     />
                   </div>
 
                   <div className="w-full flex-1">
-                    <label className="text-xs text-gray-500 mb-1 block">
-                      {t("payment_method")}
-                    </label>
+                    <label className="text-xs text-gray-500 mb-1 block">{t("payment_method")}</label>
                     <Controller
                       control={form.control}
                       name={`payments.${index}.treasuryId`}
                       render={({ field, fieldState }) => (
                         <Field>
-                          <Select
-                            value={field.value ? String(field.value) : ""}
-                            onValueChange={(val) =>
-                              field.onChange(Number(val))
-                            }
-                          >
+                          <Select value={field.value ? String(field.value) : ""} onValueChange={(val) => field.onChange(Number(val))}>
                             <SelectTrigger className="w-full bg-white">
                               <SelectValue placeholder={t("choose")} />
                             </SelectTrigger>
                             <SelectContent>
                               {treasurys?.map((treasury) => (
-                                <SelectItem
-                                  key={treasury.id}
-                                  value={String(treasury.id)}
-                                >
+                                <SelectItem key={treasury.id} value={String(treasury.id)}>
                                   {treasury.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                          {fieldState?.error && (
-                            <FieldError errors={[fieldState.error]} />
-                          )}
+                          {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
                     />
                   </div>
 
                   <div className="pt-5 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => removePayment(index)}
-                      disabled={paymentFields.length === 1}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-md disabled:opacity-30 transition-colors border border-transparent hover:border-red-100"
-                      title={t("delete")}
-                    >
+                    <button type="button" onClick={() => removePayment(index)} disabled={paymentFields.length === 1} className="p-2 text-red-500 hover:bg-red-50 rounded-md disabled:opacity-30 transition-colors border border-transparent hover:border-red-100" title={t("delete")}>
                       <Trash2 size={18} />
                     </button>
                   </div>
                 </div>
               ))}
 
-              <Button
-                type="button"
-                size="lg"
-                variant="secondary"
-                onClick={handleAddPayment}
-                className="text-sm font-medium px-4 rounded-lg transition-colors w-max"
-              >
+              <Button type="button" size="lg" variant="secondary" onClick={handleAddPayment} className="text-sm font-medium px-4 rounded-lg transition-colors w-max">
                 <Plus size={16} strokeWidth={2} />
                 {t("add_payment")}
               </Button>
             </div>
 
             <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-100">
-              <h3 className="text-base font-semibold text-gray-800 mb-5">
-                {t("invoice_summary")}
-              </h3>
+              <h3 className="text-base font-semibold text-gray-800 mb-5">{t("invoice_summary")}</h3>
 
               <div className="space-y-4">
                 <div className="flex justify-between items-center text-zinc-600">
-                  <span className="text-sm font-medium">
-                    {t("total_before_tax")}
-                  </span>
+                  <span className="text-sm font-medium">{t("total_before_tax")}</span>
                   <span className="font-semibold text-zinc-900">
                     {summary.beforeTaxTotal.toLocaleString("en-EG", {
                       minimumFractionDigits: 2,
@@ -815,9 +610,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                 <hr className="border-zinc-200" />
 
                 <div className="flex justify-between items-center">
-                  <span className="font-bold text-zinc-900">
-                    {t("final_total")}
-                  </span>
+                  <span className="font-bold text-zinc-900">{t("final_total")}</span>
                   <span className="text-xl font-black text-green-600">
                     {summary.finalTotal.toLocaleString("en-EG", {
                       minimumFractionDigits: 2,
@@ -829,12 +622,7 @@ const CreatePurchaseInvoice: React.FC = () => {
           </div>
 
           <div className="bg-white p-5 sm:p-6 rounded-sm border border-gray-100 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
-            <Button
-              type="button"
-              variant="destructive"
-              className="h-12 px-4"
-              onClick={() => { }}
-            >
+            <Button type="button" variant="destructive" className="h-12 px-4" onClick={() => {}}>
               {t("cancel_and_return")}
             </Button>
 

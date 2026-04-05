@@ -1,21 +1,22 @@
+"use client";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteCategory } from "@/features/categories/services/categories";
 import { categoriesKeys } from "@/features/categories/keys/categories.keys";
-import { handleApiError } from "@/lib/handleApiError";
-import { handleApiSuccess } from "@/lib/handleApiSuccess";
-import useToast from "@/hooks/useToast";
 
 export function useDeleteCategories() {
   const queryClient = useQueryClient();
-  const { notifyError, notifySuccess } = useToast();
+
   return useMutation({
     mutationFn: (id: number) => deleteCategory(id),
     onSuccess: (response) => {
+      console.log(response);
       queryClient.invalidateQueries({
         queryKey: categoriesKeys.all,
       });
-      handleApiSuccess(response, notifySuccess);
     },
-    onError: (error) => handleApiError(error, notifyError),
+    onError: (error) => {
+      console.error("API ERROR ❌", error);
+    },
   });
 }
