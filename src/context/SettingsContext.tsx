@@ -190,7 +190,7 @@ interface SettingsContextType {
 
 const defaultSystemSettings: SystemSettings = {
   site: {
-    companyName: "تجريبي",
+    companyName: "تكامل",
     language: "Arabic",
     defaultCurrency: "Saudi Riyal",
     accountingMethod: "FIFO (First In First Out)",

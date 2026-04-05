@@ -12,6 +12,8 @@ export default function WelcomeBanner() {
         setTimeout(() => setShowToast(false), 3000);
     };
 
+    const currentDateFormatted = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+
     return (
         <div className="mb-6 space-y-4">
             {/* Toast Notification */}
@@ -41,7 +43,7 @@ export default function WelcomeBanner() {
                     </div>
                     <div>
                         <h2 className="font-bold text-[var(--primary)]">{t('welcome_admin')}</h2>
-                        <p className="text-sm text-[var(--text-muted)] dark:text-gray-400">{t('total_operations_date')} (2026-02-20)</p>
+                        <p className="text-sm text-[var(--text-muted)] dark:text-gray-400">{t('total_operations_date')} ({currentDateFormatted})</p>
                     </div>
                 </div>
                 <button

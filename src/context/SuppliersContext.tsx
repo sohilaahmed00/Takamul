@@ -49,7 +49,7 @@ const SuppliersContext = createContext<SuppliersContextType | undefined>(undefin
 export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const API_BASE = AUTH_API_BASE || 'http://takamulerp.runasp.net';
+  const API_BASE = AUTH_API_BASE || 'https://erptakamul.runasp.net';
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(false);

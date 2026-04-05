@@ -1,160 +1,122 @@
-import React, { useState } from 'react';
-import { FileText, FileSpreadsheet, Search, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { FileText, FileSpreadsheet, Search, DollarSign, TrendingUp, BarChart2, Edit2 } from 'lucide-react';
+import { DataTable, type DataTablePageEvent } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLanguage } from '@/context/LanguageContext';
-import { cn } from '@/lib/utils';
+import { useGetAllSales } from '@/features/sales/hooks/useGetAllSales';
+import { useSales } from '@/context/SalesContext';
+import { usePurchases } from '@/context/PurchasesContext';
+import { useExpenses } from '@/context/ExpensesContext';
+import type { SalesOrder } from '@/features/sales/types/sales.types';
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const { t } = useLanguage();
+  return (
+    <span className="text-xs font-semibold text-gray-700">
+      {status === 'Confirmed' ? t('confirmed') : t('not_confirmed')}
+    </span>
+  );
+};
+
+const SummaryCard = ({ title, value, color, icon: Icon }: { title: string; value: string; color: string; icon: any }) => (
+  <div className={`rounded-xl p-5 text-white shadow-md relative overflow-hidden ${color}`}>
+    <div className="relative z-10">
+      <p className="text-white/80 text-xs font-medium mb-1">{title}</p>
+      <h3 className="text-xl font-bold">{value}</h3>
+    </div>
+    <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/20">
+      <Icon size={22} className="text-white" />
+    </div>
+  </div>
+);
 
 export default function SalesReport() {
-    const { direction } = useLanguage();
-    const [searchTerm, setSearchTerm] = useState('');
-    const [itemsPerPage, setItemsPerPage] = useState(10);
+  const { t, direction, language } = useLanguage();
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
 
-    // الكروت العلوية
-    const cards = [
-        { title: 'اجمالي مبيعات بدون ضريبة بعد الخصم', value: '21664.20', color: 'bg-orange-500' },
-        { title: 'اجمالي ضريبة الصنف', value: '2574.76', color: 'bg-[#2ecc71]' },
-        { title: 'مجموع المبيعات', value: '24238.95', color: 'bg-teal-500' },
-        { title: 'اجمالي الربح(عمولة المسوقين)', value: '18970.61(0.00)', color: 'bg-[#27ae60]' },
-        { title: 'اجمالي الليسته', value: '50.00', color: 'bg-pink-600' },
-        { title: 'اجمالي الخصومات', value: '14.78', color: 'bg-green-600' },
-        { title: 'مبيعات شامل ضريبة بدون مرتجع', value: '25059.60', color: 'bg-orange-600' },
-        { title: 'مجموع الرجيع', value: '-820.65', color: 'bg-red-500' },
-    ];
+  const { data: salesOrders } = useGetAllSales(currentPage, entriesPerPage);
+  const orders = salesOrders?.items ?? [];
+  const totalCount = salesOrders?.totalCount ?? 0;
 
-    const data = [
-        { id: '361', date: '28/02/2026 23:59:31', ref: 'SALE/POS0446', cashier: 'شركة تجريبي', user: 'saad', customer: 'شخص عام', total: '9.00', paid: '9.00', current: '0.00', list: '0.00', noTax: '7.83', tax: '1.17', profit: '7.83', discount: '0.00', status: 'مدفوع' },
-        { id: '360', date: '28/02/2026 16:58:05', ref: 'SALE/POS0445', cashier: 'شركة تجريبي', user: 'admin', customer: 'شخص عام', total: '13.00', paid: '13.00', current: '0.00', list: '0.00', noTax: '11.30', tax: '1.70', profit: '7.30', discount: '0.00', status: 'مدفوع' },
-        { id: '359', date: '28/02/2026 16:57:11', ref: 'SALE/POS0444', cashier: 'شركة تجريبي', user: 'admin', customer: 'شخص عام', total: '8.00', paid: '8.00', current: '0.00', list: '0.00', noTax: '6.96', tax: '1.04', profit: '2.16', discount: '0.00', status: 'مدفوع' },
-    ];
+  // Use contexts for global summary (matching dashboard)
+  const { sales } = useSales();
+  const { purchases } = usePurchases();
+  const { expenses } = useExpenses();
 
-    return (
-        <div className="p-4 md:p-6 space-y-6" dir={direction}>
+  const globalSummary = useMemo(() => {
+    const totalSales = sales.reduce((sum, s) => sum + (s.grandTotal || 0), 0);
+    const totalPurchases = purchases.reduce((sum, p) => sum + (p.total || 0), 0);
+    const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+    
+    return {
+      totalSales,
+      totalNoTax: sales.reduce((sum, s) => sum + ((s as any).subTotal || 0), 0),
+      totalTax: sales.reduce((sum, s) => sum + ((s as any).taxAmount || 0), 0),
+      netProfit: totalSales - totalPurchases - totalExpenses
+    };
+  }, [sales, purchases, expenses]);
 
-            {/* 1. استخدام أسطمبة الهيدر الجاهزة من الـ CSS */}
-            <div className="takamol-page-header !mb-0">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-[#e6f4ea] rounded-xl text-[var(--primary)]">
-                        <DollarSign size={24} />
-                    </div>
-                    <div>
-                        <h1 className="takamol-page-title">تقرير المبيعات</h1>
-                        <p className="takamol-page-subtitle">يرجى تخصيص التقرير أدناه</p>
-                    </div>
-                </div>
-                <div className="flex items-center gap-2">
-                    <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"><ChevronDown size={18} className="text-gray-600" /></button>
-                    <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"><ChevronUp size={18} className="text-gray-600" /></button>
-                    <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"><FileText size={18} className="text-gray-600" /></button>
-                    <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"><FileSpreadsheet size={18} className="text-gray-600" /></button>
-                </div>
-            </div>
+  const fmt = (n: number) => n.toFixed(2);
+  const fmtDate = (d: string) => { try { return new Date(d).toLocaleDateString('en-GB'); } catch { return d; } };
 
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {cards?.map((card, idx) => (
-                    <div key={idx} className={cn("p-5 rounded-xl shadow-sm text-white flex flex-col items-center justify-center text-center space-y-2 hover:-translate-y-1 transition-transform duration-300", card.color)}>
-                        <div className="text-xs font-bold opacity-90">{card.title}</div>
-                        <div className="text-xl font-black">{card.value}</div>
-                    </div>
-                ))}
-            </div>
+  const header = useMemo(() => (
+    <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="flex gap-2">
+        <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50" title={t('download_pdf')}><FileText size={16} className="text-gray-500" /></button>
+        <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50" title={t('download_excel')}><FileSpreadsheet size={16} className="text-gray-500" /></button>
+      </div>
+      <div className="relative w-full sm:w-64">
+        <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none"><Search size={16} className="text-gray-400" /></div>
+        <input type="text" value={globalFilterValue} onChange={e => { setGlobalFilterValue(e.target.value); setCurrentPage(1); }}
+          placeholder={t('search_placeholder')}
+          className="w-full border border-gray-200 focus:border-[var(--primary)] text-gray-700 text-sm rounded-lg py-2 pr-10 pl-4 outline-none transition-all" />
+      </div>
+    </div>
+  ), [globalFilterValue, t]);
 
-            {/* 2. استخدام أسطمبة الخانات الجاهزة */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-gray-700">إظهار</span>
-                    <select
-                        value={itemsPerPage}
-                        onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                        className="w-20"
-                    >
-                        <option value={10}>10</option>
-                        <option value={25}>25</option>
-                        <option value={50}>50</option>
-                    </select>
-                </div>
+  return (
+    <div className="space-y-4 pb-12" dir={direction}>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <SummaryCard title={t('total_no_tax')} value={`${fmt(globalSummary.totalNoTax)} SAR`} color="bg-teal-500" icon={BarChart2} />
+        <SummaryCard title={t('item_vat')} value={`${fmt(globalSummary.totalTax)} SAR`} color="bg-[#2ecc71]" icon={FileText} />
+        <SummaryCard title={t('total_sales_report')} value={`${fmt(globalSummary.totalSales)} SAR`} color="bg-[#38bdf8]" icon={DollarSign} />
+        <SummaryCard title={t('net_profit')} value={`${fmt(globalSummary.netProfit)} SAR`} color="bg-[#8b5cf6]" icon={TrendingUp} />
+      </div>
 
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                    <span className="text-sm font-bold text-gray-700">بحث:</span>
-                    <div className="relative w-full md:w-72">
-                        <input
-                            type="text"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="اكتب للبحث..."
-                            className="takamol-input pr-10"
-                        />
-                        <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    </div>
-                </div>
-            </div>
-
-            {/* 3. السحر الحقيقي هنا: تطبيق الكلاس الموحد للجدول */}
-            <div className="takamol-table-container">
-                <div className="overflow-x-auto">
-                    {/* تم مسح جميع الكلاسات القديمة والاكتفاء بكلاس takamol-table */}
-                    <table className="takamol-table">
-                        <thead>
-                            <tr>
-                                <th>رقم الفاتورة</th>
-                                <th>التاريخ</th>
-                                <th>الرقم المرجعي</th>
-                                <th>كاشير</th>
-                                <th>المستخدم</th>
-                                <th>عميل</th>
-                                <th>المجموع الكلي</th>
-                                <th>مدفوع</th>
-                                <th>الرصيد الحالي</th>
-                                <th>سعر الليسته</th>
-                                <th>الاجمالي بدون ضريبة</th>
-                                <th>قيمة الضريبة</th>
-                                <th>الربح</th>
-                                <th>خصم</th>
-                                <th>حالة الدفع</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {/* لاحظ أن الـ td لم يعد يحتاج لكتابة border أو padding، الـ CSS يقوم بذلك */}
-                            {data?.map((row, idx) => (
-                                <tr key={idx}>
-                                    <td className="font-bold">{row.id}</td>
-                                    <td>{row.date}</td>
-                                    <td className="font-medium text-gray-600">{row.ref}</td>
-                                    <td>{row.cashier}</td>
-                                    <td>{row.user}</td>
-                                    <td className="font-bold text-gray-800">{row.customer}</td>
-                                    <td className="font-bold text-[var(--primary)]">{row.total}</td>
-                                    <td className="font-medium text-gray-700">{row.paid}</td>
-                                    <td>{row.current}</td>
-                                    <td>{row.list}</td>
-                                    <td className="font-bold">{row.noTax}</td>
-                                    <td className="text-red-500 font-medium">{row.tax}</td>
-                                    <td className="font-bold text-blue-600">{row.profit}</td>
-                                    <td>{row.discount}</td>
-                                    <td>
-                                        <span className="bg-[#e6f4ea] text-[var(--primary)] border border-[var(--primary)]/20 px-2.5 py-1 rounded-md text-xs font-bold inline-block">
-                                            {row.status}
-                                        </span>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* Pagination */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mt-4">
-                <div className="text-sm font-bold text-gray-600">
-                    عرض 1 إلى 10 من 361 سجلات
-                </div>
-                <div className="flex items-center gap-1.5">
-                    <button className="px-3 py-1.5 border border-gray-300 bg-white rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">التالي &gt;</button>
-                    <button className="px-3 py-1.5 border border-gray-300 bg-white rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-100 transition-colors shadow-sm">2</button>
-                    <button className="px-3 py-1.5 bg-[var(--primary)] border border-[var(--primary)] rounded-lg text-sm font-bold text-white shadow-sm">1</button>
-                    <button className="px-3 py-1.5 border border-gray-200 bg-gray-100 rounded-lg text-sm font-bold text-gray-400 cursor-not-allowed">&lt; سابق</button>
-                </div>
-            </div>
-
-        </div>
-    );
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('sales_report')}</CardTitle>
+          <CardDescription>{t('customize_report_below')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <DataTable
+            value={orders} totalRecords={totalCount} loading={!salesOrders}
+            lazy paginator rows={entriesPerPage} rowsPerPageOptions={[5, 10, 20, 50]}
+            first={(currentPage - 1) * entriesPerPage}
+            onPage={(e: DataTablePageEvent) => { if (e.page === undefined) return; setCurrentPage(e.page + 1); setEntriesPerPage(e.rows); }}
+            header={header} className="custom-green-table custom-compact-table" dataKey="id"
+            emptyMessage={t('no_data')} globalFilter={globalFilterValue}
+            globalFilterFields={['orderNumber', 'customerName', 'warehouseName']}
+          >
+            <Column header={t('invoice_number')} field="orderNumber" sortable body={(r: SalesOrder) => r.orderNumber} />
+            <Column header={t('date')} field="orderDate" sortable body={(r: SalesOrder) => new Date(r.orderDate).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB')} />
+            <Column header={t('customer_name')} field="customerName" sortable />
+            <Column header={t('cashier')} field="createdBy" sortable />
+            <Column header={t('invoice_status')} field="orderStatus" body={(r: SalesOrder) => <StatusBadge status={r.orderStatus} />} />
+            <Column header={t('total_amount')} field="grandTotal" sortable body={(r: SalesOrder) => fmt(r.grandTotal)} />
+            <Column header={t('paid_amount')} body={(r: SalesOrder) => fmt(r.payments?.reduce((s, p) => s + p.amount, 0) ?? 0)} />
+            <Column header={t('actions')} body={(r: SalesOrder) => (
+              <div className="flex gap-2">
+                <Link to={`/sales/edit/${r.id}`} className="btn-minimal-action btn-compact-action"><Edit2 size={14} /></Link>
+              </div>
+            )} />
+          </DataTable>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }

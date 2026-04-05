@@ -9,6 +9,7 @@ import { AdjustmentsProvider } from "@/context/AdjustmentsContext";
 import { ExpensesProvider } from "@/context/ExpensesContext";
 import { SalesProvider } from "@/context/SalesContext";
 import { PurchasesProvider } from "@/context/PurchasesContext";
+import { SuppliersProvider } from "@/context/SuppliersContext";
 import { QuotesProvider } from "@/context/QuotesContext";
 import { UsersProvider } from "@/context/UsersContext";
 import { BanksProvider } from "@/context/BanksContext";
@@ -53,8 +54,9 @@ createRoot(document.getElementById("root")!).render(
                   <AdjustmentsProvider>
                     <ExpensesProvider>
                       <SalesProvider>
-                        <PurchasesProvider>
-                          <ExpenseCategoriesProvider>
+                        <SuppliersProvider>
+                          <PurchasesProvider>
+                            <ExpenseCategoriesProvider>
                             <QuotesProvider>
                               <UsersProvider>
                                 <BanksProvider>
@@ -94,6 +96,7 @@ createRoot(document.getElementById("root")!).render(
                             </QuotesProvider>
                           </ExpenseCategoriesProvider>
                         </PurchasesProvider>
+                        </SuppliersProvider>
                       </SalesProvider>
                     </ExpensesProvider>
                   </AdjustmentsProvider>

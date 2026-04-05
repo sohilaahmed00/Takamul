@@ -33,10 +33,20 @@ interface SubmenuItemProps {
 
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarOpen = true, onClick }: SidebarItemProps) => {
   return (
-    <button onClick={onClick} className={cn("w-full flex items-center justify-between p-3 rounded-lg transition-colors duration-200", active ? "bg-[var(--primary)] text-white shadow-md" : "text-[var(--text-main)] hover:bg-[var(--bg-main)] hover:text-[var(--primary)]", !isSidebarOpen && "justify-center")} title={!isSidebarOpen ? label : undefined}>
-      <div className="flex items-center gap-3">
-        <Icon size={20} />
-        {isSidebarOpen && <span className="font-medium">{label}</span>}
+    <button
+      onClick={onClick}
+      className={cn(
+        "w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200",
+        active
+          ? "bg-[var(--primary)] text-white shadow-md scale-[1.02]"
+          : "text-[var(--text-main)] hover:bg-[var(--bg-main)] hover:text-[var(--primary)] hover:scale-[1.02]",
+        !isSidebarOpen && "justify-center"
+      )}
+      title={!isSidebarOpen ? label : undefined}
+    >
+      <div className="flex items-center gap-4">
+        <Icon size={24} />
+        {isSidebarOpen && <span className="font-bold text-base tracking-wide">{label}</span>}
       </div>
 
       {hasSubmenu && isSidebarOpen && <ChevronLeft size={16} className={cn("transition-transform", isOpen && "-rotate-90")} />}
@@ -115,10 +125,22 @@ export default function Layout() {
           }
           if (isMobile) setIsMobileMenuOpen(false);
         }}
-        className={cn("w-full p-2 text-sm rounded-md flex items-center gap-2 transition-colors group", isActive ? "bg-[var(--primary)] text-white" : "text-[var(--text-main)] hover:text-[var(--primary)] hover:bg-[var(--bg-main)]", direction === "rtl" ? "text-right" : "text-left")}
+        className={cn(
+          "w-full flex items-center justify-between p-2 text-sm rounded-md transition-colors group",
+          isActive
+            ? "bg-[var(--primary)] text-white"
+            : "text-[var(--text-main)] hover:text-[var(--primary)] hover:bg-[var(--bg-main)]"
+        )}
       >
-        <Icon size={16} className={cn(isActive ? "text-white" : "text-[var(--text-main)] group-hover:text-[var(--primary)]")} />
-        <span>{label}</span>
+        <div className="flex items-center gap-2 w-full">
+          <Icon
+            size={16}
+            className={cn(
+              isActive ? "text-white" : "text-[var(--text-main)] group-hover:text-[var(--primary)]"
+            )}
+          />
+          <span>{label}</span>
+        </div>
       </button>
     );
   };
@@ -169,9 +191,9 @@ export default function Layout() {
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <div className="p-4 flex items-center justify-between h-16 border-b border-[var(--border)]">
-          <div className={cn("flex items-center gap-2 overflow-hidden", !showSidebarContent && "justify-center w-full")}>
+          <div className={cn("flex items-center gap-2 overflow-hidden justify-center w-full")}>
             {showSidebarContent ? (
-              <div className="flex items-center gap-2 overflow-hidden">
+              <div className="flex items-center gap-2 overflow-hidden justify-center w-full">
                 <Logo />
                 {systemSettings?.site?.companyName && <span className="font-bold text-lg text-[var(--primary)] truncate">{systemSettings.site.companyName}</span>}
               </div>
@@ -378,24 +400,36 @@ export default function Layout() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden md:flex items-center gap-1">
-              <button onClick={() => navigate("/sales/create")} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
-                <LayoutGrid size={13} />
+            <div className="hidden md:flex items-center gap-2">
+              <button
+                onClick={() => navigate("/sales/create")}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
+              >
+                <LayoutGrid size={16} />
                 <span>{t("sales_a4_quick")}</span>
               </button>
 
-              <button onClick={() => navigate("/sales/pos")} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
-                <ShoppingCart size={13} />
+              <button
+                onClick={() => navigate("/sales/pos")}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
+              >
+                <ShoppingCart size={16} />
                 <span>{t("pos_quick")}</span>
               </button>
 
-              <button onClick={() => navigate("/sales/all")} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
-                <List size={13} />
+              <button
+                onClick={() => navigate("/sales/all")}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
+              >
+                <List size={16} />
                 <span>{t("all_sales")}</span>
               </button>
 
-              <button onClick={() => navigate("/products/create")} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
-                <Package size={13} />
+              <button
+                onClick={() => navigate("/products/create")}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
+              >
+                <Package size={16} />
                 <span>{t("add_product")}</span>
               </button>
             </div>
@@ -579,17 +613,6 @@ export default function Layout() {
                     <button className="w-full text-right px-4 py-2 text-sm text-[var(--text-main)] hover:bg-[var(--bg-main)] flex items-center gap-2">
                       <Users size={16} />
                       {t("profile")}
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        navigate("/settings/system");
-                        closeAllMenus();
-                      }}
-                      className="w-full text-right px-4 py-2 text-sm text-[var(--text-main)] hover:bg-[var(--bg-main)] flex items-center gap-2"
-                    >
-                      <Settings size={16} />
-                      {t("settings")}
                     </button>
 
                     <div className="h-px bg-[var(--border)] my-1"></div>
