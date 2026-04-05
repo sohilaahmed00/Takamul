@@ -195,7 +195,6 @@ export default function Layout() {
             {showSidebarContent ? (
               <div className="flex items-center gap-2 overflow-hidden justify-center w-full">
                 <Logo />
-                {systemSettings?.site?.companyName && <span className="font-bold text-lg text-[var(--primary)] truncate">{systemSettings.site.companyName}</span>}
               </div>
             ) : (
               <Logo showText={false} />
