@@ -94,9 +94,7 @@ const ExpensesReport = () => {
           <table className="w-full text-right border-collapse">
             <thead>
               <tr className="bg-[var(--primary)] text-white">
-                <th className="p-3 border border-[var(--primary-hover)] w-10">
-                  <LinkIcon className="w-4 h-4" />
-                </th>
+
                 <th className="p-3 border border-[var(--primary-hover)]">التاريخ</th>
                 <th className="p-3 border border-[var(--primary-hover)]">المرجع</th>
                 <th className="p-3 border border-[var(--primary-hover)]">التصنيفات الرئيسية</th>
@@ -108,9 +106,7 @@ const ExpensesReport = () => {
             <tbody>
               {expenses.map((expense, index) => (
                 <tr key={expense.id} className={cn(index % 2 === 0 ? 'bg-white' : 'bg-[var(--primary)]/5')}>
-                  <td className="p-3 border border-gray-200">
-                    <LinkIcon className="w-4 h-4 text-[var(--primary)] cursor-pointer" />
-                  </td>
+
                   <td className="p-3 border border-gray-200 text-sm">{expense.date}</td>
                   <td className="p-3 border border-gray-200 text-sm">{expense.reference}</td>
                   <td className="p-3 border border-gray-200 text-sm">{expense.category}</td>
@@ -121,9 +117,7 @@ const ExpensesReport = () => {
               ))}
               {/* Footer Row */}
               <tr className="bg-gray-50 font-bold text-gray-600">
-                <td className="p-3 border border-gray-200">
-                  <LinkIcon className="w-4 h-4" />
-                </td>
+
                 <td className="p-3 border border-gray-200 text-xs">[التاريخ (yyyy-mm-dd)]</td>
                 <td className="p-3 border border-gray-200 text-xs">[المرجع]</td>
                 <td className="p-3 border border-gray-200 text-xs">[التصنيفات الرئيسية]</td>

@@ -39,6 +39,7 @@ import EditPurchase from "@/pages/EditPurchase";
 import AddPurchaseCSV from "@/pages/AddPurchaseCSV";
 import CustomersList from "@/pages/CustomersList";
 import SuppliersList from "@/pages/SuppliersList";
+import ShiftsList from "@/pages/ShiftsList";
 
 import AddTaxInvoice from "@/pages/AddTaxInvoice";
 import AddSimplifiedTaxInvoice from "@/pages/AddSimplifiedTaxInvoice";
@@ -204,8 +205,11 @@ function AppRoutes() {
 
           {/* العروض */}
           <Route path="/quotes" element={<QuotesList />} />
-          <Route path="/quotes/create" element={<CreateQuote />} />
+          <Route path="/quotes/create" element={<AddQuote />} />
           <Route path="/quotes/view/:id" element={<ViewQuote />} />
+
+          {/* الورديات */}
+          <Route path="/shifts" element={<ShiftsList />} />
 
           {/* المشتريات */}
           <Route path="/purchases" element={<PurchasesList />} />

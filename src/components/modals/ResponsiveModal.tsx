@@ -38,7 +38,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
     return (
       <Drawer.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
         <Drawer.Portal>
-          <Drawer.Overlay className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" />
+          <Drawer.Overlay className="fixed inset-0 bg-black/30 z-[100]" />
           <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[101] outline-none flex flex-col max-h-[96vh] bg-[var(--bg-card)] rounded-t-[24px] shadow-2xl">
             <div className="w-12 h-1.5 bg-gray-300 rounded-full mx-auto my-3 shrink-0 cursor-grab active:cursor-grabbing" />
             <div className="flex-1 overflow-y-auto" dir={direction}>
@@ -72,7 +72,7 @@ export const ResponsiveModal: React.FC<ResponsiveModalProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" dir={direction}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/30" dir={direction}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

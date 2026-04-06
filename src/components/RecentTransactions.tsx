@@ -35,8 +35,8 @@ export default function RecentTransactions() {
   return (
     <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden" dir={direction}>
       {/* Header and Tabs */}
-      <div className="p-4 border-b border-[var(--border)] bg-gray-50/50">
-        <h2 className="text-lg font-bold text-[var(--text-main)] mb-4">{t('recent_operations') || 'العمليات الأخيرة'}</h2>
+      <div className="p-3 border-b border-[var(--border)] bg-gray-50/50">
+        <h2 className="text-base font-bold text-[var(--text-main)] mb-3">{t('recent_operations') || 'العمليات الأخيرة'}</h2>
         <div className="flex overflow-x-auto hide-scrollbar gap-2">
           {tabs.map(tab => {
             const Icon = tab.icon;
@@ -60,7 +60,7 @@ export default function RecentTransactions() {
       </div>
 
       {/* Tab Panels */}
-      <div className="p-4">
+      <div className="p-2">
         {activeTab === 'sales' && (
           <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <DataTable
@@ -77,12 +77,6 @@ export default function RecentTransactions() {
               <Column header={t("invoice_status")} field="orderStatus" />
               <Column header={t("total_amount")} field="grandTotal" />
               <Column header={t("paid_amount")} body={(rowData) => rowData.payments?.reduce((sum: number, p: any) => sum + p.amount, 0) ?? 0} />
-              <Column header={t("actions")} body={(row) => (
-                <div className="flex gap-2">
-                  <Link to={`/sales/edit/${row?.id}`} className="btn-minimal-action btn-compact-action"><Edit2 size={16} /></Link>
-                  <button className="btn-minimal-action btn-compact-action text-red-500"><Trash2 size={16} /></button>
-                </div>
-              )} />
             </DataTable>
           </div>
         )}
@@ -100,12 +94,6 @@ export default function RecentTransactions() {
               <Column header={t("invoice_number")} field="purchaseOrderNumber" />
               <Column header={t("supplier_name")} field="supplierName" />
               <Column header={t("purchase_order_status")} field="orderStatus" />
-              <Column header={t("actions")} body={(row) => (
-                <div className="space-x-2">
-                  <Link to={`/purchases/edit/${row?.id}`} className="btn-minimal-action btn-edit"><Edit2 size={16} /></Link>
-                  <button className="btn-minimal-action btn-delete text-red-500"><Trash2 size={16} /></button>
-                </div>
-              )} />
             </DataTable>
           </div>
         )}
@@ -127,12 +115,6 @@ export default function RecentTransactions() {
               <Column header={t("tax_amount")} field="taxAmount" />
               <Column header={t("discount_amount")} field="discountAmount" />
               <Column header={t("total_amount")} field="grandTotal" />
-              <Column header={t("actions")} body={(row) => (
-                <div className="flex gap-2">
-                  <button className="btn-minimal-action btn-compact-action"><Edit2 size={16} /></button>
-                  <button className="btn-minimal-action btn-compact-action text-red-500"><Trash2 size={16} /></button>
-                </div>
-              )} />
             </DataTable>
           </div>
         )}
@@ -149,12 +131,6 @@ export default function RecentTransactions() {
               <Column field="supplierName" header={t("name")} />
               <Column field="phone" header={t("phone")} />
               <Column field="taxNumber" header={t("tax_number")} />
-              <Column header={t("actions")} body={(row) => (
-                <div className="space-x-2">
-                  <button className="btn-minimal-action btn-compact-action"><Edit2 size={16} /></button>
-                  <button className="btn-minimal-action btn-compact-action text-red-500"><Trash2 size={16} /></button>
-                </div>
-              )} />
             </DataTable>
           </div>
         )}
@@ -172,12 +148,6 @@ export default function RecentTransactions() {
               <Column field="customerName" header={t("name")} sortable style={{ width: "30%" }} />
               <Column field="phone" header={t("phone")} style={{ width: "20%" }} />
               <Column field="city" header={t("city")} style={{ width: "20%" }} />
-              <Column header={t("actions")} style={{ width: "20%" }} body={(row) => (
-                <div className="flex gap-2">
-                  <button className="btn-minimal-action btn-compact-action"><Edit2 size={16} /></button>
-                  <button className="btn-minimal-action btn-compact-action text-red-500"><Trash2 size={16} /></button>
-                </div>
-              )} />
             </DataTable>
           </div>
         )}

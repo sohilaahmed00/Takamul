@@ -8,6 +8,9 @@ export interface Purchase {
   orderDate: string;
   expectedDeliveryDate: string;
   orderStatus: "UnConfirmed" | "Confirmed";
+  totalAmount: number;
+  paidAmount: number;
+  taxAmount: number;
   warehouseId?: number;
   notes?: string;
   payments?: {

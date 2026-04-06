@@ -11,7 +11,7 @@ export default function Logo({ className = "", showText = true }: { className?: 
 
   return (
     <div className={`flex items-center ${className}` + (showText ? '' : ' justify-center')}>
-      <img src={logoSrc} alt="Takamul Al-Bayanat Logo" className="h-10" />
+      <img src={logoSrc} alt="Takamul Al-Bayanat Logo" style={{ height: '100px', width: '185px', objectFit: 'contain' }} />
       {/* optionally show text next to logo if requested (currently unused but available) */}
     </div>
   );
