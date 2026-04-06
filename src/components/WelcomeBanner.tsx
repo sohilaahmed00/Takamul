@@ -15,7 +15,7 @@ export default function WelcomeBanner() {
     const currentDateFormatted = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
 
     return (
-        <div className="mb-6 space-y-4">
+        <div className="mb-4 space-y-3">
             {/* Toast Notification */}
             <AnimatePresence>
                 {showToast && (
@@ -35,7 +35,7 @@ export default function WelcomeBanner() {
             <motion.div
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--bg-card)] p-4 rounded-xl border border-[var(--border)] shadow-sm"
+                className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[var(--bg-card)] p-3 rounded-xl border border-[var(--border)] shadow-sm"
             >
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-[var(--bg-main)] rounded-lg text-[var(--primary)]">

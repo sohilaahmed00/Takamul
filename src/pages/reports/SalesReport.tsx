@@ -109,11 +109,7 @@ export default function SalesReport() {
             <Column header={t('invoice_status')} field="orderStatus" body={(r: SalesOrder) => <StatusBadge status={r.orderStatus} />} />
             <Column header={t('total_amount')} field="grandTotal" sortable body={(r: SalesOrder) => fmt(r.grandTotal)} />
             <Column header={t('paid_amount')} body={(r: SalesOrder) => fmt(r.payments?.reduce((s, p) => s + p.amount, 0) ?? 0)} />
-            <Column header={t('actions')} body={(r: SalesOrder) => (
-              <div className="flex gap-2">
-                <Link to={`/sales/edit/${r.id}`} className="btn-minimal-action btn-compact-action"><Edit2 size={14} /></Link>
-              </div>
-            )} />
+
           </DataTable>
         </CardContent>
       </Card>

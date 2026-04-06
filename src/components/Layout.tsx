@@ -182,7 +182,7 @@ export default function Layout() {
 
       <motion.aside
         data-theme={theme}
-        className={cn("fixed lg:sticky top-0 h-screen bg-[var(--bg-card)] z-50 overflow-y-auto transition-colors duration-300", direction === "rtl" ? "right-0 border-l border-[var(--border)]" : "left-0 border-r border-[var(--border)]")}
+        className={cn("fixed lg:sticky top-0 h-screen bg-[var(--bg-card)] z-50 overflow-y-auto hide-scrollbar transition-colors duration-300", direction === "rtl" ? "right-0 border-l border-[var(--border)]" : "left-0 border-r border-[var(--border)]")}
         initial={false}
         animate={{
           x: isMobile ? (isMobileMenuOpen ? 0 : direction === "rtl" ? "100%" : "-100%") : 0,
@@ -190,7 +190,7 @@ export default function Layout() {
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        <div className="p-4 flex items-center justify-between h-16 border-b border-[var(--border)]">
+        <div className="p-4 flex items-center justify-between h-[120px] border-b border-[var(--border)]">
           <div className={cn("flex items-center gap-2 overflow-hidden justify-center w-full")}>
             {showSidebarContent ? (
               <div className="flex items-center gap-2 overflow-hidden justify-center w-full">
@@ -209,7 +209,11 @@ export default function Layout() {
         </div>
 
         <div className="p-3 space-y-1">
-          <SidebarItem icon={LayoutDashboard} label={t("dashboard")} isSidebarOpen={showSidebarContent} active={location.pathname === "/dashboard"} onClick={() => navigate("/dashboard")} />
+          <SidebarItem icon={LayoutDashboard} label={t("dashboard")} isSidebarOpen={showSidebarContent} active={location.pathname === "/dashboard"} onClick={() => {
+            navigate("/dashboard");
+            setOpenSubmenu(null);
+            setOpenNestedSubmenu(null);
+          }} />
 
           <SidebarItem icon={Package} label={t("products")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "products"} onClick={() => toggleSubmenu("products")} />
           <AnimatePresence>
@@ -238,6 +242,8 @@ export default function Layout() {
             )}
           </AnimatePresence>
 
+         
+
           <SidebarItem icon={Share2} label={t("quotes")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "quotes"} onClick={() => toggleSubmenu("quotes")} />
           <AnimatePresence>
             {openSubmenu === "quotes" && showSidebarContent && (
@@ -265,6 +271,14 @@ export default function Layout() {
                 <SubmenuItem label={t("users_list")} icon={List} path="/users" />
                 <SubmenuItem label={t("user_groups")} icon={Users} path="/users/groups" />
                 <SubmenuItem label={t("pos_devices")} icon={Monitor} path="/users/pos-devices" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+           <SidebarItem icon={RefreshCw} label={t("shifts")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "shifts"} onClick={() => toggleSubmenu("shifts")} />
+          <AnimatePresence>
+            {openSubmenu === "shifts" && showSidebarContent && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
+                <SubmenuItem label={t("shifts_list")} icon={List} path="/shifts" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -636,7 +650,7 @@ export default function Layout() {
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto">
+        <main className={cn("flex-1", location.pathname === "/dashboard" ? "p-3 overflow-hidden" : "p-4 lg:p-8 overflow-y-auto")}>
           {location.pathname === "/dashboard" && <WelcomeBanner />}
           <Outlet />
         </main>

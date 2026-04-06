@@ -98,9 +98,7 @@ export default function PurchasesReport() {
             <Column header={t('tax_amount')} field="taxAmount" sortable body={(r: Purchase) => fmt(r.taxAmount)} />
             <Column header={t('paid_amount')} field="paidAmount" sortable body={(r: Purchase) => fmt(r.paidAmount)} />
             <Column header={t('purchase_order_status')} field="orderStatus" body={(r: Purchase) => <StatusBadge status={r.orderStatus} />} />
-            <Column header={t('actions')} body={(r: Purchase) => (
-              <Link to={`/purchases/edit/${r.id}`} className="btn-minimal-action btn-compact-action"><Edit2 size={14} /></Link>
-            )} />
+
           </DataTable>
         </CardContent>
       </Card>
