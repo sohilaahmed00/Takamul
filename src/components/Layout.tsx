@@ -190,20 +190,18 @@ export default function Layout() {
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        <div className="p-4 flex items-center justify-between h-[120px] border-b border-[var(--border)]">
-          <div className={cn("flex items-center gap-2 overflow-hidden justify-center w-full")}>
+        <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--border)]">
+          <div className={cn("flex items-center overflow-hidden flex-1")}>
             {showSidebarContent ? (
-              <div className="flex items-center gap-2 overflow-hidden justify-center w-full">
-                <Logo />
-              </div>
+              <Logo />
             ) : (
               <Logo showText={false} />
             )}
           </div>
 
           {isMobile && (
-            <button onClick={() => setIsMobileMenuOpen(false)} className="text-[var(--text-muted)] hover:text-red-500 transition-colors">
-              <X size={24} />
+            <button onClick={() => setIsMobileMenuOpen(false)} className="text-[var(--text-muted)] hover:text-red-500 transition-colors p-1">
+              <X size={20} />
             </button>
           )}
         </div>
@@ -242,7 +240,7 @@ export default function Layout() {
             )}
           </AnimatePresence>
 
-         
+
 
           <SidebarItem icon={Share2} label={t("quotes")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "quotes"} onClick={() => toggleSubmenu("quotes")} />
           <AnimatePresence>
@@ -274,7 +272,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-           <SidebarItem icon={RefreshCw} label={t("shifts")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "shifts"} onClick={() => toggleSubmenu("shifts")} />
+          <SidebarItem icon={RefreshCw} label={t("shifts")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "shifts"} onClick={() => toggleSubmenu("shifts")} />
           <AnimatePresence>
             {openSubmenu === "shifts" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>

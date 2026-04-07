@@ -107,7 +107,7 @@ export default function Dashboard() {
           title={t('total_purchases')}
           value={formatCurrency(totalPurchasesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}
           icon={ShoppingBag}
-          bgClass="bg-[#f97316]" // Orange
+          bgClass="bg-[#ce2029]" // Red
           delay={0.2}
           onClick={() => navigate('/reports/purchases')}
         />
