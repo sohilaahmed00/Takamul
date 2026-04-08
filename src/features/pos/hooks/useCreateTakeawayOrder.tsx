@@ -1,10 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { salesKeys } from "../keys/sales.keys";
 import useToast from "@/hooks/useToast";
 import { handleApiError } from "@/lib/handleApiError";
 import { handleApiSuccess } from "@/lib/handleApiSuccess";
 import { createTakwayOrder } from "../services/pos";
 import { CreateTakeawayOrder } from "../types/pos.types";
+import { posKeys } from "../keys/pos.keys";
+import { salesKeys } from "@/features/sales/keys/sales.keys";
 
 export function useCreateTakwayOrder() {
   const queryClient = useQueryClient();
@@ -14,7 +15,7 @@ export function useCreateTakwayOrder() {
     onSuccess: (response) => {
       console.log(response);
       queryClient.invalidateQueries({
-        queryKey: salesKeys.all,
+        queryKey: [...salesKeys.all, ...posKeys.all],
       });
       handleApiSuccess(response?.message, notifySuccess);
     },

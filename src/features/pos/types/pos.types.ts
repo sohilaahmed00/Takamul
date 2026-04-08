@@ -47,6 +47,74 @@ export type CreateTakeawayOrder = {
 };
 
 export type CreateDeliveryOrder = CreateTakeawayOrder;
+export type CreateDineInOrder = Omit<CreateTakeawayOrder, "giftCardId" | "payments" | "globalDiscountPercentage" | "globalDiscountValue"> & {
+  tableId: number;
+};
+// export type CheckoutDineInOrder = Omit<CreateTakeawayOrder, "items" | "additionIds"> & {
+//   tableId: number;
+// };
+export type CheckoutDineInOrder = {
+  tableId: number;
+  globalDiscountValue: number;
+  globalDiscountPercentage: number;
+  giftCardId: number | null;
+  payments: {
+    amount: number;
+    treasuryId: number;
+    notes: string;
+  }[];
+};
 export interface GetAllSalesOrderResponse extends PaginationMeta {
   items: SalesOrder[];
 }
+
+export interface OrderItem {
+  id: number;
+  productId: number;
+  productCode: string;
+  productName: string;
+  unitId: number;
+  quantity: number;
+  unitPrice: number;
+  priceBeforeTax: number;
+  taxPercentage: number;
+  taxAmount: number;
+  discountPercentage: number;
+  discountValue: number;
+  lineTotal: number;
+}
+
+export interface OrderPayment {}
+
+export interface Order {
+  id: number;
+  orderNumber: string;
+  customerName: string;
+  customerId: number;
+  createdBy: string;
+  orderDate: string;
+  warehouseName: string;
+
+  subTotal: number;
+  taxAmount: number;
+  discountAmount: number;
+  grandTotal: number;
+
+  orderStatus: string;
+  paymentStatus: string;
+
+  notes: string;
+
+  items: OrderItem[];
+  payments: OrderPayment[];
+}
+
+export interface Table {
+  id: number;
+  tableName: string;
+  status: "Free" | "Occupied";
+  currentOrderId: number;
+}
+
+export type GetOrderByTableIdResponse = Order;
+export type GetAllTablesResponse = Table[];

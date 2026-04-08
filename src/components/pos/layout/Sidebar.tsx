@@ -24,10 +24,10 @@ export default function Sidebar() {
           <Icon
             size={18}
             strokeWidth={screen === id ? 2.5 : 1.8}
-            className={`transition-colors duration-200 ${screen === id ? "text-primary" : "text-gray-300"}`}
+            className={`transition-colors duration-200 ${screen === id ? "text-primary" : "text-gray-400"}`}
           />
           <span
-            className={`transition-colors duration-200 ${screen === id ? "text-primary font-bold" : "text-gray-300"}`}
+            className={`transition-colors duration-200 ${screen === id ? "text-primary font-bold" : "text-gray-400"}`}
             style={{ fontSize: 9 }}
           >
             {label}

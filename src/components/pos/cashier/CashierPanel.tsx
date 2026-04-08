@@ -70,15 +70,18 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
   const { selectedCustomer, setSelectedCustomer, cart, discount, setPaidAmount, setSelectedVaultId } = usePos();
   const { total } = calcTotals(cart, discount);
   const [tab, setTab] = useState<"Cash" | "Other Modes">("Cash");
-  const [vault, setVault] = useState<number>(treasurys?.[0]?.id ?? 0);
+
+  // ✅ خلي vault يعتمد على treasurys مباشرة
+  const [vaultId, setVaultId] = useState<number | null>(null);
+  const activeVault = vaultId ?? treasurys?.[0]?.id ?? null;
+
   const [npRaw, setNpRaw] = useState(() => String(Math.round(total * 100)));
   const [isSplit, setIsSplit] = useState(false);
   const [splits, setSplits] = useState<Split[]>([]);
-
   const [activeId, setActiveId] = useState("s1");
   useEffect(() => {
-    if (treasurys?.length && vault === 0) {
-      setVault(treasurys[0].id);
+    if (treasurys?.length && vaultId === null) {
+      setVaultId(treasurys[0].id);
       setSelectedVaultId(treasurys[0].id);
     }
   }, [treasurys]);
@@ -181,15 +184,18 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
       {/* Single vault */}
       {!isSplit && (
         <>
-          <VaultChips
-            value={vault}
-            onChange={(id) => {
-              setVault(id);
-              setSelectedVaultId(id);
-            }}
-            treasurys={treasurys ?? []}
-          />
-
+          {treasurys && treasurys.length > 0 ? (
+            <VaultChips
+              value={activeVault ?? 0}
+              onChange={(id) => {
+                setVaultId(id);
+                setSelectedVaultId(id);
+              }}
+              treasurys={treasurys}
+            />
+          ) : (
+            <div className="text-xs text-red-500">loading vaults...</div>
+          )}
           {/* Amount display — replaces the empty gap */}
           <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 flex items-center justify-between">
             <div className="flex flex-col gap-0.5">

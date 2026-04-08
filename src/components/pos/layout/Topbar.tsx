@@ -2,14 +2,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { TABLES_LIST, DELIVERY_COMPANIES } from "@/constants/data";
 import { usePos } from "@/context/PosContext";
 import type { OrderType } from "@/constants/data";
+import { useGetAllFreeTables } from "@/features/pos/hooks/useGetFreeTables";
 
 export default function Topbar() {
-  const {
-    networkSpeed,
-    orderType, setOrderType,
-    selectedTable, setSelectedTable,
-    selectedDelivery, setSelectedDelivery,
-  } = usePos();
+  const { networkSpeed, orderType, setOrderType, selectedTable, setSelectedTable, selectedDelivery, setSelectedDelivery } = usePos();
+  const { data: freeTables } = useGetAllFreeTables();
 
   return (
     <div className="h-14 bg-white border-b border-gray-100 flex items-center px-5 gap-4 flex-shrink-0">
@@ -17,10 +14,7 @@ export default function Topbar() {
 
       {/* Search */}
       <div className="relative flex-1">
-        <input
-          className="w-full pl-4 pr-10 py-2 border border-gray-200 rounded-xl text-sm outline-none bg-white focus:border-primary/40 text-gray-500"
-          placeholder="Search products....."
-        />
+        <input className="w-full pl-4 pr-10 py-2 border border-gray-200 rounded-xl text-sm outline-none bg-white focus:border-primary/40 text-gray-500" placeholder="Search products....." />
         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
           <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <circle cx="11" cy="11" r="8" />
@@ -39,26 +33,8 @@ export default function Topbar() {
 
       {/* Network speed */}
       <div className="flex items-center gap-1">
-        <span
-          className={`text-xs font-bold ${
-            networkSpeed === "slow"
-              ? "text-red-500"
-              : networkSpeed === "medium"
-              ? "text-yellow-500"
-              : "text-green-500"
-          }`}
-        >
-          {networkSpeed === "slow" ? "Slow" : networkSpeed === "medium" ? "Medium" : "Fast"}
-        </span>
-        <button
-          className={
-            networkSpeed === "slow"
-              ? "text-red-500"
-              : networkSpeed === "medium"
-              ? "text-yellow-500"
-              : "text-green-500"
-          }
-        >
+        <span className={`text-xs font-bold ${networkSpeed === "slow" ? "text-red-500" : networkSpeed === "medium" ? "text-yellow-500" : "text-green-500"}`}>{networkSpeed === "slow" ? "Slow" : networkSpeed === "medium" ? "Medium" : "Fast"}</span>
+        <button className={networkSpeed === "slow" ? "text-red-500" : networkSpeed === "medium" ? "text-yellow-500" : "text-green-500"}>
           <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M5 12.55a11 11 0 0 1 14.08 0" strokeOpacity={networkSpeed === "slow" ? 0.3 : 1} />
             <path d="M1.42 9a16 16 0 0 1 21.16 0" strokeOpacity={networkSpeed === "fast" ? 1 : 0.3} />
@@ -94,9 +70,9 @@ export default function Topbar() {
               <SelectValue placeholder="اختر الطاولة" />
             </SelectTrigger>
             <SelectContent>
-              {TABLES_LIST.map((t) => (
-                <SelectItem key={t} value={t}>
-                  {t}
+              {freeTables.map((t) => (
+                <SelectItem key={t.id} value={String(t?.id)}>
+                  {t?.tableName}
                 </SelectItem>
               ))}
             </SelectContent>

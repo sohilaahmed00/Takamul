@@ -228,21 +228,29 @@ export default function AddProduct() {
   // ── Price summary ────────────────────────────────────────────────────────
   const summary = useMemo(() => {
     const selectedTax = (taxesData || []).find((t) => String(t.id) === String(TaxId)) || { id: 1, name: "بدون ضريبة", amount: 0 };
+
     const taxRate = (selectedTax.amount || 0) / 100;
-    let basePrice = Number(SellingPrice) || 0;
-    let finalPrice = Number(SellingPrice) || 0;
+    const inputPrice = Number(SellingPrice) || 0;
+
+    let basePrice = inputPrice; // السعر قبل الضريبة
     let taxAmount = 0;
+    let finalPrice = inputPrice;
 
     if (TaxCalculation === 2) {
-      basePrice = finalPrice - finalPrice * taxRate;
-      taxAmount = finalPrice - basePrice;
+      // السعر المدخل شامل الضريبة → نستخرج السعر قبلها
+      basePrice = inputPrice / (1 + taxRate);
+      taxAmount = inputPrice - basePrice;
+      finalPrice = inputPrice; // السعر النهائي = المدخل نفسه
     } else if (TaxCalculation === 3) {
-      taxAmount = basePrice * taxRate;
-      finalPrice = basePrice + taxAmount;
+      // السعر المدخل قبل الضريبة → نضيف الضريبة
+      basePrice = inputPrice;
+      taxAmount = inputPrice * taxRate;
+      finalPrice = inputPrice + taxAmount;
     }
+    // TaxCalculation === 1 → لا ضريبة، كل الأرقام = inputPrice
 
     const cost = Number(CostPrice) || 0;
-    const profit = basePrice - cost;
+    const profit = basePrice - cost; // الربح على السعر قبل الضريبة
     const profitMargin = basePrice > 0 ? (profit / basePrice) * 100 : 0;
 
     return {
@@ -272,9 +280,10 @@ export default function AddProduct() {
           ProductNameUr: productDataDirect.productNameUr,
           Description: productDataDirect.description || "",
           Barcode: productDataDirect.barcode,
-          SellingPrice: productDataDirect.sellingPrice,
+          SellingPrice: productDataDirect.priceBeforeTax,
           CostPrice: productDataDirect.costPrice,
           MinStockLevel: productDataDirect.minStockLevel,
+          // TaxCalculation:productDataDirect
         });
         break;
       }
@@ -303,7 +312,7 @@ export default function AddProduct() {
           ProductNameUr: productDataPrepared.productNameUr,
           Description: productDataPrepared.description || "",
           Barcode: productDataPrepared.barcode,
-          SellingPrice: productDataPrepared.sellingPrice,
+          SellingPrice: productDataPrepared.priceBeforeTax,
           CostPrice: productDataPrepared.costPrice,
           MinStockLevel: productDataPrepared.minStockLevel,
           RawMaterials:

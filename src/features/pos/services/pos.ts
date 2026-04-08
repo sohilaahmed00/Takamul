@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import { CreateDeliveryOrder, CreateTakeawayOrder } from "../types/pos.types";
+import { CheckoutDineInOrder, CreateDeliveryOrder, CreateDineInOrder, CreateTakeawayOrder, GetAllTablesResponse, GetOrderByTableIdResponse } from "../types/pos.types";
 
 // ===================
 // GET
@@ -22,6 +22,28 @@ export const createDeliveryOrder = (data: CreateDeliveryOrder) =>
   httpClient<{ message: string }>("/sales-orders/pos/delivery", {
     method: "POST",
     data,
+  });
+export const createDineInOrder = (data: CreateDineInOrder) =>
+  httpClient<{ message: string }>("/sales-orders/pos/indine", {
+    method: "POST",
+    data,
+  });
+export const checkoutDineInOrder = (data: CheckoutDineInOrder) =>
+  httpClient<{ message: string }>("/sales-orders/pos/indine/checkout", {
+    method: "POST",
+    data,
+  });
+export const getOrderByTableId = (id: number) =>
+  httpClient<GetOrderByTableIdResponse>(`/sales-orders/pos/indine/table/${id}`, {
+    method: "GET",
+  });
+export const getAllTables = () =>
+  httpClient<GetAllTablesResponse>("/dining-tables", {
+    method: "GET",
+  });
+export const getAllFreeTables = () =>
+  httpClient<GetAllTablesResponse>("/dining-tables/free", {
+    method: "GET",
   });
 
 // export const updateCategory = (id: number, data: CreateCategory) =>

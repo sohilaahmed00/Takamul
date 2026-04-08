@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CircleArrowRight, Pause, Plus, X, ChevronsUpDown, Check, SlidersHorizontal, Trash2, Percent, Info } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,13 +9,18 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 import type { Customer } from "@/features/customers/types/customers.types";
-import { calcItemTax, calcTotals, CartItem, itemTotal } from "@/constants/data";
+import { calcItemTax, calcTotals, CartItem, itemBasePrice, itemTotal } from "@/constants/data";
 import { usePos } from "@/context/PosContext";
 import { useGetAllAdditions } from "@/features/Additions/hooks/useGetAllAdditions";
 import type { Addition } from "@/features/Additions/types/additions.types";
 import { useGetGiftCards } from "@/features/gift-cards/hooks/useGetGiftCards";
 import { GiftCard } from "@/features/gift-cards/types/giftCard.types";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import useToast from "@/hooks/useToast";
+import { useGetAllFreeTables } from "@/features/pos/hooks/useGetFreeTables";
+import { useGetAllTables } from "@/features/pos/hooks/useGetAllTables";
+import { Table } from "@/features/pos/types/pos.types";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 const TABS = ["add", "discount", "coupon", "note"] as const;
 const TAB_LABELS: Record<string, string> = {
@@ -139,7 +144,14 @@ function CouponTab() {
 }
 // ── Discount Popover ─────────────────────────────────────────────────────────
 function DiscountPopover({ item, idx, onDiscChange, onDiscTypeToggle, onDiscClear }: { item: CartItem; idx: number; onDiscChange: (idx: number, type: "pct" | "flat", raw: string) => void; onDiscTypeToggle: (idx: number) => void; onDiscClear: (idx: number) => void }) {
+  const [raw, setRaw] = useState(String(item.itemDiscount?.value ?? ""));
+
+  useEffect(() => {
+    setRaw(String(item.itemDiscount?.value ?? ""));
+  }, [item.itemDiscount?.value]);
+
   const hasDisc = !!item.itemDiscount && item.itemDiscount.value > 0;
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -156,9 +168,25 @@ function DiscountPopover({ item, idx, onDiscChange, onDiscTypeToggle, onDiscClea
           <button onClick={() => onDiscTypeToggle(idx)} className="w-8 h-8 rounded-lg border border-gray-200 text-xs font-bold text-gray-500 hover:border-primary/40 shrink-0">
             {(item.itemDiscount?.type ?? "pct") === "pct" ? "%" : "$"}
           </button>
-          <input className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs outline-none text-right font-semibold focus:border-primary/40 bg-white" value={item.itemDiscount?.value ?? ""} placeholder="0" type="number" min="0" onChange={(e) => onDiscChange(idx, item.itemDiscount?.type ?? "pct", e.target.value)} />
+          <input
+            className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs outline-none text-right font-semibold focus:border-primary/40 bg-white"
+            value={raw}
+            placeholder="0"
+            type="number"
+            min="0"
+            onChange={(e) => {
+              setRaw(e.target.value);
+              onDiscChange(idx, item.itemDiscount?.type ?? "pct", e.target.value);
+            }}
+          />
           {hasDisc && (
-            <button onClick={() => onDiscClear(idx)} className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center hover:bg-red-100 shrink-0">
+            <button
+              onClick={() => {
+                onDiscClear(idx);
+                setRaw("");
+              }}
+              className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center hover:bg-red-100 shrink-0"
+            >
               <X size={10} className="text-gray-500" />
             </button>
           )}
@@ -202,16 +230,19 @@ function ExtrasPopover({ item, idx, additions, onToggleExtra }: { item: CartItem
 
 // ── Main CartPanel ────────────────────────────────────────────────────────────
 export default function CartPanel() {
-  const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer } = usePos();
+  const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, selectedTable } = usePos();
   const { data } = useGetGiftCards();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [discInput, setDiscInput] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+  const { data: tables } = useGetAllTables();
 
   const { data: customers, isLoading: loadingCustomers } = useGetAllCustomers({ page: 1, limit: 100 });
   const { data: additions } = useGetAllAdditions();
-  const { sub, tax, total } = calcTotals(cart, discount);
+  const { sub, tax: taxAfterDiscount, total } = calcTotals(cart, discount);
+  const { tax: originalTax } = calcTotals(cart, 0);
+  const { notifyError, notifySuccess } = useToast();
 
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
 
@@ -221,7 +252,16 @@ export default function CartPanel() {
   const setItemDisc = (idx: number, type: "pct" | "flat", raw: string) => {
     const value = parseFloat(raw);
     const capped = type === "pct" ? Math.min(value, 100) : value;
-    setCart((p) => p.map((item, i) => (i === idx ? { ...item, itemDiscount: !isNaN(capped) && capped > 0 ? { type, value: capped } : null } : item)));
+    setCart((p) =>
+      p.map((item, i) =>
+        i === idx
+          ? {
+              ...item,
+              itemDiscount: raw === "" || isNaN(value) ? null : { type, value: capped },
+            }
+          : item,
+      ),
+    );
   };
 
   // ── per-item extras (toggle by id) ────────────────────────────────────────
@@ -246,7 +286,7 @@ export default function CartPanel() {
   // ── order-level discount ───────────────────────────────────────────────────
   const applyDiscount = () => {
     const val = parseFloat(discInput) || 0;
-    const base = sub + tax;
+    const base = sub + taxAfterDiscount;
     setDiscount(discType === "pct" ? (base * val) / 100 : val);
     setActiveTab("add");
   };
@@ -258,29 +298,19 @@ export default function CartPanel() {
         {/* Head – Customer selector */}
         <div className="px-3 py-2.5 border-b border-gray-100 flex items-center gap-2">
           {!selectedCustomer ? (
-            <Select
-              onValueChange={(val) => {
-                const customer = customers?.items?.find((c) => String(c.id) === val);
-                if (customer) setSelectedCustomer(customer);
-              }}
-            >
-              <SelectTrigger className="flex-1 text-xs h-8">
-                <SelectValue placeholder="اختر العميل..." />
-              </SelectTrigger>
-              <SelectContent>
-                {loadingCustomers ? (
-                  <SelectItem value="loading" disabled>
-                    جاري التحميل...
-                  </SelectItem>
-                ) : (
-                  customers?.items?.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.customerName}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
+            <div className="w-full">
+              <ComboboxField
+                value={selectedCustomer ? String(selectedCustomer.id) : ""}
+                onChange={(val) => {
+                  const customer = customers?.items?.find((c) => String(c.id) === String(val));
+                  if (customer) setSelectedCustomer(customer);
+                }}
+                items={customers?.items}
+                valueKey="id"
+                labelKey="customerName"
+                placeholder="اختر العميل..."
+              />
+            </div>
           ) : (
             <div className="flex items-center gap-2 flex-1 px-2.5 py-1.5 bg-primary/5 border border-primary/20 rounded-lg">
               <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold shrink-0">{selectedCustomer.customerName.slice(0, 2).toUpperCase()}</div>
@@ -349,16 +379,16 @@ export default function CartPanel() {
                     </div>
                     {/* السعر قبل الضريبة */}
                     <div className="text-right">
-                      <div className="text-xs font-semibold text-gray-700">${(item.price * item.qty).toFixed(2)}</div>
                       {hasDisc && <div className="text-[10px] text-gray-300 line-through">${origTotal.toFixed(2)}</div>}
+                      <div className="text-xs font-semibold text-gray-700">${itemBasePrice(item).toFixed(2)}</div>
                     </div>
                     {/* ض.ق.م */}
                     <div className="text-right">
-                      <div className="text-xs text-gray-500">${calcItemTax(item).toFixed(2)}</div>
+                      <div className="text-xs text-gray-500">${calcItemTax(item).toFixed(2)}</div>{" "}
                     </div>
                     {/* الإجمالي */}
                     <div className="text-right">
-                      <div className="text-xs font-bold text-gray-800">${(itemTotal(item) + (item.taxCalculation === 3 ? calcItemTax(item) : 0)).toFixed(2)}</div>
+                      <div className="text-xs font-bold text-gray-800">${(itemBasePrice(item) + calcItemTax(item)).toFixed(2)}</div>{" "}
                     </div>
                     {/* عمليات */}
                     <div className="flex items-center justify-center gap-1">
@@ -403,11 +433,17 @@ export default function CartPanel() {
             <div className="px-3 pt-2.5 pb-3">
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                 <span>Subtotal</span>
-                <span className="font-semibold text-gray-800">${sub?.toFixed(2)}</span>
+                <div className="flex items-center gap-1.5">
+                  {discount > 0 && <span className="text-gray-300 line-through text-[10px]">${sub?.toFixed(2)}</span>}
+                  <span className="font-semibold text-gray-800">${Math.max(0, sub - discount).toFixed(2)}</span>
+                </div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                 <span>Tax</span>
-                <span className="font-semibold text-gray-800">${tax.toFixed(2)}</span>
+                <div className="flex items-center gap-1.5">
+                  {discount > 0 && <span className="text-gray-300 line-through text-[10px]">${originalTax.toFixed(2)}</span>}
+                  <span className="font-semibold text-gray-800">${taxAfterDiscount.toFixed(2)}</span>
+                </div>
               </div>
               <div className="flex justify-between text-xs mb-1.5 items-center">
                 <span className={discount > 0 ? "text-primary font-semibold" : "text-gray-500"}>Discount</span>
@@ -422,13 +458,31 @@ export default function CartPanel() {
               </div>
               <div className="flex justify-between text-sm font-black text-gray-800 mt-2 pt-1 border-t border-gray-100 mb-3">
                 <span>Payable Amount</span>
-                <span>${total.toFixed(2)}</span>
+                <div className="flex items-center gap-1.5">
+                  {discount > 0 && <span className="text-gray-300 line-through text-xs font-normal">${(sub + originalTax).toFixed(2)}</span>}
+                  <span>${total.toFixed(2)}</span>
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button size={"2xl"} onClick={handleHold} className="flex-1" variant="outline">
                   Hold Cart <Pause />
                 </Button>
-                <Button size={"2xl"} onClick={() => setScreen("cashier")} className="flex-1">
+                <Button
+                  size={"2xl"}
+                  onClick={() => {
+                    if (orderType === "dine-in") {
+                      const table = tables?.find((table: Table) => table.id == Number(selectedTable));
+                      if (table?.status === "Occupied") {
+                        setScreen("cashier");
+                      } else {
+                        handleCreateDineInOrder();
+                      }
+                    } else {
+                      setScreen("cashier");
+                    }
+                  }}
+                  className="flex-1"
+                >
                   Proceed <CircleArrowRight />
                 </Button>
               </div>

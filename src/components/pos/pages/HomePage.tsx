@@ -21,9 +21,7 @@ export default function HomePage() {
   const activeCat = mainCategories?.find((c) => c.id === currentCat);
 
   const filteredProducts = products?.items.filter((item) => {
-    if (currentSubCat) return item.categoryId === currentSubCat;
-    if (currentCat) return item.categoryId === currentCat;
-    return true;
+    return item.productType !== "RawMatrial" && (!currentSubCat || item.categoryId === currentSubCat) && (!currentCat || item.categoryId === currentCat);
   });
 
   const addToCart = (item: { id: number; productNameAr: string; sellingPrice: number; taxAmount: number; taxCalculation: number }) => {
@@ -56,7 +54,7 @@ export default function HomePage() {
       addToCart({
         id: item.id,
         productNameAr: item.productNameAr,
-        sellingPrice: item.priceBeforeTax,
+        sellingPrice: item.taxCalculation == 3 ? item?.priceBeforeTax : item?.sellingPrice,
         taxAmount: item.taxAmount,
         taxCalculation: item.taxCalculation,
       });
@@ -108,10 +106,10 @@ export default function HomePage() {
       {/* Menu grid */}
       <div className="grid lg:grid-cols-5 3xl:grid-cols-6 gap-2">
         {filteredProducts?.map((item, i) => (
-          <div key={i} onClick={() => handleMenuClick(item)} className="bg-white rounded-xl p-2.5 text-center border border-gray-100 cursor-pointer hover:shadow-md hover:border-primary/40 transition-all">
-            <div className="w-16 h-16 rounded-full bg-primary/5 mx-auto mb-2 flex items-center justify-center overflow-hidden">{item.imageUrl ? <img src={item.imageUrl} alt={item.productNameAr} className="w-full h-full object-cover rounded-full" /> : <span className="text-2xl"></span>}</div>
+          <div key={i} onClick={() => handleMenuClick(item)} className="bg-white rounded-xl p-2.5 text-center border border-primary/40 cursor-pointer hover:shadow-sm  transition-all">
+            <div className="w-32 h-16 rounded-lg  bg-primary/5 mx-auto mb-2 flex items-center justify-center overflow-hidden">{item.imageUrl ? <img src={item.imageUrl} alt={item.productNameAr} className="w-full h-full object-cover " /> : <span className="text-2xl"></span>}</div>
             <div className="text-xs font-semibold text-gray-700 mb-0.5 leading-tight">{item.productNameAr}</div>
-            <div className="text-xs font-bold text-primary">${item.sellingPrice}.00</div>
+            <div className="text-xs font-bold text-primary">${item?.taxCalculation == 3 ? item.priceBeforeTax : item.sellingPrice}.00</div>
           </div>
         ))}
       </div>
