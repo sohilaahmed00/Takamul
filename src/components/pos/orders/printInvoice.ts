@@ -1,6 +1,6 @@
 // printInvoice.ts
-// Arabic simplified tax invoice — everything fully visible, thermal-printer safe
-// Paper: 80mm wide × 297mm tall
+// Arabic simplified tax invoice — fully visible on thermal 80mm printer
+// All header rows are stacked (no side-by-side columns) to prevent clipping
 
 export interface InvoiceItem {
   productName: string;
@@ -31,19 +31,19 @@ export interface InvoiceData {
 
 export function printInvoice(data: InvoiceData): void {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
-
-  const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
+  const fmt = (n: number | undefined | null) =>
+    typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00";
 
   const itemRows = data.items
     .map(
       (item) => `
       <tr>
-        <td class="name-col">${item.productName ?? ""}</td>
+        <td class="td-name">${item.productName ?? ""}</td>
         <td>${item.quantity ?? 0}</td>
         <td>${fmt(item.unitPrice)}</td>
         <td>${fmt(item.taxAmount)}</td>
         <td>${fmt(item.total)}</td>
-      </tr>`,
+      </tr>`
     )
     .join("");
 
@@ -51,195 +51,144 @@ export function printInvoice(data: InvoiceData): void {
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>فاتورة ضريبية مبسطة</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
 
   * {
-    margin: 0;
-    padding: 0;
+    margin: 0; padding: 0;
     box-sizing: border-box;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    color-adjust: exact !important;
   }
 
-  @page {
-    size: 80mm 297mm;
-    margin: 0mm;
-  }
+  @page { size: 80mm 297mm; margin: 0; }
 
   html, body {
-    width: 76mm;           /* 76mm = 80mm minus 2mm each side safe margin */
+    /* Use 68mm so we have safe margin on both sides for any thermal printer */
+    width: 68mm;
     margin: 0 auto;
-    background: #fff;
     font-family: 'Cairo', 'Tahoma', Arial, sans-serif;
-    font-size: 7.5pt;
+    font-size: 8pt;
     color: #000;
     direction: rtl;
-    overflow-x: hidden;
+    background: #fff;
   }
 
-  .page {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* ── LOGO ── */
-  .logo-row {
-    background-color: #d4d4d4 !important;
+  /* ─── LOGO ─── */
+  .logo {
     text-align: center;
-    padding: 8px 4px 10px;
-    font-size: 16pt;
+    font-size: 18pt;
     font-weight: 900;
-    border-bottom: 1.5px solid #444;
+    padding: 8px 0 10px;
+    border-bottom: 1.5px solid #333;
+    background: #d9d9d9 !important;
   }
-  .logo-row img {
-    max-height: 44px;
-    max-width: 100%;
-    object-fit: contain;
-  }
+  .logo img { max-height: 46px; max-width: 100%; object-fit: contain; }
 
-  /* ── TWO-COL ── */
-  .two-col {
-    display: grid;
-    grid-template-columns: 50% 50%;
-    border-bottom: 1.5px solid #444;
+  /* ─── GENERIC ROW ─── */
+  /* Every meta row is full-width, stacked. NO side-by-side grids. */
+  .row {
     width: 100%;
-  }
-  .two-col.grey { background-color: #e0e0e0 !important; }
-  .two-col.white { background-color: #fff !important; }
-  .two-col .cell {
-    padding: 4px 5px;
-    font-size: 7pt;
-    line-height: 1.5;
-    overflow: hidden;
-    word-break: break-word;
-  }
-  .two-col .cell:first-child { border-left: 1.5px solid #444; }
-
-  /* ── FULL BAND ── */
-  .band {
-    padding: 5px 6px;
-    text-align: center;
-    font-weight: 700;
+    padding: 5px 4px;
+    border-bottom: 1px dashed #666;
     font-size: 7.5pt;
-    border-bottom: 1.5px solid #444;
-    overflow: hidden;
+    line-height: 1.6;
     word-break: break-word;
   }
-  .band.grey  { background-color: #d4d4d4 !important; }
-  .band.white { background-color: #fff !important; }
+  .row.grey { background: #e0e0e0 !important; }
+  .row.center { text-align: center; font-weight: 700; }
 
-  /* ── ITEMS TABLE ── */
+  .row-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 5px 4px;
+    border-bottom: 1px dashed #666;
+    font-size: 7.5pt;
+    line-height: 1.6;
+    word-break: break-word;
+  }
+  .row-grid.grey { background: #e0e0e0 !important; }
+  .row-grid .g-r { text-align: right; flex: 1; }
+  .row-grid .g-l { text-align: left;  flex: 1; }
+
+  /* ─── ITEMS TABLE ─── */
   .items-table {
     width: 100%;
     border-collapse: collapse;
-    /* NO fixed layout — let browser fit content naturally */
-    font-size: 6.5pt;
+    font-size: 6pt;
+    margin-top: 2px;
     border-bottom: 2px solid #222;
   }
   .items-table th,
   .items-table td {
-    border: 0.8px solid #555;
-    padding: 2.5px 2px;
+    border: 0.8px solid #444;
+    padding: 2.5px 1.5px;
     text-align: center;
     vertical-align: middle;
-    line-height: 1.3;
+    line-height: 1.35;
     word-break: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
   }
   .items-table thead th {
-    background-color: #e0e0e0 !important;
+    background: #e0e0e0 !important;
     font-weight: 700;
-    font-size: 6pt;
-    line-height: 1.4;
+    font-size: 5.5pt;
   }
-  /* name col: widest, right-aligned */
-  .items-table th:first-child,
-  .items-table td:first-child {
-    width: 32%;
+  /* name col wider */
+  .th-name, .td-name {
+    width: 30%;
     text-align: right;
-    padding-right: 3px;
+    padding-right: 2px !important;
+    font-size: 6pt;
   }
-  /* qty: narrowest */
-  .items-table th:nth-child(2),
-  .items-table td:nth-child(2) {
-    width: 9%;
-  }
-  /* price, tax, total */
-  .items-table th:nth-child(3),
-  .items-table td:nth-child(3),
-  .items-table th:nth-child(4),
-  .items-table td:nth-child(4),
-  .items-table th:nth-child(5),
-  .items-table td:nth-child(5) {
-    width: 19.67%;
+  /* numeric cols equal */
+  .items-table th:not(.th-name),
+  .items-table td:not(.td-name) {
+    width: 17.5%;
   }
 
-  /* ── TOTALS TABLE ── */
+  /* ─── TOTALS TABLE ─── */
   .totals-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 7.5pt;
+    margin-top: 2px;
   }
   .totals-table td {
-    border: 0.8px solid #555;
-    padding: 3.5px 6px;
-    overflow: hidden;
+    border: 0.8px solid #444;
+    padding: 3.5px 5px;
     word-break: break-word;
   }
-  .totals-table td:first-child {
-    width: 62%;
-    text-align: right;
-  }
-  .totals-table td:last-child {
-    width: 38%;
-    text-align: center;
-    font-weight: 700;
-    white-space: nowrap;
-  }
+  .totals-table td:first-child { text-align: right; width: 60%; }
+  .totals-table td:last-child  { text-align: left;  width: 40%; font-weight: 700; white-space: nowrap; }
   .totals-table tr:last-child td {
     font-weight: 900;
     font-size: 8.5pt;
-    background-color: #eeeeee !important;
+    background: #e8e8e8 !important;
   }
 
-  /* ── FOOTER ── */
-  .footer-band {
-    background-color: #d4d4d4 !important;
+  /* ─── FOOTER ─── */
+  .footer {
+    background: #e0e0e0 !important;
     text-align: center;
-    padding: 6px 6px;
     font-weight: 700;
     font-size: 7.5pt;
-    border-top: 1.5px solid #444;
-    border-bottom: 1.5px solid #444;
-    margin-top: 2px;
+    padding: 6px 4px;
+    border-top: 1.5px solid #333;
+    border-bottom: 1.5px solid #333;
+    margin-top: 3px;
     word-break: break-word;
-    overflow: hidden;
   }
-  .footer-band + .footer-band {
-    border-top: none;
-    margin-top: 0;
-  }
+  .footer + .footer { border-top: none; margin-top: 0; }
 
-  /* ── QR ── */
+  /* ─── QR ─── */
   .qr-wrap {
-    flex: 1;
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    padding: 12px 6px 10px;
+    text-align: center;
+    padding: 12px 0 10px;
   }
-  .qr-wrap img,
-  #qr {
-    width: 90px;
-    height: 90px;
-    display: block;
-  }
+  #qr, .qr-wrap img { width: 80px; height: 80px; display: inline-block; }
 
   @media print {
     html, body { margin: 0; }
@@ -247,51 +196,48 @@ export function printInvoice(data: InvoiceData): void {
 </style>
 </head>
 <body>
-<div class="page">
 
   <!-- LOGO -->
-  <div class="logo-row">
+  <div class="logo">
     ${data.logoUrl ? `<img src="${data.logoUrl}" alt="logo"/>` : "اللوجو"}
   </div>
 
-  <!-- رقم الفاتورة + نوعها -->
-  <div class="two-col grey">
-    <div class="cell">رقم الفاتورة:<br/><strong>${data.invoiceNumber}</strong></div>
-    <div class="cell" style="text-align:left">فاتورة ضريبية<br/>مبسطة</div>
-  </div>
+  <!-- فاتورة ضريبية مبسطة -->
+  <div class="row grey center">فاتورة ضريبية مبسطة</div>
+
+  <!-- رقم الفاتورة -->
+  <div class="row">رقم الفاتورة: <strong>${data.invoiceNumber}</strong></div>
 
   <!-- اسم المؤسسة -->
-  <div class="band grey">اسم المؤسسة: ${data.institutionName}</div>
+  <div class="row grey center">اسم المؤسسة: ${data.institutionName}</div>
 
-  <!-- الرقم الضريبي + تاريخ الإصدار -->
-  <div class="two-col white">
-    <div class="cell">تاريخ اصدار الفاتورة:<br/><strong>${data.invoiceDate}</strong></div>
-    <div class="cell" style="text-align:left">الرقم الضريبي:<br/><strong>${data.institutionTaxNumber}</strong></div>
-  </div>
+  <!-- تاريخ الإصدار -->
+  <div class="row">تاريخ اصدار الفاتورة: <strong>${data.invoiceDate}</strong></div>
+
+  <!-- الرقم الضريبي -->
+  <div class="row">الرقم الضريبي للمؤسسة: <strong>${data.institutionTaxNumber}</strong></div>
 
   <!-- عنوان المؤسسة -->
-  <div class="band grey">عنوان المؤسسة: ${data.institutionAddress}</div>
+  <div class="row grey center">عنوان المؤسسة: ${data.institutionAddress}</div>
 
-  <!-- العميل -->
-  <div class="two-col white">
-    <div class="cell">رقم الجوال:<br/><strong>${data.customerPhone ?? "—"}</strong></div>
-    <div class="cell" style="text-align:left">اسم العميل:<br/><strong>${data.customerName ?? "—"}</strong></div>
-  </div>
+  <!-- اسم العميل -->
+  <div class="row">اسم العميل: <strong>${data.customerName ?? "—"}</strong></div>
+
+  <!-- رقم الجوال -->
+  <div class="row">رقم الجوال: <strong>${data.customerPhone ?? "—"}</strong></div>
 
   <!-- جدول المنتجات -->
   <table class="items-table">
     <thead>
       <tr>
-        <th style="text-align:center">اسم المنتج</th>
+        <th class="th-name">اسم المنتج</th>
         <th>الكمية</th>
         <th>السعر قبل الضريبة</th>
         <th>ضريبة القيمة المضافة</th>
         <th>الاجمالي النهائي</th>
       </tr>
     </thead>
-    <tbody>
-      ${itemRows}
-    </tbody>
+    <tbody>${itemRows}</tbody>
   </table>
 
   <!-- الإجماليات -->
@@ -319,25 +265,26 @@ export function printInvoice(data: InvoiceData): void {
   </table>
 
   <!-- رقم جوال المؤسسة -->
-  <div class="footer-band">رقم جوال المؤسسة: ${data.institutionPhone}</div>
+  <div class="footer">رقم جوال المؤسسة: ${data.institutionPhone}</div>
 
   <!-- ملاحظات -->
-  <div class="footer-band">ملاحظات علي الفاتورة: ${data.notes ?? ""}</div>
+  <div class="footer">ملاحظات علي الفاتورة: ${data.notes ?? ""}</div>
 
-  <!-- QR -->
+  <!-- QR Code -->
   <div class="qr-wrap">
-    ${data.qrCodeUrl ? `<img src="${data.qrCodeUrl}" alt="QR Code"/>` : `<canvas id="qr" width="90" height="90"></canvas>`}
+    ${
+      data.qrCodeUrl
+        ? `<img src="${data.qrCodeUrl}" alt="QR"/>`
+        : `<canvas id="qr" width="80" height="80"></canvas>`
+    }
   </div>
-
-</div>
 
 <script>
 (function () {
   var c = document.getElementById('qr');
   if (!c) return;
   var ctx = c.getContext('2d');
-  var S = 90, MOD = 14, cell = S / MOD;
-
+  var S = 80, MOD = 14, cell = S / MOD;
   var pat = [
     [1,1,1,1,1,1,1,0,1,0,1,0,1,1],
     [1,0,0,0,0,0,1,0,0,1,0,1,0,1],
@@ -354,31 +301,17 @@ export function printInvoice(data: InvoiceData): void {
     [1,0,0,0,0,0,1,0,1,0,1,0,1,0],
     [1,1,1,1,1,1,1,0,0,1,0,1,0,1],
   ];
-
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, S, S);
+  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,S,S);
   ctx.fillStyle = '#000';
-
-  for (var r = 0; r < MOD; r++) {
-    for (var cc = 0; cc < MOD; cc++) {
-      if (pat[r] && pat[r][cc]) {
-        ctx.fillRect(
-          Math.round(cc * cell),
-          Math.round(r * cell),
-          Math.round(cell) - 1,
-          Math.round(cell) - 1
-        );
-      }
-    }
-  }
+  for (var r=0;r<MOD;r++) for (var cc=0;cc<MOD;cc++)
+    if (pat[r][cc]) ctx.fillRect(Math.round(cc*cell),Math.round(r*cell),Math.round(cell)-1,Math.round(cell)-1);
 })();
-
-document.fonts.ready.then(function () { window.print(); });
+document.fonts.ready.then(function(){ window.print(); });
 </script>
 </body>
 </html>`;
 
-  const win = window.open("", "_blank", "width=440,height=980");
+  const win = window.open("", "_blank", "width=420,height=960");
   if (!win) {
     alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
     return;
