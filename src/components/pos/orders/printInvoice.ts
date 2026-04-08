@@ -56,7 +56,7 @@ export function printInvoice(data: InvoiceData): void {
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   @page {
-    size: 80mm 297mm;
+    size: 70mm 297mm;
     margin: 0;
   }
 
