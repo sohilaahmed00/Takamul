@@ -36,7 +36,9 @@ export function printInvoice(data: InvoiceData): void {
     .map(
       (item) => `
       <tr>
-        <td class="td-name">${item.productName ?? ""}</td>
+        <td class="td-name-full" colspan="4">${item.productName ?? ""}</td>
+      </tr>
+      <tr class="num-row">
         <td>${item.quantity ?? 0}</td>
         <td>${fmt(item.unitPrice)}</td>
         <td>${fmt(item.taxAmount)}</td>
@@ -69,8 +71,8 @@ export function printInvoice(data: InvoiceData): void {
     size: 80mm 297mm;
     margin-top: 2mm;
     margin-bottom: 2mm;
-    margin-right: 8mm;
-    margin-left: 8mm;
+    margin-right: 4mm;
+    margin-left: 4mm;
   }
 
   html, body {
@@ -103,7 +105,7 @@ export function printInvoice(data: InvoiceData): void {
   /* ── ROWS: all single-column, full-width ── */
   .row {
     width: 100%;
-    padding: 4px 8px 4px 8px;
+    padding: 4px 12px 4px 4px;
     border-bottom: 1px dashed #555;
     font-size: 7.5pt;
     line-height: 1.6;
@@ -116,7 +118,6 @@ export function printInvoice(data: InvoiceData): void {
 
   /* ── TABLE FRAME WRAPPER ── */
   .table-wrap {
-    border: 1.5px solid #222;
     margin: 3px 0;
   }
 
@@ -124,38 +125,49 @@ export function printInvoice(data: InvoiceData): void {
   .items-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 6pt;
+    font-size: 6.5pt;
+    border: 2px solid #111;
   }
   .items-table th,
   .items-table td {
-    border: 0.8px solid #444;
-    padding: 2px 1px;
-    text-align: center;
+    border: 0.8px solid #555;
+    padding: 2px 3px;
     vertical-align: middle;
-    line-height: 1.3;
+    line-height: 1.4;
     word-break: break-word;
   }
   .items-table thead th {
     background: #e0e0e0 !important;
     font-weight: 700;
-    font-size: 5.5pt;
-    line-height: 1.4;
+    font-size: 6pt;
+    text-align: center;
   }
-  .td-name, .th-name {
+  /* سطر اسم المنتج — يمتد كل العرض */
+  .td-name-full {
     text-align: right;
-    padding-right: 2px !important;
-    width: 28%;
+    font-weight: 700;
+    font-size: 6.5pt;
+    background: #f5f5f5 !important;
+    padding: 3px 4px !important;
+    border-bottom: 0.5px dashed #888 !important;
   }
-  .items-table th:nth-child(2), .items-table td:nth-child(2) { width: 9%; }
-  .items-table th:nth-child(3), .items-table td:nth-child(3),
-  .items-table th:nth-child(4), .items-table td:nth-child(4),
-  .items-table th:nth-child(5), .items-table td:nth-child(5) { width: 21%; }
+  /* سطر الأرقام — 4 أعمدة */
+  .items-table .num-row td {
+    text-align: center;
+    font-size: 6pt;
+    background: #fff !important;
+  }
+  .items-table th:nth-child(1) { width: 18%; }
+  .items-table th:nth-child(2) { width: 27%; }
+  .items-table th:nth-child(3) { width: 27%; }
+  .items-table th:nth-child(4) { width: 28%; }
 
   /* ── TOTALS TABLE ── */
   .totals-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 7.5pt;
+    border: 2px solid #111;
   }
   .totals-table td {
     border: 0.8px solid #444;
@@ -221,7 +233,6 @@ export function printInvoice(data: InvoiceData): void {
   <table class="items-table">
     <thead>
       <tr>
-        <th class="th-name">اسم المنتج</th>
         <th>الكمية</th>
         <th>السعر قبل الضريبة</th>
         <th>ضريبة القيمة المضافة</th>
