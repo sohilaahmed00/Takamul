@@ -69,8 +69,8 @@ export function printInvoice(data: InvoiceData): void {
     size: 80mm 297mm;
     margin-top: 2mm;
     margin-bottom: 2mm;
-    margin-right: 6mm;
-    margin-left: 6mm;
+    margin-right: 8mm;
+    margin-left: 8mm;
   }
 
   html, body {
@@ -103,7 +103,7 @@ export function printInvoice(data: InvoiceData): void {
   /* ── ROWS: all single-column, full-width ── */
   .row {
     width: 100%;
-    padding: 4px 3px 4px 2px;
+    padding: 4px 8px 4px 8px;
     border-bottom: 1px dashed #555;
     font-size: 7.5pt;
     line-height: 1.6;
@@ -114,13 +114,17 @@ export function printInvoice(data: InvoiceData): void {
   .row.bold   { font-weight: 700; }
   .row.center { text-align: center; }
 
+  /* ── TABLE FRAME WRAPPER ── */
+  .table-wrap {
+    border: 1.5px solid #222;
+    margin: 3px 0;
+  }
+
   /* ── ITEMS TABLE ── */
   .items-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 6pt;
-    margin: 2px 0;
-    border-bottom: 2px solid #222;
   }
   .items-table th,
   .items-table td {
@@ -152,11 +156,10 @@ export function printInvoice(data: InvoiceData): void {
     width: 100%;
     border-collapse: collapse;
     font-size: 7.5pt;
-    margin-top: 2px;
   }
   .totals-table td {
     border: 0.8px solid #444;
-    padding: 3px 4px;
+    padding: 3px 6px;
     word-break: break-word;
   }
   .totals-table td:first-child { text-align: right; width: 58%; }
@@ -214,6 +217,7 @@ export function printInvoice(data: InvoiceData): void {
   <div class="row">اسم العميل: <strong>${data.customerName ?? "—"}</strong></div>
   <div class="row">رقم الجوال: <strong>${data.customerPhone ?? "—"}</strong></div>
 
+  <div class="table-wrap">
   <table class="items-table">
     <thead>
       <tr>
@@ -226,7 +230,9 @@ export function printInvoice(data: InvoiceData): void {
     </thead>
     <tbody>${itemRows}</tbody>
   </table>
+  </div>
 
+  <div class="table-wrap">
   <table class="totals-table">
     <tr><td>عدد المنتجات</td><td>عدد ${totalQty}</td></tr>
     <tr><td>اجمالي السعر قبل الضريبة</td><td>&#65020; ${fmt(data.subTotal)}</td></tr>
@@ -234,6 +240,7 @@ export function printInvoice(data: InvoiceData): void {
     <tr><td>اجمالي ضريبة القيمة المضافة</td><td>&#65020; ${fmt(data.taxAmount)}</td></tr>
     <tr><td>الاجمالي النهائي</td><td>&#65020; ${fmt(data.grandTotal)}</td></tr>
   </table>
+  </div>
 
   <div class="footer">رقم جوال المؤسسة: ${data.institutionPhone}</div>
   <div class="footer">ملاحظات علي الفاتورة: ${data.notes ?? ""}</div>
