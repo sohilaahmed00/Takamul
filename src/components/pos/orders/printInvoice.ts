@@ -275,6 +275,7 @@ document.fonts.ready.then(function(){ window.print(); });
 </body>
 </html>`;
 
+
   const win = window.open("", "_blank", "width=440,height=980");
   if (!win) {
     alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
