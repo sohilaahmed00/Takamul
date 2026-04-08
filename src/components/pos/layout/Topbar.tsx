@@ -3,10 +3,11 @@ import { TABLES_LIST, DELIVERY_COMPANIES } from "@/constants/data";
 import { usePos } from "@/context/PosContext";
 import type { OrderType } from "@/constants/data";
 import { useGetAllFreeTables } from "@/features/pos/hooks/useGetFreeTables";
+import { useGetAllTables } from "@/features/pos/hooks/useGetAllTables";
 
 export default function Topbar() {
   const { networkSpeed, orderType, setOrderType, selectedTable, setSelectedTable, selectedDelivery, setSelectedDelivery, search, setSearch } = usePos();
-  const { data: freeTables } = useGetAllFreeTables();
+  const { data: freeTables } = useGetAllTables();
 
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between bg-white border-b border-gray-100 py-3 px-3 md:px-5 gap-3">
@@ -59,8 +60,8 @@ export default function Topbar() {
             <SelectContent>
               <SelectItem value="takeaway">سفري</SelectItem>
 
-              <SelectItem value="dine-in" disabled={!freeTables?.length}>
-                محلي {!freeTables?.length && "(لا يوجد طاولات)"}
+              <SelectItem value="dine-in" >
+                محلي 
               </SelectItem>
 
               <SelectItem value="delivery">توصيل</SelectItem>

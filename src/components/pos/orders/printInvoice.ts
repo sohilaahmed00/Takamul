@@ -66,8 +66,9 @@ export function printInvoice(data: InvoiceData): void {
 
   html, body {
     /* Use 68mm so we have safe margin on both sides for any thermal printer */
-    width: 68mm;
-    margin: 0 auto;
+    width: 64mm;
+    margin-right: 8mm;
+    margin-left: 2mm;
     font-family: 'Cairo', 'Tahoma', Arial, sans-serif;
     font-size: 8pt;
     color: #000;
