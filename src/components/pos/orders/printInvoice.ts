@@ -174,12 +174,18 @@ export function printInvoice(data: InvoiceData): void {
     padding: 3px 6px;
     word-break: break-word;
   }
-  .totals-table td:first-child { text-align: right; width: 58%; }
-  .totals-table td:last-child  {
-    text-align: left;
+  .totals-table td:first-child {
+    text-align: right;
     width: 42%;
     font-weight: 700;
     white-space: nowrap;
+    padding: 3px 6px;
+  }
+  .totals-table td:last-child {
+    text-align: right;
+    width: 58%;
+    padding: 3px 6px;
+    word-break: break-word;
   }
   .totals-table tr:last-child td {
     font-weight: 900;
@@ -245,11 +251,11 @@ export function printInvoice(data: InvoiceData): void {
 
   <div class="table-wrap">
   <table class="totals-table">
-    <tr><td>عدد المنتجات</td><td>عدد ${totalQty}</td></tr>
-    <tr><td>اجمالي السعر قبل الضريبة</td><td>&#65020; ${fmt(data.subTotal)}</td></tr>
-    <tr><td>اجمالي الخصم</td><td>&#65020; ${fmt(data.discountAmount)}</td></tr>
-    <tr><td>اجمالي ضريبة القيمة المضافة</td><td>&#65020; ${fmt(data.taxAmount)}</td></tr>
-    <tr><td>الاجمالي النهائي</td><td>&#65020; ${fmt(data.grandTotal)}</td></tr>
+    <tr><td>&#65020; عدد ${totalQty}</td><td>عدد المنتجات</td></tr>
+    <tr><td>&#65020; ${fmt(data.subTotal)}</td><td>اجمالي السعر قبل الضريبة</td></tr>
+    <tr><td>&#65020; ${fmt(data.discountAmount)}</td><td>اجمالي الخصم</td></tr>
+    <tr><td>&#65020; ${fmt(data.taxAmount)}</td><td>اجمالي ضريبة القيمة المضافة</td></tr>
+    <tr><td>&#65020; ${fmt(data.grandTotal)}</td><td>الاجمالي النهائي</td></tr>
   </table>
   </div>
 
