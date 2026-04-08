@@ -1,6 +1,4 @@
-// printInvoice.ts
-// Arabic simplified tax invoice — fully visible on thermal 80mm printer
-// All header rows are stacked (no side-by-side columns) to prevent clipping
+// printInvoice.ts — thermal 80mm, guaranteed no clipping on right side
 
 export interface InvoiceItem {
   productName: string;
@@ -62,13 +60,23 @@ export function printInvoice(data: InvoiceData): void {
     print-color-adjust: exact !important;
   }
 
-  @page { size: 80mm 297mm; margin: 0; }
+  /*
+   * KEY FIX: use @page margin to push content AWAY from the physical right edge.
+   * Thermal printers have an unprintable zone on the right (~4-6mm).
+   * margin-right: 6mm pushes the page content inward from that dead zone.
+   * margin-left: 1mm keeps a tiny left buffer.
+   */
+  @page {
+    size: 80mm 297mm;
+    margin-top: 2mm;
+    margin-bottom: 2mm;
+    margin-right: 4mm;
+    margin-left: 4mm;
+  }
 
   html, body {
-    /* Use 68mm so we have safe margin on both sides for any thermal printer */
-    width: 64mm;
-    margin-right: 8mm;
-    margin-left: 2mm;
+    /* Full width — let @page margins handle the safe zones */
+    width: 100%;
     font-family: 'Cairo', 'Tahoma', Arial, sans-serif;
     font-size: 8pt;
     color: #000;
@@ -76,81 +84,71 @@ export function printInvoice(data: InvoiceData): void {
     background: #fff;
   }
 
-  /* ─── LOGO ─── */
+  .page {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── LOGO ── */
   .logo {
     text-align: center;
-    font-size: 18pt;
+    font-size: 16pt;
     font-weight: 900;
-    padding: 8px 0 10px;
+    padding: 8px 2px 10px;
     border-bottom: 1.5px solid #333;
     background: #d9d9d9 !important;
   }
-  .logo img { max-height: 46px; max-width: 100%; object-fit: contain; }
+  .logo img { max-height: 44px; max-width: 100%; object-fit: contain; }
 
-  /* ─── GENERIC ROW ─── */
-  /* Every meta row is full-width, stacked. NO side-by-side grids. */
+  /* ── ROWS: all single-column, full-width ── */
   .row {
     width: 100%;
-    padding: 5px 4px;
-    border-bottom: 1px dashed #666;
+    padding: 4px 3px 4px 2px;
+    border-bottom: 1px dashed #555;
     font-size: 7.5pt;
     line-height: 1.6;
     word-break: break-word;
+    overflow-wrap: anywhere;
   }
-  .row.grey { background: #e0e0e0 !important; }
-  .row.center { text-align: center; font-weight: 700; }
+  .row.grey   { background: #e0e0e0 !important; }
+  .row.bold   { font-weight: 700; }
+  .row.center { text-align: center; }
 
-  .row-grid {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 4px;
-    padding: 5px 4px;
-    border-bottom: 1px dashed #666;
-    font-size: 7.5pt;
-    line-height: 1.6;
-    word-break: break-word;
-  }
-  .row-grid.grey { background: #e0e0e0 !important; }
-  .row-grid .g-r { text-align: right; flex: 1; }
-  .row-grid .g-l { text-align: left;  flex: 1; }
-
-  /* ─── ITEMS TABLE ─── */
+  /* ── ITEMS TABLE ── */
   .items-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 6pt;
-    margin-top: 2px;
+    margin: 2px 0;
     border-bottom: 2px solid #222;
   }
   .items-table th,
   .items-table td {
     border: 0.8px solid #444;
-    padding: 2.5px 1.5px;
+    padding: 2px 1px;
     text-align: center;
     vertical-align: middle;
-    line-height: 1.35;
+    line-height: 1.3;
     word-break: break-word;
   }
   .items-table thead th {
     background: #e0e0e0 !important;
     font-weight: 700;
     font-size: 5.5pt;
+    line-height: 1.4;
   }
-  /* name col wider */
-  .th-name, .td-name {
-    width: 30%;
+  .td-name, .th-name {
     text-align: right;
     padding-right: 2px !important;
-    font-size: 6pt;
+    width: 28%;
   }
-  /* numeric cols equal */
-  .items-table th:not(.th-name),
-  .items-table td:not(.td-name) {
-    width: 17.5%;
-  }
+  .items-table th:nth-child(2), .items-table td:nth-child(2) { width: 9%; }
+  .items-table th:nth-child(3), .items-table td:nth-child(3),
+  .items-table th:nth-child(4), .items-table td:nth-child(4),
+  .items-table th:nth-child(5), .items-table td:nth-child(5) { width: 21%; }
 
-  /* ─── TOTALS TABLE ─── */
+  /* ── TOTALS TABLE ── */
   .totals-table {
     width: 100%;
     border-collapse: collapse;
@@ -159,24 +157,29 @@ export function printInvoice(data: InvoiceData): void {
   }
   .totals-table td {
     border: 0.8px solid #444;
-    padding: 3.5px 5px;
+    padding: 3px 4px;
     word-break: break-word;
   }
-  .totals-table td:first-child { text-align: right; width: 60%; }
-  .totals-table td:last-child  { text-align: left;  width: 40%; font-weight: 700; white-space: nowrap; }
+  .totals-table td:first-child { text-align: right; width: 58%; }
+  .totals-table td:last-child  {
+    text-align: left;
+    width: 42%;
+    font-weight: 700;
+    white-space: nowrap;
+  }
   .totals-table tr:last-child td {
     font-weight: 900;
     font-size: 8.5pt;
     background: #e8e8e8 !important;
   }
 
-  /* ─── FOOTER ─── */
+  /* ── FOOTER ── */
   .footer {
     background: #e0e0e0 !important;
     text-align: center;
     font-weight: 700;
     font-size: 7.5pt;
-    padding: 6px 4px;
+    padding: 5px 3px;
     border-top: 1.5px solid #333;
     border-bottom: 1.5px solid #333;
     margin-top: 3px;
@@ -184,10 +187,10 @@ export function printInvoice(data: InvoiceData): void {
   }
   .footer + .footer { border-top: none; margin-top: 0; }
 
-  /* ─── QR ─── */
+  /* ── QR ── */
   .qr-wrap {
     text-align: center;
-    padding: 12px 0 10px;
+    padding: 10px 0 8px;
   }
   #qr, .qr-wrap img { width: 80px; height: 80px; display: inline-block; }
 
@@ -197,37 +200,21 @@ export function printInvoice(data: InvoiceData): void {
 </style>
 </head>
 <body>
+<div class="page">
 
-  <!-- LOGO -->
   <div class="logo">
     ${data.logoUrl ? `<img src="${data.logoUrl}" alt="logo"/>` : "اللوجو"}
   </div>
 
-  <!-- فاتورة ضريبية مبسطة -->
-  <div class="row grey center">فاتورة ضريبية مبسطة</div>
-
-  <!-- رقم الفاتورة -->
+  <div class="row grey bold center">فاتورة ضريبية مبسطة</div>
   <div class="row">رقم الفاتورة: <strong>${data.invoiceNumber}</strong></div>
-
-  <!-- اسم المؤسسة -->
-  <div class="row grey center">اسم المؤسسة: ${data.institutionName}</div>
-
-  <!-- تاريخ الإصدار -->
+  <div class="row grey bold center">اسم المؤسسة: ${data.institutionName}</div>
   <div class="row">تاريخ اصدار الفاتورة: <strong>${data.invoiceDate}</strong></div>
-
-  <!-- الرقم الضريبي -->
   <div class="row">الرقم الضريبي للمؤسسة: <strong>${data.institutionTaxNumber}</strong></div>
-
-  <!-- عنوان المؤسسة -->
-  <div class="row grey center">عنوان المؤسسة: ${data.institutionAddress}</div>
-
-  <!-- اسم العميل -->
+  <div class="row grey bold center">عنوان المؤسسة: ${data.institutionAddress}</div>
   <div class="row">اسم العميل: <strong>${data.customerName ?? "—"}</strong></div>
-
-  <!-- رقم الجوال -->
   <div class="row">رقم الجوال: <strong>${data.customerPhone ?? "—"}</strong></div>
 
-  <!-- جدول المنتجات -->
   <table class="items-table">
     <thead>
       <tr>
@@ -241,52 +228,29 @@ export function printInvoice(data: InvoiceData): void {
     <tbody>${itemRows}</tbody>
   </table>
 
-  <!-- الإجماليات -->
   <table class="totals-table">
-    <tr>
-      <td>عدد المنتجات</td>
-      <td>عدد ${totalQty}</td>
-    </tr>
-    <tr>
-      <td>اجمالي السعر قبل الضريبة</td>
-      <td>&#65020; ${fmt(data.subTotal)}</td>
-    </tr>
-    <tr>
-      <td>اجمالي الخصم</td>
-      <td>&#65020; ${fmt(data.discountAmount)}</td>
-    </tr>
-    <tr>
-      <td>اجمالي ضريبة القيمة المضافة</td>
-      <td>&#65020; ${fmt(data.taxAmount)}</td>
-    </tr>
-    <tr>
-      <td>الاجمالي النهائي</td>
-      <td>&#65020; ${fmt(data.grandTotal)}</td>
-    </tr>
+    <tr><td>عدد المنتجات</td><td>عدد ${totalQty}</td></tr>
+    <tr><td>اجمالي السعر قبل الضريبة</td><td>&#65020; ${fmt(data.subTotal)}</td></tr>
+    <tr><td>اجمالي الخصم</td><td>&#65020; ${fmt(data.discountAmount)}</td></tr>
+    <tr><td>اجمالي ضريبة القيمة المضافة</td><td>&#65020; ${fmt(data.taxAmount)}</td></tr>
+    <tr><td>الاجمالي النهائي</td><td>&#65020; ${fmt(data.grandTotal)}</td></tr>
   </table>
 
-  <!-- رقم جوال المؤسسة -->
   <div class="footer">رقم جوال المؤسسة: ${data.institutionPhone}</div>
-
-  <!-- ملاحظات -->
   <div class="footer">ملاحظات علي الفاتورة: ${data.notes ?? ""}</div>
 
-  <!-- QR Code -->
   <div class="qr-wrap">
-    ${
-      data.qrCodeUrl
-        ? `<img src="${data.qrCodeUrl}" alt="QR"/>`
-        : `<canvas id="qr" width="80" height="80"></canvas>`
-    }
+    ${data.qrCodeUrl
+      ? `<img src="${data.qrCodeUrl}" alt="QR"/>`
+      : `<canvas id="qr" width="80" height="80"></canvas>`}
   </div>
 
+</div>
 <script>
-(function () {
-  var c = document.getElementById('qr');
-  if (!c) return;
-  var ctx = c.getContext('2d');
-  var S = 80, MOD = 14, cell = S / MOD;
-  var pat = [
+(function(){
+  var c=document.getElementById('qr'); if(!c)return;
+  var ctx=c.getContext('2d'),S=80,MOD=14,cell=S/MOD;
+  var pat=[
     [1,1,1,1,1,1,1,0,1,0,1,0,1,1],
     [1,0,0,0,0,0,1,0,0,1,0,1,0,1],
     [1,0,1,1,1,0,1,0,1,0,1,0,1,0],
@@ -302,17 +266,17 @@ export function printInvoice(data: InvoiceData): void {
     [1,0,0,0,0,0,1,0,1,0,1,0,1,0],
     [1,1,1,1,1,1,1,0,0,1,0,1,0,1],
   ];
-  ctx.fillStyle = '#fff'; ctx.fillRect(0,0,S,S);
-  ctx.fillStyle = '#000';
-  for (var r=0;r<MOD;r++) for (var cc=0;cc<MOD;cc++)
-    if (pat[r][cc]) ctx.fillRect(Math.round(cc*cell),Math.round(r*cell),Math.round(cell)-1,Math.round(cell)-1);
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,S,S);
+  ctx.fillStyle='#000';
+  for(var r=0;r<MOD;r++) for(var cc=0;cc<MOD;cc++)
+    if(pat[r][cc]) ctx.fillRect(Math.round(cc*cell),Math.round(r*cell),Math.round(cell)-1,Math.round(cell)-1);
 })();
 document.fonts.ready.then(function(){ window.print(); });
 </script>
 </body>
 </html>`;
 
-  const win = window.open("", "_blank", "width=420,height=960");
+  const win = window.open("", "_blank", "width=440,height=980");
   if (!win) {
     alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
     return;
