@@ -61,7 +61,7 @@ export function printInvoice(data: InvoiceData): void {
   }
 
   @page {
-    size: 50mm auto;
+    size: 80mm auto;
     margin: 3mm 3mm;
   }
 
@@ -260,23 +260,23 @@ export function printInvoice(data: InvoiceData): void {
   <table class="totals-table">
     <tr>
       <td>عدد المنتجات</td>
-      <td>عدد ${totalQty}</td>
+      <td><span dir="ltr">عدد ${totalQty}</span></td>
     </tr>
     <tr>
       <td>اجمالي السعر قبل الضريبة</td>
-      <td>&#65020; ${fmt(data.subTotal)}</td>
+      <td><span dir="ltr">${fmt(data.subTotal)} &#65020;</span></td>
     </tr>
     <tr>
       <td>اجمالي الخصم</td>
-      <td>&#65020; ${fmt(data.discountAmount)}</td>
+      <td><span dir="ltr">${fmt(data.discountAmount)} &#65020;</span></td>
     </tr>
     <tr>
       <td>اجمالي ضريبة القيمة المضافة</td>
-      <td>&#65020; ${fmt(data.taxAmount)}</td>
+      <td><span dir="ltr">${fmt(data.taxAmount)} &#65020;</span></td>
     </tr>
     <tr>
       <td>الاجمالي النهائي</td>
-      <td>&#65020; ${fmt(data.grandTotal)}</td>
+      <td><span dir="ltr">${fmt(data.grandTotal)} &#65020;</span></td>
     </tr>
   </table>
 
