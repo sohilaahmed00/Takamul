@@ -29,7 +29,8 @@ export interface InvoiceData {
 
 export function printInvoice(data: InvoiceData): void {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
-  const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
+  const fmt = (n: number | undefined | null) =>
+    typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00";
 
   const itemRows = data.items
     .map(
@@ -40,7 +41,7 @@ export function printInvoice(data: InvoiceData): void {
         <td>${fmt(item.unitPrice)}</td>
         <td>${fmt(item.taxAmount)}</td>
         <td>${fmt(item.total)}</td>
-      </tr>`,
+      </tr>`
     )
     .join("");
 
@@ -61,7 +62,7 @@ export function printInvoice(data: InvoiceData): void {
 
   @page {
     size: 80mm auto;
-    margin: 3mm 3mm;
+    margin: 3mm 20mm;
   }
 
   html, body {
@@ -285,7 +286,9 @@ export function printInvoice(data: InvoiceData): void {
 
   <!-- QR -->
   <div class="qr-wrap">
-    ${data.qrCodeUrl ? `<img src="${data.qrCodeUrl}" alt="QR"/>` : `<canvas id="qr" width="90" height="90"></canvas>`}
+    ${data.qrCodeUrl
+      ? `<img src="${data.qrCodeUrl}" alt="QR"/>`
+      : `<canvas id="qr" width="90" height="90"></canvas>`}
   </div>
 
 </div>
