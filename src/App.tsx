@@ -159,6 +159,7 @@ import AddBranch from "@/pages/AddBranch";
 import WarehousesList from "./pages/WarehousesList";
 import AppLayout from "./components/pos/layout/AppLayout";
 import HomePage from "./components/pos/pages/HomePage";
+import EmployeesList from "./pages/EmployeesList";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
@@ -233,6 +234,8 @@ function AppRoutes() {
           {/* العملاء */}
           <Route path="/customers" element={<CustomersList />} />
           <Route path="/customers/collections" element={<CustomerCollectionsList />} />
+
+          <Route path="/employyes" element={<EmployeesList />} />
 
           {/* المستخدمين */}
           <Route path="/users" element={<UsersList />} />

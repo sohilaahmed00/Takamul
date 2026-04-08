@@ -50,6 +50,12 @@ export type CreateDeliveryOrder = CreateTakeawayOrder;
 export type CreateDineInOrder = Omit<CreateTakeawayOrder, "giftCardId" | "payments" | "globalDiscountPercentage" | "globalDiscountValue"> & {
   tableId: number;
 };
+
+export interface UpdateDineInOrder {
+  items: { productId: number; quantity: number; discountValue: number; discountPercentage: number }[];
+  additionIds: number[];
+  notes: string;
+}
 // export type CheckoutDineInOrder = Omit<CreateTakeawayOrder, "items" | "additionIds"> & {
 //   tableId: number;
 // };

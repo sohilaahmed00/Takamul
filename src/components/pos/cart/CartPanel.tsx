@@ -230,7 +230,7 @@ function ExtrasPopover({ item, idx, additions, onToggleExtra }: { item: CartItem
 
 // ── Main CartPanel ────────────────────────────────────────────────────────────
 export default function CartPanel() {
-  const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, selectedTable } = usePos();
+  const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, selectedTable, handleAddItemsToExistingOrder, selectedOrderId } = usePos();
   const { data } = useGetGiftCards();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
@@ -471,9 +471,13 @@ export default function CartPanel() {
                   size={"2xl"}
                   onClick={() => {
                     if (orderType === "dine-in") {
-                      const table = tables?.find((table: Table) => table.id == Number(selectedTable));
+                      const table = tables?.find((t: Table) => t.id == Number(selectedTable));
                       if (table?.status === "Occupied") {
-                        setScreen("cashier");
+                        if (selectedOrderId) {
+                          handleAddItemsToExistingOrder();
+                        } else {
+                          setScreen("cashier");
+                        }
                       } else {
                         handleCreateDineInOrder();
                       }

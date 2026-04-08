@@ -9,6 +9,7 @@ import useToast from "@/hooks/useToast";
 import { useCreateDeliveryOrder } from "@/features/pos/hooks/useCreateDeliveryOrder";
 import { useCheckoutDineInOrder, useCreateDineInOrder } from "@/features/pos/hooks/useCreateDineInOrder";
 import { checkoutDineInOrder } from "@/features/pos/services/pos";
+import { useUpdateDineInOrder } from "@/features/pos/hooks/useUpdateDineInOrder";
 
 // ─── CONTEXT SHAPE ────────────────────────────────────────────────────────────
 interface PosContextValue {
@@ -59,6 +60,10 @@ interface PosContextValue {
   networkSpeed: NetworkSpeed;
 
   handleCreateDineInOrder: () => Promise<void>;
+
+  selectedOrderId: number | null;
+  setSelectedOrderId: (id: number | null) => void;
+  handleAddItemsToExistingOrder: () => Promise<void>;
 }
 
 const PosContext = createContext<PosContextValue | null>(null);
@@ -84,6 +89,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const { mutateAsync: checkoutDineInOrder } = useCheckoutDineInOrder();
   const [selectedGiftCardId, setSelectedGiftCardId] = useState<number | null>(null);
   const [selectedVaultId, setSelectedVaultId] = useState<number | null>(null);
+  const { mutateAsync: addItemsToOrder } = useUpdateDineInOrder();
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
 
   useEffect(() => {
     const connection = (navigator as any).connection;
@@ -176,6 +183,30 @@ export function PosProvider({ children }: { children: ReactNode }) {
       // notifyError("حدث خطأ أثناء إنشاء الأوردر");
     }
   };
+  const handleAddItemsToExistingOrder = async () => {
+    const items = cart.map((cat) => ({
+      productId: cat?.productId,
+      quantity: cat?.qty,
+      discountValue: cat?.itemDiscount?.type === "flat" ? cat?.itemDiscount?.value : 0,
+      discountPercentage: cat?.itemDiscount?.type === "pct" ? cat?.itemDiscount?.value : 0,
+    }));
+
+    const payload = {
+      items,
+      additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
+      notes: "",
+    };
+
+    try {
+      await addItemsToOrder({ data: payload, id: selectedOrderId });
+      setCart([]);
+      setDiscount(0);
+      setSelectedCustomer(null);
+      setScreen("home");
+    } catch {
+      notifyError("حدث خطأ أثناء إضافة الأصناف");
+    }
+  };
   const handleConfirmPayment = async (method: string, amount: string) => {
     if (orderType !== "dine-in") {
       if (!selectedVaultId) {
@@ -250,6 +281,9 @@ export function PosProvider({ children }: { children: ReactNode }) {
   return (
     <PosContext.Provider
       value={{
+        handleAddItemsToExistingOrder,
+        selectedOrderId,
+        setSelectedOrderId,
         handleCreateDineInOrder,
         selectedVaultId,
         setSelectedVaultId,

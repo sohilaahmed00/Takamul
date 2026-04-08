@@ -94,7 +94,7 @@ export default function TablesPage() {
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const { data: tables } = useGetAllTables();
-  const { setScreen, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer } = usePos();
+  const { setScreen, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer, setSelectedOrderId } = usePos();
   const { data: detailsOrder } = useGetOrderByTableId(selectedTable);
   const filtered = tables?.filter((t) => {
     if (filter === "all") return true;
@@ -160,11 +160,23 @@ export default function TablesPage() {
 
                 {isOccupied ? (
                   <>
-                    <Button size="xl" variant="outline">
+                    <Button
+                      size="xl"
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedCustomer({ id: detailsOrder?.id, customerName: detailsOrder?.customerName } as Customer);
+                        setSelectedOrderId(detailsOrder?.id);
+                        setOrderType("dine-in");
+                        setSelectedTable2(String(selectedTable));
+                        setCart([]);
+                        setScreen("home");
+                      }}
+                    >
                       <Plus size={14} /> Add Products
                     </Button>
                     <Button
                       onClick={() => {
+                        setSelectedOrderId(null);
                         setSelectedCustomer({ id: detailsOrder?.id, customerName: detailsOrder?.customerName } as Customer);
                         setSelectedTable2(String(selectedTable));
                         setOrderType("dine-in");
