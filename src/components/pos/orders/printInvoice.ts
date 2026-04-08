@@ -62,7 +62,7 @@ export function printInvoice(data: InvoiceData): void {
 
   @page {
     size: 80mm auto;
-    margin: 3mm 20mm;
+    margin: 3mm 7mm;
   }
 
   html, body {
