@@ -17,7 +17,7 @@ const LOGO_URL: string | undefined = undefined;
 
 export default function OrderDetailPanel() {
   const { selectedTable, cart } = usePos();
-  const { data: order } = useGetOrderByTableId(1);
+  const { data: order } = useGetOrderByTableId(Number(selectedTable));
 
   const { sub, tax, total } = calcTotals(cart, 0);
 
