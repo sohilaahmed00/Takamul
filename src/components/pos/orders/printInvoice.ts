@@ -67,7 +67,7 @@ export function printInvoice(data: InvoiceData): void {
    * margin-right/left: 7mm gives more breathing room on both sides.
    */
 @page {
-  size: 70mm 297mm;
+  size: 60mm 297mm;
   margin-top: 2mm;
   margin-bottom: 2mm;
   margin-right: 6mm;  
