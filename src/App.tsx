@@ -134,6 +134,14 @@ import TrialBalance from "@/pages/reports/accounts/TrialBalance";
 import SubsidiaryLedger from "@/pages/reports/accounts/SubsidiaryLedger";
 import FinancialSummary from "@/pages/reports/accounts/FinancialSummary";
 
+import ItemsReportsCategory from "@/pages/reports/ItemsReportsCategory";
+import SalesReportsCategory from "@/pages/reports/SalesReportsCategory";
+import PurchasesReportsCategory from "@/pages/reports/PurchasesReportsCategory";
+import TaxReportsCategory from "@/pages/reports/TaxReportsCategory";
+import CustomersReportsCategory from "@/pages/reports/CustomersReportsCategory";
+import SuppliersReportsCategory from "@/pages/reports/SuppliersReportsCategory";
+import ExpensesReportsCategory from "@/pages/reports/ExpensesReportsCategory";
+
 import Revenues from "@/pages/revenues-and-expenses/Revenues";
 import Expenses from "@/pages/revenues-and-expenses/Expenses";
 import Items from "@/pages/revenues-and-expenses/ItemsList";
@@ -304,6 +312,15 @@ function AppRoutes() {
           <Route path="/reports/search-invoice" element={<SearchInvoiceReport />} />
           <Route path="/reports/unpaid-invoices" element={<UnpaidInvoicesReport />} />
           <Route path="/reports/reservations" element={<ReservationsReport />} />
+
+          {/* New Report Categories */}
+          <Route path="/reports/category/items" element={<ItemsReportsCategory />} />
+          <Route path="/reports/category/sales" element={<SalesReportsCategory />} />
+          <Route path="/reports/category/purchases" element={<PurchasesReportsCategory />} />
+          <Route path="/reports/category/taxes" element={<TaxReportsCategory />} />
+          <Route path="/reports/category/customers" element={<CustomersReportsCategory />} />
+          <Route path="/reports/category/suppliers" element={<SuppliersReportsCategory />} />
+          <Route path="/reports/category/expenses" element={<ExpensesReportsCategory />} />
 
           {/* التقارير المالية */}
           <Route path="/reports/balance-sheet" element={<BalanceSheet />} />

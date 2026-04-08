@@ -3,33 +3,41 @@ import { useTheme } from '@/context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
-export default function Logo({ className = "", showText = true }: { className?: string; showText?: boolean }) {
-  const { direction } = useLanguage();
+interface LogoProps {
+  className?: string;
+  showText?: boolean;
+  onClick?: () => void;
+}
+
+export default function Logo({ className = "", onClick }: LogoProps) {
+  const { language } = useLanguage();
   const { theme } = useTheme();
   const navigate = useNavigate();
 
-  const lang = direction === 'rtl' ? 'ar' : 'en';
+  const lang = language === 'ar' ? 'ar' : 'en';
   const shade = theme === 'dark' ? 'dark' : 'light';
   const logoSrc = `/logo_${lang}_${shade}.png`;
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (onClick) onClick();
     navigate('/dashboard');
   };
 
   return (
-    <div
-      className={cn(
-        `flex items-center cursor-pointer hover:scale-[1.05] transition-transform duration-200 ${className}`,
-        showText ? '' : ' justify-center'
-      )}
+    <div 
       onClick={handleClick}
+      className={cn(
+        "flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 w-full",
+        className
+      )}
     >
-      <img
-        src={logoSrc}
-        alt="Takamul تكامل Logo"
-        style={{ height: '50px', width: '150px', objectFit: 'cover', margin: showText ? '40px' : '0' }}
+      <img 
+        src={logoSrc} 
+        alt="Takamul logo" 
+        className="h-20 w-auto object-contain"
+        style={{ maxWidth: '240px' }}
       />
     </div>
   );
 }
-
