@@ -1753,5 +1753,22 @@
   "customer_aging_report": "Customer Aging Report",
   "check_customer_debts_below": "Check customer debts below",
   "purchases_report": "Purchases Report",
-  "total_purchases_report": "Total Purchases"
+  "total_purchases_report": "Total Purchases",
+  "item_reports": "Item Reports",
+  "sales_reports": "Sales Reports",
+  "purchase_reports": "Purchase Reports",
+  "tax_reports": "Tax Reports",
+  "customer_reports": "Customer Reports",
+  "supplier_reports": "Supplier Reports",
+  "expense_reports": "Expense Reports",
+  "stock_alerts_report": "Stock Alerts Report",
+  "item_movement_report": "Item Movement Report",
+  "item_sales_report": "Item Sales Report",
+  "user_sales_report": "User Sales Report",
+  "employee_sales_report": "Employee Sales Report",
+  "item_purchase_report": "Item Purchase Report",
+  "user_purchase_report": "User Purchase Report",
+  "customer_account_statement": "Customer Account Statement",
+  "supplier_account_statement": "Supplier Account Statement",
+  "view_report": "View Report"
 }

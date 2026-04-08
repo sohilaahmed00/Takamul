@@ -1754,5 +1754,22 @@
   "customer_aging_report": "تقرير أعمار ديون العملاء",
   "check_customer_debts_below": "تحقق من مديونيات العملاء أدناه",
   "purchases_report": "تقرير المشتريات",
-  "total_purchases_report": "مجموع المشتريات"
+  "total_purchases_report": "مجموع المشتريات",
+  "item_reports": "تقارير الأصناف",
+  "sales_reports": "تقارير المبيعات",
+  "purchase_reports": "تقارير المشتريات",
+  "tax_reports": "تقارير الضرائب",
+  "customer_reports": "تقارير العملاء",
+  "supplier_reports": "تقارير الموردين",
+  "expense_reports": "تقارير المصروفات",
+  "stock_alerts_report": "تقرير تنبيهات المخزون",
+  "item_movement_report": "كشف حركة صنف",
+  "item_sales_report": "تقرير مبيعات صنف",
+  "user_sales_report": "تقرير مبيعات مستخدم",
+  "employee_sales_report": "تقرير مبيعات موظف",
+  "item_purchase_report": "تقرير مشتريات صنف",
+  "user_purchase_report": "تقرير مشتريات مستخدم",
+  "customer_account_statement": "تقرير كشف حساب عميل",
+  "supplier_account_statement": "تقرير كشف حساب مورد",
+  "view_report": "عرض التقرير"
 }

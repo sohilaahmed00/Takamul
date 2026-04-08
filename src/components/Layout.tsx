@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check, ArrowUpRight, ArrowLeftRight, HandCoins } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check, ArrowUpRight, ArrowLeftRight, HandCoins, Calculator } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -109,6 +109,8 @@ export default function Layout() {
 
   const closeAllMenus = () => {
     setActiveDropdown(null);
+    setOpenSubmenu(null);
+    setOpenNestedSubmenu(null);
     if (isMobile) setIsMobileMenuOpen(false);
   };
 
@@ -186,16 +188,16 @@ export default function Layout() {
         initial={false}
         animate={{
           x: isMobile ? (isMobileMenuOpen ? 0 : direction === "rtl" ? "100%" : "-100%") : 0,
-          width: isMobile ? 280 : isSidebarOpen ? 256 : 80,
+          width: isMobile ? 280 : isSidebarOpen ? 270 : 80,
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--border)]">
           <div className={cn("flex items-center overflow-hidden flex-1")}>
             {showSidebarContent ? (
-              <Logo />
+              <Logo onClick={closeAllMenus} />
             ) : (
-              <Logo showText={false} />
+              <Logo showText={false} onClick={closeAllMenus} />
             )}
           </div>
 
@@ -345,6 +347,14 @@ export default function Layout() {
           <AnimatePresence>
             {openSubmenu === "reports" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
+                <SubmenuItem label={t("item_reports")} icon={Package} path="/reports/category/items" />
+                <SubmenuItem label={t("sales_reports")} icon={ShoppingCart} path="/reports/category/sales" />
+                <SubmenuItem label={t("purchase_reports")} icon={CornerUpLeft} path="/reports/category/purchases" />
+                <SubmenuItem label={t("tax_reports")} icon={Calculator} path="/reports/category/taxes" />
+                <SubmenuItem label={t("customer_reports")} icon={User} path="/reports/category/customers" />
+                <SubmenuItem label={t("supplier_reports")} icon={Truck} path="/reports/category/suppliers" />
+                <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />
+                <div className="h-px bg-gray-100 my-1 mx-2" />
                 <SubmenuItem label={t("sales_report_by_category")} icon={List} path="/reports/sales-by-category" />
               </motion.div>
             )}
