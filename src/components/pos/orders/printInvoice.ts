@@ -63,14 +63,15 @@ export function printInvoice(data: InvoiceData): void {
   /*
    * KEY FIX: use @page margin to push content AWAY from the physical right edge.
    * Thermal printers have an unprintable zone on the right (~4-6mm).
-   * margin-right/left: 7mm gives more breathing room on both sides.
+   * margin-right: 6mm pushes the page content inward from that dead zone.
+   * margin-left: 1mm keeps a tiny left buffer.
    */
   @page {
     size: 80mm 297mm;
     margin-top: 2mm;
     margin-bottom: 2mm;
-    margin-right: 7mm;
-    margin-left: 7mm;
+    margin-right: 4mm;
+    margin-left: 4mm;
   }
 
   html, body {
