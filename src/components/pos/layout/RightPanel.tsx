@@ -13,8 +13,8 @@ export default function RightPanel() {
 
   if (SCREENS_WITH_CASHIER.includes(screen)) return <CashierPanel />;
   if (SCREENS_WITH_CART.includes(screen)) return <CartPanel />;
-  // if (screen == "orders") {
-  //   return <OrderDetailPanel />;
-  // }
+  if (screen == "orders") {
+    return <OrderDetailPanel />;
+  }
   return null;
 }

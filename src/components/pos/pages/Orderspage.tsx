@@ -62,7 +62,7 @@ export default function OrdersPage() {
       </div>
 
       {/* ── Order detail panel (shown when an order is selected) ── */}
-      {selectedOrderId !== null && <OrderDetailPanel />}
+      {/* {selectedOrderId !== null && <OrderDetailPanel />} */}
     </div>
   );
 }
