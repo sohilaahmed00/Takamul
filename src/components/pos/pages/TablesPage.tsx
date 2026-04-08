@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useGetAllTables } from "@/features/pos/hooks/useGetAllTables";
@@ -94,14 +94,16 @@ export default function TablesPage() {
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const { data: tables } = useGetAllTables();
-  const { setScreen, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer, setSelectedOrderId } = usePos();
+  const { setScreen, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer, setSelectedOrderId, setDineInMode } = usePos();
   const { data: detailsOrder } = useGetOrderByTableId(selectedTable);
-  const filtered = tables?.filter((t) => {
-    if (filter === "all") return true;
-    if (filter === "Free") return t.status === "Free";
-    if (filter === "Occupied") return t.status === "Occupied";
-    return false;
-  });
+  const filtered = useMemo(
+    () =>
+      tables?.filter((t) => {
+        if (filter === "all") return true;
+        return t.status === filter;
+      }) ?? [],
+    [tables, filter],
+  );
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden h-full">
@@ -128,7 +130,7 @@ export default function TablesPage() {
       </div>
 
       {/* Table grid */}
-      <div className="grid grid-cols-5 gap-3 mt-4 flex-1 overflow-y-auto">{filtered.length === 0 ? <div className="col-span-5 flex items-center justify-center text-gray-400 text-sm py-12">No tables found</div> : filtered.map((t) => <TableCard key={t.id} table={t} selected={selectedTable === t.id} onClick={() => setSelectedTable(selectedTable === t.id ? null : t.id)} />)}</div>
+      <div className="grid grid-cols-5 gap-3 mt-4 flex-1 overflow-y-auto">{filtered.length === 0 ? <div className="col-span-5 flex items-center justify-center text-gray-400 text-sm py-12">No tables found</div> : filtered?.map((t) => <TableCard key={t.id} table={t} selected={selectedTable === t.id} onClick={() => setSelectedTable(selectedTable === t.id ? null : t.id)} />)}</div>
 
       {/* Footer */}
       <div className="bg-white border-t border-gray-100 px-4 py-3 flex items-center justify-between">
@@ -164,22 +166,6 @@ export default function TablesPage() {
                       size="xl"
                       variant="outline"
                       onClick={() => {
-                        setSelectedCustomer({ id: detailsOrder?.id, customerName: detailsOrder?.customerName } as Customer);
-                        setSelectedOrderId(detailsOrder?.id);
-                        setOrderType("dine-in");
-                        setSelectedTable2(String(selectedTable));
-                        setCart([]);
-                        setScreen("home");
-                      }}
-                    >
-                      <Plus size={14} /> Add Products
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        setSelectedOrderId(null);
-                        setSelectedCustomer({ id: detailsOrder?.id, customerName: detailsOrder?.customerName } as Customer);
-                        setSelectedTable2(String(selectedTable));
-                        setOrderType("dine-in");
                         setCart(
                           detailsOrder.items.map((item) => ({
                             productId: item.productId,
@@ -190,19 +176,46 @@ export default function TablesPage() {
                             taxamount: item.taxAmount,
                             taxCalculation: 3,
                             op: null,
-                            itemDiscount:
-                              item.discountValue > 0
-                                ? {
-                                    type: "flat",
-                                    value: item.discountValue,
-                                  }
-                                : null,
+                            itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
                             extras: [],
                           })),
                         );
+                        setDineInMode("add-items");
+                        setSelectedOrderId(detailsOrder.id);
+                        setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
+                        setOrderType("dine-in");
+                        setSelectedTable2(String(selectedTable));
                         setScreen("home");
                       }}
+                    >
+                      <Plus size={14} /> Add Products
+                    </Button>
+                    <Button
                       size="xl"
+                      onClick={() => {
+                        console.log("first");
+                        console.log(detailsOrder);
+                        setCart(
+                          detailsOrder.items.map((item) => ({
+                            productId: item.productId,
+                            name: item.productName,
+                            price: item.unitPrice,
+                            qty: item.quantity,
+                            note: "",
+                            taxamount: item.taxAmount,
+                            taxCalculation: 3,
+                            op: null,
+                            itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+                            extras: [],
+                          })),
+                        );
+                        setDineInMode("checkout");
+                        setSelectedOrderId(detailsOrder.id);
+                        setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
+                        setOrderType("dine-in");
+                        setSelectedTable2(String(selectedTable));
+                        setScreen("home");
+                      }}
                     >
                       <CreditCard size={14} /> Proceed to Payment
                     </Button>
@@ -211,12 +224,15 @@ export default function TablesPage() {
                   <Button
                     size="xl"
                     onClick={() => {
+                      setCart([]);
+                      setDineInMode("new-order");
+                      setSelectedOrderId(null);
                       setOrderType("dine-in");
                       setSelectedTable2(String(selectedTable));
                       setScreen("home");
                     }}
                   >
-                    Select & Place Order
+                    Select &amp; Place Order
                   </Button>
                 )}
               </div>

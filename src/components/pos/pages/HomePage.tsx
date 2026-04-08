@@ -7,14 +7,14 @@ import { useGetProductBranchedById } from "@/features/products/hooks/useGetProdu
 import { CartItem } from "@/constants/data";
 
 export default function HomePage() {
-  const { setCart, cart } = usePos();
+  const { setCart, cart, search } = usePos();
   const [currentCat, setCurrentCat] = useState<number | null>(null);
   const [currentSubCat, setCurrentSubCat] = useState<number | null>(null);
   const [childrenModal, setChildrenModal] = useState<ProductBranch["children"] | null>(null);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [modalTitle, setModalTitle] = useState<string>("");
 
-  const { data: products } = useGetAllProducts({ page: 1, limit: 10000 });
+  const { data: products } = useGetAllProducts({ page: 1, limit: 10000, SearchTerm: search });
   const { data: mainCategories } = useGetAllMainCategories();
   const { data: productPranched } = useGetProductBranchedById(selectedProductId);
 
@@ -104,10 +104,11 @@ export default function HomePage() {
       ) : null}
 
       {/* Menu grid */}
-      <div className="grid lg:grid-cols-5 3xl:grid-cols-6 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3  xl:grid-cols-4 2xl:grid-cols-5 gap-2">
+        {" "}
         {filteredProducts?.map((item, i) => (
           <div key={i} onClick={() => handleMenuClick(item)} className="bg-white rounded-xl p-2.5 text-center border border-primary/40 cursor-pointer hover:shadow-sm  transition-all">
-            <div className="w-32 h-16 rounded-lg  bg-primary/5 mx-auto mb-2 flex items-center justify-center overflow-hidden">{item.imageUrl ? <img src={item.imageUrl} alt={item.productNameAr} className="w-full h-full object-cover " /> : <span className="text-2xl"></span>}</div>
+            <div className="w-32 max-w-full h-16 rounded-lg  bg-primary/5 mx-auto mb-2 flex items-center justify-center overflow-hidden">{item.imageUrl ? <img src={item.imageUrl} alt={item.productNameAr} className="w-full h-full object-cover " /> : <span className="text-2xl"></span>}</div>
             <div className="text-xs font-semibold text-gray-700 mb-0.5 leading-tight">{item.productNameAr}</div>
             <div className="text-xs font-bold text-primary">${item?.taxCalculation == 3 ? item.priceBeforeTax : item.sellingPrice}.00</div>
           </div>

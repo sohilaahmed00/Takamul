@@ -7,10 +7,13 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { DataTable, type DataTablePageEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
+import AddEmployeeModal from "@/components/modals/AddEmployeeModal";
 
 export default function AllEmployees() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<number | undefined>();
 
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,21 +26,23 @@ export default function AllEmployees() {
     setCurrentPage(1);
   };
 
-  const renderHeader = () => (
-    <div className="flex flex-col md:flex-row gap-4 items-center">
-      <div className="relative flex-1 w-full">
-        <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-          <Search size={18} className="text-gray-400" />
+  const renderHeader = () => {
+    return (
+      <div className="flex flex-col md:flex-row gap-4 items-center">
+        <div className="relative flex-1 w-full">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+            <Search size={18} className="text-gray-400" />
+          </div>
+          <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder")} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
         </div>
-        <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Search employee..." className="w-full border border-gray-200 focus:border-[var(--primary)] text-sm rounded-lg py-2 pr-11 pl-4 outline-none" />
       </div>
-    </div>
-  );
+    );
+  };
 
   const header = useMemo(() => renderHeader(), [globalFilterValue]);
 
   return (
-    <div className="space-y-4 pb-12" dir={direction}>
+    <div className="space-y-4 pb-12">
       {/* Breadcrumb */}
       <div className="text-sm text-gray-500 flex items-center gap-1 font-medium px-2">
         <span onClick={() => navigate("/")} className="cursor-pointer hover:text-[var(--primary)]">
@@ -50,16 +55,14 @@ export default function AllEmployees() {
       {/* Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Employees</CardTitle>
-          <CardDescription>Manage employees</CardDescription>
-
+          <CardTitle>الموظفين</CardTitle>
+          <CardDescription>إدارة الموظفين</CardDescription>
           <CardAction>
-            <Button asChild>
-              <Link to="/employees/create">Add Employee</Link>
+            <Button size="xl" onClick={() => setIsAddModalOpen(true)}>
+              إضافة موظف
             </Button>
           </CardAction>
         </CardHeader>
-
         <CardContent>
           <DataTable
             value={employees?.data}
@@ -87,7 +90,7 @@ export default function AllEmployees() {
             <Column field="mobile" header="Phone" />
             <Column field="department" header="Department" />
             <Column field="position" header="Position" />
-            <Column field="brunchName" header="Branch" />
+            <Column field="brunchName" header="العمليات" />
 
             <Column
               header="Actions"
@@ -105,6 +108,12 @@ export default function AllEmployees() {
           </DataTable>
         </CardContent>
       </Card>
+      <AddEmployeeModal
+        isOpen={isAddModalOpen}
+        onClose={() => {
+          setIsAddModalOpen(false);
+        }}
+      />
     </div>
   );
 }

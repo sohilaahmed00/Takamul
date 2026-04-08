@@ -4,6 +4,7 @@ export const posKeys = {
   all: ["pos"] as const,
 
   tables: () => [...posKeys.all, "tables"] as const,
+  tablesFree: () => [...posKeys.all, "tables", "free"] as const,
   table: (id) => [...posKeys.all, "tables", id] as const,
   takwayOrders: () => [...posKeys.all, "takwayOrders"] as const,
   DeliveryOrders: () => [...posKeys.all, "DeliveryOrders"] as const,

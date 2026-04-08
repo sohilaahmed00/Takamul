@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CircleArrowRight, Pause, Plus, X, ChevronsUpDown, Check, SlidersHorizontal, Trash2, Percent, Info } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -66,11 +66,8 @@ function ExtrasCombobox({ selectedIds, onToggle, additions }: { selectedIds: num
 }
 
 function CouponTab() {
-  const { discount, setDiscount, sub, tax, setSelectedGiftCardId } = (() => {
-    const ctx = usePos();
-    const { sub, tax } = calcTotals(ctx.cart, ctx.discount);
-    return { ...ctx, sub, tax };
-  })();
+  const { cart, discount, setDiscount, setSelectedGiftCardId } = usePos();
+  const { sub, tax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
 
   const { data: giftCards } = useGetGiftCards();
   const [code, setCode] = useState("");
@@ -88,7 +85,7 @@ function CouponTab() {
 
     setDiscount(deduct);
     setAppliedCard(card);
-    setSelectedGiftCardId(card?.id);
+    setSelectedGiftCardId(card.id);
     setStatus("valid");
   };
 
@@ -97,6 +94,7 @@ function CouponTab() {
     setStatus("idle");
     setAppliedCard(null);
     setDiscount(0);
+    setSelectedGiftCardId(null);
   };
 
   return (
@@ -111,8 +109,7 @@ function CouponTab() {
         className={`w-full mb-2 ${status === "invalid" || status === "used" ? "border-red-300" : status === "valid" ? "border-green-400" : ""}`}
       />
 
-      {/* Status feedback */}
-      {status === "invalid" && <div className="text-xs text-red-500 font-semibold mb-2"> الكود غير صحيح</div>}
+      {status === "invalid" && <div className="text-xs text-red-500 font-semibold mb-2">الكود غير صحيح</div>}
       {status === "used" && <div className="text-xs text-red-500 font-semibold mb-2">الكارت غير نشط أو محذوف</div>}
       {status === "valid" && appliedCard && (
         <div className="rounded-xl border border-green-200 bg-green-50 px-3 py-2.5 mb-2 flex items-center justify-between">
@@ -132,10 +129,10 @@ function CouponTab() {
       )}
 
       <div className="flex gap-2">
-        <Button size={"2xl"} className="flex-1" variant="outline" onClick={handleClear}>
+        <Button size="2xl" className="flex-1" variant="outline" onClick={handleClear}>
           Clear
         </Button>
-        <Button size={"2xl"} className="flex-1" onClick={handleApply} disabled={!code.trim()}>
+        <Button size="2xl" className="flex-1" onClick={handleApply} disabled={!code.trim()}>
           Apply
         </Button>
       </div>
@@ -230,7 +227,7 @@ function ExtrasPopover({ item, idx, additions, onToggleExtra }: { item: CartItem
 
 // ── Main CartPanel ────────────────────────────────────────────────────────────
 export default function CartPanel() {
-  const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, selectedTable, handleAddItemsToExistingOrder, selectedOrderId } = usePos();
+  const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
   const { data } = useGetGiftCards();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
@@ -240,8 +237,8 @@ export default function CartPanel() {
 
   const { data: customers, isLoading: loadingCustomers } = useGetAllCustomers({ page: 1, limit: 100 });
   const { data: additions } = useGetAllAdditions();
-  const { sub, tax: taxAfterDiscount, total } = calcTotals(cart, discount);
-  const { tax: originalTax } = calcTotals(cart, 0);
+  const { sub, tax: taxAfterDiscount, total } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
+  const { tax: originalTax } = useMemo(() => calcTotals(cart, 0), [cart]);
   const { notifyError, notifySuccess } = useToast();
 
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
@@ -469,17 +466,19 @@ export default function CartPanel() {
                 </Button>
                 <Button
                   size={"2xl"}
-                  onClick={() => {
+                  onClick={async () => {
+                    if (cart.length === 0) {
+                      notifyError("قم بإضافة أصناف للفاتورة");
+                      return;
+                    }
+
                     if (orderType === "dine-in") {
-                      const table = tables?.find((t: Table) => t.id == Number(selectedTable));
-                      if (table?.status === "Occupied") {
-                        if (selectedOrderId) {
-                          handleAddItemsToExistingOrder();
-                        } else {
-                          setScreen("cashier");
-                        }
+                      if (dineInMode === "add-items") {
+                        await handleAddItemsToExistingOrder();
+                      } else if (dineInMode === "checkout") {
+                        setScreen("cashier");
                       } else {
-                        handleCreateDineInOrder();
+                        await handleCreateDineInOrder();
                       }
                     } else {
                       setScreen("cashier");

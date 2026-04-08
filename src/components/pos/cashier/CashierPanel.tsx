@@ -69,9 +69,6 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
   const { data: treasurys } = useGetAllTreasurys();
   const { selectedCustomer, setSelectedCustomer, cart, discount, setPaidAmount, setSelectedVaultId } = usePos();
   const { total } = calcTotals(cart, discount);
-  const [tab, setTab] = useState<"Cash" | "Other Modes">("Cash");
-
-  // ✅ خلي vault يعتمد على treasurys مباشرة
   const [vaultId, setVaultId] = useState<number | null>(null);
   const activeVault = vaultId ?? treasurys?.[0]?.id ?? null;
 
@@ -122,7 +119,7 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
     setPaidAmount(isSplit ? splitPaid : singlePaid);
   }, [singlePaid, splitPaid, isSplit]);
   return (
-    <div style={{ width: 450 }} className="bg-white border-l border-gray-100 p-4 flex flex-col gap-3 h-full overflow-y-auto">
+    <div style={{ width: 550 }} className="bg-white border-l border-gray-100 p-4 flex flex-col gap-3 h-full overflow-y-auto">
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
@@ -148,18 +145,6 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-100">
-        {(["Cash", "Other Modes"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`flex-1 py-2 text-sm border-b-2 font-semibold transition-colors
-              ${tab === t ? "border-green-500 text-green-600" : "border-transparent text-gray-400"}`}
-          >
-            {t}
-          </button>
-        ))}
-      </div>
 
       {/* Vault header */}
       <div className="flex items-center justify-between">
