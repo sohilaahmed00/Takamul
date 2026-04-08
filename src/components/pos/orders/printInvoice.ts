@@ -29,8 +29,7 @@ export interface InvoiceData {
 
 export function printInvoice(data: InvoiceData): void {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
-  const fmt = (n: number | undefined | null) =>
-    typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00";
+  const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
 
   const itemRows = data.items
     .map(
@@ -43,7 +42,7 @@ export function printInvoice(data: InvoiceData): void {
         <td>${fmt(item.unitPrice)}</td>
         <td>${fmt(item.taxAmount)}</td>
         <td>${fmt(item.total)}</td>
-      </tr>`
+      </tr>`,
     )
     .join("");
 
@@ -67,13 +66,13 @@ export function printInvoice(data: InvoiceData): void {
    * Thermal printers have an unprintable zone on the right (~4-6mm).
    * margin-right/left: 7mm gives more breathing room on both sides.
    */
-  @page {
-    size: 80mm 297mm;
-    margin-top: 2mm;
-    margin-bottom: 2mm;
-    margin-right: 4mm;
-    margin-left: 4mm;
-  }
+@page {
+  size: 70mm 297mm;
+  margin-top: 2mm;
+  margin-bottom: 2mm;
+  margin-right: 6mm;  
+  margin-left: 6mm;    
+}
 
   html, body {
     /* Full width — let @page margins handle the safe zones */
@@ -174,18 +173,12 @@ export function printInvoice(data: InvoiceData): void {
     padding: 3px 6px;
     word-break: break-word;
   }
-  .totals-table td:first-child {
-    text-align: right;
+  .totals-table td:first-child { text-align: right; width: 58%; }
+  .totals-table td:last-child  {
+    text-align: left;
     width: 42%;
     font-weight: 700;
     white-space: nowrap;
-    padding: 3px 6px;
-  }
-  .totals-table td:last-child {
-    text-align: right;
-    width: 58%;
-    padding: 3px 6px;
-    word-break: break-word;
   }
   .totals-table tr:last-child td {
     font-weight: 900;
@@ -251,11 +244,11 @@ export function printInvoice(data: InvoiceData): void {
 
   <div class="table-wrap">
   <table class="totals-table">
-    <tr><td>&#65020; عدد ${totalQty}</td><td>عدد المنتجات</td></tr>
-    <tr><td>&#65020; ${fmt(data.subTotal)}</td><td>اجمالي السعر قبل الضريبة</td></tr>
-    <tr><td>&#65020; ${fmt(data.discountAmount)}</td><td>اجمالي الخصم</td></tr>
-    <tr><td>&#65020; ${fmt(data.taxAmount)}</td><td>اجمالي ضريبة القيمة المضافة</td></tr>
-    <tr><td>&#65020; ${fmt(data.grandTotal)}</td><td>الاجمالي النهائي</td></tr>
+    <tr><td>عدد المنتجات</td><td>عدد ${totalQty}</td></tr>
+    <tr><td>اجمالي السعر قبل الضريبة</td><td>&#65020; ${fmt(data.subTotal)}</td></tr>
+    <tr><td>اجمالي الخصم</td><td>&#65020; ${fmt(data.discountAmount)}</td></tr>
+    <tr><td>اجمالي ضريبة القيمة المضافة</td><td>&#65020; ${fmt(data.taxAmount)}</td></tr>
+    <tr><td>الاجمالي النهائي</td><td>&#65020; ${fmt(data.grandTotal)}</td></tr>
   </table>
   </div>
 
@@ -263,9 +256,7 @@ export function printInvoice(data: InvoiceData): void {
   <div class="footer">ملاحظات علي الفاتورة: ${data.notes ?? ""}</div>
 
   <div class="qr-wrap">
-    ${data.qrCodeUrl
-      ? `<img src="${data.qrCodeUrl}" alt="QR"/>`
-      : `<canvas id="qr" width="80" height="80"></canvas>`}
+    ${data.qrCodeUrl ? `<img src="${data.qrCodeUrl}" alt="QR"/>` : `<canvas id="qr" width="80" height="80"></canvas>`}
   </div>
 
 </div>
