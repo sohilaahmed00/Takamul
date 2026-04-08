@@ -431,7 +431,7 @@ export default function Layout() {
               </button>
 
               <button
-                onClick={() => navigate("/sales/pos")}
+                onClick={() => navigate("/pos")}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
               >
                 <ShoppingCart size={16} />
