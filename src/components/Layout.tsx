@@ -355,7 +355,7 @@ export default function Layout() {
                 <SubmenuItem label={t("supplier_reports")} icon={Truck} path="/reports/category/suppliers" />
                 <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />
                 <div className="h-px bg-gray-100 my-1 mx-2" />
-                <SubmenuItem label={t("sales_report_by_category")} icon={List} path="/reports/sales-by-category" />
+                {/* <SubmenuItem label={t("sales_report_by_category")} icon={List} path="/reports/sales-by-category" /> */}
               </motion.div>
             )}
           </AnimatePresence>
