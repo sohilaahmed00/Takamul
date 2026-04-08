@@ -29,8 +29,7 @@ export interface InvoiceData {
 
 export function printInvoice(data: InvoiceData): void {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
-  const fmt = (n: number | undefined | null) =>
-    typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00";
+  const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
 
   const itemRows = data.items
     .map(
@@ -41,7 +40,7 @@ export function printInvoice(data: InvoiceData): void {
         <td>${fmt(item.unitPrice)}</td>
         <td>${fmt(item.taxAmount)}</td>
         <td>${fmt(item.total)}</td>
-      </tr>`
+      </tr>`,
     )
     .join("");
 
@@ -51,7 +50,7 @@ export function printInvoice(data: InvoiceData): void {
 <meta charset="UTF-8"/>
 <title>فاتورة ضريبية مبسطة</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
 
   * {
     margin: 0; padding: 0;
@@ -67,7 +66,7 @@ export function printInvoice(data: InvoiceData): void {
 
   html, body {
     width: 100%;
-    font-family: 'Cairo', 'Tahoma', Arial, sans-serif;
+    font-family: 'Tajawal', 'Tahoma', Arial, sans-serif;
     font-size: 7.5pt;
     color: #000;
     direction: rtl;
@@ -87,7 +86,6 @@ export function printInvoice(data: InvoiceData): void {
     font-weight: 900;
     padding: 6px 4px 8px;
     border: 1.5px solid #333;
-    border-bottom: none;
     background: #d9d9d9 !important;
   }
   .logo img { max-height: 44px; max-width: 100%; object-fit: contain; }
@@ -97,7 +95,6 @@ export function printInvoice(data: InvoiceData): void {
     width: 100%;
     border-collapse: collapse;
     border: 1.5px solid #333;
-    border-bottom: none;
   }
   .info-grid td {
     padding: 3px 3px;
@@ -125,7 +122,6 @@ export function printInvoice(data: InvoiceData): void {
     border-collapse: collapse;
     font-size: 6pt;
     border: 1.5px solid #333;
-    border-bottom: none;
   }
   .items-table th {
     background: #d9d9d9 !important;
@@ -166,7 +162,6 @@ export function printInvoice(data: InvoiceData): void {
     border-collapse: collapse;
     font-size: 7.5pt;
     border: 1.5px solid #333;
-    border-bottom: none;
   }
   .totals-table td {
     border: 0.8px solid #555;
@@ -194,13 +189,13 @@ export function printInvoice(data: InvoiceData): void {
   /* ── FOOTER ROWS ── */
   .footer-row {
     border: 1.5px solid #333;
-    border-bottom: none;
     text-align: center;
     font-weight: 700;
     font-size: 7.5pt;
     padding: 5px 4px;
     background: #d9d9d9 !important;
     word-break: break-word;
+    margin-top: 3px;
   }
 
   /* ── QR ── */
@@ -234,8 +229,8 @@ export function printInvoice(data: InvoiceData): void {
       <td colspan="2">${data.institutionName}</td>
     </tr>
     <tr>
-      <td>تاريخ اصدار الفاتورة: <strong>${data.invoiceDate}</strong></td>
-      <td class="left-cell">الرقم الضريبي للمؤسسة: <strong>${data.institutionTaxNumber}</strong></td>
+      <td>الرقم الضريبي للمؤسسة: <strong>${data.institutionTaxNumber}</strong></td>
+      <td class="left-cell">تاريخ اصدار الفاتورة: <strong>${data.invoiceDate}</strong></td>
     </tr>
     <tr class="full">
       <td colspan="2">${data.institutionAddress}</td>
@@ -290,9 +285,7 @@ export function printInvoice(data: InvoiceData): void {
 
   <!-- QR -->
   <div class="qr-wrap">
-    ${data.qrCodeUrl
-      ? `<img src="${data.qrCodeUrl}" alt="QR"/>`
-      : `<canvas id="qr" width="90" height="90"></canvas>`}
+    ${data.qrCodeUrl ? `<img src="${data.qrCodeUrl}" alt="QR"/>` : `<canvas id="qr" width="90" height="90"></canvas>`}
   </div>
 
 </div>
