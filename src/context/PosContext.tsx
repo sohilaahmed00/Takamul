@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from "react";
-import { calcTotals, type CartItem, type HeldCart, type Screen, type OrderType, type NetworkSpeed } from "@/constants/data";
+import { calcTotals, type CartItem, type HeldCart, type Screen, type OrderType, type NetworkSpeed, itemBasePrice, calcItemTax, itemBasePriceRaw } from "@/constants/data";
 import { Customer } from "@/features/customers/types/customers.types";
 import { useCreateTakwayOrder } from "@/features/pos/hooks/useCreateTakeawayOrder";
 import { CreateTakeawayOrder } from "@/features/pos/types/pos.types";
@@ -10,6 +10,7 @@ import { useCreateDeliveryOrder } from "@/features/pos/hooks/useCreateDeliveryOr
 import { useCheckoutDineInOrder, useCreateDineInOrder } from "@/features/pos/hooks/useCreateDineInOrder";
 import { checkoutDineInOrder } from "@/features/pos/services/pos";
 import { useUpdateDineInOrder } from "@/features/pos/hooks/useUpdateDineInOrder";
+import { InvoiceData, printInvoice } from "@/components/pos/orders/printInvoice";
 
 // ─── CONTEXT SHAPE ────────────────────────────────────────────────────────────
 interface PosContextValue {
@@ -98,9 +99,14 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const { mutateAsync: addItemsToOrder } = useUpdateDineInOrder();
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [dineInMode, setDineInMode] = useState<DineInMode>(null);
-  const [existingOrderItems, setExistingOrderItems] = useState<CartItem[]>([]);
   const [search, setSearch] = useState("");
 
+  const INSTITUTION_NAME = "اسم المؤسسة";
+  const INSTITUTION_TAX_NO = "310XXXXXXXXX";
+  const INSTITUTION_ADDRESS = "عنوان المؤسسة";
+  const INSTITUTION_PHONE = "05XXXXXXXX";
+  const INSTITUTION_NOTES = "";
+  const LOGO_URL: string | undefined = undefined;
   useEffect(() => {
     const connection = (navigator as any).connection;
     if (!connection) return;
@@ -185,7 +191,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
     try {
       await createDineInOrderyOrder(payload);
       setCart([]);
-      setExistingOrderItems([]);
       setDineInMode(null);
       setDiscount(0);
       setSelectedCustomer(null);
@@ -228,7 +233,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
       {
         amount: paidAmount,
         treasuryId: 1,
-        // paymentMethod: "Cash",
         notes: "",
       },
     ];
@@ -269,10 +273,53 @@ export function PosProvider({ children }: { children: ReactNode }) {
             },
           ],
         });
-        setExistingOrderItems([]);
         setDineInMode(null);
       } else if (orderType === "delivery") {
         await createDeliveryOrder(basePayload);
+      }
+
+      if (orderType === "takeaway" || orderType === "delivery" || orderType === "dine-in") {
+        const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
+        const totals = calcTotals(cart, hasItemDiscounts ? 0 : discount);
+        const discountAmount = hasItemDiscounts
+          ? cart.reduce((acc, item) => {
+              const raw = itemBasePriceRaw(item);
+              const afterDisc = itemBasePrice(item);
+              return acc + (raw - afterDisc);
+            }, 0)
+          : discount;
+
+        const invoiceData: InvoiceData = {
+          logoUrl: LOGO_URL,
+          invoiceNumber: `—`,
+          institutionName: INSTITUTION_NAME,
+          institutionTaxNumber: INSTITUTION_TAX_NO,
+          invoiceDate: new Date().toLocaleDateString("ar-SA"),
+          institutionAddress: INSTITUTION_ADDRESS,
+          institutionPhone: INSTITUTION_PHONE,
+          customerName: selectedCustomer?.customerName ?? undefined,
+          customerPhone: undefined,
+
+          items: cart.map((item) => {
+            const base = itemBasePrice(item);
+            const tax = calcItemTax(item);
+            return {
+              productName: item.name,
+              quantity: item.qty,
+              unitPrice: Number(base.toFixed(2)),
+              taxAmount: Number(tax.toFixed(2)),
+              total: Number((base + tax).toFixed(2)),
+            };
+          }),
+
+          subTotal: Number(totals.sub.toFixed(2)),
+          discountAmount: Number(discountAmount.toFixed(2)),
+          taxAmount: totals.originalTax,
+          grandTotal: totals.total,
+          notes: INSTITUTION_NOTES,
+        };
+
+        printInvoice(invoiceData);
       }
 
       setSuccessInfo({ method, amount });

@@ -125,7 +125,7 @@ function CouponTab() {
       )}
 
       <div className="flex gap-2">
-        <Button size="2xl" className="flex-1" variant="outline" onClick={handleClear}>
+        <Button size="2xl" className="flex-1" variant="destructive" onClick={handleClear}>
           {t("clear")}
         </Button>
         <Button size="2xl" className="flex-1" onClick={handleApply} disabled={!code.trim()}>
@@ -136,7 +136,7 @@ function CouponTab() {
   );
 }
 // ── Discount Popover ─────────────────────────────────────────────────────────
-function DiscountPopover({ item, idx, onDiscChange, onDiscTypeToggle, onDiscClear }: { item: CartItem; idx: number; onDiscChange: (idx: number, type: "pct" | "flat", raw: string) => void; onDiscTypeToggle: (idx: number) => void; onDiscClear: (idx: number) => void }) {
+function DiscountPopover({ item, disabled, idx, onDiscChange, onDiscTypeToggle, onDiscClear }: { item: CartItem; disabled: boolean; idx: number; onDiscChange: (idx: number, type: "pct" | "flat", raw: string) => void; onDiscTypeToggle: (idx: number) => void; onDiscClear: (idx: number) => void }) {
   const [raw, setRaw] = useState(String(item.itemDiscount?.value ?? ""));
   const { t } = useLanguage();
 
@@ -150,8 +150,10 @@ function DiscountPopover({ item, idx, onDiscChange, onDiscTypeToggle, onDiscClea
     <Popover>
       <PopoverTrigger asChild>
         <button
+          disabled={disabled}
           className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-colors
-          ${hasDisc ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400 hover:border-primary/40"}`}
+            ${hasDisc ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400 hover:border-primary/40"}
+            ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
         >
           <Percent size={12} />
         </button>
@@ -233,7 +235,7 @@ export default function CartPanel() {
   const [openDialog, setOpenDialog] = useState(false);
   const { data: customers, isLoading: loadingCustomers } = useGetAllCustomers({ page: 1, limit: 100 });
   const { data: additions } = useGetAllAdditions();
-  const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
+  const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax, itemDiscountsTotal } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const { notifyError, notifySuccess } = useToast();
 
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
@@ -242,6 +244,11 @@ export default function CartPanel() {
 
   // ── per-item discount ──────────────────────────────────────────────────────
   const setItemDisc = (idx: number, type: "pct" | "flat", raw: string) => {
+    if (hasOrderDiscount) {
+      notifyError(t("cannot_mix_discounts") || "لا يمكن الجمع بين خصم الأصناف وخصم الفاتورة");
+      return;
+    }
+
     const value = parseFloat(raw);
     const capped = type === "pct" ? Math.min(value, 100) : value;
     setCart((p) =>
@@ -277,11 +284,20 @@ export default function CartPanel() {
 
   // ── order-level discount ───────────────────────────────────────────────────
   const applyDiscount = () => {
+    // ✅ لو في خصم على أي صنف، امنع
+    if (hasItemDiscount) {
+      notifyError(t("cannot_mix_discounts") || "لا يمكن الجمع بين خصم الأصناف وخصم الفاتورة");
+      return;
+    }
+
     const val = parseFloat(discInput) || 0;
     const base = sub + taxAfterDiscount;
     setDiscount(discType === "pct" ? (base * val) / 100 : val);
     setActiveTab("add");
   };
+
+  const hasItemDiscount = useMemo(() => cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0), [cart]);
+  const hasOrderDiscount = discount > 0;
 
   const GRID = "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_45px_50px_85px] gap-2 px-2";
   return (
@@ -387,6 +403,7 @@ export default function CartPanel() {
                       <DiscountPopover
                         item={item}
                         idx={idx}
+                        disabled={hasOrderDiscount}
                         onDiscChange={setItemDisc}
                         onDiscTypeToggle={(i) => {
                           const nextType = (item.itemDiscount?.type ?? "pct") === "pct" ? "flat" : "pct";
@@ -411,12 +428,17 @@ export default function CartPanel() {
           <div className="flex px-3 border-b border-gray-100">
             {TABS.map((tab) => {
               const label = tab === "add" ? t("add_permission") || "Add" : tab === "discount" ? t("discount") || "Discount" : tab === "coupon" ? t("coupon_code") || "Coupon Code" : t("note") || "Note";
+
+              const isDisabled = tab === "discount" && hasItemDiscount;
+
               return (
                 <button
                   key={tab}
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => !isDisabled && setActiveTab(tab)}
+                  disabled={isDisabled}
                   className={`text-xs py-2 px-1.5 border-b-2 whitespace-nowrap transition-colors duration-150
-                    ${activeTab === tab ? "border-primary text-primary font-bold" : "border-transparent text-gray-400 hover:text-gray-600"}`}
+          ${activeTab === tab ? "border-primary text-primary font-bold" : "border-transparent text-gray-400 hover:text-gray-600"}
+          ${isDisabled ? "opacity-40 cursor-not-allowed" : ""}`}
                 >
                   {label}
                 </button>
@@ -441,9 +463,9 @@ export default function CartPanel() {
                 </div>
               </div>
               <div className="flex justify-between text-xs mb-1.5 items-center">
-                <span className={discount > 0 ? "text-primary font-semibold" : "text-gray-500"}>{t("discount_label")}</span>
+                <span className={discount > 0 || itemDiscountsTotal > 0 ? "text-primary font-semibold" : "text-gray-500"}>{t("discount_label")}</span>
                 <div className="flex items-center gap-1">
-                  <span className={`font-semibold ${discount > 0 ? "text-gray-800" : "text-gray-400"}`}>-${discount.toFixed(2)}</span>
+                  <span className={`font-semibold ${discount > 0 || itemDiscountsTotal > 0 ? "text-gray-800" : "text-gray-400"}`}>-{discount > 0 ? `$${discount.toFixed(2)}` : `$${itemDiscountsTotal.toFixed(2)}`}</span>
                   {discount > 0 && (
                     <button onClick={() => setDiscount(0)} className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-300 leading-none">
                       ×
@@ -503,7 +525,7 @@ export default function CartPanel() {
                 <input value={discInput} onChange={(e) => setDiscInput(e.target.value)} className="flex-1 h-12 px-3 border border-gray-200 rounded-xl text-sm outline-none text-right font-semibold focus:border-primary/40 bg-white" placeholder="0" type="number" min="0" />
               </div>
               <div className="flex gap-2">
-                <Button size={"2xl"} className="flex-1" onClick={() => setActiveTab("add")} variant="outline">
+                <Button size={"2xl"} className="flex-1" onClick={() => setActiveTab("add")} variant="destructive">
                   {t("cancel")}
                 </Button>
                 <Button size={"2xl"} className="flex-1" onClick={applyDiscount}>
@@ -523,7 +545,7 @@ export default function CartPanel() {
             <div className="p-3">
               <textarea className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 resize-none focus:border-primary/40" rows={2} placeholder={t("add_order_note")} />
               <div className="flex gap-2">
-                <Button size={"2xl"} className="flex-1" variant="outline">
+                <Button size={"2xl"} className="flex-1" variant="destructive">
                   {t("clear")}
                 </Button>
                 <Button size={"2xl"} className="flex-1">

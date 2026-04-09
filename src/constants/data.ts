@@ -85,19 +85,18 @@ export function itemTotal(item: CartItem): number {
 }
 
 export function calcTotals(cart: CartItem[], discount: number) {
-  const subRaw = cart.reduce((s, item) => s + itemBasePriceRaw(item), 0);
   const sub = cart.reduce((s, item) => s + itemBasePrice(item), 0);
   const originalTax = cart.reduce((s, item) => s + calcItemTax(item), 0);
-  const subAfterDiscount = Math.max(0, sub - discount);
+  const itemDiscountsTotal = cart.reduce((s, item) => s + (itemBasePriceRaw(item) - itemBasePrice(item)), 0);
 
+  const subAfterDiscount = Math.max(0, sub - discount);
   const discountRatio = sub > 0 ? discount / sub : 0;
 
   const tax = parseFloat(
     cart
       .reduce((s, item) => {
         const rate = (item.taxamount ?? 0) / 100;
-        const itemBase = itemBasePrice(item);
-        const itemBaseAfterDiscount = itemBase * (1 - discountRatio);
+        const itemBaseAfterDiscount = itemBasePrice(item) * (1 - discountRatio);
         return s + itemBaseAfterDiscount * rate;
       }, 0)
       .toFixed(2),
@@ -111,5 +110,6 @@ export function calcTotals(cart: CartItem[], discount: number) {
     tax,
     total,
     originalTax,
+    itemDiscountsTotal,
   };
 }

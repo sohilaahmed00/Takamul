@@ -12,11 +12,11 @@ import AddParnterModal from "@/components/modals/AddParnterModal";
 
 export default function CustomersList() {
   const { t, direction } = useLanguage();
-  const { data: response, isLoading } = useGetAllCustomers({ page: 1, limit: 10000 });
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [entriesPerPage] = useState(10);
+  const [entriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
+  const { data: response, isLoading } = useGetAllCustomers({ page: currentPage, limit: entriesPerPage });
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<number | undefined>();
   const { mutate: deleteCustomer } = useDeleteCustomer();

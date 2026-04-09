@@ -14,7 +14,6 @@ const INSTITUTION_TAX_NO = "310XXXXXXXXX";
 const INSTITUTION_ADDRESS = "عنوان المؤسسة";
 const INSTITUTION_PHONE = "05XXXXXXXX";
 const INSTITUTION_NOTES = "";
-// Optional: pass a logo URL or leave undefined to show "اللوجو" text
 const LOGO_URL: string | undefined = undefined;
 
 export default function OrderDetailPanel() {
@@ -29,10 +28,11 @@ export default function OrderDetailPanel() {
       const pct = Number(item?.discountPercentage ?? 0);
       const flat = Number(item?.discountValue ?? 0);
       const itemDiscount: CartItem["itemDiscount"] = pct > 0 ? { type: "pct", value: pct } : flat > 0 ? { type: "flat", value: flat } : null;
+
       return {
         productId: item.productId ?? 0,
         name: item.productName,
-        price: item.priceBeforeTax ?? 0,
+        price: item.taxCalculation === 2 ? item?.unitPrice : (item.priceBeforeTax ?? 0),
         qty: item.quantity ?? 1,
         taxamount: item.taxAmount ?? 0,
         taxCalculation: item.taxCalculation ?? 1,
@@ -41,12 +41,18 @@ export default function OrderDetailPanel() {
         op: null,
       };
     });
+    const discountAmount = order.items.reduce((acc, item) => {
+      const pct = Number(item.discountPercentage ?? 0);
+      const flat = Number(item.discountValue ?? 0);
 
-    const totals = calcTotals(cart, order.discountAmount ?? 0);
+      if (pct > 0) {
+        return acc + (Number(item.priceBeforeTax) * Number(item.quantity) * pct) / 100;
+      }
 
-    console.log(totals?.sub)
-    console.log(totals?.subAfterDiscount)
-
+      return acc + flat;
+    }, 0);
+    const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
+    const totals = calcTotals(cart, hasItemDiscounts ? 0 : (order.discountAmount ?? 0));
     const invoiceData = {
       logoUrl: LOGO_URL,
       invoiceNumber: order.orderNumber ?? "—",
@@ -64,6 +70,7 @@ export default function OrderDetailPanel() {
       items: cart.map((item) => {
         const base = itemBasePrice(item);
         const tax = calcItemTax(item);
+
         return {
           productName: item.name,
           quantity: item.qty,
@@ -75,13 +82,12 @@ export default function OrderDetailPanel() {
       }),
 
       subTotal: Number(totals.sub.toFixed(2)),
-      discountAmount: Number((totals.sub - totals.subAfterDiscount).toFixed(2)),
+      discountAmount: Number(discountAmount.toFixed(2)),
       taxAmount: totals.originalTax,
-      grandTotal: Number((totals.sub + totals.originalTax).toFixed(2)),
+      grandTotal: totals.total,
 
       notes: INSTITUTION_NOTES,
     };
-
     printInvoice(invoiceData);
   };
   const computedSubTotal = order?.items?.reduce((sum, item) => {
