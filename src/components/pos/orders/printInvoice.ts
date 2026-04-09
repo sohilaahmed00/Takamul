@@ -50,7 +50,7 @@ export function printInvoice(data: InvoiceData): void {
 <meta charset="UTF-8"/>
 <title>فاتورة ضريبية مبسطة</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
 
   * { margin:0; padding:0; box-sizing:border-box;
       -webkit-print-color-adjust:exact !important;
@@ -110,8 +110,9 @@ export function printInvoice(data: InvoiceData): void {
     border: 0.8px solid #bbb;
     padding: 4px;
   }
-  .info-grid td.lbl { color: #333; }
-  .info-grid td.val { font-weight: 700; text-align: left; direction: ltr; }
+  .info-grid td.lbl { color: #333;
+  text-align: right;  }
+  .info-grid td.val { font-weight: 700;  }
   .sep { border-left: 1.5px solid #555 !important; }
 
   /* ── ITEMS TABLE ── */
@@ -325,7 +326,10 @@ export function printInvoice(data: InvoiceData): void {
   for(var r=0;r<MOD;r++) for(var cc=0;cc<MOD;cc++)
     if(pat[r][cc]) ctx.fillRect(Math.round(cc*cell),Math.round(r*cell),Math.round(cell)-1,Math.round(cell)-1);
 })();
-document.fonts.ready.then(function(){ window.print(); });
+document.fonts.ready.then(function(){ 
+  window.print(); 
+  window.close(); 
+});
 </script>
 </body>
 </html>`;

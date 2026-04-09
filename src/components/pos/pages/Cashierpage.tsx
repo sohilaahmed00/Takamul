@@ -28,10 +28,9 @@ export default function CashierPage() {
           </CardHeader>
           <CardContent className="">
             {/* Order header */}
-         
 
             {/* Items list */}
-            <div className="flex flex-col">
+            <div className="flex flex-col max-h-64 overflow-y-auto">
               {cart.map((item, i) => {
                 const total = itemTotal(item);
                 const hasDisc = !!item.itemDiscount && item.itemDiscount.value > 0;
@@ -89,7 +88,7 @@ export default function CashierPage() {
                 </div>
               </div>
 
-              <Button size="2xl" variant="outline" onClick={() => handleConfirmPayment("Cash", total.toFixed(2))} >
+              <Button size="2xl" variant="outline" onClick={() => handleConfirmPayment("Cash", total.toFixed(2))}>
                 {/* <CreditCard size={16} strokeWidth={2} /> */}
                 {t("confirm_payment")}
               </Button>
