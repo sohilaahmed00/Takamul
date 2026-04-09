@@ -5,7 +5,7 @@ import { sha256 } from "js-sha256";
 qz.api.setSha256Type((data: any) => sha256(data));
 qz.api.setPromiseType((resolver: any) => new Promise(resolver));
 
-// بدون certificate (مؤقت)
+// مؤقت (بدون certificate)
 qz.security.setCertificatePromise((resolve: any) => resolve(""));
 qz.security.setSignaturePromise(() => (resolve: any) => resolve(""));
 
@@ -16,35 +16,74 @@ async function connect() {
   }
 }
 
-// 🧪 طباعة تجريبية (RAW - مضمون)
-export async function printTest(): Promise<void> {
-  try {
-    await connect();
+// تنظيف HTML
+function cleanHtml(html: string) {
+  return html.replace(/window\.print\(\);?/g, "").replace(/window\.close\(\);?/g, "");
+}
 
-    const printer = await qz.printers.getDefault();
+// الطباعة
+export async function printHtmlSilently(): Promise<void> {
+  await connect();
 
-    const config = qz.configs.create(printer);
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  // @page { size: 80mm auto; margin: 0; }
 
-    const data =
-      "\x1B\x40" + // init
-      "\x1B\x61\x01" + // center
-      "TEST PRINT\n" +
-      "\x1B\x61\x00" + // left
-      "Hello Ahmed\n" +
-      "----------------\n" +
-      "Total: 15\n\n\n" +
-      "\x1D\x56\x00"; // cut
-
-    await qz.print(config, [
-      {
-        type: "raw",
-        format: "plain",
-        data: data,
-      },
-    ]);
-
-    console.log("✅ Printed successfully");
-  } catch (err) {
-    console.error("❌ Print Error:", err);
+  body {
+    width: 80mm;
+    font-family: Arial;
+    font-size: 14px;
+    text-align: center;
   }
+
+  .line {
+    border-bottom: 1px dashed #000;
+    margin: 8px 0;
+  }
+</style>
+</head>
+
+<body>
+
+  <h3>TEST PRINT 🔥</h3>
+
+  <div class="line"></div>
+
+  <p>Product 1 - 10 EGP</p>
+  <p>Product 2 - 5 EGP</p>
+
+  <div class="line"></div>
+
+  <h4>Total: 15 EGP</h4>
+
+</body>
+</html>
+`;
+
+  const printer = await qz.printers.getDefault();
+
+  const config = qz.configs.create(printer, {
+    copies: 1,
+    margins: 0,
+    scaleContent: false,
+    rasterize: false,
+    size: {
+      width: 80,
+      height: 200,
+      units: "mm",
+      custom: true,
+    },
+  });
+
+  await qz.print(config, [
+    {
+      type: "html",
+      format: "plain",
+      data: html,
+    },
+  ]);
 }
