@@ -1,14 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CircleArrowRight, Pause, Plus, X, ChevronsUpDown, Check, SlidersHorizontal, Trash2, Percent, Info } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CircleArrowRight, Pause, Plus, X, ChevronsUpDown, Check, Trash2, Percent, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
-import type { Customer } from "@/features/customers/types/customers.types";
 import { calcItemTax, calcTotals, CartItem, itemBasePrice, itemTotal } from "@/constants/data";
 import { usePos } from "@/context/PosContext";
 import { useGetAllAdditions } from "@/features/Additions/hooks/useGetAllAdditions";
@@ -17,36 +14,30 @@ import { useGetGiftCards } from "@/features/gift-cards/hooks/useGetGiftCards";
 import { GiftCard } from "@/features/gift-cards/types/giftCard.types";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import useToast from "@/hooks/useToast";
-import { useGetAllFreeTables } from "@/features/pos/hooks/useGetFreeTables";
 import { useGetAllTables } from "@/features/pos/hooks/useGetAllTables";
-import { Table } from "@/features/pos/types/pos.types";
 import ComboboxField from "@/components/ui/ComboboxField";
+import { useLanguage } from "@/context/LanguageContext";
 
 const TABS = ["add", "discount", "coupon", "note"] as const;
-const TAB_LABELS: Record<string, string> = {
-  add: "Add",
-  discount: "Discount",
-  coupon: "Coupon Code",
-  note: "Note",
-};
 
 // ── Extras combobox for a single cart item ────────────────────────────────────
 function ExtrasCombobox({ selectedIds, onToggle, additions }: { selectedIds: number[]; onToggle: (id: number, name: string) => void; additions: Addition[] }) {
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button className="w-full flex items-center justify-between px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-500 hover:border-primary/40 bg-white focus:outline-none">
-          <span>{selectedIds.length > 0 ? `${selectedIds.length} إضافة مختارة` : "اختر الإضافات..."}</span>
+          <span>{selectedIds.length > 0 ? `${selectedIds.length} ${t("selected_additions")}` : t("choose_additions")}</span>
           <ChevronsUpDown size={12} className="text-gray-400" />
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-52 p-3" align="end" side="top">
         <Command>
-          <CommandInput placeholder="ابحث..." className="text-xs h-8" />
+          <CommandInput placeholder={t("search") || "ابحث..."} className="text-xs h-8" />
           <CommandList>
-            <CommandEmpty className="text-xs text-center py-3 text-gray-400">لا توجد نتائج</CommandEmpty>
+            <CommandEmpty className="text-xs text-center py-3 text-gray-400">{t("no_results") || "لا توجد نتائج"}</CommandEmpty>
             <CommandGroup>
               {additions.map((a) => {
                 const isSelected = selectedIds.includes(a.id);
@@ -68,6 +59,7 @@ function ExtrasCombobox({ selectedIds, onToggle, additions }: { selectedIds: num
 function CouponTab() {
   const { cart, discount, setDiscount, setSelectedGiftCardId } = usePos();
   const { sub, tax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
+  const { t } = useLanguage();
 
   const { data: giftCards } = useGetGiftCards();
   const [code, setCode] = useState("");
@@ -105,24 +97,28 @@ function CouponTab() {
           setCode(e.target.value);
           setStatus("idle");
         }}
-        placeholder="Enter coupon code..."
+        placeholder={t("enter_coupon_code")}
         className={`w-full mb-2 ${status === "invalid" || status === "used" ? "border-red-300" : status === "valid" ? "border-green-400" : ""}`}
       />
 
-      {status === "invalid" && <div className="text-xs text-red-500 font-semibold mb-2">الكود غير صحيح</div>}
-      {status === "used" && <div className="text-xs text-red-500 font-semibold mb-2">الكارت غير نشط أو محذوف</div>}
+      {status === "invalid" && <div className="text-xs text-red-500 font-semibold mb-2">{t("invalid_code")}</div>}
+      {status === "used" && <div className="text-xs text-red-500 font-semibold mb-2">{t("inactive_or_deleted_card")}</div>}
       {status === "valid" && appliedCard && (
         <div className="rounded-xl border border-green-200 bg-green-50 px-3 py-2.5 mb-2 flex items-center justify-between">
           <div>
             <div className="text-xs font-black text-green-700">{appliedCard.code}</div>
             <div className="text-[10px] text-green-600 mt-0.5">{appliedCard.customerName}</div>
-            {appliedCard.expiryDate && <div className="text-[10px] text-gray-400">Expires: {new Date(appliedCard.expiryDate).toLocaleDateString()}</div>}
+            {appliedCard.expiryDate && (
+              <div className="text-[10px] text-gray-400">
+                {t("expires_on")} {new Date(appliedCard.expiryDate).toLocaleDateString()}
+              </div>
+            )}
           </div>
           <div className="text-right">
-            <div className="text-xs text-gray-400">Remaining Balance</div>
+            <div className="text-xs text-gray-400">{t("remaining_balance")}</div>
             <div className="text-sm font-black text-green-700">${appliedCard.remainingAmount.toFixed(2)}</div>
             <button onClick={handleClear} className="text-[10px] text-red-400 hover:text-red-600 mt-1">
-              Remove
+              {t("remove")}
             </button>
           </div>
         </div>
@@ -130,10 +126,10 @@ function CouponTab() {
 
       <div className="flex gap-2">
         <Button size="2xl" className="flex-1" variant="outline" onClick={handleClear}>
-          Clear
+          {t("clear")}
         </Button>
         <Button size="2xl" className="flex-1" onClick={handleApply} disabled={!code.trim()}>
-          Apply
+          {t("apply")}
         </Button>
       </div>
     </>
@@ -142,6 +138,7 @@ function CouponTab() {
 // ── Discount Popover ─────────────────────────────────────────────────────────
 function DiscountPopover({ item, idx, onDiscChange, onDiscTypeToggle, onDiscClear }: { item: CartItem; idx: number; onDiscChange: (idx: number, type: "pct" | "flat", raw: string) => void; onDiscTypeToggle: (idx: number) => void; onDiscClear: (idx: number) => void }) {
   const [raw, setRaw] = useState(String(item.itemDiscount?.value ?? ""));
+  const { t } = useLanguage();
 
   useEffect(() => {
     setRaw(String(item.itemDiscount?.value ?? ""));
@@ -160,7 +157,7 @@ function DiscountPopover({ item, idx, onDiscChange, onDiscTypeToggle, onDiscClea
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-52 p-3" align="end" onOpenAutoFocus={(e) => e.preventDefault()}>
-        <div className="text-xs text-gray-400 font-semibold mb-2">Item Discount</div>
+        <div className="text-xs text-gray-400 font-semibold mb-2">{t("item_discount")}</div>
         <div className="flex items-center gap-1">
           <button onClick={() => onDiscTypeToggle(idx)} className="w-8 h-8 rounded-lg border border-gray-200 text-xs font-bold text-gray-500 hover:border-primary/40 shrink-0">
             {(item.itemDiscount?.type ?? "pct") === "pct" ? "%" : "$"}
@@ -188,7 +185,7 @@ function DiscountPopover({ item, idx, onDiscChange, onDiscTypeToggle, onDiscClea
             </button>
           )}
         </div>
-        {hasDisc && <div className="text-[10px] text-primary font-semibold mt-1.5">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% off` : `-$${item.itemDiscount!.value.toFixed(2)}`}</div>}
+        {hasDisc && <div className="text-[10px] text-primary font-semibold mt-1.5">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% ${t("off")}` : `-$${item.itemDiscount!.value.toFixed(2)}`}</div>}
       </PopoverContent>
     </Popover>
   );
@@ -196,6 +193,7 @@ function DiscountPopover({ item, idx, onDiscChange, onDiscTypeToggle, onDiscClea
 
 // ── Extras Popover ───────────────────────────────────────────────────────────
 function ExtrasPopover({ item, idx, additions, onToggleExtra }: { item: CartItem; idx: number; additions: Addition[]; onToggleExtra: (idx: number, id: number, name: string) => void }) {
+  const { t } = useLanguage();
   const hasExtras = (item.extras ?? []).length > 0;
   const selectedExtraIds = (item.extras ?? []).map((e) => e.id!).filter(Boolean);
   return (
@@ -209,7 +207,7 @@ function ExtrasPopover({ item, idx, additions, onToggleExtra }: { item: CartItem
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-64 p-3" align="end">
-        <div className="text-xs text-gray-400 font-semibold mb-2">الإضافات</div>
+        <div className="text-xs text-gray-400 font-semibold mb-2">{t("additions_panel")}</div>
         <ExtrasCombobox selectedIds={selectedExtraIds} onToggle={(id, name) => onToggleExtra(idx, id, name)} additions={additions} />
         {hasExtras && (
           <div className="flex flex-wrap gap-1 mt-2">
@@ -227,14 +225,12 @@ function ExtrasPopover({ item, idx, additions, onToggleExtra }: { item: CartItem
 
 // ── Main CartPanel ────────────────────────────────────────────────────────────
 export default function CartPanel() {
+  const { t } = useLanguage();
   const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
-  const { data } = useGetGiftCards();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [discInput, setDiscInput] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
-  const { data: tables } = useGetAllTables();
-
   const { data: customers, isLoading: loadingCustomers } = useGetAllCustomers({ page: 1, limit: 100 });
   const { data: additions } = useGetAllAdditions();
   const { sub, tax: taxAfterDiscount, total } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
@@ -305,7 +301,7 @@ export default function CartPanel() {
                 items={customers?.items}
                 valueKey="id"
                 labelKey="customerName"
-                placeholder="اختر العميل..."
+                placeholder={t("choose_customer")}
               />
             </div>
           ) : (
@@ -325,28 +321,28 @@ export default function CartPanel() {
         {/* Items */}
         <div className="flex-1 overflow-y-auto px-2 py-1.5 space-y-1">
           {cart?.length === 0 ? (
-            <div className="p-5 text-center text-gray-400 text-xs">Cart is empty</div>
+            <div className="p-5 text-center text-gray-400 text-xs">{t("cart_is_empty")}</div>
           ) : (
             <>
               {/* Table header */}
               <div className={`${GRID} py-1.5 border-b border-gray-100 text-[10px] font-semibold text-gray-400 uppercase`}>
                 <span>#</span>
-                <span>الصنف</span>
-                <span className="text-center">الكمية</span>
+                <span>{t("item")}</span>
+                <span className="text-center">{t("quantity_label")}</span>
                 <span className="px-2 border-r border-gray-100 text-right flex items-center justify-end gap-1">
-                  السعر
+                  {t("price")}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Info size={10} className="text-gray-300 cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent side="top" className="text-xs">
-                      السعر قبل الضريبة
+                      {t("price_before_tax")}
                     </TooltipContent>
                   </Tooltip>
                 </span>{" "}
-                <span className="text-right">الضريبة</span>
-                <span className="text-right">الإجمالي</span>
-                <span className="text-center">عمليات</span>
+                <span className="text-right">{t("tax_column")}</span>
+                <span className="text-right">{t("total_amount")}</span>
+                <span className="text-center">{t("actions")}</span>
               </div>
 
               {cart?.map((item, idx) => {
@@ -360,9 +356,9 @@ export default function CartPanel() {
                     <span className="text-xs text-gray-400 font-medium">{idx + 1}</span>
                     {/* الاسم */}
                     <div className="min-w-0 overflow-hidden">
-                      <div className="text-xs font-bold text-gray-800 truncate">{item.name}</div>
-                      {(item.extras ?? []).length > 0 && <div className="text-[10px] text-gray-400 truncate">+ {item.extras!.map((e) => e.name).join("، ")}</div>}
-                      {hasDisc && <div className="text-[10px] text-primary font-semibold">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% off` : `-$${item.itemDiscount!.value.toFixed(2)}`}</div>}
+                      <div className="text-xs font-bold text-gray-800 ">بنطلون جنز جبردين ابيض  رصاصي محمر </div>
+                      {(item.extras ?? []).length > 0 && <div className="text-[10px] text-gray-400">+ {item.extras!.map((e) => e.name).join("، ")}</div>}
+                      {hasDisc && <div className="text-[10px] text-primary font-semibold">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% ${t("off")}` : `-$${item.itemDiscount!.value.toFixed(2)}`}</div>}
                     </div>
                     {/* الكمية */}
                     <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
@@ -414,36 +410,39 @@ export default function CartPanel() {
         {/* Footer */}
         <div className="border-t border-gray-100 flex-shrink-0">
           <div className="flex px-3 border-b border-gray-100">
-            {TABS.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`text-xs py-2 px-1.5 border-b-2 whitespace-nowrap transition-colors duration-150
-                  ${activeTab === tab ? "border-primary text-primary font-bold" : "border-transparent text-gray-400 hover:text-gray-600"}`}
-              >
-                {TAB_LABELS[tab]}
-              </button>
-            ))}
+            {TABS.map((tab) => {
+              const label = tab === "add" ? t("add_permission") || "Add" : tab === "discount" ? t("discount") || "Discount" : tab === "coupon" ? t("coupon_code") || "Coupon Code" : t("note") || "Note";
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`text-xs py-2 px-1.5 border-b-2 whitespace-nowrap transition-colors duration-150
+                    ${activeTab === tab ? "border-primary text-primary font-bold" : "border-transparent text-gray-400 hover:text-gray-600"}`}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
           {activeTab === "add" && (
             <div className="px-3 pt-2.5 pb-3">
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-                <span>Subtotal</span>
+                <span>{t("subtotal")}</span>
                 <div className="flex items-center gap-1.5">
                   {discount > 0 && <span className="text-gray-300 line-through text-[10px]">${sub?.toFixed(2)}</span>}
                   <span className="font-semibold text-gray-800">${Math.max(0, sub - discount).toFixed(2)}</span>
                 </div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-                <span>Tax</span>
+                <span>{t("tax_label")}</span>
                 <div className="flex items-center gap-1.5">
                   {discount > 0 && <span className="text-gray-300 line-through text-[10px]">${originalTax.toFixed(2)}</span>}
                   <span className="font-semibold text-gray-800">${taxAfterDiscount.toFixed(2)}</span>
                 </div>
               </div>
               <div className="flex justify-between text-xs mb-1.5 items-center">
-                <span className={discount > 0 ? "text-primary font-semibold" : "text-gray-500"}>Discount</span>
+                <span className={discount > 0 ? "text-primary font-semibold" : "text-gray-500"}>{t("discount_label")}</span>
                 <div className="flex items-center gap-1">
                   <span className={`font-semibold ${discount > 0 ? "text-gray-800" : "text-gray-400"}`}>-${discount.toFixed(2)}</span>
                   {discount > 0 && (
@@ -454,7 +453,7 @@ export default function CartPanel() {
                 </div>
               </div>
               <div className="flex justify-between text-sm font-black text-gray-800 mt-2 pt-1 border-t border-gray-100 mb-3">
-                <span>Payable Amount</span>
+                <span>{t("payable_amount")}</span>
                 <div className="flex items-center gap-1.5">
                   {discount > 0 && <span className="text-gray-300 line-through text-xs font-normal">${(sub + originalTax).toFixed(2)}</span>}
                   <span>${total.toFixed(2)}</span>
@@ -462,13 +461,13 @@ export default function CartPanel() {
               </div>
               <div className="flex gap-2">
                 <Button size={"2xl"} onClick={handleHold} className="flex-1" variant="outline">
-                  Hold Cart <Pause />
+                  {t("hold_cart")} <Pause />
                 </Button>
                 <Button
                   size={"2xl"}
                   onClick={async () => {
                     if (cart.length === 0) {
-                      notifyError("قم بإضافة أصناف للفاتورة");
+                      notifyError(t("add_items_to_invoice"));
                       return;
                     }
 
@@ -486,7 +485,7 @@ export default function CartPanel() {
                   }}
                   className="flex-1"
                 >
-                  Proceed <CircleArrowRight />
+                  {t("proceed")} <CircleArrowRight />
                 </Button>
               </div>
             </div>
@@ -494,7 +493,7 @@ export default function CartPanel() {
 
           {activeTab === "discount" && (
             <div className="p-3">
-              <div className="text-sm font-bold text-gray-800 mb-3">Order Discount</div>
+              <div className="text-sm font-bold text-gray-800 mb-3">{t("order_discount")}</div>
               <div className="flex gap-2 mb-3 items-center">
                 <button onClick={() => setDiscType("flat")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "flat" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>
                   $
@@ -506,10 +505,10 @@ export default function CartPanel() {
               </div>
               <div className="flex gap-2">
                 <Button size={"2xl"} className="flex-1" onClick={() => setActiveTab("add")} variant="outline">
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button size={"2xl"} className="flex-1" onClick={applyDiscount}>
-                  Add
+                  {t("add_permission") || "Add"}
                 </Button>
               </div>
             </div>
@@ -523,13 +522,13 @@ export default function CartPanel() {
 
           {activeTab === "note" && (
             <div className="p-3">
-              <textarea className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 resize-none focus:border-primary/40" rows={2} placeholder="Add order note..." />
+              <textarea className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 resize-none focus:border-primary/40" rows={2} placeholder={t("add_order_note")} />
               <div className="flex gap-2">
                 <Button size={"2xl"} className="flex-1" variant="outline">
-                  Clear
+                  {t("clear")}
                 </Button>
                 <Button size={"2xl"} className="flex-1">
-                  Save
+                  {t("save")}
                 </Button>
               </div>
             </div>

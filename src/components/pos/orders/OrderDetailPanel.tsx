@@ -1,9 +1,10 @@
 // OrderDetailPanel.tsx
 import { usePos } from "@/context/PosContext";
 import { useGetOrderByTableId } from "@/features/pos/hooks/useGetOrderByTableId";
-import { calcTotals } from "@/constants/data";
+import { calcTotals, itemBasePrice } from "@/constants/data";
 import { Printer } from "lucide-react";
 import { printInvoice } from "./printInvoice";
+import { useGetSalesOrderById } from "@/features/sales/hooks/useGetSalesOrderById";
 
 // ── Configurable institution data ────────────────────────────────────────────
 // Replace these constants with values from your settings/store context if available
@@ -16,9 +17,9 @@ const INSTITUTION_NOTES = "";
 const LOGO_URL: string | undefined = undefined;
 
 export default function OrderDetailPanel() {
-  const { selectedTable, cart } = usePos();
-  const { data: order } = useGetOrderByTableId(Number(selectedTable));
-
+  const { selectedOrderId, cart } = usePos();
+  const { data: order } = useGetSalesOrderById(Number(selectedOrderId));
+  console.log(order);
   const { sub, tax, total } = calcTotals(cart, 0);
 
   // ── Build print payload and open print window ─────────────────────────────
@@ -39,7 +40,7 @@ export default function OrderDetailPanel() {
       customerPhone: undefined, // add if your API returns it
 
       items: (order.items ?? []).map((item) => {
-        const priceBeforeTax = item.unitPrice ?? 0;
+        const priceBeforeTax = item.priceBeforeTax ?? 0;
         const qty = item.quantity ?? 1;
         const taxAmt = item.taxAmount ?? 0; // per-unit tax if available
         return {
@@ -47,7 +48,7 @@ export default function OrderDetailPanel() {
           quantity: qty,
           unitPrice: priceBeforeTax,
           taxAmount: parseFloat((taxAmt * qty).toFixed(2)),
-          total: parseFloat(((priceBeforeTax + taxAmt) * qty).toFixed(2)),
+          total: item?.lineTotal,
         };
       }),
 
@@ -62,12 +63,25 @@ export default function OrderDetailPanel() {
     printInvoice(invoiceData);
   };
 
+  const computedSubTotal = order?.items?.reduce((sum, item) => {
+    const cartItem = {
+      productId: item.productId,
+      name: item.productName,
+      note: "",
+      price: item.unitPrice,
+      qty: item.quantity,
+      taxamount: item.taxPercentage,
+      taxCalculation: item.taxCalculation,
+      itemDiscount: item.discountPercentage > 0 ? { type: "pct" as const, value: item.discountPercentage } : item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : undefined,
+    };
+    return sum + itemBasePrice(cartItem);
+  }, 0);
   return (
     <div className="bg-white border-l border-gray-100 p-4 flex flex-col flex-shrink-0" style={{ width: 400 }}>
       {/* Header */}
       <div className="text-sm font-black text-gray-800 mb-0.5">Order ID #{order?.orderNumber}</div>
       <div className="text-xs text-gray-400 mb-0.5">{order?.customerName}</div>
-      <div className="text-xs text-gray-400 mb-3">Dine-In · T-{selectedTable}</div>
+      <div className="text-xs text-gray-400 mb-3">Dine-In · T-{selectedOrderId}</div>
 
       {/* Items */}
       <div className="flex-1 overflow-y-auto border-t border-gray-100 pt-2">
@@ -85,7 +99,7 @@ export default function OrderDetailPanel() {
 
       {/* Totals */}
       <div className="border-t border-gray-100 pt-2.5 mt-2">
-        {[["Subtotal", `$${order?.subTotal?.toFixed(2)}`], ["Tax", `$${order?.taxAmount?.toFixed(2)}`], ...(order?.discountAmount > 0 ? [["Discount", `-$${order?.discountAmount.toFixed(2)}`]] : [])].map(([l, v]) => (
+        {[["Subtotal", `$${computedSubTotal?.toFixed(2)}`], ["Tax", `$${order?.taxAmount?.toFixed(2)}`], ...(order?.discountAmount > 0 ? [["Discount", `-$${order?.discountAmount.toFixed(2)}`]] : [])].map(([l, v]) => (
           <div key={l} className="flex justify-between text-xs text-gray-500 mb-1">
             <span>{l}</span>
             <span>{v}</span>

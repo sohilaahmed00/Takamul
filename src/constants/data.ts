@@ -1,5 +1,5 @@
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
-import { Home, Users, LayoutGrid, DollarSign, ClipboardList, BarChart2, Settings } from "lucide-react";
+import { Home, LayoutGrid, ClipboardList } from "lucide-react";
 
 export const NAV_ITEMS = [
   { id: "home", icon: Home, label: "Home" },
@@ -21,12 +21,16 @@ export type Screen = "home" | "customers" | "tables" | "cashier" | "orders" | "r
 
 export interface CartExtra {
   name: string;
+  nameEn?: string;
+  nameUr?: string;
   id: number;
 }
 
 export interface CartItem {
   productId: number;
   name: string;
+  productNameEn?: string;
+  productNameUr?: string;
   price: number;
   qty: number;
   note: string;

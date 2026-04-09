@@ -8,12 +8,12 @@ const SCREENS_WITH_CASHIER = ["cashier"];
 const SCREENS_WITH_ORDERS = ["orders"];
 
 export default function RightPanel() {
-  const { screen, dineInMode } = usePos();
+  const { screen, dineInMode, selectedOrderId } = usePos();
   console.log(screen);
 
   if (SCREENS_WITH_CASHIER.includes(screen)) return <CashierPanel />;
   if (SCREENS_WITH_CART.includes(screen)) return <CartPanel />;
-  if (screen == "orders") {
+  if (screen == "orders" && selectedOrderId) {
     return <OrderDetailPanel />;
   }
   return null;

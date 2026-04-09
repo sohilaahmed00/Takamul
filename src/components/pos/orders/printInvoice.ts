@@ -29,8 +29,7 @@ export interface InvoiceData {
 
 export function printInvoice(data: InvoiceData): void {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
-  const fmt = (n: number | undefined | null) =>
-    typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00";
+  const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
 
   const itemRows = data.items
     .map(
@@ -41,7 +40,7 @@ export function printInvoice(data: InvoiceData): void {
         <td>${fmt(item.unitPrice)}</td>
         <td>${fmt(item.taxAmount)}</td>
         <td>${fmt(item.total)}</td>
-      </tr>`
+      </tr>`,
     )
     .join("");
 
@@ -53,32 +52,22 @@ export function printInvoice(data: InvoiceData): void {
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
 
-  * {
-    margin: 0; padding: 0;
-    box-sizing: border-box;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
+  * { margin:0; padding:0; box-sizing:border-box;
+      -webkit-print-color-adjust:exact !important;
+      print-color-adjust:exact !important; }
 
-  @page {
-    size: 80mm auto;
-    margin: 3mm 3mm;
-  }
+  @page { size: 80mm auto; margin: 3mm 4mm; }
 
   html, body {
     width: 100%;
-    font-family: 'Tajawal', 'Tahoma', Arial, sans-serif;
+    font-family: 'Tajawal','Tahoma',Arial,sans-serif;
     font-size: 7.5pt;
     color: #000;
     direction: rtl;
     background: #fff;
   }
 
-  .page {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
+  .page { width:100%; display:flex; flex-direction:column; gap:0; }
 
   /* ── LOGO ── */
   .logo {
@@ -89,33 +78,41 @@ export function printInvoice(data: InvoiceData): void {
     border: 1.5px solid #333;
     background: #d9d9d9 !important;
   }
-  .logo img { max-height: 44px; max-width: 100%; object-fit: contain; }
+  .logo img { max-height:44px; max-width:100%; object-fit:contain; }
 
-  /* ── TWO-COLUMN INFO GRID ── */
+  /* ── INFO GRID ── */
   .info-grid {
     width: 100%;
     border-collapse: collapse;
     border: 1.5px solid #333;
+    border-top: none;
   }
   .info-grid td {
-    padding: 3px 3px;
-    font-size: 6pt;
-    line-height: 1.4;
+    padding: 3px 4px;
+    font-size: 6.5pt;
+    line-height: 1.5;
     vertical-align: middle;
     border: 0.8px solid #bbb;
     word-break: break-word;
-    text-align: right;
   }
-  .info-grid td.left-cell {
-    border-right: 1.5px solid #555;
-  }
-  /* full-width row inside info-grid */
   .info-grid .full td {
     text-align: center;
     font-weight: 700;
     font-size: 8pt;
     background: #d9d9d9 !important;
+    border: 0.8px solid #bbb;
   }
+  .info-grid .title-row td {
+    text-align: center;
+    font-weight: 900;
+    font-size: 9pt;
+    background: #fff !important;
+    border: 0.8px solid #bbb;
+    padding: 4px;
+  }
+  .info-grid td.lbl { color: #333; }
+  .info-grid td.val { font-weight: 700; text-align: left; direction: ltr; }
+  .sep { border-left: 1.5px solid #555 !important; }
 
   /* ── ITEMS TABLE ── */
   .items-table {
@@ -123,6 +120,7 @@ export function printInvoice(data: InvoiceData): void {
     border-collapse: collapse;
     font-size: 6pt;
     border: 1.5px solid #333;
+    border-top: none;
   }
   .items-table th {
     background: #d9d9d9 !important;
@@ -142,20 +140,17 @@ export function printInvoice(data: InvoiceData): void {
     line-height: 1.3;
     word-break: break-word;
   }
-  .td-name {
-    text-align: right !important;
-    padding-right: 3px !important;
-  }
+  .td-name { text-align:right !important; padding-right:3px !important; }
   .items-table th:nth-child(1),
-  .items-table td:nth-child(1) { width: 30%; }
+  .items-table td:nth-child(1) { width:30%; }
   .items-table th:nth-child(2),
-  .items-table td:nth-child(2) { width: 10%; }
+  .items-table td:nth-child(2) { width:10%; }
   .items-table th:nth-child(3),
-  .items-table td:nth-child(3) { width: 18%; }
+  .items-table td:nth-child(3) { width:18%; }
   .items-table th:nth-child(4),
-  .items-table td:nth-child(4) { width: 18%; }
+  .items-table td:nth-child(4) { width:18%; }
   .items-table th:nth-child(5),
-  .items-table td:nth-child(5) { width: 24%; }
+  .items-table td:nth-child(5) { width:24%; }
 
   /* ── TOTALS TABLE ── */
   .totals-table {
@@ -163,12 +158,12 @@ export function printInvoice(data: InvoiceData): void {
     border-collapse: collapse;
     font-size: 7.5pt;
     border: 1.5px solid #333;
+    border-top: none;
   }
   .totals-table td {
     border: 0.8px solid #555;
     padding: 3px 5px;
     vertical-align: middle;
-    text-align: right;
   }
   .totals-table td:first-child {
     width: 64%;
@@ -187,16 +182,16 @@ export function printInvoice(data: InvoiceData): void {
     background: #d9d9d9 !important;
   }
 
-  /* ── FOOTER ROWS ── */
+  /* ── FOOTER ── */
   .footer-row {
     border: 1.5px solid #333;
+    border-top: none;
     text-align: center;
     font-weight: 700;
     font-size: 7.5pt;
     padding: 5px 4px;
     background: #d9d9d9 !important;
     word-break: break-word;
-    margin-top: 3px;
   }
 
   /* ── QR ── */
@@ -204,12 +199,11 @@ export function printInvoice(data: InvoiceData): void {
     text-align: center;
     padding: 8px 0 6px;
     border: 1.5px solid #333;
+    border-top: none;
   }
-  #qr, .qr-wrap img { width: 90px; height: 90px; display: inline-block; }
+  #qr, .qr-wrap img { width:90px; height:90px; display:inline-block; }
 
-  @media print {
-    html, body { margin: 0; }
-  }
+  @media print { html,body { margin:0; } }
 </style>
 </head>
 <body>
@@ -222,23 +216,38 @@ export function printInvoice(data: InvoiceData): void {
 
   <!-- INFO GRID -->
   <table class="info-grid">
-    <tr>
-      <td>رقم الفاتورة: <strong>${data.invoiceNumber}</strong></td>
-      <td class="left-cell">فاتورة ضريبيية مبسطة</td>
-    </tr>
+    <!-- اسم المؤسسة -->
     <tr class="full">
-      <td colspan="2">${data.institutionName}</td>
+      <td colspan="2">اسم المؤسسة: <strong>${data.institutionName}</strong></td>
     </tr>
+    <!-- الرقم الضريبي -->
     <tr>
-      <td>الرقم الضريبي للمؤسسة: <strong>${data.institutionTaxNumber}</strong></td>
-      <td class="left-cell">تاريخ اصدار الفاتورة: <strong>${data.invoiceDate}</strong></td>
+      <td class="lbl">الرقم الضريبي</td>
+      <td class="val sep">${data.institutionTaxNumber}</td>
     </tr>
-    <tr class="full">
-      <td colspan="2">${data.institutionAddress}</td>
+    <!-- فاتورة ضريبية مبسطة -->
+    <tr class="title-row">
+      <td colspan="2">فاتورة ضريبية مبسطة</td>
     </tr>
+    <!-- رقم الفاتورة -->
     <tr>
-      <td>رقم الجوال: <strong>${data.customerPhone ?? "—"}</strong></td>
-      <td class="left-cell">اسم العميل: <strong>${data.customerName ?? "—"}</strong></td>
+      <td class="lbl">رقم الفاتورة</td>
+      <td class="val sep">${data.invoiceNumber}</td>
+    </tr>
+    <!-- الوقت / التاريخ -->
+    <tr>
+      <td class="lbl">الوقت / التاريخ</td>
+      <td class="val sep">${data.invoiceDate}</td>
+    </tr>
+    <!-- اسم العميل -->
+    <tr>
+      <td class="lbl">اسم العميل</td>
+      <td class="val sep">${data.customerName ?? "—"}</td>
+    </tr>
+    <!-- رقم الجوال -->
+    <tr>
+      <td class="lbl">رقم الجوال</td>
+      <td class="val sep">${data.customerPhone ?? "—"}</td>
     </tr>
   </table>
 
@@ -281,14 +290,13 @@ export function printInvoice(data: InvoiceData): void {
   </table>
 
   <!-- FOOTER -->
+  <div class="footer-row">عنوان المؤسسة: ${data.institutionAddress}</div>
   <div class="footer-row">رقم جوال المؤسسة: ${data.institutionPhone}</div>
   <div class="footer-row">ملاحظات علي الفاتورة: ${data.notes ?? ""}</div>
 
   <!-- QR -->
   <div class="qr-wrap">
-    ${data.qrCodeUrl
-      ? `<img src="${data.qrCodeUrl}" alt="QR"/>`
-      : `<canvas id="qr" width="90" height="90"></canvas>`}
+    ${data.qrCodeUrl ? `<img src="${data.qrCodeUrl}" alt="QR"/>` : `<canvas id="qr" width="90" height="90"></canvas>`}
   </div>
 
 </div>

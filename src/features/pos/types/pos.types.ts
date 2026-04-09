@@ -90,7 +90,14 @@ export interface OrderItem {
   lineTotal: number;
 }
 
-export interface OrderPayment {}
+export interface OrderPayment {
+  id: number;
+  paymentNumber: number;
+  amount: number;
+  paymentMethod: string;
+  paymentDate: string;
+  notes: string;
+}
 
 export interface Order {
   id: number;

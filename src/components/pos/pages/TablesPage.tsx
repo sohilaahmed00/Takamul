@@ -174,14 +174,14 @@ export default function TablesPage() {
                             qty: item.quantity,
                             note: "",
                             taxamount: item.taxAmount,
-                            taxCalculation: 3,
+                            taxCalculation: item?.taxCalculation,
                             op: null,
                             itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
                             extras: [],
                           })),
                         );
                         setDineInMode("add-items");
-                        setSelectedOrderId(detailsOrder.id);
+                        // setSelectedOrderId(detailsOrder.id);
                         setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
                         setOrderType("dine-in");
                         setSelectedTable2(String(selectedTable));
@@ -203,14 +203,14 @@ export default function TablesPage() {
                             qty: item.quantity,
                             note: "",
                             taxamount: item.taxAmount,
-                            taxCalculation: 3,
+                            taxCalculation: item?.taxCalculation,
                             op: null,
                             itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
                             extras: [],
                           })),
                         );
                         setDineInMode("checkout");
-                        setSelectedOrderId(detailsOrder.id);
+                        // setSelectedOrderId(detailsOrder.id);
                         setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
                         setOrderType("dine-in");
                         setSelectedTable2(String(selectedTable));
