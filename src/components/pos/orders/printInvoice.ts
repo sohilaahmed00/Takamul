@@ -57,11 +57,11 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   * { margin:0; padding:0; box-sizing:border-box;
       -webkit-print-color-adjust:exact !important;
       print-color-adjust:exact !important; }
-  @page { size: 80mm auto; margin: 0; }
+  @page { size: 80mm auto; margin: 3mm 5mm; }
 
 
   html, body {
-    width: 80mm;
+    width:100%;
     font-family: 'Tajawal','Tahoma',Arial,sans-serif;
     font-size: 7.5pt;
     color: #000;
