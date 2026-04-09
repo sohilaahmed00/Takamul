@@ -46,7 +46,7 @@ export async function printHtmlSilently(html: string): Promise<void> {
     {
       type: "html",
       format: "plain",
-      data: html,
+      data: cleanHtml(html),
     },
   ]);
 }
