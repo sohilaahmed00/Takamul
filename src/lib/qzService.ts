@@ -33,12 +33,11 @@ export async function printHtmlSilently(html: string): Promise<void> {
       left: 5,
       right: 5,
     },
-    scaleContent: false,
-    rasterize: false,
+    scaleContent: true,
+    rasterize: true,
     size: {
       width: 80,
       units: "mm",
-      custom: true,
     },
   });
 
