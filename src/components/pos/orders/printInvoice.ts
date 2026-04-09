@@ -56,7 +56,7 @@ export function printInvoice(data: InvoiceData): void {
       -webkit-print-color-adjust:exact !important;
       print-color-adjust:exact !important; }
 
-  @page { size: 80mm auto; margin: 3mm 5mm; }
+  @page { size: 80mm auto; margin: 3mm 0mm; }
 
   html, body {
     width: 100%;
@@ -149,9 +149,9 @@ export function printInvoice(data: InvoiceData): void {
   .items-table th:nth-child(3),
   .items-table td:nth-child(3) { width:14%; }
   .items-table th:nth-child(4),
-  .items-table td:nth-child(4) { width:18%; }
+  .items-table td:nth-child(4) { width:22%; }
   .items-table th:nth-child(5),
-  .items-table td:nth-child(5) { width:24%; }
+  .items-table td:nth-child(5) { width:20%; }
 
   /* ── TOTALS TABLE ── */
   .totals-table {
