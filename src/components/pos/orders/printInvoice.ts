@@ -78,15 +78,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   .page { width:100%; display:flex; flex-direction:column; gap:0; }
 
   /* ── LOGO ── */
-  .logo {
-    text-align: center;
-    font-size: 18pt;
-    font-weight: 900;
-    padding: 6px 4px 8px;
-    border: 1.5px solid #333;
-    background: #d9d9d9 !important;
-  }
-  .logo img { max-height:44px; max-width:100%; object-fit:contain; }
+
 
   /* ── INFO GRID ── */
   .info-grid {
