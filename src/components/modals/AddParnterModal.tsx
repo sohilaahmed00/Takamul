@@ -302,18 +302,14 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
       if (partner) {
         if (isSupplier) {
           await updateSupplier({ id: partner.id, data: payload as createSupplier });
-          notifySuccess(t("supplier_updated_successfully"));
         } else {
           await updateCustomer({ id: partner.id, data: payload as createCustomer });
-          notifySuccess(t("customer_updated_successfully"));
         }
       } else {
         if (isSupplier) {
           await createSupplier(payload as createSupplier);
-          notifySuccess(t("supplier_added_successfully"));
         } else {
           await createCustomer(payload as createCustomer);
-          notifySuccess(t("customer_added_successfully"));
         }
       }
 
@@ -334,7 +330,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
           </DialogTitle>
         </DialogHeader>
 
-        <form id="addPartnerForm" onSubmit={form.handleSubmit(onSubmit)} className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
+        <form id="addPartnerForm" onSubmit={form.handleSubmit(onSubmit, (erors) => console.log(erors))} className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-2">
             <Controller
               name="name"
@@ -504,7 +500,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                 />
 
                 <Controller
-                  name="address"
+                  name="streetName"
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>

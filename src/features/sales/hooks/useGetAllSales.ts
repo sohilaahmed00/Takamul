@@ -3,9 +3,9 @@ import { salesKeys } from "../keys/sales.keys";
 import { getAllSalesOrders } from "../services/sales";
 import type { GetAllSalesOrderResponse } from "../types/sales.types";
 
-export const useGetAllSales = (page: number, limit: number) =>
+export const useGetAllSales = ({ page, limit, OrderType }: { page: number; limit: number; OrderType?: "POS" | "A4" }) =>
   useQuery<GetAllSalesOrderResponse>({
-    queryKey: salesKeys.list({ page, limit }),
-    queryFn: () => getAllSalesOrders(page, limit),
+    queryKey: salesKeys.list({ page, limit, OrderType }),
+    queryFn: () => getAllSalesOrders(page, limit, OrderType),
     placeholderData: keepPreviousData,
   });

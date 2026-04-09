@@ -1,5 +1,5 @@
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
-import { Home, Users, LayoutGrid, DollarSign, ClipboardList, BarChart2, Settings } from "lucide-react";
+import { Home, LayoutGrid, ClipboardList } from "lucide-react";
 
 export const NAV_ITEMS = [
   { id: "home", icon: Home, label: "Home" },
@@ -21,15 +21,19 @@ export type Screen = "home" | "customers" | "tables" | "cashier" | "orders" | "r
 
 export interface CartExtra {
   name: string;
+  nameEn?: string;
+  nameUr?: string;
   id: number;
 }
 
 export interface CartItem {
-  productId: number;
-  name: string;
+  productId?: number;
+  name?: string;
+  productNameEn?: string;
+  productNameUr?: string;
   price: number;
   qty: number;
-  note: string;
+  note?: string;
   taxamount: number;
   op?: number | null;
   itemDiscount?: { type: "pct" | "flat"; value: number } | null;
@@ -46,27 +50,27 @@ export interface HeldCart {
 
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
 
-export function itemBasePrice(item: CartItem): number {
+export function itemBasePriceRaw(item: Omit<CartItem, "name" | "op" | "productId" | "note">): number {
   const base = item.price * item.qty;
   const rate = (item.taxamount ?? 0) / 100;
+  return item.taxCalculation === 2 ? base / (1 + rate) : base;
+  // بدون خصم
+}
 
-  // استخرج السعر قبل الضريبة أولاً
-  const baseBeforeTax = item.taxCalculation === 2 ? base / (1 + rate) : base;
-
-  // طبّق الخصم على السعر قبل الضريبة
+export function itemBasePrice(item: Omit<CartItem, "name" | "op" | "productId" | "note">): number {
+  const baseBeforeTax = itemBasePriceRaw(item);
   if (item.itemDiscount) {
     const disc = item.itemDiscount.type === "pct" ? baseBeforeTax * (item.itemDiscount.value / 100) : item.itemDiscount.value;
     return Math.max(0, baseBeforeTax - disc);
   }
-
   return baseBeforeTax;
 }
+
 export function calcItemTax(item: CartItem): number {
   const rate = (item.taxamount ?? 0) / 100;
 
   if (!item.taxCalculation || item.taxCalculation === 1) return 0;
 
-  // الضريبة تتحسب على السعر قبلها بعد الخصم
   const basePrice = itemBasePrice(item);
 
   if (item.taxCalculation === 2 || item.taxCalculation === 3) {
@@ -83,23 +87,29 @@ export function itemTotal(item: CartItem): number {
 export function calcTotals(cart: CartItem[], discount: number) {
   const sub = cart.reduce((s, item) => s + itemBasePrice(item), 0);
   const originalTax = cart.reduce((s, item) => s + calcItemTax(item), 0);
+  const itemDiscountsTotal = cart.reduce((s, item) => s + (itemBasePriceRaw(item) - itemBasePrice(item)), 0);
 
   const subAfterDiscount = Math.max(0, sub - discount);
-
-  // نسبة الخصم من الـ subtotal
   const discountRatio = sub > 0 ? discount / sub : 0;
 
-  // كل item يتطبق عليه الخصم بنفس النسبة، والضريبة تتحسب على سعره بعد الخصم
   const tax = parseFloat(
-    cart.reduce((s, item) => {
-      const rate = (item.taxamount ?? 0) / 100;
-      const itemBase = itemBasePrice(item);
-      const itemBaseAfterDiscount = itemBase * (1 - discountRatio);
-      return s + itemBaseAfterDiscount * rate;
-    }, 0).toFixed(2)
+    cart
+      .reduce((s, item) => {
+        const rate = (item.taxamount ?? 0) / 100;
+        const itemBaseAfterDiscount = itemBasePrice(item) * (1 - discountRatio);
+        return s + itemBaseAfterDiscount * rate;
+      }, 0)
+      .toFixed(2),
   );
 
   const total = parseFloat((subAfterDiscount + tax).toFixed(2));
 
-  return { sub, tax, total, originalTax };
+  return {
+    sub,
+    subAfterDiscount,
+    tax,
+    total,
+    originalTax,
+    itemDiscountsTotal,
+  };
 }

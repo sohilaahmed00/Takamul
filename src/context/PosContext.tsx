@@ -1,5 +1,5 @@
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import { calcTotals, type CartItem, type HeldCart, type Screen, type OrderType, type NetworkSpeed } from "@/constants/data";
+import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from "react";
+import { calcTotals, type CartItem, type HeldCart, type Screen, type OrderType, type NetworkSpeed, itemBasePrice, calcItemTax, itemBasePriceRaw } from "@/constants/data";
 import { Customer } from "@/features/customers/types/customers.types";
 import { useCreateTakwayOrder } from "@/features/pos/hooks/useCreateTakeawayOrder";
 import { CreateTakeawayOrder } from "@/features/pos/types/pos.types";
@@ -9,6 +9,8 @@ import useToast from "@/hooks/useToast";
 import { useCreateDeliveryOrder } from "@/features/pos/hooks/useCreateDeliveryOrder";
 import { useCheckoutDineInOrder, useCreateDineInOrder } from "@/features/pos/hooks/useCreateDineInOrder";
 import { checkoutDineInOrder } from "@/features/pos/services/pos";
+import { useUpdateDineInOrder } from "@/features/pos/hooks/useUpdateDineInOrder";
+import { InvoiceData, printInvoice } from "@/components/pos/orders/printInvoice";
 
 // ─── CONTEXT SHAPE ────────────────────────────────────────────────────────────
 interface PosContextValue {
@@ -59,9 +61,19 @@ interface PosContextValue {
   networkSpeed: NetworkSpeed;
 
   handleCreateDineInOrder: () => Promise<void>;
+
+  selectedOrderId: number | null;
+  setSelectedOrderId: (id: number | null) => void;
+  handleAddItemsToExistingOrder: () => Promise<void>;
+
+  dineInMode: DineInMode;
+  setDineInMode: (m: DineInMode) => void;
+  search: string;
+  setSearch: (m: string) => void;
 }
 
 const PosContext = createContext<PosContextValue | null>(null);
+export type DineInMode = "new-order" | "add-items" | "checkout" | null;
 
 export function PosProvider({ children }: { children: ReactNode }) {
   const [screen, setScreen] = useState<Screen>("home");
@@ -84,7 +96,17 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const { mutateAsync: checkoutDineInOrder } = useCheckoutDineInOrder();
   const [selectedGiftCardId, setSelectedGiftCardId] = useState<number | null>(null);
   const [selectedVaultId, setSelectedVaultId] = useState<number | null>(null);
+  const { mutateAsync: addItemsToOrder } = useUpdateDineInOrder();
+  const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const [dineInMode, setDineInMode] = useState<DineInMode>(null);
+  const [search, setSearch] = useState("");
 
+  const INSTITUTION_NAME = "اسم المؤسسة";
+  const INSTITUTION_TAX_NO = "310XXXXXXXXX";
+  const INSTITUTION_ADDRESS = "عنوان المؤسسة";
+  const INSTITUTION_PHONE = "05XXXXXXXX";
+  const INSTITUTION_NOTES = "";
+  const LOGO_URL: string | undefined = undefined;
   useEffect(() => {
     const connection = (navigator as any).connection;
     if (!connection) return;
@@ -146,12 +168,12 @@ export function PosProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const handleCreateDineInOrder = async () => {
-    const items = cart.map((cat) => ({
-      productId: cat?.productId,
-      quantity: cat?.qty,
-      discountValue: cat?.itemDiscount?.type === "flat" ? cat?.itemDiscount?.value : 0,
-      discountPercentage: cat?.itemDiscount?.type === "pct" ? cat?.itemDiscount?.value : 0,
+  const handleCreateDineInOrder = useCallback(async () => {
+    const items = cart.map((c) => ({
+      productId: c.productId,
+      quantity: c.qty,
+      discountValue: c.itemDiscount?.type === "flat" ? c.itemDiscount.value : 0,
+      discountPercentage: c.itemDiscount?.type === "pct" ? c.itemDiscount.value : 0,
     }));
 
     const payload = {
@@ -169,12 +191,35 @@ export function PosProvider({ children }: { children: ReactNode }) {
     try {
       await createDineInOrderyOrder(payload);
       setCart([]);
+      setDineInMode(null);
       setDiscount(0);
       setSelectedCustomer(null);
       setScreen("home");
     } catch {
       // notifyError("حدث خطأ أثناء إنشاء الأوردر");
     }
+  }, [cart, discount, selectedCustomer, selectedTable, selectedGiftCardId]);
+  const handleAddItemsToExistingOrder = async () => {
+    const payload = {
+      orderId: selectedOrderId,
+      items: cart.map((c) => ({
+        productId: c.productId,
+        quantity: c.qty,
+        discountValue: c.itemDiscount?.type === "flat" ? c.itemDiscount.value : 0,
+        discountPercentage: c.itemDiscount?.type === "pct" ? c.itemDiscount.value : 0,
+      })),
+      additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
+      notes: "",
+    };
+
+    try {
+      await addItemsToOrder({ data: payload, id: selectedOrderId });
+      setCart([]);
+      setDiscount(0);
+      setSelectedOrderId(null);
+      setSelectedCustomer(null);
+      setScreen("home");
+    } catch {}
   };
   const handleConfirmPayment = async (method: string, amount: string) => {
     if (orderType !== "dine-in") {
@@ -188,7 +233,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
       {
         amount: paidAmount,
         treasuryId: 1,
-        // paymentMethod: "Cash",
         notes: "",
       },
     ];
@@ -216,8 +260,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
       if (orderType === "takeaway") {
         await createTakwayOrder(basePayload as CreateTakeawayOrder);
       } else if (orderType === "dine-in") {
-        const { payments, ...dineInPayload } = basePayload;
-
         await checkoutDineInOrder({
           tableId: Number(selectedTable),
           globalDiscountValue: 0,
@@ -231,8 +273,54 @@ export function PosProvider({ children }: { children: ReactNode }) {
             },
           ],
         });
+        setDineInMode(null);
       } else if (orderType === "delivery") {
         await createDeliveryOrder(basePayload);
+      }
+
+      if (orderType === "takeaway" || orderType === "delivery" || orderType === "dine-in") {
+        const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
+        const totals = calcTotals(cart, hasItemDiscounts ? 0 : discount);
+        const discountAmount = hasItemDiscounts
+          ? cart.reduce((acc, item) => {
+              const raw = itemBasePriceRaw(item);
+              const afterDisc = itemBasePrice(item);
+              return acc + (raw - afterDisc);
+            }, 0)
+          : discount;
+
+        const invoiceData: InvoiceData = {
+          logoUrl: LOGO_URL,
+          invoiceNumber: `—`,
+          institutionName: INSTITUTION_NAME,
+          institutionTaxNumber: INSTITUTION_TAX_NO,
+          invoiceDate: new Date().toLocaleDateString("ar-SA"),
+          institutionAddress: INSTITUTION_ADDRESS,
+          institutionPhone: INSTITUTION_PHONE,
+          customerName: selectedCustomer?.customerName ?? undefined,
+          customerPhone: undefined,
+
+          items: cart.map((item) => {
+            const base = itemBasePrice(item);
+            const tax = calcItemTax(item);
+            return {
+              productName: item.name,
+              quantity: item.qty,
+              unitPrice: Number(base.toFixed(2)),
+              taxAmount: Number(tax.toFixed(2)),
+              total: Number((base + tax).toFixed(2)),
+            };
+          }),
+
+          subTotal: Number(totals.sub.toFixed(2)),
+          discountAmount: Number(discountAmount.toFixed(2)),
+          taxAmount: totals.originalTax,
+          grandTotal: totals.total,
+          notes: INSTITUTION_NOTES,
+        };
+
+        // printInvoice(invoiceData);
+        printInvoice(invoiceData);
       }
 
       setSuccessInfo({ method, amount });
@@ -243,13 +331,20 @@ export function PosProvider({ children }: { children: ReactNode }) {
       setSelectedVaultId(null);
       setScreen("home");
     } catch (e) {
-      notifyError("حدث خطأ أثناء إتمام الطلب");
+      // notifyError("حدث خطأ أثناء إتمام الطلب");
     }
   };
 
   return (
     <PosContext.Provider
       value={{
+        search,
+        setSearch,
+        setDineInMode,
+        dineInMode,
+        handleAddItemsToExistingOrder,
+        selectedOrderId,
+        setSelectedOrderId,
         handleCreateDineInOrder,
         selectedVaultId,
         setSelectedVaultId,

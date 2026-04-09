@@ -28,11 +28,7 @@ const additionSchema = (t: (key: string) => string) =>
     additionNameUr: z.string().optional(),
   });
 
-export default function AdditionModal({
-  isOpen,
-  onClose,
-  addition,
-}: AdditionModalProps) {
+export default function AdditionModal({ isOpen, onClose, addition }: AdditionModalProps) {
   const { t, direction } = useLanguage();
   const { mutateAsync: createAddition } = useCreateAddition();
   const { mutateAsync: updateAddition } = useUpdateAddition();
@@ -77,11 +73,9 @@ export default function AdditionModal({
 
       if (!addition) {
         await createAddition(payload);
-        notifySuccess(t("addition_added_successfully"));
       } else {
         await updateAddition({ id: addition.id, data: payload });
-        notifySuccess(t("addition_updated_successfully"));
-      }
+        }
 
       form.reset();
       onClose();
@@ -100,11 +94,7 @@ export default function AdditionModal({
           </DialogTitle>
         </DialogHeader>
 
-        <form
-          id="additionForm"
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4"
-        >
+        <form id="additionForm" onSubmit={form.handleSubmit(onSubmit)} className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-2">
             <Controller
               name="additionNameAr"

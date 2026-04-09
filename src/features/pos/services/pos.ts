@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import { CheckoutDineInOrder, CreateDeliveryOrder, CreateDineInOrder, CreateTakeawayOrder, GetAllTablesResponse, GetOrderByTableIdResponse } from "../types/pos.types";
+import { CheckoutDineInOrder, CreateDeliveryOrder, CreateDineInOrder, CreateTakeawayOrder, GetAllTablesResponse, GetOrderByTableIdResponse, UpdateDineInOrder } from "../types/pos.types";
 
 // ===================
 // GET
@@ -26,6 +26,11 @@ export const createDeliveryOrder = (data: CreateDeliveryOrder) =>
 export const createDineInOrder = (data: CreateDineInOrder) =>
   httpClient<{ message: string }>("/sales-orders/pos/indine", {
     method: "POST",
+    data,
+  });
+export const updateDineInOrder = ({ data, id }: { data: UpdateDineInOrder; id: number }) =>
+  httpClient<{ message: string }>(`/sales-orders/pos/in-dine/${id}`, {
+    method: "PUT",
     data,
   });
 export const checkoutDineInOrder = (data: CheckoutDineInOrder) =>

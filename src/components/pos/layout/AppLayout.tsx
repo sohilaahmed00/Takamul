@@ -72,7 +72,7 @@ export default function AppLayout() {
           {/* Page takes all remaining horizontal space */}
           <TooltipProvider>
             {/* Page */}
-            <div className="flex-1 overflow-y-auto min-w-0 p-4 bg-gray-50">
+            <div className="flex-1 overflow-y-auto min-w-0 p-4 bg-[#f6f6f6]">
               <PageContent />
             </div>
 
