@@ -56,7 +56,7 @@ export function printInvoice(data: InvoiceData): void {
       -webkit-print-color-adjust:exact !important;
       print-color-adjust:exact !important; }
 
-  @page { size: 80mm auto; margin: 3mm 4mm; }
+  @page { size: 80mm auto; margin: 3mm 5mm; }
 
   html, body {
     width: 100%;
