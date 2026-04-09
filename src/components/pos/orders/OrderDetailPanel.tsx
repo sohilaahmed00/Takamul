@@ -1,7 +1,7 @@
 // OrderDetailPanel.tsx
 import { usePos } from "@/context/PosContext";
 import { useGetOrderByTableId } from "@/features/pos/hooks/useGetOrderByTableId";
-import { calcTotals, itemBasePrice } from "@/constants/data";
+import { calcItemTax, calcTotals, CartItem, itemBasePrice } from "@/constants/data";
 import { Printer } from "lucide-react";
 import { printInvoice } from "./printInvoice";
 import { useGetSalesOrderById } from "@/features/sales/hooks/useGetSalesOrderById";
@@ -18,52 +18,72 @@ const INSTITUTION_NOTES = "";
 const LOGO_URL: string | undefined = undefined;
 
 export default function OrderDetailPanel() {
-  const { selectedOrderId, cart } = usePos();
+  const { selectedOrderId } = usePos();
   const { data: order } = useGetSalesOrderById(Number(selectedOrderId));
   console.log(order);
-  const { sub, tax, total } = calcTotals(cart, 0);
 
   // ── Build print payload and open print window ─────────────────────────────
   const handlePrint = () => {
     if (!order) return;
+    const cart: CartItem[] = (order.items ?? []).map((item) => {
+      const pct = Number(item?.discountPercentage ?? 0);
+      const flat = Number(item?.discountValue ?? 0);
+      const itemDiscount: CartItem["itemDiscount"] = pct > 0 ? { type: "pct", value: pct } : flat > 0 ? { type: "flat", value: flat } : null;
+      return {
+        productId: item.productId ?? 0,
+        name: item.productName,
+        price: item.priceBeforeTax ?? 0,
+        qty: item.quantity ?? 1,
+        taxamount: item.taxAmount ?? 0,
+        taxCalculation: item.taxCalculation ?? 1,
+        itemDiscount,
+        note: "",
+        op: null,
+      };
+    });
+
+    const totals = calcTotals(cart, order.discountAmount ?? 0);
+
+    console.log(totals?.sub)
+    console.log(totals?.subAfterDiscount)
 
     const invoiceData = {
       logoUrl: LOGO_URL,
       invoiceNumber: order.orderNumber ?? "—",
       institutionName: INSTITUTION_NAME,
       institutionTaxNumber: INSTITUTION_TAX_NO,
-      // Format date: if orderDate is ISO string, format it nicely
+
       invoiceDate: order.orderDate ? formatDate(order.orderDate) : new Date().toLocaleDateString("ar-SA"),
+
       institutionAddress: INSTITUTION_ADDRESS,
       institutionPhone: INSTITUTION_PHONE,
 
       customerName: order.customerName ?? undefined,
-      customerPhone: undefined, // add if your API returns it
+      customerPhone: undefined,
 
-      items: (order.items ?? []).map((item) => {
-        const priceBeforeTax = item.priceBeforeTax ?? 0;
-        const qty = item.quantity ?? 1;
-        const taxAmt = item.taxAmount ?? 0; // per-unit tax if available
+      items: cart.map((item) => {
+        const base = itemBasePrice(item);
+        const tax = calcItemTax(item);
         return {
-          productName: item.productName,
-          quantity: qty,
-          unitPrice: priceBeforeTax,
-          taxAmount: parseFloat((taxAmt * qty).toFixed(2)),
-          total: item?.lineTotal,
+          productName: item.name,
+          quantity: item.qty,
+          unitPrice: Number(base.toFixed(2)),
+          taxAmount: Number(tax.toFixed(2)),
+          total: Number((base + tax).toFixed(2)),
+          itemDiscount: item.itemDiscount,
         };
       }),
 
-      subTotal: order.subTotal ?? 0,
-      discountAmount: order.discountAmount ?? 0,
-      taxAmount: order.taxAmount ?? 0,
-      grandTotal: order.grandTotal ?? 0,
+      subTotal: Number(totals.sub.toFixed(2)),
+      discountAmount: Number((totals.sub - totals.subAfterDiscount).toFixed(2)),
+      taxAmount: totals.originalTax,
+      grandTotal: Number((totals.sub + totals.originalTax).toFixed(2)),
 
       notes: INSTITUTION_NOTES,
     };
 
     printInvoice(invoiceData);
   };
-
   const computedSubTotal = order?.items?.reduce((sum, item) => {
     const cartItem = {
       productId: item.productId,

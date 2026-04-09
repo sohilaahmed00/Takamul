@@ -233,8 +233,7 @@ export default function CartPanel() {
   const [openDialog, setOpenDialog] = useState(false);
   const { data: customers, isLoading: loadingCustomers } = useGetAllCustomers({ page: 1, limit: 100 });
   const { data: additions } = useGetAllAdditions();
-  const { sub, tax: taxAfterDiscount, total } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
-  const { tax: originalTax } = useMemo(() => calcTotals(cart, 0), [cart]);
+  const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const { notifyError, notifySuccess } = useToast();
 
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
@@ -348,8 +347,8 @@ export default function CartPanel() {
               {cart?.map((item, idx) => {
                 const total = itemTotal(item);
                 const hasDisc = !!item.itemDiscount && item.itemDiscount.value > 0;
-                const origTotal = item.price * item.qty;
-
+                const itemWithoutDisc = { ...item, itemDiscount: null };
+                const origBasePrice = itemBasePrice(itemWithoutDisc);
                 return (
                   <div key={idx} className={`${GRID} py-2 items-center border-b border-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-[#f6f6f6]"}`}>
                     {/* # */}
@@ -372,7 +371,7 @@ export default function CartPanel() {
                     </div>
                     {/* السعر قبل الضريبة */}
                     <div className="text-right">
-                      {hasDisc && <div className="text-[10px] text-gray-300 line-through">${origTotal.toFixed(2)}</div>}
+                      {hasDisc && <div className="text-[10px] text-gray-300 line-through">${origBasePrice.toFixed(2)}</div>}
                       <div className="text-xs font-semibold text-gray-700">${itemBasePrice(item).toFixed(2)}</div>
                     </div>
                     {/* ض.ق.م */}
@@ -431,7 +430,7 @@ export default function CartPanel() {
                 <span>{t("subtotal")}</span>
                 <div className="flex items-center gap-1.5">
                   {discount > 0 && <span className="text-gray-300 line-through text-[10px]">${sub?.toFixed(2)}</span>}
-                  <span className="font-semibold text-gray-800">${Math.max(0, sub - discount).toFixed(2)}</span>
+                  <span className="font-semibold text-gray-800">${subAfterDiscount.toFixed(2)}</span>
                 </div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">

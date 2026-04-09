@@ -326,8 +326,8 @@ export function printInvoice(data: InvoiceData): void {
     if(pat[r][cc]) ctx.fillRect(Math.round(cc*cell),Math.round(r*cell),Math.round(cell)-1,Math.round(cell)-1);
 })();
 document.fonts.ready.then(function(){ 
-  window.print(); 
-  window.close(); 
+  // window.print(); 
+  // window.close(); 
 });
 </script>
 </body>
