@@ -67,7 +67,7 @@ export default function OrdersPage() {
           header="Total Sales"
           sortable
           body={(row: SalesOrder) => (
-            <span className="flex items-center gap-1">
+            <span className="inline-flex items-center gap-1">
               {row.grandTotal.toFixed(2)}
               <SaudiRiyal size={12} />
             </span>

@@ -7,6 +7,7 @@ import { CreditCard, Plus } from "lucide-react";
 import { usePos } from "@/context/PosContext";
 import { useGetOrderByTableId } from "@/features/pos/hooks/useGetOrderByTableId";
 import { Customer } from "@/features/customers/types/customers.types";
+import { useLanguage } from "@/context/LanguageContext";
 
 type TableStatus = "Free" | "Occupied";
 type FilterType = "all" | "Free" | "Occupied";
@@ -91,6 +92,7 @@ export function TableCard({ table, selected, onClick }: TableCardProps) {
 }
 
 export default function TablesPage() {
+  const { t } = useLanguage();
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const { data: tables } = useGetAllTables();
@@ -113,32 +115,31 @@ export default function TablesPage() {
           <TabsList className="bg-transparent gap-2 p-0">
             {(["all", "Free", "Occupied"] as FilterType[]).map((v) => (
               <TabsTrigger key={v} value={v} className="rounded-lg border border-transparent data-[state=active]:border-primary data-[state=active]:text-primary data-[state=active]:bg-transparent data-[state=active]:shadow-none! text-gray-500 text-xs capitalize">
-                {v === "all" ? "All Tables" : v.charAt(0).toUpperCase() + v.slice(1)}
+                {v === "all" ? t("all_tables") : v === "Free" ? t("table_free") : t("table_occupied")}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
-        <div className="flex items-center justify-between">
+        {/* <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-xs text-primary">
-            {/* <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center text-[10px] font-bold">
+            <div className="w-4 h-4 rounded-full border-2 border-primary flex items-center justify-center text-[10px] font-bold">
               i
-            </div> */}
-            {/* Tables visible are for 4–6 guests occupancy. */}
+            </div>
           </div>
-          <button className="text-xs font-bold text-primary">Show all tables</button>
-        </div>
+          <button className="text-xs font-bold text-primary">{t("show_all_tables")}</button>
+        </div> */}
       </div>
 
       {/* Table grid */}
-      <div className="grid grid-cols-5 gap-3 mt-4 flex-1 overflow-y-auto">{filtered.length === 0 ? <div className="col-span-5 flex items-center justify-center text-gray-400 text-sm py-12">No tables found</div> : filtered?.map((t) => <TableCard key={t.id} table={t} selected={selectedTable === t.id} onClick={() => setSelectedTable(selectedTable === t.id ? null : t.id)} />)}</div>
+      <div className="grid grid-cols-5 gap-3 mt-4 flex-1 overflow-y-auto">{filtered.length === 0 ? <div className="col-span-5 flex items-center justify-center text-gray-400 text-sm py-12">{t("no_tables_found")}</div> : filtered?.map((t) => <TableCard key={t.id} table={t} selected={selectedTable === t.id} onClick={() => setSelectedTable(selectedTable === t.id ? null : t.id)} />)}</div>
 
       {/* Footer */}
       <div className="bg-white border-t border-gray-100 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           {(
             [
-              ["bg-green-500", "Vacant"],
-              ["bg-red-500", "Occupied"],
+              ["bg-green-500", t("table_free")],
+              ["bg-red-500", t("table_occupied")],
             ] as [string, string][]
           ).map(([c, l]) => (
             <div key={l} className="flex items-center gap-1.5 text-xs text-gray-500">
@@ -157,7 +158,7 @@ export default function TablesPage() {
               <div className="flex items-center gap-3">
                 <div>
                   <div className="text-sm font-black text-gray-800"> {selectedTable}</div>
-                  <div className="text-xs text-gray-400">{table?.currentOrderId ? `Order #${table.currentOrderId}` : "Free"}</div>
+                  <div className="text-xs text-gray-400">{table?.currentOrderId ? `${t("order_hash")}${table.currentOrderId}` : t("table_free")}</div>
                 </div>
 
                 {isOccupied ? (
@@ -188,7 +189,7 @@ export default function TablesPage() {
                         setScreen("home");
                       }}
                     >
-                      <Plus size={14} /> Add Products
+                      <Plus size={14} /> {t("add_products")}
                     </Button>
                     <Button
                       size="xl"
@@ -217,7 +218,7 @@ export default function TablesPage() {
                         setScreen("home");
                       }}
                     >
-                      <CreditCard size={14} /> Proceed to Payment
+                      <CreditCard size={14} /> {t("proceed_to_payment")}
                     </Button>
                   </>
                 ) : (
@@ -232,7 +233,7 @@ export default function TablesPage() {
                       setScreen("home");
                     }}
                   >
-                    Select &amp; Place Order
+                    {t("select_and_place_order")}
                   </Button>
                 )}
               </div>

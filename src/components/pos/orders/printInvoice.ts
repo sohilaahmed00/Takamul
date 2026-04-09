@@ -30,7 +30,7 @@ export interface InvoiceData {
 export function printInvoice(data: InvoiceData): void {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
   const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
-
+  const riyal = `ر.س`;
   const itemRows = data.items
     .map(
       (item) => `
@@ -93,7 +93,7 @@ export function printInvoice(data: InvoiceData): void {
     line-height: 1.5;
     vertical-align: middle;
       border: 1px solid #bbb; 
-  font-weight: 700; 
+  font-weight: bold; 
     word-break: break-word;
   }
   .info-grid .full td {
@@ -111,8 +111,10 @@ export function printInvoice(data: InvoiceData): void {
     border: 0.8px solid #bbb;
     padding: 4px;
   }
-  .info-grid td.lbl { color: #333;
-  text-align: right;  }
+  .info-grid td.lbl { 
+  color: #333;
+  text-align: right;
+    }
   .info-grid td.val { font-weight: 700;  }
   .sep { border-left: 1.5px solid #555 !important; }
 
@@ -144,11 +146,11 @@ export function printInvoice(data: InvoiceData): void {
   }
   .td-name { text-align:right !important; padding-right:3px !important; }
   .items-table th:nth-child(1),
-  .items-table td:nth-child(1) { width:30%; }
+  .items-table td:nth-child(1) { width:34%; }
   .items-table th:nth-child(2),
   .items-table td:nth-child(2) { width:10%; }
   .items-table th:nth-child(3),
-  .items-table td:nth-child(3) { width:18%; }
+  .items-table td:nth-child(3) { width:14%; }
   .items-table th:nth-child(4),
   .items-table td:nth-child(4) { width:18%; }
   .items-table th:nth-child(5),
@@ -271,23 +273,23 @@ export function printInvoice(data: InvoiceData): void {
   <table class="totals-table">
     <tr>
       <td>عدد المنتجات</td>
-      <td><span dir="ltr">عدد ${totalQty}</span></td>
+      <td><span >عدد ${totalQty}</span></td>
     </tr>
     <tr>
       <td>اجمالي السعر قبل الضريبة</td>
-      <td><span dir="ltr">${fmt(data.subTotal)} &#65020;</span></td>
+      <td><span >${fmt(data.subTotal)} ${riyal}</span></td>
     </tr>
     <tr>
       <td>اجمالي الخصم</td>
-      <td><span dir="ltr">${fmt(data.discountAmount)} &#65020;</span></td>
+      <td><span >${fmt(data.discountAmount)} ${riyal}</span></td>
     </tr>
     <tr>
       <td>اجمالي ضريبة القيمة المضافة</td>
-      <td><span dir="ltr">${fmt(data.taxAmount)} &#65020;</span></td>
+      <td><span >${fmt(data.taxAmount)} ${riyal}</span></td>
     </tr>
     <tr>
       <td>الاجمالي النهائي</td>
-      <td><span dir="ltr">${fmt(data.grandTotal)} &#65020;</span></td>
+      <td><span >${fmt(data.grandTotal)} ${riyal}</span></td>
     </tr>
   </table>
 

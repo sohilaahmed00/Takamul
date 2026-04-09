@@ -1481,5 +1481,14 @@
   "change": "Change",
   "remaining": "Remaining",
   "tap": "○ TAP",
-  "total_entered": "Total Entered"
+  "total_entered": "Total Entered",
+  "all_tables": "All Tables",
+  "table_free": "Free",
+  "table_occupied": "Occupied",
+  "show_all_tables": "Show all tables",
+  "no_tables_found": "No tables found",
+  "order_hash": "Order #",
+  "add_products": "Add Products",
+  "proceed_to_payment": "Proceed to Payment",
+  "select_and_place_order": "Select & Place Order"
 }

@@ -5,6 +5,7 @@ import { calcTotals, itemBasePrice } from "@/constants/data";
 import { Printer } from "lucide-react";
 import { printInvoice } from "./printInvoice";
 import { useGetSalesOrderById } from "@/features/sales/hooks/useGetSalesOrderById";
+import formatDate from "@/lib/formatDate";
 
 // ── Configurable institution data ────────────────────────────────────────────
 // Replace these constants with values from your settings/store context if available
@@ -32,7 +33,7 @@ export default function OrderDetailPanel() {
       institutionName: INSTITUTION_NAME,
       institutionTaxNumber: INSTITUTION_TAX_NO,
       // Format date: if orderDate is ISO string, format it nicely
-      invoiceDate: order.orderDate ? new Date(order.orderDate).toLocaleDateString("ar-SA") : new Date().toLocaleDateString("ar-SA"),
+      invoiceDate: order.orderDate ? formatDate(order.orderDate) : new Date().toLocaleDateString("ar-SA"),
       institutionAddress: INSTITUTION_ADDRESS,
       institutionPhone: INSTITUTION_PHONE,
 

@@ -1429,5 +1429,14 @@
   "change": "بقیہ",
   "remaining": "بقیہ رقم",
   "tap": "○ تھپتھپائیں",
-  "total_entered": "کل درج شدہ"
+  "total_entered": "کل درج شدہ",
+  "all_tables": "تمام میزیں",
+  "table_free": "مفت",
+  "table_occupied": "مصروف",
+  "show_all_tables": "تمام میزیں دکھائیں",
+  "no_tables_found": "کوئی میز نہیں ملی",
+  "order_hash": "آرڈر #",
+  "add_products": "مصنوعات شامل کریں",
+  "proceed_to_payment": "ادائیگی کی طرف بڑھیں",
+  "select_and_place_order": "منتخب کریں اور آرڈر دیں"
 }
