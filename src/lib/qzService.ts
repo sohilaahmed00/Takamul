@@ -29,15 +29,15 @@ export async function printHtmlSilently(html: string): Promise<void> {
     copies: 1,
     margins: { top: 0, bottom: 0, left: 0, right: 0 },
     scaleContent: false,
-    rasterize: false,
+    rasterize: true,
     size: { width: 80, units: "mm" },
   });
 
   await qz.print(config, [
     {
       type: "html",
-      format: "file",
-      data: "data:text/html;base64," + btoa(unescape(encodeURIComponent(cleanHtml(html)))),
+      format: "plain",
+      data: cleanHtml(html),
     },
   ]);
 }
