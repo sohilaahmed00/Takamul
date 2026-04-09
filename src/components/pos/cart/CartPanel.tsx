@@ -356,7 +356,7 @@ export default function CartPanel() {
                     <span className="text-xs text-gray-400 font-medium">{idx + 1}</span>
                     {/* الاسم */}
                     <div className="min-w-0 overflow-hidden">
-                      <div className="text-xs font-bold text-gray-800 ">بنطلون جنز جبردين ابيض  رصاصي محمر </div>
+                      <div className="text-xs font-bold text-gray-800 ">{item?.name}</div>
                       {(item.extras ?? []).length > 0 && <div className="text-[10px] text-gray-400">+ {item.extras!.map((e) => e.name).join("، ")}</div>}
                       {hasDisc && <div className="text-[10px] text-primary font-semibold">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% ${t("off")}` : `-$${item.itemDiscount!.value.toFixed(2)}`}</div>}
                     </div>
