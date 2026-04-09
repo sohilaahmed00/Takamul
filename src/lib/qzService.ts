@@ -5,7 +5,7 @@ import { sha256 } from "js-sha256";
 qz.api.setSha256Type((data: any) => sha256(data));
 qz.api.setPromiseType((resolver: any) => new Promise(resolver));
 
-// مؤقت (بدون certificate)
+// بدون certificate (مؤقت)
 qz.security.setCertificatePromise((resolve: any) => resolve(""));
 qz.security.setSignaturePromise(() => (resolve: any) => resolve(""));
 
@@ -16,40 +16,35 @@ async function connect() {
   }
 }
 
-// تنظيف HTML
-function cleanHtml(html: string) {
-  return html.replace(/window\.print\(\);?/g, "").replace(/window\.close\(\);?/g, "");
-}
+// 🧪 طباعة تجريبية (RAW - مضمون)
+export async function printTest(): Promise<void> {
+  try {
+    await connect();
 
-// الطباعة
-export async function printHtmlSilently(html: string): Promise<void> {
-  await connect();
+    const printer = await qz.printers.getDefault();
 
-  const printer = await qz.printers.getDefault();
+    const config = qz.configs.create(printer);
 
-  const config = qz.configs.create(printer, {
-    copies: 1,
-    margins: 0,
+    const data =
+      "\x1B\x40" + // init
+      "\x1B\x61\x01" + // center
+      "TEST PRINT\n" +
+      "\x1B\x61\x00" + // left
+      "Hello Ahmed\n" +
+      "----------------\n" +
+      "Total: 15\n\n\n" +
+      "\x1D\x56\x00"; // cut
 
-    scaleContent: true, // 👈 مهم هنا
+    await qz.print(config, [
+      {
+        type: "raw",
+        format: "plain",
+        data: data,
+      },
+    ]);
 
-    rasterize: true, // 👈 أهم تعديل
-
-    density: 203,
-
-    size: {
-      width: 80,
-      height: 200,
-      units: "mm",
-      custom: true,
-    },
-  });
-
-  await qz.print(config, [
-    {
-      type: "html",
-      format: "plain",
-      data: cleanHtml(html),
-    },
-  ]);
+    console.log("✅ Printed successfully");
+  } catch (err) {
+    console.error("❌ Print Error:", err);
+  }
 }

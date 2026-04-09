@@ -11,6 +11,7 @@ import { useCheckoutDineInOrder, useCreateDineInOrder } from "@/features/pos/hoo
 import { checkoutDineInOrder } from "@/features/pos/services/pos";
 import { useUpdateDineInOrder } from "@/features/pos/hooks/useUpdateDineInOrder";
 import { InvoiceData, printInvoice } from "@/components/pos/orders/printInvoice";
+import { printTest } from "@/lib/qzService";
 
 // ─── CONTEXT SHAPE ────────────────────────────────────────────────────────────
 interface PosContextValue {
@@ -319,7 +320,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
           notes: INSTITUTION_NOTES,
         };
 
-        printInvoice(invoiceData);
+        // printInvoice(invoiceData);
+        printTest()
       }
 
       setSuccessInfo({ method, amount });
