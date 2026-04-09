@@ -1,7 +1,6 @@
 import * as qz from "qz-tray";
 import { sha256 } from "js-sha256";
 
-// ── Setup مرة واحدة ──
 qz.api.setSha256Type((data: any) => sha256(data));
 qz.api.setPromiseType((resolver: any) => new Promise(resolver));
 
@@ -22,6 +21,8 @@ export async function printHtmlSilently(html: string): Promise<void> {
   const config = qz.configs.create(printer, {
     colorType: "blackwhite",
     copies: 1,
+    size: { width: 80, height: 0, units: "mm" },
+    scaleContent: false,
   });
 
   await qz.print(config, [
@@ -30,7 +31,7 @@ export async function printHtmlSilently(html: string): Promise<void> {
       format: "html",
       flavor: "plain",
       data: html,
-      options: { pageWidth: 80 },
+      options: { pageWidth: 72, pageHeight: 0, units: "mm" },
     },
   ]);
 }

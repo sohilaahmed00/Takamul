@@ -1,4 +1,3 @@
-// printInvoice.ts — thermal 80mm — matches design exactly
 import { printHtmlSilently } from "@/lib/qzService";
 
 export interface InvoiceItem {
@@ -30,8 +29,10 @@ export interface InvoiceData {
 
 export async function printInvoice(data: InvoiceData): Promise<void> {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
-  const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
+  const fmt = (n: number | undefined | null) =>
+    typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00";
   const riyal = `ر.س`;
+
   const itemRows = data.items
     .map(
       (item) => `
@@ -41,7 +42,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
         <td>${fmt(item.unitPrice)}</td>
         <td>${fmt(item.taxAmount)}</td>
         <td>${fmt(item.total)}</td>
-      </tr>`,
+      </tr>`
     )
     .join("");
 
@@ -57,12 +58,12 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
       -webkit-print-color-adjust:exact !important;
       print-color-adjust:exact !important; }
 
-  @page { size: 80mm auto; margin: 3mm 5mm; }
+  @page { size: 72mm auto; margin: 2mm 2mm; }
 
   html, body {
     width: 100%;
-    font-family: 'Tajawal','Tahoma',Arial,sans-serif;
-    font-size: 7.5pt;
+    font-family: 'Cairo','Tajawal','Tahoma',Arial,sans-serif;
+    font-size: 8pt;
     color: #000;
     direction: rtl;
     background: #fff;
@@ -90,11 +91,11 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   }
   .info-grid td {
     padding: 3px 4px;
-    font-size: 6.5pt;
+    font-size: 7pt;
     line-height: 1.5;
     vertical-align: middle;
-      border: 1px solid #999; 
-  font-weight: 700; 
+    border: 1px solid #999;
+    font-weight: 700;
     word-break: break-word;
   }
   .info-grid .full td {
@@ -112,22 +113,21 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     border: 0.8px solid #bbb;
     padding: 4px;
   }
-  
-  .info-grid td.val { font-weight: 700;  }
+  .info-grid td.val { font-weight: 700; }
   .sep { border-left: 1.5px solid #555 !important; }
 
   /* ── ITEMS TABLE ── */
   .items-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 6pt;
+    font-size: 6.5pt;
     border: 1.5px solid #333;
     border-top: none;
   }
   .items-table th {
     background: #d9d9d9 !important;
     font-weight: 700;
-    font-size: 5.5pt;
+    font-size: 6pt;
     text-align: center;
     padding: 2px 1px;
     border: 1px solid #999;
@@ -158,7 +158,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   .totals-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 7.5pt;
+    font-size: 8pt;
     border: 1.5px solid #333;
     border-top: none;
   }
@@ -166,7 +166,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     border: 0.8px solid #555;
     padding: 3px 5px;
     vertical-align: middle;
-    font-weight:700;
+    font-weight: 700;
   }
   .totals-table td:first-child {
     text-align: right;
@@ -179,7 +179,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   }
   .totals-table tr:last-child td {
     font-weight: 900;
-    font-size: 8.5pt;
+    font-size: 9pt;
     background: #d9d9d9 !important;
   }
 
@@ -189,7 +189,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     border-top: none;
     text-align: center;
     font-weight: 700;
-    font-size: 7.5pt;
+    font-size: 8pt;
     padding: 5px 4px;
     background: #d9d9d9 !important;
     word-break: break-word;
@@ -217,35 +217,28 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 
   <!-- INFO GRID -->
   <table class="info-grid">
-    <!-- اسم المؤسسة -->
     <tr class="full">
       <td colspan="2">اسم المؤسسة: <strong>${data.institutionName}</strong></td>
     </tr>
-    <!-- الرقم الضريبي -->
     <tr>
       <td class="lbl">الرقم الضريبي</td>
       <td class="val sep">${data.institutionTaxNumber}</td>
     </tr>
-    <!-- فاتورة ضريبية مبسطة -->
     <tr class="title-row">
       <td colspan="2">فاتورة ضريبية مبسطة</td>
     </tr>
-    <!-- رقم الفاتورة -->
     <tr>
       <td class="lbl">رقم الفاتورة</td>
       <td class="val sep">${data.invoiceNumber}</td>
     </tr>
-    <!-- الوقت / التاريخ -->
     <tr>
       <td class="lbl">الوقت / التاريخ</td>
       <td class="val sep">${data.invoiceDate}</td>
     </tr>
-    <!-- اسم العميل -->
     <tr>
       <td class="lbl">اسم العميل</td>
       <td class="val sep">${data.customerName ?? "—"}</td>
     </tr>
-    <!-- رقم الجوال -->
     <tr>
       <td class="lbl">رقم الجوال</td>
       <td class="val sep">${data.customerPhone ?? "—"}</td>
@@ -270,23 +263,23 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   <table class="totals-table">
     <tr>
       <td>عدد المنتجات</td>
-      <td><span >عدد ${totalQty}</span></td>
+      <td>عدد ${totalQty}</td>
     </tr>
     <tr>
       <td>اجمالي السعر قبل الضريبة</td>
-      <td><span >${fmt(data.subTotal)} ${riyal}</span></td>
+      <td>${fmt(data.subTotal)} ${riyal}</td>
     </tr>
     <tr>
       <td>اجمالي الخصم</td>
-      <td><span >${fmt(data.discountAmount)} ${riyal}</span></td>
+      <td>${fmt(data.discountAmount)} ${riyal}</td>
     </tr>
     <tr>
       <td>اجمالي ضريبة القيمة المضافة</td>
-      <td><span >${fmt(data.taxAmount)} ${riyal}</span></td>
+      <td>${fmt(data.taxAmount)} ${riyal}</td>
     </tr>
     <tr>
       <td>الاجمالي النهائي</td>
-      <td><span >${fmt(data.grandTotal)} ${riyal}</span></td>
+      <td>${fmt(data.grandTotal)} ${riyal}</td>
     </tr>
   </table>
 
@@ -297,7 +290,11 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 
   <!-- QR -->
   <div class="qr-wrap">
-    ${data.qrCodeUrl ? `<img src="${data.qrCodeUrl}" alt="QR"/>` : `<canvas id="qr" width="90" height="90"></canvas>`}
+    ${
+      data.qrCodeUrl
+        ? `<img src="${data.qrCodeUrl}" alt="QR"/>`
+        : `<canvas id="qr" width="90" height="90"></canvas>`
+    }
   </div>
 
 </div>
@@ -326,21 +323,14 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   for(var r=0;r<MOD;r++) for(var cc=0;cc<MOD;cc++)
     if(pat[r][cc]) ctx.fillRect(Math.round(cc*cell),Math.round(r*cell),Math.round(cell)-1,Math.round(cell)-1);
 })();
-document.fonts.ready.then(function(){ 
-  window.print(); 
-  window.close(); 
+document.fonts.ready.then(function(){
+  window.print();
+  window.close();
 });
-</script>
+<\/script>
 </body>
 </html>`;
 
-  // const win = window.open("", "_blank", "width=440,height=980");
-  // if (!win) {
-  //   alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
-  //   return;
-  // }
-  // win.document.write(html);
-  // win.document.close();
   try {
     await printHtmlSilently(html);
   } catch (err) {
