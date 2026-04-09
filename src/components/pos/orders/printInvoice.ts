@@ -255,7 +255,7 @@ export function printInvoice(data: InvoiceData): void {
   <table class="items-table">
     <thead>
       <tr>
-        <th class="td-name">اسم المنتج</th>
+        <th class="td-name">الصنف</th>
         <th>الكمية</th>
         <th>السعر قبل الضريبة</th>
         <th>ضريبة القيمة المضافة</th>
