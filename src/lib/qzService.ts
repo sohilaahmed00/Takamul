@@ -14,6 +14,9 @@ async function connect() {
 }
 
 export async function printHtmlSilently(html: string): Promise<void> {
+  // إزالة window.print() من الـ HTML قبل الإرسال لـ QZ
+  const cleanHtml = html.replace(/document\.fonts\.ready[\s\S]*?window\.close\(\);?\s*\}\);/g, "");
+
   await connect();
 
   const printer = await qz.printers.getDefault();
@@ -21,7 +24,7 @@ export async function printHtmlSilently(html: string): Promise<void> {
   const config = qz.configs.create(printer, {
     colorType: "blackwhite",
     copies: 1,
-    size: { width: 80, height: 0, units: "mm" },
+    size: { width: 72, height: 0, units: "mm" },
     scaleContent: false,
   });
 
@@ -29,8 +32,8 @@ export async function printHtmlSilently(html: string): Promise<void> {
     {
       type: "pixel",
       format: "html",
-      flavor: "plain",
-      data: html,
+      flavor: "base64",
+      data: btoa(unescape(encodeURIComponent(cleanHtml))),
       options: { pageWidth: 72, pageHeight: 0, units: "mm" },
     },
   ]);
