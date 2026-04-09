@@ -27,8 +27,6 @@ export interface InvoiceData {
   grandTotal: number;
   notes?: string;
   qrCodeUrl?: string;
-  INSTITUTION_NAME2: string;
-  LOGO: string;
 }
 
 function arabicToEntities(str: string): string {
@@ -61,7 +59,6 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 <meta charset="UTF-8"/>
 <title>فاتورة ضريبية مبسطة</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
 
   * { margin:0; padding:0; box-sizing:border-box;
       -webkit-print-color-adjust:exact !important;
@@ -71,7 +68,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 
   html, body {
     width:100%;
-    font-family: 'Tajawal','Tahoma',Arial,sans-serif;
+    font-family: 'Tahoma', Arial, sans-serif;
     font-size: 7.5pt;
     color: #000;
     direction: rtl;
@@ -225,7 +222,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   ${
     data.logoUrl
       ? `<img src="${data.logoUrl}" alt="logo"/>`
-      : `<span>${data?.LOGO}</span>
+      : `<span>اللوجو</span>
 `
   }
 </div>
@@ -243,7 +240,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     </tr>
     <!-- فاتورة ضريبية مبسطة -->
     <tr class="title-row">
-<td colspan="2">${data?.INSTITUTION_NAME2}</td>
+<td colspan="2">${arabicToEntities("فاتورة ضريبية مبسطة")}</td>
     </tr>
     <!-- رقم الفاتورة -->
     <tr>
