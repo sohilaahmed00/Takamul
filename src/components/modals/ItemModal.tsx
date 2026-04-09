@@ -76,9 +76,9 @@ export default function ItemModal({
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4">
       <div
         dir={direction}
-        className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="w-full max-w-lg overflow-hidden rounded-2xl bg-white dark:bg-zinc-950 shadow-2xl transition-colors duration-300"
       >
-        <div className="flex items-center justify-between border-b px-6 py-4">
+        <div className="flex items-center justify-between border-b dark:border-zinc-800 px-6 py-4">
           <h2 className="text-lg font-bold">
             {isEdit ? t("edit_item") : t("add_item")}
           </h2>
@@ -86,9 +86,9 @@ export default function ItemModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100"
+            className="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors"
           >
-            <X size={18} />
+            <X size={18} className="text-gray-500 dark:text-gray-400" />
           </button>
         </div>
 
@@ -102,7 +102,7 @@ export default function ItemModal({
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t("enter_item_name")}
-              className="h-10 w-full rounded-xl border px-3 outline-none focus:ring-2 focus:ring-[var(--primary)]"
+              className="h-10 w-full rounded-xl border dark:border-zinc-800 px-3 outline-none focus:ring-2 focus:ring-[var(--primary)] bg-white dark:bg-zinc-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-600"
             />
           </div>
 

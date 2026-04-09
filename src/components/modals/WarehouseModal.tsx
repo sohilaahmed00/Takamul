@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
+import ComboboxField from "@/components/ui/ComboboxField";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useCreateWarehouse } from "@/features/Warehouses/hooks/useCreateWarehouse";
 import { useUpdateWarehouse } from "@/features/Warehouses/hooks/useUpdateWarehouse";
@@ -139,42 +140,34 @@ export default function WarehouseModal({
                             {t("branch") || "الفرع"} <span className="text-red-500">*</span>
                         </FieldLabel>
 
-                        <select
+                        <ComboboxField
                             value={formData.branchId}
-                            onChange={(e) =>
-                                setFormData({ ...formData, branchId: Number(e.target.value) })
+                            onValueChange={(val) =>
+                                setFormData({ ...formData, branchId: Number(val) })
                             }
-                            className="w-full h-10 border rounded-md px-3 outline-none focus:ring-1 focus:ring-[var(--primary)]"
-                        >
-                            <option value="">
-                                {t("select_branch") || "اختر الفرع"}
-                            </option>
-
-                            {branches?.map((branch: any) => (
-                                <option key={branch.id} value={branch.id}>
-                                    {branch.name}
-                                </option>
-                            ))}
-                        </select>
+                            items={branches}
+                            valueKey="id"
+                            labelKey="name"
+                            placeholder={t("select_branch") || "اختر الفرع"}
+                        />
                     </Field>
 
                     <Field>
                         <FieldLabel>{t("manager") || "مدير المخزن"}</FieldLabel>
 
-                        <select
-                            className="w-full h-10 border border-gray-200 rounded-md px-3 outline-none focus:border-[var(--primary)]"
+                        <ComboboxField
                             value={formData.managerId}
-                            onChange={(e) =>
-                                setFormData({ ...formData, managerId: Number(e.target.value) })
+                            onValueChange={(val) =>
+                                setFormData({ ...formData, managerId: Number(val) })
                             }
-                        >
-                            <option value="">
-                                {t("select_manager") || "اختر المدير"}
-                            </option>
-
-                            <option value={1}>Omar Monir</option>
-                            <option value={2}>Ahmed Ali</option>
-                        </select>
+                            items={[
+                                { id: 1, name: "Omar Monir" },
+                                { id: 2, name: "Ahmed Ali" },
+                            ]}
+                            valueKey="id"
+                            labelKey="name"
+                            placeholder={t("select_manager") || "اختر المدير"}
+                        />
                     </Field>
                 </form>
 

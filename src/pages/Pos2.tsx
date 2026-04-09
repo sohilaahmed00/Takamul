@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Barcode, Check, ChevronLeft, CircleArrowRight, Delete, Pause, Plus, RotateCw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Home, Users, LayoutGrid, DollarSign, ClipboardList, BarChart2, Settings, LogOut } from "lucide-react";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 import type { Customer } from "@/features/customers/types/customers.types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -11,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 const NAV_ITEMS = [
   { id: "home", icon: Home, label: "Home" },
@@ -107,29 +107,17 @@ function CartPanel({ cart, setCart, discount, setDiscount, onProceed, onHold, t 
         {/* Head */}
         <div className="px-3 py-2.5 border-b border-gray-100 flex items-center gap-2">
           {!selectedCustomer ? (
-            <Select
+            <ComboboxField
+              items={customers?.items}
+              valueKey="id"
+              labelKey="customerName"
+              placeholder="اختر العميل..."
               onValueChange={(val) => {
                 const customer = customers?.items?.find((c) => String(c.id) === val);
                 if (customer) setSelectedCustomer(customer);
               }}
-            >
-              <SelectTrigger className="flex-1 text-xs h-8">
-                <SelectValue placeholder="اختر العميل..." />
-              </SelectTrigger>
-              <SelectContent>
-                {isLoading ? (
-                  <SelectItem value="loading" disabled>
-                    جاري التحميل...
-                  </SelectItem>
-                ) : (
-                  customers?.items?.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>
-                      {c.customerName}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
+              isLoading={isLoading}
+            />
           ) : (
             <div className="flex items-center gap-2 flex-1 px-2.5 py-1.5 bg-primary/5 border border-primary/20 rounded-lg">
               <div className="w-6 h-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold shrink-0">{selectedCustomer.customerName.slice(0, 2).toUpperCase()}</div>
@@ -1027,52 +1015,36 @@ export default function RestroPos() {
 
           {/* ── ضيف هنا بدل Select Table ── */}
           <div className="flex items-center gap-2 shrink-0">
-            <Select
+            <ComboboxField
+              items={[
+                { label: "سفري", value: "takeaway" },
+                { label: "محلي", value: "dine-in" },
+                { label: "توصيل", value: "delivery" }
+              ]}
               value={orderType}
               onValueChange={(val: any) => {
                 setOrderType(val);
                 setSelectedTable(null);
                 setSelectedDelivery(null);
               }}
-            >
-              <SelectTrigger className="h-8 text-xs w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="takeaway">سفري</SelectItem>
-                <SelectItem value="dine-in">محلي</SelectItem>
-                <SelectItem value="delivery">توصيل</SelectItem>
-              </SelectContent>
-            </Select>
+            />
 
             {orderType === "dine-in" && (
-              <Select value={selectedTable ?? ""} onValueChange={setSelectedTable}>
-                <SelectTrigger className="h-8 text-xs w-28">
-                  <SelectValue placeholder="اختر الطاولة" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TABLES.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ComboboxField
+                items={TABLES}
+                value={selectedTable ?? ""}
+                onValueChange={setSelectedTable}
+                placeholder="اختر الطاولة"
+              />
             )}
 
             {orderType === "delivery" && (
-              <Select value={selectedDelivery ?? ""} onValueChange={setSelectedDelivery}>
-                <SelectTrigger className="h-8 text-xs w-32">
-                  <SelectValue placeholder="شركة التوصيل" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DELIVERY_COMPANIES.map((d) => (
-                    <SelectItem key={d} value={d}>
-                      {d}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <ComboboxField
+                items={DELIVERY_COMPANIES}
+                value={selectedDelivery ?? ""}
+                onValueChange={setSelectedDelivery}
+                placeholder="شركة التوصيل"
+              />
             )}
           </div>
         </div>

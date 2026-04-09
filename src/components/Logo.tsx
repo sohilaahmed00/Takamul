@@ -25,18 +25,18 @@ export default function Logo({ className = "", onClick }: LogoProps) {
   };
 
   return (
-    <div 
+    <div
       onClick={handleClick}
       className={cn(
         "flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 w-full",
         className
       )}
     >
-      <img 
-        src={logoSrc} 
-        alt="Takamul logo" 
+      <img
+        src={logoSrc}
+        alt="Takamul logo"
         className="h-20 w-auto object-contain"
-        style={{ maxWidth: '240px' }}
+        style={{ maxWidth: '270px' }}
       />
     </div>
   );

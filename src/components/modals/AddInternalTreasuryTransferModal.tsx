@@ -4,6 +4,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useCreateInternalTreasuryTransfer } from "@/features/internal-treasury-transfers/hooks/useCreateInternalTreasuryTransfer";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 import {
   Dialog,
@@ -140,22 +141,14 @@ export default function AddInternalTreasuryTransferModal({
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
                 <FieldLabel>{t("select_treasury")}</FieldLabel>
-                <select
-                  value={fromTreasuryId ?? ""}
-                  onChange={(e) =>
-                    setFromTreasuryId(
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
-                  className="w-full h-10 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]"
-                >
-                  <option value="">{t("select_treasury")}</option>
-                  {(treasurys ?? []).map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
+                <ComboboxField
+                  value={fromTreasuryId}
+                  onValueChange={(val) => setFromTreasuryId(val ? Number(val) : undefined)}
+                  items={treasurys ?? []}
+                  valueKey="id"
+                  labelKey="name"
+                  placeholder={t("select_treasury")}
+                />
               </Field>
 
               <Field>
@@ -180,22 +173,14 @@ export default function AddInternalTreasuryTransferModal({
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
                 <FieldLabel>{t("select_treasury")}</FieldLabel>
-                <select
-                  value={toTreasuryId ?? ""}
-                  onChange={(e) =>
-                    setToTreasuryId(
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
-                  className="w-full h-10 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]"
-                >
-                  <option value="">{t("select_treasury")}</option>
-                  {(treasurys ?? []).map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
+                <ComboboxField
+                  value={toTreasuryId}
+                  onValueChange={(val) => setToTreasuryId(val ? Number(val) : undefined)}
+                  items={treasurys ?? []}
+                  valueKey="id"
+                  labelKey="name"
+                  placeholder={t("select_treasury")}
+                />
               </Field>
 
               <Field>

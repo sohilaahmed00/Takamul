@@ -14,6 +14,7 @@ import type {
   QuantityAdjustmentOperationType,
   QuantityAdjustmentRow,
 } from "@/features/quantity-adjustments/types/adjustments.types";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
 type ToastType = "success" | "error" | "warning";
@@ -236,7 +237,7 @@ const EditQuantityAdjustment = () => {
   if (isError) return <div className="p-6 font-bold text-red-500">فشل تحميل البيانات</div>;
 
   return (
-    <div className="space-y-4 text-black" dir={direction}>
+    <div className="space-y-4 text-[var(--text-main)]" dir={direction}>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {confirmReset && (
         <ConfirmModal
@@ -246,29 +247,29 @@ const EditQuantityAdjustment = () => {
         />
       )}
 
-      <div className="text-sm text-gray-500 flex items-center gap-1 font-medium px-2">
+      <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1 font-medium px-2">
         <span>{t("home")}</span> / <span>{t("products")}</span> /{" "}
-        <span className="text-gray-800">تعديل التعديل الكمي</span>
+        <span className="text-gray-800 dark:text-gray-200">تعديل التعديل الكمي</span>
       </div>
 
-      <div className="bg-white p-4 rounded-t-xl border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+      <div className="bg-white dark:bg-[var(--bg-card)] p-4 rounded-t-xl border-b border-gray-200 dark:border-gray-700">
+        <h1 className="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
           <Edit size={20} className="text-primary" /> تعديل التعديل الكمي
         </h1>
-        <p className="text-sm text-gray-500 mt-1 font-medium">تعديل بيانات العملية</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">تعديل بيانات العملية</p>
       </div>
 
-      <div className="bg-white rounded-b-xl shadow-sm border border-gray-200 p-6">
+      <div className="bg-white dark:bg-[var(--bg-card)] rounded-b-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
 
         {/* Date */}
         <div className="mb-6">
-          <label className="block text-sm font-bold text-gray-700 mb-2">{t("date")} *</label>
+          <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t("date")} *</label>
           <input type="text" value={formData.date} className="takamol-input font-mono text-center bg-gray-50" readOnly />
         </div>
 
         {/* Search */}
         <div className="mb-6">
-          <label className="block text-sm font-bold text-gray-700 mb-2">{t("products")} *</label>
+          <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t("products")} *</label>
           <div className="relative" ref={searchRef}>
             <div className="relative">
               <input
@@ -282,11 +283,11 @@ const EditQuantityAdjustment = () => {
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             </div>
             {showDropdown && searchTerm && (
-              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 shadow-lg z-10 mt-1 rounded-md overflow-y-auto max-h-60">
+              <div className="absolute top-full left-0 right-0 bg-white dark:bg-[var(--bg-card)] border border-gray-200 dark:border-gray-700 shadow-lg z-10 mt-1 rounded-md overflow-y-auto max-h-60">
                 {filteredProducts.length > 0
                   ? filteredProducts.map((p) => (
                     <button key={p.id} onClick={() => handleAddItem(p)}
-                      className="w-full p-3 text-right hover:bg-gray-50 text-sm border-b border-gray-100 last:border-0 font-bold">
+                      className="w-full p-3 text-right hover:bg-gray-50 dark:hover:bg-gray-700/50 text-sm border-b border-gray-100 dark:border-gray-700 last:border-0 font-bold text-gray-800 dark:text-gray-200">
                       {p.productName} - {p.productId}
                     </button>
                   ))
@@ -298,8 +299,8 @@ const EditQuantityAdjustment = () => {
         </div>
 
         {/* Table */}
-        <div className="overflow-hidden border border-gray-200 rounded-xl shadow-sm">
-          <table className="w-full text-sm text-right text-black border-collapse">
+        <div className="overflow-hidden border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
+          <table className="w-full text-sm text-right text-[var(--text-main)] border-collapse">
             <thead className="bg-[#2ecc71] text-white">
               <tr>
                 <th className="p-3 w-12 text-center border-l border-white/20">حذف</th>
@@ -310,40 +311,37 @@ const EditQuantityAdjustment = () => {
                 <th className="p-3 text-center">كمية</th>
               </tr>
             </thead>
-            <tbody className="bg-white">
+            <tbody className="bg-white dark:bg-[var(--bg-card)]">
               {formData.items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-gray-400 italic bg-gray-50 font-bold">
+                  <td colSpan={6} className="p-8 text-center text-gray-400 italic bg-gray-50 dark:bg-gray-800/50 font-bold">
                     لا توجد أصناف مضافة — ابحث عن صنف وأضفه
                   </td>
                 </tr>
               ) : (
                 formData.items.map((item) => (
-                  <tr key={item.stockInventoryId} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="p-3 text-center border-l border-gray-100">
+                  <tr key={item.stockInventoryId} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                    <td className="p-3 text-center border-l border-gray-100 dark:border-gray-700">
                       <button onClick={() => handleRemoveItem(item.stockInventoryId)}
-                        className="text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors mx-auto block">
+                        className="text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 p-1.5 rounded-md transition-colors mx-auto block">
                         <Trash2 size={18} />
                       </button>
                     </td>
-                    <td className="p-3 font-bold border-l border-gray-100">{item.productName}</td>
-                    <td className="p-3 text-center border-l border-gray-100">{item.productId ?? "-"}</td>
-                    <td className="p-3 text-center font-mono border-l border-gray-100" dir="ltr">{item.quantityAvailable}</td>
-                    <td className="p-3 text-center border-l border-gray-100">
-                      <select
+                    <td className="p-3 font-bold border-l border-gray-100 dark:border-gray-700">{item.productName}</td>
+                    <td className="p-3 text-center border-l border-gray-100 dark:border-gray-700">{item.productId ?? "-"}</td>
+                    <td className="p-3 text-center font-mono border-l border-gray-100 dark:border-gray-700" dir="ltr">{item.quantityAvailable}</td>
+                    <td className="p-3 text-center border-l border-gray-100 dark:border-gray-700">
+                      <ComboboxField
+                        items={["Remove", "Add"]}
                         value={item.operationType}
-                        onChange={(e) => handleItemChange(item.stockInventoryId, "operationType", e.target.value)}
-                        className="border border-gray-300 rounded px-2 py-1.5 text-sm bg-white outline-none focus:border-[#2ecc71] font-bold"
-                      >
-                        <option value="Remove">طرح</option>
-                        <option value="Add">إضافة</option>
-                      </select>
+                        onValueChange={(val) => handleItemChange(item.stockInventoryId, "operationType", val)}
+                      />
                     </td>
                     <td className="p-3 text-center">
                       <input
                         type="number" min={1} value={item.quantityChanged}
                         onChange={(e) => handleItemChange(item.stockInventoryId, "quantityChanged", e.target.value)}
-                        className="border border-gray-300 rounded px-2 py-1.5 text-sm w-16 text-center outline-none focus:border-[#2ecc71] font-bold"
+                        className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 text-sm w-16 text-center outline-none focus:border-[#2ecc71] dark:bg-[var(--input-bg)] dark:text-white font-bold"
                       />
                     </td>
                   </tr>
@@ -355,23 +353,23 @@ const EditQuantityAdjustment = () => {
 
         {/* Note */}
         <div className="mt-6">
-          <label className="block text-sm font-bold text-gray-700 mb-2">{t("note")}</label>
-          <div className="border border-gray-300 rounded-lg overflow-hidden">
-            <div className="bg-gray-50 border-b border-gray-300 p-2 flex gap-1 justify-end" dir="ltr">
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><Bold size={16} /></button>
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><Italic size={16} /></button>
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><Underline size={16} /></button>
-              <div className="w-px bg-gray-300 h-5 mx-2 my-auto" />
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><AlignLeft size={16} /></button>
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><AlignCenter size={16} /></button>
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><AlignRight size={16} /></button>
-              <div className="w-px bg-gray-300 h-5 mx-2 my-auto" />
-              <button type="button" className="p-1.5 hover:bg-gray-200 rounded text-gray-600"><List size={16} /></button>
+          <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t("note")}</label>
+          <div className="border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden">
+            <div className="bg-gray-50 dark:bg-gray-800/60 border-b border-gray-300 dark:border-gray-600 p-2 flex gap-1 justify-end" dir="ltr">
+              <button type="button" className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300"><Bold size={16} /></button>
+              <button type="button" className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300"><Italic size={16} /></button>
+              <button type="button" className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300"><Underline size={16} /></button>
+              <div className="w-px bg-gray-300 dark:bg-gray-600 h-5 mx-2 my-auto" />
+              <button type="button" className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300"><AlignLeft size={16} /></button>
+              <button type="button" className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300"><AlignCenter size={16} /></button>
+              <button type="button" className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300"><AlignRight size={16} /></button>
+              <div className="w-px bg-gray-300 dark:bg-gray-600 h-5 mx-2 my-auto" />
+              <button type="button" className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-600 dark:text-gray-300"><List size={16} /></button>
             </div>
             <textarea
               value={formData.note}
               onChange={(e) => setFormData((prev) => ({ ...prev, note: e.target.value }))}
-              className="w-full p-4 h-24 outline-none text-right bg-white resize-y"
+              className="w-full p-4 h-24 outline-none text-right bg-white dark:bg-[var(--input-bg)] dark:text-white resize-y"
             />
           </div>
         </div>
@@ -382,7 +380,7 @@ const EditQuantityAdjustment = () => {
           </div>
         )}
 
-        <div className="flex items-center gap-3 mt-8 pt-6 border-t border-gray-100">
+        <div className="flex items-center gap-3 mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
           <button
             onClick={handleSave}
             disabled={updateMutation.isPending}

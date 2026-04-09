@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardAction }
 import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
+import ComboboxField from "@/components/ui/ComboboxField";
 import { cn } from "@/lib/utils";
 
 interface Shift {
@@ -25,11 +26,27 @@ export default function ShiftsList() {
   const { direction, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [filters, setFilters] = useState({ branch: "", userId: "", deviceId: "" });
 
   // Current date and time for default values
   const now = new Date();
   const currentDate = now.toISOString().split('T')[0];
   const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+
+  const branches = [
+    { id: "1", name: direction === "rtl" ? "الفرع الرئيسي" : "Main Branch" },
+    { id: "2", name: direction === "rtl" ? "فرع فرعي" : "Sub Branch" },
+  ];
+
+  const users = [
+    { id: "1", name: direction === "rtl" ? "أحمد محمد" : "Ahmed Mohamed" },
+    { id: "2", name: direction === "rtl" ? "سارة علي" : "Sara Ali" },
+  ];
+
+  const devices = [
+    { id: "POS-01", deviceName: "POS-01" },
+    { id: "POS-02", deviceName: "POS-02" },
+  ];
 
   // Dummy data with separated date and time
   const [shifts] = useState<Shift[]>([
@@ -94,8 +111,8 @@ export default function ShiftsList() {
     <div dir={direction} className="p-4 lg:p-8">
       <Card className="rounded-xl overflow-hidden border-none shadow-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2 text-[var(--primary)] text-xl font-bold">
-            <History size={24} />
+          <CardTitle className="flex items-center gap-2 text-[var(--text-main)] text-xl font-bold">
+            <History size={24} className="text-[var(--primary)]" />
             {t("shifts") || "الورديات"}
           </CardTitle>
 
@@ -178,29 +195,38 @@ export default function ShiftsList() {
 
           <Field>
             <FieldLabel className="mb-1 text-xs font-semibold">{t("branch") || "الفرع"}</FieldLabel>
-            <select className="w-full h-9 border border-gray-200 rounded-lg px-3 outline-none focus:border-[var(--primary)] bg-white text-xs transition-colors">
-              <option value="">{t("select_branch") || "اختر الفرع"}</option>
-              <option value="1">{direction === "rtl" ? "الفرع الرئيسي" : "Main Branch"}</option>
-              <option value="2">{direction === "rtl" ? "فرع فرعي" : "Sub Branch"}</option>
-            </select>
+            <ComboboxField
+              value={filters.branch}
+              onValueChange={(val) => setFilters({ ...filters, branch: val })}
+              items={branches}
+              valueKey="id"
+              labelKey="name"
+              placeholder={t("select_branch") || "اختر الفرع"}
+            />
           </Field>
 
           <Field>
             <FieldLabel className="mb-1 text-xs font-semibold">{t("user_name") || "اسم المستخدم"}</FieldLabel>
-            <select className="w-full h-9 border border-gray-200 rounded-lg px-3 outline-none focus:border-[var(--primary)] bg-white text-xs transition-colors">
-              <option value="">{t("select_user") || "اختر المستخدم"}</option>
-              <option value="1">{direction === "rtl" ? "أحمد محمد" : "Ahmed Mohamed"}</option>
-              <option value="2">{direction === "rtl" ? "سارة علي" : "Sara Ali"}</option>
-            </select>
+            <ComboboxField
+              value={filters.userId}
+              onValueChange={(val) => setFilters({ ...filters, userId: val })}
+              items={users}
+              valueKey="id"
+              labelKey="name"
+              placeholder={t("select_user") || "اختر المستخدم"}
+            />
           </Field>
 
           <Field>
             <FieldLabel className="mb-1 text-xs font-semibold">{t("invoice_device") || "جهاز إصدار الفواتير"}</FieldLabel>
-            <select className="w-full h-9 border border-gray-200 rounded-lg px-3 outline-none focus:border-[var(--primary)] bg-white text-xs transition-colors">
-              <option value="">{t("select_device") || "اختر الجهاز"}</option>
-              <option value="POS-01">POS-01</option>
-              <option value="POS-02">POS-02</option>
-            </select>
+            <ComboboxField
+              value={filters.deviceId}
+              onValueChange={(val) => setFilters({ ...filters, deviceId: val })}
+              items={devices}
+              valueKey="id"
+              labelKey="deviceName"
+              placeholder={t("select_device") || "اختر الجهاز"}
+            />
           </Field>
 
           <Field>

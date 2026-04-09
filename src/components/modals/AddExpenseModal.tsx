@@ -8,6 +8,7 @@ import {
   ChevronDown,
   X,
 } from "lucide-react";
+import ComboboxField from "@/components/ui/ComboboxField";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
@@ -58,8 +59,6 @@ export default function AddExpenseModal({
   const [date, setDate] = useState("");
   const [treasuryId, setTreasuryId] = useState<number | undefined>();
   const [itemId, setItemId] = useState<number | null>(null);
-  const [itemSearch, setItemSearch] = useState("");
-  const [isItemDropdownOpen, setIsItemDropdownOpen] = useState(false);
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -70,12 +69,6 @@ export default function AddExpenseModal({
 
   const { data: itemsData } = useGetItems({ pageSize: 100 });
   const allItems = useMemo(() => itemsData?.items ?? [], [itemsData]);
-
-  const filteredItems = useMemo(() => {
-    const term = itemSearch.trim().toLowerCase();
-    if (!term) return allItems;
-    return allItems.filter((i) => i.name.toLowerCase().includes(term));
-  }, [allItems, itemSearch]);
 
   const selectedItem = useMemo(
     () => allItems.find((i) => i.id === itemId) ?? null,
@@ -93,7 +86,6 @@ export default function AddExpenseModal({
       );
       setTreasuryId(editData.treasuryId ?? undefined);
       setItemId(editData.itemId ?? null);
-      setItemSearch(editData.itemName || "");
       setAmount(String(editData.amount ?? ""));
       setNotes(editData.notes ?? "");
       return;
@@ -102,10 +94,8 @@ export default function AddExpenseModal({
     setDate(new Date().toISOString().slice(0, 10));
     setTreasuryId(undefined);
     setItemId(null);
-    setItemSearch("");
     setAmount("");
     setNotes("");
-    setIsItemDropdownOpen(false);
   }, [isOpen, isEditMode, editData]);
 
   const selectedTreasury = useMemo(
@@ -120,16 +110,7 @@ export default function AddExpenseModal({
   const balanceAfter = currentBalance - amountNumber;
   const fmt = (v?: number) => Number(v ?? 0).toLocaleString("en-US");
 
-  const handleSelectItem = (id: number, name: string) => {
-    setItemId(id);
-    setItemSearch(name);
-    setIsItemDropdownOpen(false);
-  };
-
-  const handleClearItem = () => {
-    setItemId(null);
-    setItemSearch("");
-  };
+  // Handled by ComboboxField
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,33 +194,25 @@ export default function AddExpenseModal({
             />
           </Field>
 
-          <div className="rounded-xl border border-gray-200 bg-white p-3 space-y-3">
+          <div className="rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-transparent p-3 space-y-3">
             <div className="flex items-center gap-2">
               <Wallet size={15} className="text-[#2ecc71]" />
-              <h3 className="text-sm font-semibold text-gray-800">
+              <h3 className="text-sm font-semibold text-gray-800 dark:text-white">
                 {t("treasury")}
               </h3>
             </div>
-
+ 
             <div className="grid grid-cols-2 gap-3">
               <Field>
                 <FieldLabel>{t("treasury")}</FieldLabel>
-                <select
-                  value={treasuryId ?? ""}
-                  onChange={(e) =>
-                    setTreasuryId(
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
-                  className="w-full h-10 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71] text-sm"
-                >
-                  <option value="">{t("select_treasury")}</option>
-                  {treasuryRows.map((tRow: any) => (
-                    <option key={tRow.id} value={tRow.id}>
-                      {tRow.name}
-                    </option>
-                  ))}
-                </select>
+                <ComboboxField
+                  value={treasuryId}
+                  onValueChange={(val) => setTreasuryId(val ? Number(val) : undefined)}
+                  items={treasuryRows}
+                  valueKey="id"
+                  labelKey="name"
+                  placeholder={t("select_treasury")}
+                />
               </Field>
 
               <Field>
@@ -266,83 +239,15 @@ export default function AddExpenseModal({
 
           <Field>
             <FieldLabel>{t("item")}</FieldLabel>
-            <div className="relative">
-              <div
-                className={`w-full h-10 rounded-xl border px-3 bg-white flex items-center justify-between cursor-pointer text-sm transition-colors ${isItemDropdownOpen ? "border-[#2ecc71]" : "border-gray-200"
-                  }`}
-                onClick={() => setIsItemDropdownOpen((v) => !v)}
-              >
-                <span className={selectedItem ? "text-gray-800" : "text-gray-400"}>
-                  {selectedItem ? selectedItem.name : t("select_item")}
-                </span>
-
-                <div className="flex items-center gap-1">
-                  {selectedItem && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClearItem();
-                      }}
-                      className="p-0.5 rounded hover:bg-gray-100"
-                    >
-                      <X size={13} className="text-gray-400" />
-                    </button>
-                  )}
-                  <ChevronDown
-                    size={15}
-                    className={`text-gray-400 transition-transform ${isItemDropdownOpen ? "rotate-180" : ""
-                      }`}
-                  />
-                </div>
-              </div>
-
-              {isItemDropdownOpen && (
-                <div className="absolute z-50 top-full mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
-                  <div className="p-2 border-b border-gray-100">
-                    <div className="relative">
-                      <Search
-                        size={14}
-                        className="absolute top-1/2 -translate-y-1/2 right-2.5 text-gray-400"
-                      />
-                      <input
-                        type="text"
-                        value={itemSearch}
-                        onChange={(e) => setItemSearch(e.target.value)}
-                        onClick={(e) => e.stopPropagation()}
-                        placeholder={t("search_item_placeholder")}
-                        autoFocus
-                        className="w-full h-8 rounded-lg border border-gray-200 pr-8 pl-3 text-sm outline-none focus:border-[#2ecc71]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="max-h-48 overflow-y-auto">
-                    {filteredItems.length === 0 ? (
-                      <div className="px-3 py-4 text-center text-sm text-gray-400">
-                        {t("no_items")}
-                      </div>
-                    ) : (
-                      filteredItems.map((item) => (
-                        <div
-                          key={item.id}
-                          onClick={() => handleSelectItem(item.id, item.name)}
-                          className={`px-3 py-2.5 text-sm cursor-pointer hover:bg-[#2ecc71]/5 transition-colors flex items-center justify-between ${itemId === item.id
-                              ? "bg-[#2ecc71]/10 text-[#2ecc71] font-medium"
-                              : "text-gray-700"
-                            }`}
-                        >
-                          {item.name}
-                          {itemId === item.id && (
-                            <span className="text-[#2ecc71] text-xs">✓</span>
-                          )}
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+            <ComboboxField
+              value={itemId ?? ""}
+              onValueChange={(val) => setItemId(val ? Number(val) : null)}
+              items={allItems}
+              valueKey="id"
+              labelKey="name"
+              placeholder={t("select_item")}
+              showClear
+            />
           </Field>
 
           <Field>

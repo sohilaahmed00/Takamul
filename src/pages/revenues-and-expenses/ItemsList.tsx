@@ -120,7 +120,7 @@ export default function ItemsList() {
             setCurrentPage(1);
           }}
           placeholder={t("search_item")}
-          className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none"
+          className="takamol-input h-10 pr-11"
         />
       </div>
     </div>
@@ -201,9 +201,9 @@ export default function ItemsList() {
               paginatedMobileRows.map((row) => (
                 <div
                   key={row.id}
-                  className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+                  className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent shadow-sm overflow-hidden"
                 >
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] border-b border-gray-100">
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] dark:bg-slate-900/50 border-b border-gray-100 dark:border-slate-800">
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-[var(--text-main)] break-words">
                         {row.name || "-"}
@@ -214,7 +214,7 @@ export default function ItemsList() {
                   </div>
 
                   <div className="p-4 space-y-3">
-                    <div className="rounded-xl bg-[#f8fafc] p-3">
+                    <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/50 p-3">
                       <p className="text-xs text-[var(--text-muted)] mb-1">
                         {t("status")}
                       </p>

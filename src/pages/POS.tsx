@@ -5,6 +5,7 @@ import { useSettings } from '../context/SettingsContext';
 import { useWarehouses } from '../context/WarehousesContext';
 import { cn } from '../lib/utils';
 import { useProducts, type Product } from '../context/ProductsContext';
+import ComboboxField from '@/components/ui/ComboboxField';
 import {
   Plus,
   Eye,
@@ -411,14 +412,12 @@ export default function POS() {
         >
           <div className="flex-none p-4 bg-white border-b border-gray-200 flex flex-col gap-3">
             <div className="flex gap-2">
-              <select
-                className="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm font-bold outline-none focus:border-[#0c4a3b] bg-gray-50"
-                disabled={isCustomerSelectDisabled}
+              <ComboboxField
+                items={["عميل نقدي"]}
                 value={customer.name}
-                onChange={() => undefined}
-              >
-                <option>عميل نقدي</option>
-              </select>
+                onValueChange={() => {}}
+                disabled={isCustomerSelectDisabled}
+              />
 
               <div className="flex items-center gap-1 border border-gray-300 rounded-lg px-1 bg-white">
                 <button

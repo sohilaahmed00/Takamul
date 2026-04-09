@@ -7,6 +7,7 @@ import MobileDataCard from "@/components/MobileDataCard";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import { cn } from "@/lib/utils";
 import AddUserModal from "@/components/modals/AddUserModal";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 export default function UsersList() {
   const { t, direction } = useLanguage();
@@ -67,12 +68,13 @@ export default function UsersList() {
             {/* Show Records */}
             <div className="flex items-center gap-2 order-1 md:order-2">
               <span className="text-sm text-[var(--text-muted)]">{t("show")}</span>
-              <select className="border border-[var(--border)] bg-[var(--input-bg)] text-[var(--text-main)] rounded-lg px-2 py-1.5 outline-none focus:border-[var(--primary)] text-sm font-bold">
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-                <option value={100}>100</option>
-              </select>
+              <div className="w-20">
+                <ComboboxField
+                  items={[10, 25, 50, 100]}
+                  value={10}
+                  onValueChange={() => {}}
+                />
+              </div>
               <span className="text-sm text-[var(--text-muted)]">{t("records")}</span>
             </div>
           </div>

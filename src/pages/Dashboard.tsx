@@ -34,7 +34,7 @@ const StatCard = ({ title, value, icon: Icon, colorClass, bgClass, delay, onClic
       className={`rounded-xl p-4 text-white shadow-lg relative overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform ${bgClass}`}
     >
       <div className="relative z-10">
-        <p className="text-white/80 text-sm font-medium mb-1 truncate">{title}</p>
+        <p className="text-white/80 text-base font-bold mb-1 truncate">{title}</p>
         <h3 className="text-2xl md:text-3xl font-bold flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
           {value}
           {language === "ar" ? (
@@ -77,10 +77,10 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center" dir={direction}>
+      <div className="min-h-screen bg-[var(--bg-main)] flex items-center justify-center" dir={direction}>
         <div className="flex flex-col items-center gap-4">
-          <Loader2 size={48} className="text-primary animate-spin" />
-          <p className="text-gray-500 font-medium">{t('loading_data')}</p>
+          <Loader2 size={48} className="text-[var(--primary)] animate-spin" />
+          <p className="text-[var(--text-muted)] font-medium">{t('loading_data')}</p>
         </div>
       </div>
     );
@@ -96,10 +96,10 @@ export default function Dashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          title={`${t('recent_sales')} (${new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })})`}
+          title={t('total_sales')}
           value={`${formatCurrency(totalSalesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}`}
           icon={SaudiRiyal}
-          bgClass="bg-[#38bdf8]" // Baby Blue
+          bgClass="bg-[#38BDF8]"
           delay={0.1}
           onClick={() => navigate('/reports/sales')}
         />
@@ -107,7 +107,7 @@ export default function Dashboard() {
           title={t('total_purchases')}
           value={formatCurrency(totalPurchasesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}
           icon={ShoppingBag}
-          bgClass="bg-[#ce2029]" // Red
+          bgClass="bg-[#CE2029]"
           delay={0.2}
           onClick={() => navigate('/reports/purchases')}
         />
@@ -115,7 +115,7 @@ export default function Dashboard() {
           title={t('net_profit')}
           value={formatCurrency(netProfitValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}
           icon={TrendingUp}
-          bgClass="bg-[#8b5cf6]" // Mauve / Purple
+          bgClass="bg-[var(--dashboard-purple)]"
           delay={0.3}
           onClick={() => navigate('/reports/income-statement')}
         />
@@ -123,7 +123,7 @@ export default function Dashboard() {
           title={t('total_expenses')}
           value={formatCurrency(totalExpensesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}
           icon={Banknote}
-          bgClass="bg-[#d97706]" // Dark Yellow / Reddish Brown
+          bgClass="bg-[#D97706]"
           delay={0.4}
           onClick={() => navigate('/reports/expenses')}
         />

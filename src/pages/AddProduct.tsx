@@ -1,4 +1,4 @@
-﻿// src/pages/AddProduct.tsx
+// src/pages/AddProduct.tsx
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Upload, Barcode, X, Trash2, Plus } from "lucide-react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -8,7 +8,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { FileUpload, FileUploadDropzone, FileUploadTrigger, FileUploadList, FileUploadItem, FileUploadItemPreview, FileUploadItemMetadata, FileUploadItemDelete } from "@/components/ui/file-upload";
@@ -17,6 +16,7 @@ import { Combobox, ComboboxChip, ComboboxChips, ComboboxChipsInput, ComboboxCont
 
 import { useGetAllTaxes } from "@/features/taxes/hooks/useGetAllTaxes";
 import { useCreateProductDirect } from "@/features/products/hooks/useCreateProductDirect";
+import ComboboxField from "@/components/ui/ComboboxField";
 import { useGetAllMainCategories } from "@/features/categories/hooks/useGetAllMainCategories";
 import { useGetAllSubCategoriesWidthParentId } from "@/features/categories/hooks/useGetAllSubCategoriesWidthParentId";
 import { useGetAllProductsDirect } from "@/features/products/hooks/useGetAllProductsDirect";
@@ -519,20 +519,14 @@ export default function AddProduct() {
                     <FieldLabel className="gap-x-0">
                       التصنيف الرئيسي<span className="text-red-500">*</span>
                     </FieldLabel>
-                    <Select value={mainCategoryId ? String(mainCategoryId) : ""} onValueChange={(e) => setMainCategoryId(Number(e))}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="اختر التصنيف الرئيسي" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {mainCategories?.map((cat) => (
-                            <SelectItem key={cat?.id} value={String(cat?.id)}>
-                              {cat?.categoryNameAr}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                    <ComboboxField
+                      value={mainCategoryId}
+                      onValueChange={(val) => setMainCategoryId(val ? Number(val) : undefined)}
+                      items={mainCategories}
+                      valueKey="id"
+                      labelKey="categoryNameAr"
+                      placeholder="اختر التصنيف الرئيسي"
+                    />
                   </Field>
                 )}
 
@@ -559,20 +553,13 @@ export default function AddProduct() {
                         <FieldLabel className="gap-x-0">
                           التصنيف الفرعي <span className="text-red-500">*</span>
                         </FieldLabel>
-                        <Select value={field.value ? String(field.value) : ""} onValueChange={(val) => field.onChange(Number(val))}>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="اختر التصنيف الفرعي" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              {subCategories?.map((cat) => (
-                                <SelectItem key={cat.id} value={String(cat.id)}>
-                                  {cat.categoryNameAr}
-                                </SelectItem>
-                              ))}
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
+                        <ComboboxField
+                          field={field}
+                          items={subCategories}
+                          valueKey="id"
+                          labelKey="categoryNameAr"
+                          placeholder="اختر التصنيف الفرعي"
+                        />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
@@ -679,20 +666,13 @@ export default function AddProduct() {
                           <FieldLabel>
                             الضريبة المطبقة <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <Select value={field.value ? String(field.value) : ""} onValueChange={(val) => field.onChange(Number(val))}>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="اختر الضريبة" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {taxesData?.map((tax) => (
-                                  <SelectItem key={tax.id} value={String(tax.id)}>
-                                    {tax.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
+                          <ComboboxField
+                            field={field}
+                            items={taxesData}
+                            valueKey="id"
+                            labelKey="name"
+                            placeholder="اختر الضريبة"
+                          />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -706,18 +686,17 @@ export default function AddProduct() {
                           <FieldLabel>
                             طريقة حساب الضريبة <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <Select value={field.value ? String(field.value) : ""} onValueChange={(val) => field.onChange(Number(val))}>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="اختر طريقة الحساب" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                <SelectItem value="1">لا يوجد ضريبة</SelectItem>
-                                <SelectItem value="2">السعر شامل الضريبة</SelectItem>
-                                <SelectItem value="3">السعر غير شامل الضريبة</SelectItem>
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
+                          <ComboboxField
+                            field={field}
+                            items={[
+                              { id: 1, name: "لا يوجد ضريبة" },
+                              { id: 2, name: "السعر شامل الضريبة" },
+                              { id: 3, name: "السعر غير شامل الضريبة" },
+                            ]}
+                            valueKey="id"
+                            labelKey="name"
+                            placeholder="اختر طريقة الحساب"
+                          />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -725,22 +704,22 @@ export default function AddProduct() {
 
                     {/* Price summary card */}
                     <div className="lg:col-span-2">
-                      <div className="w-full bg-[#FFFCF2] border border-[#F3E2B4] rounded-xl p-5">
+                      <div className="w-full bg-[#FFFCF2] dark:bg-amber-950/20 border border-[#F3E2B4] dark:border-amber-800/40 rounded-xl p-5">
                         <div className="flex flex-col space-y-3.5">
                           <div className="flex justify-between items-center">
-                            <span className="text-slate-500 text-[15px]">السعر قبل الضريبة</span>
-                            <span className="text-slate-500 text-[15px]">{summary.basePrice}</span>
+                            <span className="text-slate-500 dark:text-slate-400 text-[15px]">السعر قبل الضريبة</span>
+                            <span className="text-slate-500 dark:text-slate-400 text-[15px]">{summary.basePrice}</span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-[#D97706] text-[15px]">
+                            <span className="text-[#D97706] dark:text-amber-500 text-[15px]">
                               ضريبة ({summary.taxPercentage}%) {summary.taxName}
                             </span>
-                            <span className="text-[#D97706] text-[15px]">{summary.taxAmount} +</span>
+                            <span className="text-[#D97706] dark:text-amber-500 text-[15px]">{summary.taxAmount} +</span>
                           </div>
-                          <div className="border-t border-[#E8D49E] my-0.5" />
+                          <div className="border-t border-[#E8D49E] dark:border-amber-800/60 my-0.5" />
                           <div className="flex justify-between items-center pt-1">
-                            <span className="text-[#8B4513] font-bold text-lg">السعر النهائي</span>
-                            <span className="text-[#8B4513] font-bold text-lg">{summary.finalPrice}</span>
+                            <span className="text-[#8B4513] dark:text-amber-400 font-bold text-lg">السعر النهائي</span>
+                            <span className="text-[#8B4513] dark:text-amber-400 font-bold text-lg">{summary.finalPrice}</span>
                           </div>
                         </div>
                       </div>
@@ -774,20 +753,13 @@ export default function AddProduct() {
                           <FieldLabel>
                             وحدة المخازن <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <Select value={field.value ? String(field.value) : ""} onValueChange={(val) => field.onChange(Number(val))}>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="اختر وحدة المخازن" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {units?.items?.map((unit) => (
-                                  <SelectItem key={unit?.id} value={String(unit?.id)}>
-                                    {unit?.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
+                          <ComboboxField
+                            field={field}
+                            items={units?.items}
+                            valueKey="id"
+                            labelKey="name"
+                            placeholder="اختر وحدة المخازن"
+                          />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -801,20 +773,13 @@ export default function AddProduct() {
                           <FieldLabel>
                             وحدة النسب <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <Select value={field.value ? String(field.value) : ""} onValueChange={(val) => field.onChange(Number(val))}>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="اختر وحدة النسب" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectGroup>
-                                {units?.items?.map((unit) => (
-                                  <SelectItem key={unit?.id} value={String(unit?.id)}>
-                                    {unit?.name}
-                                  </SelectItem>
-                                ))}
-                              </SelectGroup>
-                            </SelectContent>
-                          </Select>
+                          <ComboboxField
+                            field={field}
+                            items={units?.items}
+                            valueKey="id"
+                            labelKey="name"
+                            placeholder="اختر وحدة النسب"
+                          />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -932,20 +897,13 @@ export default function AddProduct() {
                                 <FieldLabel>
                                   الخامة <span className="text-red-500">*</span>
                                 </FieldLabel>
-                                <Select value={field.value ? String(field.value) : ""} onValueChange={(val) => field.onChange(Number(val))}>
-                                  <SelectTrigger className="w-full bg-white">
-                                    <SelectValue placeholder="اختر الخامة" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectGroup>
-                                      {productRawMatrial?.items?.map((raw) => (
-                                        <SelectItem key={raw?.id} value={String(raw?.id)}>
-                                          {raw?.productNameAr}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectGroup>
-                                  </SelectContent>
-                                </Select>
+                                <ComboboxField
+                                  field={field}
+                                  items={productRawMatrial?.items}
+                                  valueKey="id"
+                                  labelKey="productNameAr"
+                                  placeholder="اختر الخامة"
+                                />
                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                               </Field>
                             )}
@@ -977,21 +935,13 @@ export default function AddProduct() {
                                 <FieldLabel>
                                   الوحدة <span className="text-red-500">*</span>
                                 </FieldLabel>
-                                <Select value={field.value ? String(field.value) : ""} onValueChange={(val) => field.onChange(Number(val))}>
-                                  <SelectTrigger className="w-full bg-white">
-                                    <SelectValue placeholder="الوحدة" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectGroup>
-                                      {/* FIX: was missing key prop */}
-                                      {units?.items?.map((unit) => (
-                                        <SelectItem key={unit?.id} value={String(unit?.id)}>
-                                          {unit?.name}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectGroup>
-                                  </SelectContent>
-                                </Select>
+                                <ComboboxField
+                                  field={field}
+                                  items={units?.items}
+                                  valueKey="id"
+                                  labelKey="name"
+                                  placeholder="الوحدة"
+                                />
                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                               </Field>
                             )}

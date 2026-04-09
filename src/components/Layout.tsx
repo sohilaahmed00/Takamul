@@ -403,8 +403,8 @@ export default function Layout() {
         </div>
       </motion.aside>
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <header ref={headerRef} data-theme={theme} className="bg-[var(--bg-card)] h-16 border-b border-[var(--border)] flex items-center justify-between px-4 lg:px-8 shadow-sm z-10 transition-colors duration-300">
+      <div className="flex-1 flex flex-col min-w-0 relative">
+        <header ref={headerRef} data-theme={theme} className="bg-[var(--bg-card)] h-16 border-b border-[var(--border)] flex items-center justify-between px-4 lg:px-8 shadow-sm z-50 transition-colors duration-300 relative">
           <div className="flex items-center gap-4">
             <button onClick={() => setIsMobileMenuOpen(true)} className="lg:hidden p-2 text-[var(--text-muted)] hover:bg-[var(--bg-main)] rounded-lg">
               <Menu size={24} />
@@ -424,7 +424,7 @@ export default function Layout() {
             <div className="hidden md:flex items-center gap-2">
               <button
                 onClick={() => navigate("/sales/create")}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
               >
                 <LayoutGrid size={16} />
                 <span>{t("sales_a4_quick")}</span>
@@ -440,7 +440,7 @@ export default function Layout() {
 
               <button
                 onClick={() => navigate("/sales/all")}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-violet-50 text-violet-700 hover:bg-violet-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
               >
                 <List size={16} />
                 <span>{t("all_sales")}</span>
@@ -448,7 +448,7 @@ export default function Layout() {
 
               <button
                 onClick={() => navigate("/products/create")}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 text-amber-700 hover:bg-amber-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
               >
                 <Package size={16} />
                 <span>{t("add_product")}</span>
@@ -646,7 +646,7 @@ export default function Layout() {
                         navigate("/");
                         closeAllMenus();
                       }}
-                      className="w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                      className="w-full text-right px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 flex items-center gap-2 transition-colors"
                     >
                       <LogOut size={16} />
                       {t("logout")}
@@ -658,7 +658,7 @@ export default function Layout() {
           </div>
         </header>
 
-        <main className={cn("flex-1", location.pathname === "/dashboard" ? "p-3 overflow-hidden" : "p-4 lg:p-8 overflow-y-auto")}>
+        <main className={cn("flex-1 bg-[var(--bg-main)] transition-colors duration-300", location.pathname === "/dashboard" ? "p-3 overflow-hidden" : "p-4 lg:p-8 overflow-y-auto")}>
           {location.pathname === "/dashboard" && <WelcomeBanner />}
           <Outlet />
         </main>

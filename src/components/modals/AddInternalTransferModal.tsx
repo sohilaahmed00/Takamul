@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useBanks } from "@/context/BanksContext";
-import ResponsiveModal from "@/components/modals/ResponsiveModal";
 import type { InternalTransfer } from "@/types";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 interface AddInternalTransferModalProps {
   isOpen: boolean;
@@ -64,16 +64,17 @@ export default function AddInternalTransferModal({
             <label className="block text-sm font-medium text-[var(--text-main)] mb-1">
               {t("select_transfer_type")} *
             </label>
-            <select
+            <ComboboxField
               value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-              required
-            >
-              <option value="">{t("select_transfer_type")}</option>
-              <option value="fund_to_bank">{t("transfer_from_fund")}</option>
-              <option value="bank_to_fund">{t("transfer_to_fund")}</option>
-            </select>
+              onValueChange={(val) => setFormData({ ...formData, type: val })}
+              placeholder={t("select_transfer_type")}
+              items={[
+                { value: "fund_to_bank", label: t("transfer_from_fund") },
+                { value: "bank_to_fund", label: t("transfer_to_fund") },
+              ]}
+              valueKey="value"
+              labelKey="label"
+            />
           </div>
 
           <div>
@@ -86,25 +87,20 @@ export default function AddInternalTransferModal({
             <label className="block text-sm font-medium text-[var(--text-main)] mb-1">
               {t("select_bank")} *
             </label>
-            <select
+            <ComboboxField
               value={formData.type === "fund_to_bank" ? formData.to : formData.from}
-              onChange={(e) => {
+              onValueChange={(val) => {
                 if (formData.type === "fund_to_bank") {
-                  setFormData({ ...formData, to: e.target.value, from: "Fund" });
+                  setFormData({ ...formData, to: val, from: "Fund" });
                 } else {
-                  setFormData({ ...formData, from: e.target.value, to: "Fund" });
+                  setFormData({ ...formData, from: val, to: "Fund" });
                 }
               }}
-              className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-              required
-            >
-              <option value="">{t("select_bank")}</option>
-              {banks.map((bank) => (
-                <option key={bank.id} value={bank.name}>
-                  {bank.name}
-                </option>
-              ))}
-            </select>
+              items={banks}
+              valueKey="name"
+              labelKey="name"
+              placeholder={t("select_bank")}
+            />
           </div>
 
           <div>
@@ -117,7 +113,7 @@ export default function AddInternalTransferModal({
               onChange={(e) =>
                 setFormData({ ...formData, amount: Number(e.target.value) })
               }
-              className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+              className="takamol-input"
               required
             />
           </div>
@@ -129,7 +125,7 @@ export default function AddInternalTransferModal({
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
+              className="takamol-input"
               rows={3}
             />
           </div>

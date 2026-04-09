@@ -6,7 +6,6 @@ import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 import { Button } from "@/components/ui/button";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
@@ -431,9 +430,9 @@ const CreateQuote: React.FC = () => {
             </div>
 
             {/* تفاصيل الفاتورة */}
-            <div className="bg-white p-6 rounded-sm border border-gray-100">
-              <div className="border-b border-zinc-200 pb-8 min-w-0">
-                <h2 className="text-lg font-bold text-zinc-900 mb-6">{t("invoice_details")}</h2>
+            <div className="bg-white dark:bg-transparent p-6 rounded-sm border border-gray-100 dark:border-gray-800">
+              <div className="border-b border-zinc-200 dark:border-zinc-800 pb-8 min-w-0">
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white mb-6">{t("invoice_details")}</h2>
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h2>
                   <div className="w-full overflow-x-auto pb-4">
@@ -508,26 +507,21 @@ const CreateQuote: React.FC = () => {
                                 control={form.control}
                                 name={`items.${index}.unitId`}
                                 render={({ field, fieldState }) => (
-                                  <Field className="relative">
-                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("unit")}</FieldLabel>
-                                    <Select value={field.value === 0 ? "" : String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
-                                      <SelectTrigger className="w-full">
-                                        <SelectValue placeholder={t("unit")} />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {units?.items?.map((c) => (
-                                          <SelectItem key={c.id} value={String(c.id)}>
-                                            {c.name}
-                                          </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                    {fieldState.invalid && (
-                                      <div className="absolute top-full mt-1 right-0 z-10 w-full">
-                                        <FieldError errors={[fieldState.error]} />
-                                      </div>
-                                    )}
-                                  </Field>
+                                    <Field className="relative">
+                                      <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("unit")}</FieldLabel>
+                                      <ComboboxField
+                                        field={field}
+                                        items={units?.items}
+                                        valueKey="id"
+                                        labelKey="name"
+                                        placeholder={t("unit")}
+                                      />
+                                      {fieldState.invalid && (
+                                        <div className="absolute top-full mt-1 right-0 z-10 w-full">
+                                          <FieldError errors={[fieldState.error]} />
+                                        </div>
+                                      )}
+                                    </Field>
                                 )}
                               />
 
@@ -571,18 +565,17 @@ const CreateQuote: React.FC = () => {
                                   control={form.control}
                                   name={`items.${index}.discountType`}
                                   render={({ field }) => (
-                                    <Field>
-                                      <FieldLabel className="text-xs text-zinc-500">{t("discount_type")}</FieldLabel>
-                                      <Select value={field.value || "fixed"} onValueChange={field.onChange}>
-                                        <SelectTrigger className="w-full bg-white">
-                                          <SelectValue placeholder={t("type")} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="fixed">{t("value")}</SelectItem>
-                                          <SelectItem value="percentage">{t("percentage")} %</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </Field>
+                                  <Field>
+                                    <FieldLabel className="text-xs text-zinc-500">{t("discount_type")}</FieldLabel>
+                                    <ComboboxField
+                                      field={field}
+                                      items={[
+                                        { label: t("value"), value: "fixed" },
+                                        { label: `${t("percentage")} %`, value: "percentage" }
+                                      ]}
+                                      placeholder={t("type")}
+                                    />
+                                  </Field>
                                   )}
                                 />
                                 <Controller
