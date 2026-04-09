@@ -47,7 +47,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     .join("");
 
   const html = `<!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl"  style="unicode-bidi:bidi-override;">
 <head>
 <meta charset="UTF-8"/>
 <title>فاتورة ضريبية مبسطة</title>
