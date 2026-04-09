@@ -60,8 +60,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 
 
   html, body {
-    width: 100%;
-    max-width:80mm;
+    width: 80mm;
     font-family: 'Tajawal','Tahoma',Arial,sans-serif;
     font-size: 7.5pt;
     color: #000;
@@ -175,7 +174,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   }
   .totals-table td:last-child {
     font-weight: 700;
-    white-space: nowrap;
+    // white-space: nowrap;
     text-align: center;
   }
   .totals-table tr:last-child td {
@@ -335,23 +334,22 @@ document.fonts.ready.then(function(){
 </body>
 </html>`;
 
- 
   try {
     await printHtmlSilently(html);
+   
   } catch (err: any) {
-    // const isQZOffline = err?.message?.includes("Unable to establish") || err?.message?.includes("WebSocket");
-
-    // if (isQZOffline) {
-    //   // Fallback للـ window.print العادي
-    //   const win = window.open("", "_blank", "width=440,height=980");
-    //   if (!win) {
-    //     alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
-    //     return;
-    //   }
-    //   win.document.write(html);
-    //   win.document.close();
-    // } else {
-    //   console.error("Print error:", err);
-    // }
+    const isQZOffline = err?.message?.includes("Unable to establish") || err?.message?.includes("WebSocket");
+    if (isQZOffline) {
+      // Fallback للـ window.print العادي
+      const win = window.open("", "_blank", "width=440,height=980");
+      if (!win) {
+        alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
+        return;
+      }
+      win.document.write(html);
+      win.document.close();
+    } else {
+      console.error("Print error:", err);
+    }
   }
 }
