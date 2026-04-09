@@ -60,7 +60,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 
 
   html, body {
-    width: 100%;
+    width: 80mm;
     font-family: 'Tajawal','Tahoma',Arial,sans-serif;
     font-size: 7.5pt;
     color: #000;
