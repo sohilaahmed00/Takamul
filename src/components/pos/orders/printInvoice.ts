@@ -1,5 +1,7 @@
 // printInvoice.ts — thermal 80mm — matches design exactly
 
+import { printHtmlSilently } from "@/lib/qzService";
+
 export interface InvoiceItem {
   productName: string;
   quantity: number;
@@ -27,7 +29,7 @@ export interface InvoiceData {
   qrCodeUrl?: string;
 }
 
-export function printInvoice(data: InvoiceData): void {
+export async function printInvoice(data: InvoiceData): Promise<void> {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
   const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
   const riyal = `ر.س`;
@@ -56,10 +58,10 @@ export function printInvoice(data: InvoiceData): void {
       -webkit-print-color-adjust:exact !important;
       print-color-adjust:exact !important; }
 
-  @page { size: 80mm auto; margin: 3mm 5mm; }
+  // @page { size: 80mm auto; margin: 3mm 5mm; }
 
   html, body {
-    width: 100%;
+    width: 80mm;
     font-family: 'Tajawal','Tahoma',Arial,sans-serif;
     font-size: 7.5pt;
     color: #000;
@@ -333,11 +335,28 @@ document.fonts.ready.then(function(){
 </body>
 </html>`;
 
-  const win = window.open("", "_blank", "width=440,height=980");
-  if (!win) {
-    alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
-    return;
+  // const win = window.open("", "_blank", "width=440,height=980");
+  // if (!win) {
+  //   alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
+  //   return;
+  // }
+  // win.document.write(html);
+  // win.document.close();
+  try {
+    await printHtmlSilently(html);
+  } catch (err: any) {
+    const isQZOffline = err?.message?.includes("Unable to establish") || err?.message?.includes("WebSocket");
+    if (isQZOffline) {
+      // Fallback للـ window.print العادي
+      const win = window.open("", "_blank", "width=440,height=980");
+      if (!win) {
+        alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
+        return;
+      }
+      win.document.write(html);
+      win.document.close();
+    } else {
+      console.error("Print error:", err);
+    }
   }
-  win.document.write(html);
-  win.document.close();
 }
