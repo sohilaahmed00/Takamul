@@ -143,13 +143,13 @@ export function printInvoice(data: InvoiceData): void {
   }
   .td-name { text-align:right !important; padding-right:3px !important; }
   .items-table th:nth-child(1),
-  .items-table td:nth-child(1) { width:34%; }
+  .items-table td:nth-child(1) { width:38%; }
   .items-table th:nth-child(2),
   .items-table td:nth-child(2) { width:10%; }
   .items-table th:nth-child(3),
   .items-table td:nth-child(3) { width:14%; }
   .items-table th:nth-child(4),
-  .items-table td:nth-child(4) { width:22%; }
+  .items-table td:nth-child(4) { width:18%; }
   .items-table th:nth-child(5),
   .items-table td:nth-child(5) { width:20%; }
 
