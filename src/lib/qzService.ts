@@ -38,6 +38,7 @@ export async function printHtmlSilently(html: string): Promise<void> {
     size: {
       width: 80,
       units: "mm",
+      custom: true,
     },
   });
 
