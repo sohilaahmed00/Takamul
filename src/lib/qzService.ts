@@ -31,9 +31,11 @@ export async function printHtmlSilently(html: string): Promise<void> {
     copies: 1,
     margins: 0,
 
-    scaleContent: false,
+    scaleContent: true, // 👈 مهم هنا
 
-    rasterize: false,
+    rasterize: true, // 👈 أهم تعديل
+
+    density: 203,
 
     size: {
       width: 80,
