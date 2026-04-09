@@ -92,7 +92,7 @@ export function printInvoice(data: InvoiceData): void {
     font-size: 6.5pt;
     line-height: 1.5;
     vertical-align: middle;
-      border: 1px solid #bbb; 
+      border: 1px solid #999; 
   font-weight: 700; 
     word-break: break-word;
   }
@@ -129,12 +129,12 @@ export function printInvoice(data: InvoiceData): void {
     font-size: 5.5pt;
     text-align: center;
     padding: 2px 1px;
-    border: 0.8px solid #555;
+    border: 1px solid #999;
     line-height: 1.3;
     vertical-align: middle;
   }
   .items-table td {
-    border: 0.8px solid #555;
+    border: 1px solid #999;
     padding: 2px 1px;
     text-align: center;
     vertical-align: middle;
