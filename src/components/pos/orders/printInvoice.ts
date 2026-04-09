@@ -29,6 +29,13 @@ export interface InvoiceData {
   qrCodeUrl?: string;
 }
 
+function arabicToEntities(str: string): string {
+  return str
+    .split("")
+    .map((c) => `&#${c.charCodeAt(0)};`)
+    .join("");
+}
+
 export async function printInvoice(data: InvoiceData): Promise<void> {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
   const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
@@ -213,7 +220,12 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 
   <!-- LOGO -->
 <div class="logo">
-  ${data.logoUrl ? `<img src="${data.logoUrl}" alt="logo"/>` : `<span style="unicode-bidi:plaintext;direction:rtl;">اللوجو</span>`}
+  ${
+    data.logoUrl
+      ? `<img src="${data.logoUrl}" alt="logo"/>`
+      : `<span>${arabicToEntities("اللوجو")}</span>
+`
+  }
 </div>
 
   <!-- INFO GRID -->
@@ -229,7 +241,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     </tr>
     <!-- فاتورة ضريبية مبسطة -->
     <tr class="title-row">
-      <td colspan="2">فاتورة ضريبية مبسطة</td>
+<td colspan="2">${arabicToEntities("فاتورة ضريبية مبسطة")}</td>
     </tr>
     <!-- رقم الفاتورة -->
     <tr>
