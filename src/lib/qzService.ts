@@ -49,7 +49,7 @@ export async function printHtmlSilently(): Promise<void> {
 
 <body>
 
-  <h3>TEST PRINT 🔥</h3>
+  <h3>TEST PRINT</h3>
 
   <div class="line"></div>
 
