@@ -92,7 +92,8 @@ export function printInvoice(data: InvoiceData): void {
     font-size: 6.5pt;
     line-height: 1.5;
     vertical-align: middle;
-    border: 0.8px solid #bbb;
+      border: 1px solid #bbb; 
+  font-weight: 700; 
     word-break: break-word;
   }
   .info-grid .full td {
