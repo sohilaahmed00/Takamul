@@ -168,14 +168,13 @@ export function printInvoice(data: InvoiceData): void {
     border: 0.8px solid #555;
     padding: 3px 5px;
     vertical-align: middle;
+    font-weight:700;
   }
   .totals-table td:first-child {
-    width: 64%;
     text-align: right;
     border-left: 1.5px solid #555;
   }
   .totals-table td:last-child {
-    width: 36%;
     font-weight: 700;
     white-space: nowrap;
     text-align: center;
@@ -330,8 +329,8 @@ export function printInvoice(data: InvoiceData): void {
     if(pat[r][cc]) ctx.fillRect(Math.round(cc*cell),Math.round(r*cell),Math.round(cell)-1,Math.round(cell)-1);
 })();
 document.fonts.ready.then(function(){ 
-  window.print(); 
-  window.close(); 
+  // window.print(); 
+  // window.close(); 
 });
 </script>
 </body>
