@@ -212,9 +212,9 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 <div class="page">
 
   <!-- LOGO -->
-  <div class="logo">
-    ${data.logoUrl ? `<img src="${data.logoUrl}" alt="logo"/>` : "اللوجو"}
-  </div>
+<div class="logo">
+  ${data.logoUrl ? `<img src="${data.logoUrl}" alt="logo"/>` : `<span style="unicode-bidi:plaintext;direction:rtl;">اللوجو</span>`}
+</div>
 
   <!-- INFO GRID -->
   <table class="info-grid">
