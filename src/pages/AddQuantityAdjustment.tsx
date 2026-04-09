@@ -13,13 +13,6 @@ import type { CreateQuantityAdjustmentPayload } from "@/features/quantity-adjust
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import ComboboxField from "@/components/ui/ComboboxField";
 import {
@@ -191,8 +184,8 @@ export default function AddQuantityAdjustment() {
 
       <CardContent>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-          <div className="bg-white p-6 rounded-sm border border-gray-200">
-            <h2 className="text-lg font-bold text-gray-800 mb-6">
+          <div className="bg-white dark:bg-transparent p-6 rounded-sm border border-gray-200 dark:border-gray-800">
+            <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-6">
               {t("basic_data")}
             </h2>
 
@@ -220,9 +213,9 @@ export default function AddQuantityAdjustment() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-sm border border-gray-200">
-            <div className="col-span-3 border-b border-zinc-200 pb-8 min-w-0">
-              <h2 className="text-lg font-bold text-zinc-900 mb-6">
+          <div className="bg-white dark:bg-transparent p-6 rounded-sm border border-gray-200 dark:border-gray-800">
+            <div className="col-span-3 border-b border-zinc-200 dark:border-zinc-800 pb-8 min-w-0">
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-white mb-6">
                 {t("items_list")}
               </h2>
 
@@ -243,7 +236,7 @@ export default function AddQuantityAdjustment() {
                   return (
                     <div
                       key={item.id}
-                      className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group mb-8"
+                      className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 md:p-2 bg-zinc-50 dark:bg-zinc-900/30 md:bg-transparent dark:md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 dark:border-zinc-800 items-center group mb-8"
                     >
                       <Controller
                         control={form.control}
@@ -284,7 +277,7 @@ export default function AddQuantityAdjustment() {
                         <Input
                           value={selectedProduct?.id ?? ""}
                           readOnly
-                          className="text-center bg-gray-50 cursor-not-allowed"
+                          className="text-center bg-gray-50 dark:bg-zinc-900 cursor-not-allowed"
                         />
                       </div>
 
@@ -295,7 +288,7 @@ export default function AddQuantityAdjustment() {
                         <Input
                           value={selectedProduct?.quantityAvailable ?? ""}
                           readOnly
-                          className="text-center bg-gray-50 cursor-not-allowed"
+                          className="text-center bg-gray-50 dark:bg-zinc-900 cursor-not-allowed"
                         />
                       </div>
 
@@ -308,19 +301,13 @@ export default function AddQuantityAdjustment() {
                               {t("operation_type")}
                             </FieldLabel>
 
-                            <Select
-                              value={field.value}
-                              onValueChange={(val) => !isView && field.onChange(val)}
+                            <ComboboxField
+                              field={field}
+                              items={["Add", "Remove"]}
+                              placeholder={t("choose_operation_type")}
                               disabled={isView}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder={t("choose_operation_type")} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Add">{t("add")}</SelectItem>
-                                <SelectItem value="Remove">{t("remove")}</SelectItem>
-                              </SelectContent>
-                            </Select>
+                              onValueChange={(val) => !isView && field.onChange(val)}
+                            />
 
                             {fieldState.invalid && (
                               <div className="absolute top-full mt-1 right-0 z-10 w-full">
@@ -370,7 +357,7 @@ export default function AddQuantityAdjustment() {
                             type="button"
                             onClick={() => removeItem(index)}
                             disabled={items.length === 1}
-                            className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors disabled:opacity-30 md:opacity-0 md:group-hover:opacity-100"
+                            className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 dark:hover:text-red-400 rounded-md transition-colors disabled:opacity-30 md:opacity-0 md:group-hover:opacity-100"
                           >
                             <Trash2 size={18} strokeWidth={1.5} />
                           </button>
@@ -385,7 +372,7 @@ export default function AddQuantityAdjustment() {
                 <button
                   type="button"
                   onClick={handleAddItem}
-                  className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors"
+                  className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
                 >
                   <Plus size={16} strokeWidth={2} />
                   {t("add_new_item")}
@@ -394,7 +381,7 @@ export default function AddQuantityAdjustment() {
             </div>
           </div>
 
-          <div className="bg-white p-5 sm:p-6 rounded-sm border border-gray-200 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+          <div className="bg-white dark:bg-transparent p-5 sm:p-6 rounded-sm border border-gray-200 dark:border-gray-800 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
             <Button
               type="button"
               variant="destructive"

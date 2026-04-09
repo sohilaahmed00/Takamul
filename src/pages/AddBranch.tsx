@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 import { useGetCountries } from "@/features/Location/hooks/Usegetcountries";
 import { useGetCities } from "@/features/Location/hooks/Usegetcities";
@@ -44,11 +44,8 @@ export default function AddBranch() {
   const [isDragging, setIsDragging] = useState(false);
 
   const [countryId, setCountryId] = useState<number | null>(null);
-  const [countrySearch, setCountrySearch] = useState("");
   const [cityId, setCityId] = useState<number | null>(null);
-  const [citySearch, setCitySearch] = useState("");
   const [stateId, setStateId] = useState<number | null>(null);
-  const [stateSearch, setStateSearch] = useState("");
   const [street, setStreet] = useState("");
   const [buildingNumber, setBuildingNumber] = useState("");
   const [subNumber, setSubNumber] = useState("");
@@ -82,33 +79,17 @@ export default function AddBranch() {
     setPostalCode(branchDetail.postalCode ?? "");
   }, [branchDetail]);
 
-  useEffect(() => {
-    const c = (countries ?? []).find((c) => c.id === countryId);
-    setCountrySearch(c?.countryName ?? "");
-  }, [countryId, countries]);
+  // Synced by ComboboxField internallly now
 
-  useEffect(() => {
-    const c = (cities ?? []).find((c) => c.id === cityId);
-    setCitySearch(c?.cityName ?? "");
-  }, [cityId, cities]);
-
-  useEffect(() => {
-    const s = (states ?? []).find((s) => s.id === stateId);
-    setStateSearch(s?.statesName || "");
-  }, [stateId, states]);
-
-  const handleCountryChange = (val: string | null) => {
+  const handleCountryChange = (val: string | number | null) => {
     setCountryId(val ? Number(val) : null);
     setCityId(null);
     setStateId(null);
-    setCitySearch("");
-    setStateSearch("");
   };
 
-  const handleCityChange = (val: string | null) => {
+  const handleCityChange = (val: string | number | null) => {
     setCityId(val ? Number(val) : null);
     setStateId(null);
-    setStateSearch("");
   };
 
   const handleImageFile = useCallback(
@@ -231,12 +212,12 @@ export default function AddBranch() {
                     </Field>
 
                     <Field>
-                      <FieldLabel>{t("phone") || "هاتف"}</FieldLabel>
-                      <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01xxxxxxxxx" className="h-10" readOnly={isViewMode} />
+                      <FieldLabel>{t("phone") || "رقم الجوال"}</FieldLabel>
+                      <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="05xxxxxxxx" className="h-10" readOnly={isViewMode} />
                     </Field>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid md:grid-cols-3 gap-4">
                     <Field>
                       <FieldLabel className="gap-x-1">
                         {t("branch_code") || "كود الفرع"}
@@ -245,10 +226,17 @@ export default function AddBranch() {
                       <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="BR-001" className="h-10" readOnly={isViewMode} />
                     </Field>
 
+                   
                     <Field>
                       <FieldLabel>{t("tax_number") || "الرقم الضريبي"}</FieldLabel>
                       <Input value={taxNumber} onChange={(e) => setTaxNumber(e.target.value)} className="h-10" readOnly={isViewMode} />
                     </Field>
+                    
+                     <Field>
+                      <FieldLabel>{t("commercial_register") || "السجل التجاري"}</FieldLabel>
+                      <Input value={commercialRegister} onChange={(e) => setCommercialRegister(e.target.value)} className="h-10" readOnly={isViewMode} />
+                    </Field>
+
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-700 mb-2">{t("company_logo") || "شعار الشركة"}</p>
@@ -260,7 +248,7 @@ export default function AddBranch() {
                       onDragLeave={() => setIsDragging(false)}
                       onDrop={handleDrop}
                       onClick={() => !isViewMode && fileInputRef.current?.click()}
-                      className={`relative rounded-xl border-2 border-dashed transition-colors flex items-center justify-center min-h-[120px] ${isViewMode ? "cursor-default" : "cursor-pointer"} ${isDragging ? "border-[#2ecc71] bg-[#2ecc71]/5" : "border-gray-200 hover:border-[#2ecc71]/50 hover:bg-gray-50"}`}
+                      className={`relative rounded-xl border-2 border-dashed transition-all flex items-center justify-center min-h-[120px] ${isViewMode ? "cursor-default" : "cursor-pointer"} ${isDragging ? "border-[#2ecc71] bg-[#2ecc71]/5 dark:bg-[#2ecc71]/10" : "border-gray-200 dark:border-zinc-800 hover:border-[#2ecc71]/50 hover:bg-gray-50 dark:hover:bg-zinc-800/20"}`}
                     >
                       {imagePreview ? (
                         <div className="relative p-3">
@@ -273,7 +261,7 @@ export default function AddBranch() {
                                 setImagePreview(null);
                                 setImageUrl("");
                               }}
-                              className="absolute -top-1 -right-1 bg-white rounded-full border border-gray-200 p-0.5 shadow"
+                              className="absolute -top-1 -right-1 bg-white dark:bg-zinc-900 rounded-full border border-gray-200 dark:border-zinc-800 p-0.5 shadow"
                             >
                               <X size={13} className="text-gray-500" />
                             </button>
@@ -281,12 +269,12 @@ export default function AddBranch() {
                         </div>
                       ) : (
                         <div className="flex flex-col items-center gap-2 py-6 text-gray-400">
-                          <div className="w-12 h-12 rounded-full border border-gray-200 flex items-center justify-center bg-white">
+                          <div className="w-12 h-12 rounded-full border border-gray-200 dark:border-zinc-800 flex items-center justify-center bg-white dark:bg-zinc-900">
                             <Upload size={20} />
                           </div>
                           <p className="text-sm font-medium text-gray-600">{t("drag_drop_image") || "اسحب وأفلت الصورة هنا"}</p>
                           <p className="text-xs">{t("or_browse") || "أو اضغط للتصفح"}</p>
-                          <button type="button" className="mt-1 text-xs border border-gray-300 rounded-lg px-4 py-1.5 hover:bg-gray-50 text-gray-600 transition-colors">
+                          <button type="button" className="mt-1 text-xs border border-gray-300 dark:border-zinc-700 rounded-lg px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-600 dark:text-gray-400 transition-colors">
                             {t("browse_files") || "تصفح الملفات"}
                           </button>
                         </div>
@@ -325,19 +313,15 @@ export default function AddBranch() {
                         {t("country") || "البلد"}
                         <span className="text-red-500 ms-1">*</span>
                       </FieldLabel>
-                      <Combobox value={countryId?.toString() ?? ""} onValueChange={handleCountryChange} items={countries ?? []} disabled={isViewMode}>
-                        <ComboboxInput placeholder={t("select_country") || "اختر البلد"} value={countrySearch} onChange={(e) => setCountrySearch(e.target.value)} showClear={!!countryId && !isViewMode} disabled={isViewMode} />
-                        <ComboboxContent>
-                          <ComboboxEmpty>{t("no_results") || "لا توجد نتائج"}</ComboboxEmpty>
-                          <ComboboxList>
-                            {(item: any) => (
-                              <ComboboxItem key={item.id} value={item.id.toString()}>
-                                {item.countryName}
-                              </ComboboxItem>
-                            )}
-                          </ComboboxList>
-                        </ComboboxContent>
-                      </Combobox>
+                      <ComboboxField
+                        value={countryId ?? undefined}
+                        onValueChange={handleCountryChange}
+                        items={countries ?? []}
+                        valueKey="id"
+                        labelKey="countryName"
+                        placeholder={t("select_country")}
+                        disabled={isViewMode}
+                      />
                     </Field>
 
                     <Field>
@@ -345,19 +329,15 @@ export default function AddBranch() {
                         {t("city") || "المدينة"}
                         <span className="text-red-500 ms-1">*</span>
                       </FieldLabel>
-                      <Combobox value={cityId?.toString() ?? ""} onValueChange={handleCityChange} items={cities ?? []} disabled={!countryId || isViewMode}>
-                        <ComboboxInput placeholder={!countryId ? t("select_country_first") || "اختر البلد أولاً" : t("select_city") || "اختر المدينة"} value={citySearch} onChange={(e) => setCitySearch(e.target.value)} showClear={!!cityId && !isViewMode} disabled={!countryId || isViewMode} />
-                        <ComboboxContent>
-                          <ComboboxEmpty>{t("no_results") || "لا توجد نتائج"}</ComboboxEmpty>
-                          <ComboboxList>
-                            {(item: any) => (
-                              <ComboboxItem key={item.id} value={item.id.toString()}>
-                                {item.cityName}
-                              </ComboboxItem>
-                            )}
-                          </ComboboxList>
-                        </ComboboxContent>
-                      </Combobox>
+                      <ComboboxField
+                        value={cityId ?? undefined}
+                        onValueChange={handleCityChange}
+                        items={cities ?? []}
+                        valueKey="id"
+                        labelKey="cityName"
+                        placeholder={!countryId ? t("select_country_first") : t("select_city")}
+                        disabled={!countryId || isViewMode}
+                      />
                     </Field>
 
                     <Field>
@@ -365,19 +345,15 @@ export default function AddBranch() {
                         {t("district") || "الحي"}
                         <span className="text-red-500 ms-1">*</span>
                       </FieldLabel>
-                      <Combobox value={stateId?.toString() ?? ""} onValueChange={(val) => setStateId(val ? Number(val) : null)} items={states ?? []} disabled={!cityId || isViewMode}>
-                        <ComboboxInput placeholder={!cityId ? t("select_city_first") || "اختر المدينة أولاً" : t("select_district") || "اختر الحي"} value={stateSearch} onChange={(e) => setStateSearch(e.target.value)} showClear={!!stateId && !isViewMode} disabled={!cityId || isViewMode} />
-                        <ComboboxContent>
-                          <ComboboxEmpty>{t("no_results") || "لا توجد نتائج"}</ComboboxEmpty>
-                          <ComboboxList>
-                            {(item: any) => (
-                              <ComboboxItem key={item.id.toString()} value={item.id.toString()}>
-                                {item.statesName || item.stateName}
-                              </ComboboxItem>
-                            )}
-                          </ComboboxList>
-                        </ComboboxContent>
-                      </Combobox>
+                      <ComboboxField
+                        value={stateId ?? undefined}
+                        onValueChange={(val) => setStateId(val ? Number(val) : null)}
+                        items={states ?? []}
+                        valueKey="id"
+                        labelKey="statesName"
+                        placeholder={!cityId ? t("select_city_first") : t("select_district")}
+                        disabled={!cityId || isViewMode}
+                      />
                     </Field>
 
                     <Field>

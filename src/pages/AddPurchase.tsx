@@ -24,8 +24,8 @@ import { usePurchases } from "@/context/PurchasesContext";
 import { PurchaseStatus, PaymentStatus, type Purchase } from "@/types";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import AddSupplierModal from "@/components/modals/AddSupplierModal";
 import MobileDataCard from "@/components/MobileDataCard";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 interface PurchaseItem {
   id: string;
@@ -294,16 +294,16 @@ export default function AddPurchase() {
       className="space-y-6 pb-20"
       dir={direction}
     >
-      <div className="flex items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+      <div className="flex items-center justify-between bg-white dark:bg-transparent p-4 rounded-xl shadow-sm border border-gray-100 dark:border-slate-800">
         <h1 className="text-lg font-bold text-primary flex items-center gap-2">
           <Plus size={20} />
           {t("add_purchase")}
         </h1>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-        <div className="p-4 bg-gray-50 border-b border-gray-100">
-          <p className="text-sm text-gray-600">{t("add_product_desc")}</p>
+      <div className="bg-white dark:bg-transparent rounded-xl shadow-sm border border-gray-100 dark:border-slate-800 overflow-hidden">
+        <div className="p-4 bg-gray-50 dark:bg-slate-900/50 border-b border-gray-100 dark:border-slate-800">
+          <p className="text-sm text-gray-600 dark:text-slate-400">{t("add_product_desc")}</p>
         </div>
 
         <form onSubmit={handleComplete} className="p-6 space-y-8">
@@ -316,7 +316,7 @@ export default function AddPurchase() {
                 type="datetime-local"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary text-right"
+                className="takamol-input h-10 text-right"
                 required
               />
             </div>
@@ -329,7 +329,7 @@ export default function AddPurchase() {
                 type="text"
                 value={formData.refNo}
                 onChange={(e) => setFormData({ ...formData, refNo: e.target.value })}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary"
+                className="takamol-input h-10"
                 required
               />
             </div>
@@ -338,48 +338,58 @@ export default function AddPurchase() {
               <label className="text-sm font-medium text-gray-700">
                 {t("purchase_invoice_type")} *
               </label>
-              <select
+              <ComboboxField
                 value={formData.purchaseType}
-                onChange={(e) =>
-                  setFormData({ ...formData, purchaseType: e.target.value })
+                onValueChange={(val) =>
+                  setFormData({ ...formData, purchaseType: val })
                 }
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary bg-white"
-                required
-              >
-                <option value="warehouse">{t("warehouse_purchase_invoice")}</option>
-                <option value="service">{t("service_purchase_invoice")}</option>
-              </select>
+                placeholder={t("purchase_invoice_type")}
+                items={[
+                  { value: "warehouse", label: t("warehouse_purchase_invoice") },
+                  { value: "service", label: t("service_purchase_invoice") },
+                ]}
+                valueKey="value"
+                labelKey="label"
+              />
             </div>
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
                 {t("status")} *
               </label>
-              <select
+              <ComboboxField
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary bg-white"
-                required
-              >
-                <option value="received">{t("received")}</option>
-                <option value="pending">{t("pending")}</option>
-                <option value="ordered">{t("ordered")}</option>
-              </select>
+                onValueChange={(val) =>
+                  setFormData({ ...formData, status: val })
+                }
+                placeholder={t("status")}
+                items={[
+                  { value: "received", label: t("received") },
+                  { value: "pending", label: t("pending") },
+                  { value: "ordered", label: t("ordered") },
+                ]}
+                valueKey="value"
+                labelKey="label"
+              />
             </div>
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">
                 {t("branch")} *
               </label>
-              <select
+              <ComboboxField
                 value={formData.branch}
-                onChange={(e) => setFormData({ ...formData, branch: e.target.value })}
-                className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary bg-white"
-                required
-              >
-                <option value="main">{t("experimental")}</option>
-                <option value="branch1">{t("branch_1")}</option>
-              </select>
+                onValueChange={(val) =>
+                  setFormData({ ...formData, branch: val })
+                }
+                placeholder={t("branch")}
+                items={[
+                  { value: "main", label: t("experimental") },
+                  { value: "branch1", label: t("branch_1") },
+                ]}
+                valueKey="value"
+                labelKey="label"
+              />
             </div>
 
             <div className="space-y-1">
@@ -390,7 +400,7 @@ export default function AddPurchase() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="bg-primary text-white px-4 py-2 rounded-md text-sm hover:bg-primary-hover transition-colors flex items-center gap-2 whitespace-nowrap"
+                  className="bg-primary text-white px-4 py-2 rounded-xl text-sm hover:bg-primary-hover transition-colors flex items-center gap-2 whitespace-nowrap"
                 >
                   <Upload size={16} />
                   {t("browse")}
@@ -404,7 +414,7 @@ export default function AddPurchase() {
                 <input
                   type="text"
                   value={fileName}
-                  className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm outline-none bg-gray-50"
+                  className="takamol-input h-10 !bg-gray-50 dark:!bg-slate-900"
                   readOnly
                   placeholder={t("no_file_chosen") || "لم يتم اختيار ملف"}
                 />
@@ -412,8 +422,8 @@ export default function AddPurchase() {
             </div>
           </div>
 
-          <div className="bg-orange-50/30 p-4 rounded-lg border border-orange-100 space-y-4">
-            <p className="text-sm text-orange-800 font-medium">
+          <div className="bg-orange-50/30 dark:bg-orange-950/20 p-4 rounded-xl border border-orange-100 dark:border-orange-900/50 space-y-4">
+            <p className="text-sm text-orange-800 dark:text-orange-400 font-medium">
               {t("update_options_before_adding")}
             </p>
 
@@ -424,23 +434,15 @@ export default function AddPurchase() {
                 </label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
-                    <select
+                    <ComboboxField
                       value={formData.supplier}
-                      onChange={(e) =>
-                        setFormData({ ...formData, supplier: e.target.value })
+                      onValueChange={(val) =>
+                        setFormData({ ...formData, supplier: val })
                       }
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary bg-white appearance-none"
-                    >
-                      <option value="">{t("select_supplier")}</option>
-                      {suppliers.map((s: any) => (
-                        <option key={s.id} value={s.id}>
-                          {s.supplierName || s.name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown
-                      size={16}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+                      items={suppliers}
+                      valueKey="id"
+                      labelKey="supplierName"
+                      placeholder={t("select_supplier")}
                     />
                   </div>
 
@@ -458,7 +460,7 @@ export default function AddPurchase() {
                 <label className="text-sm font-medium text-gray-700">
                   {t("expected_profit") || "الربح المتوقع"}
                 </label>
-                <div className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-50 text-center font-bold">
+                <div className="takamol-input h-10 !bg-gray-50 dark:!bg-slate-900 text-center font-bold">
                   {expectedProfit.toFixed(2)}
                 </div>
               </div>
@@ -490,7 +492,7 @@ export default function AddPurchase() {
                   setShowResults(true);
                 }}
                 onFocus={() => setShowResults(true)}
-                className="w-full border-2 border-blue-400 rounded-lg px-12 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-100 text-right"
+                className="w-full border-2 border-blue-400 dark:border-blue-900 rounded-xl px-12 py-3 text-sm outline-none focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/20 text-right bg-white dark:bg-slate-900 transition-all shadow-sm"
               />
 
               <AnimatePresence>
@@ -499,20 +501,20 @@ export default function AddPurchase() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto"
+                    className="absolute z-50 w-full mt-1 bg-white dark:bg-[#1e293b] border border-gray-200 dark:border-slate-800 rounded-xl shadow-xl max-h-60 overflow-y-auto"
                   >
                     {filteredProducts.map((product) => (
                       <button
                         key={product.id}
                         type="button"
                         onClick={() => handleSelectProduct(product)}
-                        className="w-full text-right px-4 py-3 hover:bg-gray-50 flex items-center justify-between border-b border-gray-100 last:border-0 transition-colors"
+                        className="w-full text-right px-4 py-3 hover:bg-gray-50 dark:hover:bg-slate-800 flex items-center justify-between border-b border-gray-100 dark:border-slate-800 last:border-0 transition-colors"
                       >
                         <span className="text-primary font-bold">
                           {product.price} {t("sar")}
                         </span>
                         <div className="text-right">
-                          <p className="text-sm font-bold text-gray-800">
+                          <p className="text-sm font-bold text-gray-800 dark:text-white">
                             {product.name}
                           </p>
                           <p className="text-xs text-gray-500">{product.code}</p>
@@ -788,7 +790,7 @@ export default function AddPurchase() {
                       discountBeforeVat: Number(e.target.value),
                     })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary"
+                  className="takamol-input h-10"
                 />
               </div>
 
@@ -805,7 +807,7 @@ export default function AddPurchase() {
                       discountAfterVat: Number(e.target.value),
                     })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary"
+                  className="takamol-input h-10"
                 />
               </div>
 
@@ -819,7 +821,7 @@ export default function AddPurchase() {
                   onChange={(e) =>
                     setFormData({ ...formData, amountPaid: Number(e.target.value) })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary"
+                  className="takamol-input h-10 text-center font-bold !text-[var(--primary)]"
                 />
               </div>
 
@@ -827,17 +829,20 @@ export default function AddPurchase() {
                 <label className="text-sm font-medium text-gray-700">
                   {t("payment_type")}
                 </label>
-                <select
+                <ComboboxField
                   value={formData.paymentType}
-                  onChange={(e) =>
-                    setFormData({ ...formData, paymentType: e.target.value })
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, paymentType: val })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary bg-white"
-                >
-                  <option value="credit">{t("credit")}</option>
-                  <option value="cash">{t("cash")}</option>
-                  <option value="bank">{t("bank_transfer")}</option>
-                </select>
+                  placeholder={t("payment_type")}
+                  items={[
+                    { value: "credit", label: t("credit") },
+                    { value: "cash", label: t("cash") },
+                    { value: "bank", label: t("bank_transfer") },
+                  ]}
+                  valueKey="value"
+                  labelKey="label"
+                />
               </div>
 
               <div className="space-y-1">
@@ -850,32 +855,32 @@ export default function AddPurchase() {
                   onChange={(e) =>
                     setFormData({ ...formData, paymentTerms: e.target.value })
                   }
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary"
+                  className="takamol-input h-10"
                 />
               </div>
 
-              <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-2 text-sm">
+              <div className="rounded-xl border border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900/50 p-4 space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <span>{t("total_no_tax") || "الإجمالي بدون ضريبة"}</span>
-                  <span className="font-bold">{totalNoVat.toFixed(2)}</span>
+                  <span className="dark:text-slate-300">{t("total_no_tax") || "الإجمالي بدون ضريبة"}</span>
+                  <span className="font-bold dark:text-white">{totalNoVat.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>{t("item_vat") || "إجمالي الضريبة"}</span>
-                  <span className="font-bold">{totalVat.toFixed(2)}</span>
+                  <span className="dark:text-slate-300">{t("item_vat") || "إجمالي الضريبة"}</span>
+                  <span className="font-bold dark:text-white">{totalVat.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>{t("discount_before_vat") || "خصم قبل الضريبة"}</span>
-                  <span className="font-bold">{discountBeforeVatValue.toFixed(2)}</span>
+                  <span className="dark:text-slate-300">{t("discount_before_vat") || "خصم قبل الضريبة"}</span>
+                  <span className="font-bold dark:text-white">{discountBeforeVatValue.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>{t("discount_after_vat") || "خصم بعد الضريبة"}</span>
-                  <span className="font-bold">{discountAfterVatValue.toFixed(2)}</span>
+                  <span className="dark:text-slate-300">{t("discount_after_vat") || "خصم بعد الضريبة"}</span>
+                  <span className="font-bold dark:text-white">{discountAfterVatValue.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-base border-t pt-2">
-                  <span className="font-bold">
+                <div className="flex justify-between text-base border-t dark:border-gray-800 pt-2">
+                  <span className="font-bold dark:text-white">
                     {t("total_product_sr") || "الإجمالي النهائي"}
                   </span>
-                  <span className="font-extrabold text-primary">
+                  <span className="font-extrabold text-[var(--primary)] dark:text-white">
                     {finalTotal.toFixed(2)}
                   </span>
                 </div>
@@ -887,8 +892,8 @@ export default function AddPurchase() {
                 <label className="text-sm font-medium text-gray-700">
                   {t("notes")}
                 </label>
-                <div className="border border-gray-300 rounded-md overflow-hidden">
-                  <div className="bg-gray-50 border-b border-gray-300 p-2 flex flex-wrap gap-2">
+                <div className="border border-gray-300 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-transparent">
+                  <div className="bg-gray-50 dark:bg-slate-900/80 border-b border-gray-300 dark:border-slate-800 p-2 flex flex-wrap gap-2">
                     <button type="button" className="p-1 hover:bg-gray-200 rounded">
                       <Bold size={14} />
                     </button>
@@ -922,7 +927,7 @@ export default function AddPurchase() {
                   <textarea
                     value={formData.notes}
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    className="w-full p-3 h-40 outline-none resize-none text-sm"
+                    className="w-full p-3 h-40 outline-none resize-none text-sm bg-transparent dark:text-slate-200"
                     placeholder={t("add_notes_here") || "أضف ملاحظاتك هنا..."}
                   />
                 </div>
@@ -933,7 +938,7 @@ export default function AddPurchase() {
           <div className="flex justify-end gap-3 pt-6">
             <button
               type="submit"
-              className="bg-primary text-white px-8 py-2.5 rounded-md font-bold hover:bg-primary-hover transition-all shadow-md flex items-center gap-2"
+              className="bg-primary text-white px-8 py-2.5 rounded-xl font-bold hover:bg-primary-hover transition-all shadow-md flex items-center gap-2"
             >
               <CheckCircle2 size={18} />
               {t("complete_operation")}
@@ -942,7 +947,7 @@ export default function AddPurchase() {
             <button
               type="button"
               onClick={handleReset}
-              className="bg-[var(--primary)] text-white px-8 py-2.5 rounded-md font-bold hover:bg-[var(--primary-hover)] transition-all shadow-md"
+              className="bg-[var(--primary)] text-white px-8 py-2.5 rounded-xl font-bold hover:bg-[var(--primary-hover)] transition-all shadow-md"
             >
               {t("reset_form")}
             </button>

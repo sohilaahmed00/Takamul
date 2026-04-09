@@ -1,12 +1,12 @@
 import { useState, type ReactNode } from 'react';
 import { 
   Barcode, Rocket, ArrowDown, AlertTriangle, Calendar, RefreshCw, 
-  Layers, FileText, DollarSign, Sparkles, Layout, XCircle, 
+  Layers, FileText, Sparkles, Layout, XCircle, 
   Hammer, LineChart, Network, Grid, Clock, List, Users, 
   UserCheck, Percent, Search, FileCheck, Calculator, ShoppingCart,
   PieChart, BarChart3, TrendingUp, Settings2, ArrowLeftRight, 
   Wallet, Landmark, UserPlus, Scale, FileSpreadsheet,
-  ChevronLeft
+  ChevronLeft, SaudiRiyal
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -52,7 +52,7 @@ export default function Reports() {
     { category: 'items', title: 'تقرير الأصناف بيع وشراء', icon: <RefreshCw className="w-8 h-8" />, path: '/reports/sales-purchases' },
     { category: 'items', title: 'تقرير رصيد المخزون خلال فترة', icon: <Layers className="w-8 h-8" />, path: '/reports/stock-balance' },
     { category: 'items', title: 'كشف حركة صنف', icon: <FileText className="w-8 h-8" />, path: '/reports/item-movement' },
-    { category: 'items', title: 'تقرير المبيعات', icon: <DollarSign className="w-8 h-8" /> },
+    { category: 'items', title: 'تقرير المبيعات', icon: <SaudiRiyal className="w-8 h-8" /> },
     { category: 'items', title: 'تقرير توريد الأصناف', icon: <Sparkles className="w-8 h-8" />, path: '/reports/item-supply' },
     { category: 'items', title: 'أصناف الليسته', icon: <Layout className="w-8 h-8" />, path: '/reports/list-items' },
     { category: 'items', title: 'تقرير الأصناف النافذة', icon: <XCircle className="w-8 h-8" />, path: '/reports/out-of-stock' },
@@ -64,7 +64,7 @@ export default function Reports() {
     // Sales Reports
     { category: 'sales', title: 'المبيعات اليومية', icon: <Clock className="w-8 h-8" />, path: '/reports/daily-sales' },
     { category: 'sales', title: 'المبيعات الشهرية', icon: <Calendar className="w-8 h-8" />, path: '/reports/monthly-sales' },
-    { category: 'sales', title: 'تقرير المبيعات', icon: <DollarSign className="w-8 h-8" />, path: '/reports/sales' },
+    { category: 'sales', title: 'تقرير المبيعات', icon: <SaudiRiyal className="w-8 h-8" />, path: '/reports/sales' },
     { category: 'sales', title: 'تقرير المبيعات اليومية مفصل', icon: <List className="w-8 h-8" />, path: '/reports/detailed-daily-sales' },
     { category: 'sales', title: 'تقرير المبيعات اليومية مفصل بالأصناف', icon: <List className="w-8 h-8" />, path: '/reports/detailed-daily-sales' },
     { category: 'sales', title: 'تقرير مبيعات الكاشيرات اجمالي', icon: <Users className="w-8 h-8" />, path: '/reports/cashier-sales-summary' },
@@ -73,7 +73,7 @@ export default function Reports() {
     { category: 'sales', title: 'influencer percents', icon: <Percent className="w-8 h-8" />, path: '/reports/influencer-percents' },
     { category: 'sales', title: 'تقرير المبيعات حسب التصنيفات', icon: <Layout className="w-8 h-8" />, path: '/reports/sales-by-category' },
     { category: 'sales', title: 'البحث عن فاتورة', icon: <Search className="w-8 h-8" />, path: '/reports/search-invoice' },
-    { category: 'sales', title: 'الفواتير الغير مسددة', icon: <DollarSign className="w-8 h-8" />, path: '/reports/unpaid-invoices' },
+    { category: 'sales', title: 'الفواتير الغير مسددة', icon: <SaudiRiyal className="w-8 h-8" />, path: '/reports/unpaid-invoices' },
 
     // Tax Reports
     { category: 'taxes', title: 'تقرير الضرائب', icon: <Calculator className="w-8 h-8" />, path: '/reports/taxes' },
@@ -96,16 +96,16 @@ export default function Reports() {
 
     // Financials and Shifts
     { category: 'financials', title: 'تقرير الورديات', icon: <Clock className="w-8 h-8" />, path: '/reports/shifts' },
-    { category: 'financials', title: 'تقرير الليسته', icon: <DollarSign className="w-8 h-8" />, path: '/reports/list' },
+    { category: 'financials', title: 'تقرير الليسته', icon: <SaudiRiyal className="w-8 h-8" />, path: '/reports/list' },
     { category: 'financials', title: 'تقرير عن المدفوعات', icon: <Wallet className="w-8 h-8" />, path: '/reports/payments' },
     { category: 'financials', title: 'تقرير حركات مختصرة', icon: <FileText className="w-8 h-8" />, path: '/reports/summary-movements' },
     { category: 'financials', title: 'تقرير البنك', icon: <Landmark className="w-8 h-8" />, path: '/reports/bank' },
 
     // Customers and Vendors
     { category: 'customers', title: 'تقرير العملاء', icon: <Users className="w-8 h-8" />, path: '/reports/customers' },
-    { category: 'customers', title: 'تقرير أعمار الديون للعملاء', icon: <DollarSign className="w-8 h-8" />, path: '/reports/customer-aging' },
+    { category: 'customers', title: 'تقرير أعمار الديون للعملاء', icon: <SaudiRiyal className="w-8 h-8" />, path: '/reports/customer-aging' },
     { category: 'customers', title: 'تقرير الموردين', icon: <UserPlus className="w-8 h-8" />, path: '/reports/vendors' },
-    { category: 'customers', title: 'تقرير أعمار الديون للموردين', icon: <DollarSign className="w-8 h-8" />, path: '/reports/vendor-aging' },
+    { category: 'customers', title: 'تقرير أعمار الديون للموردين', icon: <SaudiRiyal className="w-8 h-8" />, path: '/reports/vendor-aging' },
 
     // Employees and Reps
     { category: 'employees', title: 'تقرير الموظفين', icon: <UserCheck className="w-8 h-8" />, path: '/reports/employees' },
@@ -117,7 +117,7 @@ export default function Reports() {
     { category: 'accounts', title: 'كشف حساب لحساب استاذ', icon: <FileText className="w-8 h-8" />, path: '/reports/ledger-statement' },
     { category: 'accounts', title: 'ميزان مراجعة الاستاذ العام', icon: <Scale className="w-8 h-8" />, path: '/reports/trial-balance' },
     { category: 'accounts', title: 'كشف حساب استاذ مساعد', icon: <FileText className="w-8 h-8" />, path: '/reports/subsidiary-ledger' },
-    { category: 'accounts', title: 'Financial Reports', icon: <DollarSign className="w-8 h-8" />, path: '/reports/financial-summary' },
+    { category: 'accounts', title: 'Financial Reports', icon: <SaudiRiyal className="w-8 h-8" />, path: '/reports/financial-summary' },
 
     // Reservations
     { category: 'reservations', title: 'الحجوزات', icon: <Calendar className="w-8 h-8" />, path: '/reports/reservations' },

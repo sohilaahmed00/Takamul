@@ -4,6 +4,7 @@ import { useTables } from '../context/TablesContext';
 import { Plus, Trash2, Edit2, X, ChevronRight, ChevronLeft, LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MobileDataCard from '../components/MobileDataCard';
+import ComboboxField from '@/components/ui/ComboboxField';
 
 const Tables: React.FC = () => {
   const { t, direction } = useLanguage();
@@ -73,11 +74,13 @@ const Tables: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-[var(--text-muted)]">اظهار</span>
-              <select className="bg-[var(--input-bg)] border border-[var(--border)] rounded px-2 py-1 text-sm text-[var(--text-main)]">
-                <option>10</option>
-                <option>25</option>
-                <option>50</option>
-              </select>
+              <div className="w-20">
+                <ComboboxField
+                  items={[10, 25, 50]}
+                  value={10}
+                  onValueChange={() => {}}
+                />
+              </div>
             </div>
             <div className="relative flex items-center gap-2">
               <span className="text-sm text-[var(--text-muted)]">بحث</span>
@@ -240,15 +243,12 @@ const Tables: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('branch')}</label>
-                    <select
+                    <ComboboxField
+                      items={["نشاط المطاعم", "مغسلة سيارات"]}
                       value={form.branch}
-                      onChange={(e) => setForm({ ...form, branch: e.target.value })}
-                      className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all"
-                    >
-                      <option value="">{t('select_branch')}</option>
-                      <option value="نشاط المطاعم">نشاط المطاعم</option>
-                      <option value="مغسلة سيارات">مغسلة سيارات</option>
-                    </select>
+                      onValueChange={(val) => setForm({ ...form, branch: val })}
+                      placeholder={t('select_branch')}
+                    />
                   </div>
                 </div>
 

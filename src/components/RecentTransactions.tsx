@@ -35,7 +35,7 @@ export default function RecentTransactions() {
   return (
     <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden" dir={direction}>
       {/* Header and Tabs */}
-      <div className="p-3 border-b border-[var(--border)] bg-gray-50/50">
+      <div className="p-3 border-b border-[var(--border)] bg-[var(--bg-main)]/50">
         <h2 className="text-base font-bold text-[var(--text-main)] mb-3">{t('recent_operations') || 'العمليات الأخيرة'}</h2>
         <div className="flex overflow-x-auto hide-scrollbar gap-2">
           {tabs.map(tab => {
@@ -48,7 +48,7 @@ export default function RecentTransactions() {
                   "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors",
                   activeTab === tab.id
                     ? "bg-[var(--primary)] text-white shadow-sm"
-                    : "bg-white text-[var(--text-main)] border border-[var(--border)] hover:bg-gray-50"
+                    : "bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border)] hover:bg-[var(--bg-main)]"
                 )}
               >
                 <Icon size={16} />

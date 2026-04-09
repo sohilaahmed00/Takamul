@@ -6,7 +6,6 @@ import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 import { Button } from "@/components/ui/button";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
@@ -334,8 +333,8 @@ const CreateSalesInvoice: React.FC = () => {
 
         <CardContent>
           <form onSubmit={form.handleSubmit(handleSubmit, (errors) => console.log(errors))} className="space-y-6">
-            <div className="bg-white p-6 rounded-sm border border-gray-100">
-              <h2 className="text-lg font-bold text-gray-800 mb-6">{t("basic_data")}</h2>
+            <div className="bg-white dark:bg-transparent p-6 rounded-sm border border-gray-100 dark:border-gray-800">
+              <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-6">{t("basic_data")}</h2>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Controller
@@ -399,9 +398,9 @@ const CreateSalesInvoice: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-sm border border-gray-100">
-              <div className="col-span-3 border-b border-zinc-200 pb-8 min-w-0">
-                <h2 className="text-lg font-bold text-zinc-900 mb-6">{t("invoice_details")}</h2>
+            <div className="bg-white dark:bg-transparent p-6 rounded-sm border border-gray-100 dark:border-gray-800">
+              <div className="col-span-3 border-b border-zinc-200 dark:border-zinc-800 pb-8 min-w-0">
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-white mb-6">{t("invoice_details")}</h2>
 
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h2>
@@ -471,18 +470,13 @@ const CreateSalesInvoice: React.FC = () => {
                                   name={`items.${index}.unitId`}
                                   render={({ field, fieldState }) => (
                                     <Field>
-                                      <Select value={field.value === 0 ? "" : String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
-                                        <SelectTrigger className="w-full">
-                                          <SelectValue placeholder={t("unit")} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          {units?.items?.map((u) => (
-                                            <SelectItem key={u.id} value={String(u.id)}>
-                                              {u.name}
-                                            </SelectItem>
-                                          ))}
-                                        </SelectContent>
-                                      </Select>
+                                      <ComboboxField
+                                        field={field}
+                                        items={units?.items}
+                                        valueKey="id"
+                                        labelKey="name"
+                                        placeholder={t("unit")}
+                                      />
                                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                     </Field>
                                   )}
@@ -540,20 +534,21 @@ const CreateSalesInvoice: React.FC = () => {
                               </div>
 
                               {isDiscOpen && (
-                                <div className="grid grid-cols-2 gap-3 px-2 py-3 bg-emerald-50 border rounded-lg">
+                                <div className="grid grid-cols-2 gap-3 px-2 py-3 bg-emerald-50 dark:bg-emerald-950/20 border dark:border-emerald-900/30 rounded-lg">
                                   <Controller
                                     control={form.control}
                                     name={`items.${index}.discountType`}
                                     render={({ field }) => (
-                                      <Select value={field.value} onValueChange={field.onChange}>
-                                        <SelectTrigger className="w-full">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="fixed">{t("fixed_value")}</SelectItem>
-                                          <SelectItem value="percentage">{t("percentage")} %</SelectItem>
-                                        </SelectContent>
-                                      </Select>
+                                      <ComboboxField
+                                        field={field}
+                                        items={[
+                                          { value: "fixed", label: t("fixed_value") },
+                                          { value: "percentage", label: t("percentage") + " %" },
+                                        ]}
+                                        valueKey="value"
+                                        labelKey="label"
+                                        className="w-full"
+                                      />
                                     )}
                                   />
 
@@ -567,7 +562,7 @@ const CreateSalesInvoice: React.FC = () => {
                     </div>
                   </div>
 
-                  <button type="button" onClick={handleAddItem} className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">
+                  <button type="button" onClick={handleAddItem} className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors">
                     <Plus size={16} strokeWidth={2} />
                     {t("add_new_item")}
                   </button>
@@ -575,22 +570,22 @@ const CreateSalesInvoice: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl border border-gray-100 col-span-3">
-              <h2 className="text-xl font-bold text-gray-800 mb-6">{t("payments")}</h2>
+            <div className="bg-white dark:bg-transparent p-6 rounded-xl border border-gray-100 dark:border-gray-800 col-span-3">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">{t("payments")}</h2>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2 space-y-4">
                   {paymentFields.map((payment, index) => (
-                    <div key={payment.id} className="flex flex-col sm:flex-row gap-3 items-center bg-gray-50/50 p-3 rounded-lg border border-gray-100">
+                    <div key={payment.id} className="flex flex-col sm:flex-row gap-3 items-center bg-gray-50/50 dark:bg-gray-800/30 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
                       <div className="w-full flex-1">
-                        <label className="text-xs text-gray-500 mb-1 block">{t("amount")}</label>
+                        <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">{t("amount")}</label>
 
                         <Controller
                           control={form.control}
                           name={`payments.${index}.amount`}
                           render={({ field, fieldState }) => (
                             <Field className="relative" data-invalid={fieldState.invalid}>
-                              <Input type="number" placeholder="0.00" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="bg-white" />
+                              <Input type="number" placeholder="0.00" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="bg-white dark:bg-[var(--input-bg)]" />
                               {fieldState.invalid && (
                                 <div className="absolute top-full mt-1 right-0 z-10 w-full">
                                   <FieldError errors={[fieldState.error]} />
@@ -602,28 +597,29 @@ const CreateSalesInvoice: React.FC = () => {
                       </div>
 
                       <div className="w-full flex-1">
-                        <label className="text-xs text-gray-500 mb-1 block">{t("payment_method")}</label>
+                        <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">{t("payment_method")}</label>
 
                         <Controller
                           control={form.control}
                           name={`payments.${index}.paymentMethod`}
                           render={({ field, fieldState }) => (
                             <Field data-invalid={fieldState.invalid}>
-                              <Select value={field.value} onValueChange={field.onChange}>
-                                <SelectTrigger className="w-full bg-white">
-                                  <SelectValue placeholder={t("choose")} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="Cash">{t("cash")}</SelectItem>
-                                  <SelectItem value="CreditCard">{t("visa")}</SelectItem>
-                                  <SelectItem value="DebitCard">{t("debit_card")}</SelectItem>
-                                  <SelectItem value="BankTransfer">{t("bank_transfer")}</SelectItem>
-                                  <SelectItem value="Check">{t("check")}</SelectItem>
-                                  <SelectItem value="MobilePayment">{t("mobile_payment")}</SelectItem>
-                                  <SelectItem value="OnlinePayment">{t("online_payment")}</SelectItem>
-                                  <SelectItem value="Other">{t("other")}</SelectItem>
-                                </SelectContent>
-                              </Select>
+                              <ComboboxField
+                                field={field}
+                                items={[
+                                  { value: "Cash", label: t("cash") },
+                                  { value: "CreditCard", label: t("visa") },
+                                  { value: "DebitCard", label: t("debit_card") },
+                                  { value: "BankTransfer", label: t("bank_transfer") },
+                                  { value: "Check", label: t("check") },
+                                  { value: "MobilePayment", label: t("mobile_payment") },
+                                  { value: "OnlinePayment", label: t("online_payment") },
+                                  { value: "Other", label: t("other") },
+                                ]}
+                                valueKey="value"
+                                labelKey="label"
+                                placeholder={t("choose")}
+                              />
                               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                             </Field>
                           )}
@@ -631,7 +627,7 @@ const CreateSalesInvoice: React.FC = () => {
                       </div>
 
                       <div className="pt-5 shrink-0">
-                        <button type="button" onClick={() => removePayment(index)} disabled={paymentFields.length === 1} className="p-2 text-red-500 hover:bg-red-50 rounded-md disabled:opacity-30 transition-colors border border-transparent hover:border-red-100" title={t("delete_payment")}>
+                        <button type="button" onClick={() => removePayment(index)} disabled={paymentFields.length === 1} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-md disabled:opacity-30 transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-900" title={t("delete_payment")}>
                           <Trash2 size={18} />
                         </button>
                       </div>
@@ -644,20 +640,20 @@ const CreateSalesInvoice: React.FC = () => {
                   </Button>
                 </div>
 
-                <div className="bg-zinc-50 p-6 rounded-2xl border border-zinc-100 sticky top-4">
-                  <h3 className="text-base font-semibold text-gray-800 mb-5">{t("invoice_summary")}</h3>
+                <div className="bg-zinc-50 dark:bg-zinc-900/40 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800">
+                  <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-5">{t("invoice_summary")}</h3>
 
                   <div className="space-y-4">
-                    <div className="flex justify-between items-center text-zinc-600">
+                    <div className="flex justify-between items-center text-zinc-600 dark:text-zinc-400">
                       <span className="text-sm font-medium">{t("subtotal_before_tax")}</span>
-                      <span className="font-semibold text-zinc-900">
+                      <span className="font-semibold text-zinc-900 dark:text-white">
                         {invoiceTotal.toLocaleString("en-EG", {
                           minimumFractionDigits: 2,
                         })}
                       </span>
                     </div>
 
-                    <div className="flex justify-between items-center text-zinc-600">
+                    <div className="flex justify-between items-center text-zinc-600 dark:text-zinc-400">
                       <span className="text-sm font-medium">{t("vat")}</span>
                       <span className="font-semibold text-orange-600">
                         {totalVat.toLocaleString("en-EG", {
@@ -666,35 +662,37 @@ const CreateSalesInvoice: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="flex justify-between items-center text-zinc-600 gap-3">
+                    <div className="flex justify-between items-center text-zinc-600 dark:text-zinc-400 gap-3">
                       <span className="text-sm font-medium whitespace-nowrap">{t("discount")}</span>
 
                       <div className="flex gap-2 w-full max-w-[170px]">
-                        <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" min={0} value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center bg-white flex-1" placeholder={t("value")} />} />
+                        <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" min={0} value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center bg-white dark:bg-zinc-800 flex-1" placeholder={t("value")} />} />
 
                         <Controller
                           control={form.control}
                           name="invoiceDiscountType"
                           render={({ field }) => (
-                            <Select value={field.value} onValueChange={field.onChange}>
-                              <SelectTrigger className="w-[80px] bg-white">
-                                <SelectValue placeholder={t("choose_discount_type")} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="fixed">{t("value")}</SelectItem>
-                                <SelectItem value="percentage">{t("percentage")}</SelectItem>
-                              </SelectContent>
-                            </Select>
+                            <ComboboxField
+                              field={field}
+                              items={[
+                                { value: "fixed", label: t("value") },
+                                { value: "percentage", label: t("percentage") },
+                              ]}
+                              valueKey="value"
+                              labelKey="label"
+                              placeholder={t("choose_discount_type")}
+                              className="w-[120px]"
+                            />
                           )}
                         />
                       </div>
                     </div>
 
-                    <hr className="border-zinc-200" />
+                    <hr className="border-zinc-200 dark:border-zinc-800" />
 
                     <div className="flex justify-between items-center">
-                      <span className="font-bold text-zinc-900">{t("grand_total")}</span>
-                      <span className="text-xl font-black text-zinc-900">
+                      <span className="font-bold text-zinc-900 dark:text-white">{t("grand_total")}</span>
+                      <span className="text-xl font-black text-zinc-900 dark:text-white">
                         {finalTotal.toLocaleString("en-EG", {
                           minimumFractionDigits: 2,
                         })}
@@ -710,8 +708,8 @@ const CreateSalesInvoice: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="flex justify-between items-center bg-white p-3 rounded-lg border border-zinc-100 mt-2">
-                      <span className="text-sm font-bold text-zinc-900">{t("remaining_to_pay")}</span>
+                    <div className="flex justify-between items-center bg-white dark:bg-gray-800/40 p-3 rounded-lg border border-zinc-100 dark:border-zinc-700 mt-2">
+                      <span className="text-sm font-bold text-zinc-900 dark:text-white">{t("remaining_to_pay")}</span>
                       <span className={`font-black text-lg ${remaining > 0 ? "text-red-500" : "text-zinc-400"}`}>
                         {remaining.toLocaleString("en-EG", {
                           minimumFractionDigits: 2,
@@ -723,7 +721,7 @@ const CreateSalesInvoice: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white p-5 sm:p-6 rounded-sm border border-gray-100 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+            <div className="bg-white dark:bg-transparent p-5 sm:p-6 rounded-sm border border-gray-100 dark:border-gray-800 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
               <Button type="button" variant="destructive" className="h-12 px-4" onClick={() => navigate("/sales/all")}>
                 {t("cancel_and_return")}
               </Button>

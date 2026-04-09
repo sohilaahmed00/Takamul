@@ -4,6 +4,7 @@ import { useSettings, type SystemSettings } from "@/context/SettingsContext";
 import { Settings, Package, ShoppingCart, Hash, DollarSign, Barcode, Mail, Star, Percent, FileText, Printer, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import ComboboxField from "@/components/ui/ComboboxField";
 interface SettingSectionProps {
   id: string;
   title: string;
@@ -126,16 +127,19 @@ export default function SystemSettings() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">{t("language")} *</label>
-                  <select value={systemSettings.site.language} onChange={(e) => handleUpdate("site", "language", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="Arabic">Arabic</option>
-                    <option value="English">English</option>
-                  </select>
+                  <ComboboxField
+                    items={["Arabic", "English"]}
+                    value={systemSettings.site.language}
+                    onValueChange={(val) => handleUpdate("site", "language", val)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">العملة الافتراضية *</label>
-                  <select value={systemSettings.site.defaultCurrency} onChange={(e) => handleUpdate("site", "defaultCurrency", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="Saudi Riyal">Saudi Riyal</option>
-                  </select>
+                  <ComboboxField
+                    items={["Saudi Riyal"]}
+                    value={systemSettings.site.defaultCurrency}
+                    onValueChange={(val) => handleUpdate("site", "defaultCurrency", val)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">الرقم الضريبي *</label>
@@ -147,9 +151,11 @@ export default function SystemSettings() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">{t("accounting_method")} *</label>
-                  <select value={systemSettings.site.accountingMethod} onChange={(e) => handleUpdate("site", "accountingMethod", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="FIFO (First In First Out)">FIFO (First In First Out)</option>
-                  </select>
+                  <ComboboxField
+                    items={["FIFO (First In First Out)"]}
+                    value={systemSettings.site.accountingMethod}
+                    onValueChange={(val) => handleUpdate("site", "accountingMethod", val)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">{t("default_email")} *</label>
@@ -157,22 +163,27 @@ export default function SystemSettings() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">{t("default_customer_group")} *</label>
-                  <select value={systemSettings.site.defaultCustomerGroup} onChange={(e) => handleUpdate("site", "defaultCustomerGroup", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value={t("general")}>عام</option>
-                  </select>
+                  <ComboboxField
+                    items={[t("general")]}
+                    value={systemSettings.site.defaultCustomerGroup}
+                    onValueChange={(val) => handleUpdate("site", "defaultCustomerGroup", val)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">مجموعة الأسعار العامة *</label>
-                  <select value={systemSettings.site.generalPriceGroup} onChange={(e) => handleUpdate("site", "generalPriceGroup", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value={t("general")}>عام</option>
-                  </select>
+                  <ComboboxField
+                    items={[t("general")]}
+                    value={systemSettings.site.generalPriceGroup}
+                    onValueChange={(val) => handleUpdate("site", "generalPriceGroup", val)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">دعم RTL *</label>
-                  <select value={systemSettings.site.rtlSupport ? "تمكين" : "تعطيل"} onChange={(e) => handleUpdate("site", "rtlSupport", e.target.value === "تمكين")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="تمكين">تمكين</option>
-                    <option value="تعطيل">تعطيل</option>
-                  </select>
+                  <ComboboxField
+                    items={["تمكين", "تعطيل"]}
+                    value={systemSettings.site.rtlSupport ? "تمكين" : "تعطيل"}
+                    onValueChange={(val) => handleUpdate("site", "rtlSupport", val === "تمكين")}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">عدد الأيام التى لا يمكن تعديل فواتير المبيعات بعدها *</label>
@@ -180,41 +191,51 @@ export default function SystemSettings() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">الصفوف لكل صفحة *</label>
-                  <select value={systemSettings.site.rowsPerPage} onChange={(e) => handleUpdate("site", "rowsPerPage", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value={10}>10</option>
-                    <option value={25}>25</option>
-                    <option value={50}>50</option>
-                  </select>
+                  <ComboboxField
+                    items={[10, 25, 50]}
+                    value={systemSettings.site.rowsPerPage}
+                    onValueChange={(val) => handleUpdate("site", "rowsPerPage", parseInt(val))}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">المنطقة الزمنية *</label>
-                  <select value={systemSettings.site.timezone} onChange={(e) => handleUpdate("site", "timezone", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="Asia/Kuwait">Asia/Kuwait</option>
-                  </select>
+                  <ComboboxField
+                    items={["Asia/Kuwait"]}
+                    value={systemSettings.site.timezone}
+                    onValueChange={(val) => handleUpdate("site", "timezone", val)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">الفرع الافتراضي *</label>
-                  <select value={systemSettings.site.defaultBranch} onChange={(e) => handleUpdate("site", "defaultBranch", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="تجريبي (WHI)">تجريبي (WHI)</option>
-                  </select>
+                  <ComboboxField
+                    items={["تجريبي (WHI)"]}
+                    value={systemSettings.site.defaultBranch}
+                    onValueChange={(val) => handleUpdate("site", "defaultBranch", val)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">الكاشير الافتراضي *</label>
-                  <select value={systemSettings.site.defaultCashier} onChange={(e) => handleUpdate("site", "defaultCashier", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value={t("demo_branch")}>تجريبي</option>
-                  </select>
+                  <ComboboxField
+                    items={[t("demo_branch")]}
+                    value={systemSettings.site.defaultCashier}
+                    onValueChange={(val) => handleUpdate("site", "defaultCashier", val)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">PDF Library *</label>
-                  <select value={systemSettings.site.pdfLibrary} onChange={(e) => handleUpdate("site", "pdfLibrary", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="mPDF">mPDF</option>
-                  </select>
+                  <ComboboxField
+                    items={["mPDF"]}
+                    value={systemSettings.site.pdfLibrary}
+                    onValueChange={(val) => handleUpdate("site", "pdfLibrary", val)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">شركة الدفع الافتراضية *</label>
-                  <select value={systemSettings.site.defaultPaymentCompany} onChange={(e) => handleUpdate("site", "defaultPaymentCompany", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="بدون">بدون</option>
-                  </select>
+                  <ComboboxField
+                    items={["بدون"]}
+                    value={systemSettings.site.defaultPaymentCompany}
+                    onValueChange={(val) => handleUpdate("site", "defaultPaymentCompany", val)}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">عدد أيام تنبيه الصلاحية *</label>
@@ -222,38 +243,43 @@ export default function SystemSettings() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">إظهار الرصيد الفعلي في قائمة العملاء *</label>
-                  <select value={systemSettings.site.showActualBalance ? "نعم" : "لا"} onChange={(e) => handleUpdate("site", "showActualBalance", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="نعم">نعم</option>
-                    <option value="لا">لا</option>
-                  </select>
+                  <ComboboxField
+                    items={["نعم", "لا"]}
+                    value={systemSettings.site.showActualBalance ? "نعم" : "لا"}
+                    onValueChange={(val) => handleUpdate("site", "showActualBalance", val === "نعم")}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">إظهار رسالة التكلفة أكبر من سعر البيع *</label>
-                  <select value={systemSettings.site.showCostGreaterMsg ? "نعم" : "لا"} onChange={(e) => handleUpdate("site", "showCostGreaterMsg", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="نعم">نعم</option>
-                    <option value="لا">لا</option>
-                  </select>
+                  <ComboboxField
+                    items={["نعم", "لا"]}
+                    value={systemSettings.site.showCostGreaterMsg ? "نعم" : "لا"}
+                    onValueChange={(val) => handleUpdate("site", "showCostGreaterMsg", val === "نعم")}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">إظهار كود الصنف في المبيعات *</label>
-                  <select value={systemSettings.site.showItemCodeInSales ? "نعم" : "لا"} onChange={(e) => handleUpdate("site", "showItemCodeInSales", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="نعم">نعم</option>
-                    <option value="لا">لا</option>
-                  </select>
+                  <ComboboxField
+                    items={["نعم", "لا"]}
+                    value={systemSettings.site.showItemCodeInSales ? "نعم" : "لا"}
+                    onValueChange={(val) => handleUpdate("site", "showItemCodeInSales", val === "نعم")}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">إظهار كود الصنف في عروض الأسعار *</label>
-                  <select value={systemSettings.site.showItemCodeInQuotes ? "نعم" : "لا"} onChange={(e) => handleUpdate("site", "showItemCodeInQuotes", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="نعم">نعم</option>
-                    <option value="لا">لا</option>
-                  </select>
+                  <ComboboxField
+                    items={["نعم", "لا"]}
+                    value={systemSettings.site.showItemCodeInQuotes ? "نعم" : "لا"}
+                    onValueChange={(val) => handleUpdate("site", "showItemCodeInQuotes", val === "نعم")}
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">إظهار كود الصنف في المشتريات *</label>
-                  <select value={systemSettings.site.showItemCodeInPurchases ? "نعم" : "لا"} onChange={(e) => handleUpdate("site", "showItemCodeInPurchases", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                    <option value="نعم">نعم</option>
-                    <option value="لا">لا</option>
-                  </select>
+                  <ComboboxField
+                    items={["نعم", "لا"]}
+                    value={systemSettings.site.showItemCodeInPurchases ? "نعم" : "لا"}
+                    onValueChange={(val) => handleUpdate("site", "showItemCodeInPurchases", val === "نعم")}
+                  />
                 </div>
               </div>
             )}
@@ -262,38 +288,43 @@ export default function SystemSettings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">ضريبة الأصناف *</label>
-                    <select value={systemSettings.items.itemTax ? "تمكين" : "تعطيل"} onChange={(e) => handleUpdate("items", "itemTax", e.target.value === "تمكين")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="تمكين">تمكين</option>
-                      <option value="تعطيل">تعطيل</option>
-                    </select>
+                    <ComboboxField
+                      items={["تمكين", "تعطيل"]}
+                      value={systemSettings.items.itemTax ? "تمكين" : "تعطيل"}
+                      onValueChange={(val) => handleUpdate("items", "itemTax", val === "تمكين")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">رفوف *</label>
-                    <select value={systemSettings.items.shelves ? "تمكين" : "تعطيل"} onChange={(e) => handleUpdate("items", "shelves", e.target.value === "تمكين")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="تمكين">تمكين</option>
-                      <option value="تعطيل">تعطيل</option>
-                    </select>
+                    <ComboboxField
+                      items={["تمكين", "تعطيل"]}
+                      value={systemSettings.items.shelves ? "تمكين" : "تعطيل"}
+                      onValueChange={(val) => handleUpdate("items", "shelves", val === "تمكين")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">متغيرات الأصناف *</label>
-                    <select value={systemSettings.items.itemVariants ? "تمكين" : "تعطيل"} onChange={(e) => handleUpdate("items", "itemVariants", e.target.value === "تمكين")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="تمكين">تمكين</option>
-                      <option value="تعطيل">تعطيل</option>
-                    </select>
+                    <ComboboxField
+                      items={["تمكين", "تعطيل"]}
+                      value={systemSettings.items.itemVariants ? "تمكين" : "تعطيل"}
+                      onValueChange={(val) => handleUpdate("items", "itemVariants", val === "تمكين")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">انتهاء صلاحية الصنف *</label>
-                    <select value={systemSettings.items.itemExpiry ? "تمكين" : "تعطيل"} onChange={(e) => handleUpdate("items", "itemExpiry", e.target.value === "تمكين")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="تمكين">تمكين</option>
-                      <option value="تعطيل">تعطيل</option>
-                    </select>
+                    <ComboboxField
+                      items={["تمكين", "تعطيل"]}
+                      value={systemSettings.items.itemExpiry ? "تمكين" : "تعطيل"}
+                      onValueChange={(val) => handleUpdate("items", "itemExpiry", val === "تمكين")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">حذف الأصناف منتهية الصلاحية من المخزون *</label>
-                    <select value={systemSettings.items.deleteExpiredItems ? "نعم" : "لا، أنا سأقوم بالحذف يدوياً"} onChange={(e) => handleUpdate("items", "deleteExpiredItems", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="لا، أنا سأقوم بالحذف يدوياً">لا، أنا سأقوم بالحذف يدوياً</option>
-                      <option value="نعم">نعم</option>
-                    </select>
+                    <ComboboxField
+                      items={["نعم", "لا، أنا سأقوم بالحذف يدوياً"]}
+                      value={systemSettings.items.deleteExpiredItems ? "نعم" : "لا، أنا سأقوم بالحذف يدوياً"}
+                      onValueChange={(val) => handleUpdate("items", "deleteExpiredItems", val === "نعم")}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
@@ -315,41 +346,51 @@ export default function SystemSettings() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">العلامة المائية *</label>
-                    <select value={systemSettings.items.watermark ? "نعم" : "لا"} onChange={(e) => handleUpdate("items", "watermark", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="لا">لا</option>
-                      <option value="نعم">نعم</option>
-                    </select>
+                    <ComboboxField
+                      items={["نعم", "لا"]}
+                      value={systemSettings.items.watermark ? "نعم" : "لا"}
+                      onValueChange={(val) => handleUpdate("items", "watermark", val === "نعم")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">إظهار أصناف المخزن *</label>
-                    <select value={systemSettings.items.showWarehouseItems} onChange={(e) => handleUpdate("items", "showWarehouseItems", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="اظهار جميع الاصناف حتى لو رصيدها صفر">اظهار جميع الاصناف حتى لو رصيدها صفر</option>
-                    </select>
+                    <ComboboxField
+                      items={["اظهار جميع الاصناف حتى لو رصيدها صفر"]}
+                      value={systemSettings.items.showWarehouseItems}
+                      onValueChange={(val) => handleUpdate("items", "showWarehouseItems", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">فاصل الباركود *</label>
-                    <select value={systemSettings.items.barcodeSeparator} onChange={(e) => handleUpdate("items", "barcodeSeparator", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="( _ ) Underscore">( _ ) Underscore</option>
-                    </select>
+                    <ComboboxField
+                      items={["( _ ) Underscore", "( - ) Hyphen", "( . ) Dot"]}
+                      value={systemSettings.items.barcodeSeparator}
+                      onValueChange={(val) => handleUpdate("items", "barcodeSeparator", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">معيار الباركود *</label>
-                    <select value={systemSettings.items.barcodeStandard} onChange={(e) => handleUpdate("items", "barcodeStandard", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="صورة">صورة</option>
-                    </select>
+                    <ComboboxField
+                      items={["صورة", "نص"]}
+                      value={systemSettings.items.barcodeStandard}
+                      onValueChange={(val) => handleUpdate("items", "barcodeStandard", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">تحويل المخزون *</label>
-                    <select value={systemSettings.items.inventoryTransfer} onChange={(e) => handleUpdate("items", "inventoryTransfer", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="تكلفة">تكلفة</option>
-                    </select>
+                    <ComboboxField
+                      items={["تكلفة", "سعر البيع"]}
+                      value={systemSettings.items.inventoryTransfer}
+                      onValueChange={(val) => handleUpdate("items", "inventoryTransfer", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">تفعيل اسم الصنف باللغة الثانية *</label>
-                    <select value={systemSettings.items.enableSecondLangName ? "نعم" : "لا"} onChange={(e) => handleUpdate("items", "enableSecondLangName", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="لا">لا</option>
-                      <option value="نعم">نعم</option>
-                    </select>
+                    <ComboboxField
+                      items={["نعم", "لا"]}
+                      value={systemSettings.items.enableSecondLangName ? "نعم" : "لا"}
+                      onValueChange={(val) => handleUpdate("items", "enableSecondLangName", val === "نعم")}
+                    />
                   </div>
                 </div>
               </SettingSection>
@@ -359,41 +400,51 @@ export default function SystemSettings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">البيع حتى لو كان الرصيد صفر *</label>
-                    <select value={systemSettings.sales.sellIfZero ? "نعم" : "لا"} onChange={(e) => handleUpdate("sales", "sellIfZero", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="لا">لا</option>
-                      <option value="نعم">نعم</option>
-                    </select>
+                    <ComboboxField
+                      items={["نعم", "لا"]}
+                      value={systemSettings.sales.sellIfZero ? "نعم" : "لا"}
+                      onValueChange={(val) => handleUpdate("sales", "sellIfZero", val === "نعم")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">تنسيق الرقم المرجعي *</label>
-                    <select value={systemSettings.sales.referenceFormat} onChange={(e) => handleUpdate("sales", "referenceFormat", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="الشهر / السنة / تسلسل رقم (م / 08/001 / 4..)">الشهر / السنة / تسلسل رقم (م / 08/001 / 4..)</option>
-                    </select>
+                    <ComboboxField
+                      items={["الشهر / السنة / تسلسل رقم (م / 08/001 / 4..)"]}
+                      value={systemSettings.sales.referenceFormat}
+                      onValueChange={(val) => handleUpdate("sales", "referenceFormat", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">سيريال الصنف *</label>
-                    <select value={systemSettings.sales.itemSerial ? "تمكين" : "تعطيل"} onChange={(e) => handleUpdate("sales", "itemSerial", e.target.value === "تمكين")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="تمكين">تمكين</option>
-                      <option value="تعطيل">تعطيل</option>
-                    </select>
+                    <ComboboxField
+                      items={["تمكين", "تعطيل"]}
+                      value={systemSettings.sales.itemSerial ? "تمكين" : "تعطيل"}
+                      onValueChange={(val) => handleUpdate("sales", "itemSerial", val === "تمكين")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">طريقة اضافة بند الصنف فى فاتورة المبيعات *</label>
-                    <select value={systemSettings.sales.addItemMethod} onChange={(e) => handleUpdate("sales", "addItemMethod", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="زيادة كمية البند، إذا كان موجوداً بالفعل في ..">زيادة كمية البند، إذا كان موجوداً بالفعل في ..</option>
-                    </select>
+                    <ComboboxField
+                      items={["زيادة كمية البند، إذا كان موجوداً بالفعل في ..", "إضافة كسطر جديد"]}
+                      value={systemSettings.sales.addItemMethod}
+                      onValueChange={(val) => handleUpdate("sales", "addItemMethod", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">مكان وقوف المؤشر بعد اضافة الصنف *</label>
-                    <select value={systemSettings.sales.cursorPosition} onChange={(e) => handleUpdate("sales", "cursorPosition", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="اضافة منتج جديد">اضافة منتج جديد</option>
-                    </select>
+                    <ComboboxField
+                      items={["اضافة منتج جديد", "الكمية", "السعر"]}
+                      value={systemSettings.sales.cursorPosition}
+                      onValueChange={(val) => handleUpdate("sales", "cursorPosition", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">طريقة الدفع الافتراضية *</label>
-                    <select value={systemSettings.sales.defaultPaymentMethod} onChange={(e) => handleUpdate("sales", "defaultPaymentMethod", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="شبكة">شبكة</option>
-                    </select>
+                    <ComboboxField
+                      items={["شبكة", "كاش", "آجل"]}
+                      value={systemSettings.sales.defaultPaymentMethod}
+                      onValueChange={(val) => handleUpdate("sales", "defaultPaymentMethod", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">اسم الرقم التسلسلي في الفواتير</label>
@@ -401,37 +452,43 @@ export default function SystemSettings() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">طريقة الدفع الافتراضية للمشتريات</label>
-                    <select value={systemSettings.sales.defaultPurchasePaymentMethod} onChange={(e) => handleUpdate("sales", "defaultPurchasePaymentMethod", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="آجل">آجل</option>
-                    </select>
+                    <ComboboxField
+                      items={["آجل", "كاش", "شبكة"]}
+                      value={systemSettings.sales.defaultPurchasePaymentMethod}
+                      onValueChange={(val) => handleUpdate("sales", "defaultPurchasePaymentMethod", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">تفعيل البحث السريع</label>
-                    <select value={systemSettings.sales.enableQuickSearch ? "نعم" : "لا"} onChange={(e) => handleUpdate("sales", "enableQuickSearch", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="نعم">نعم</option>
-                      <option value="لا">لا</option>
-                    </select>
+                    <ComboboxField
+                      items={["نعم", "لا"]}
+                      value={systemSettings.sales.enableQuickSearch ? "نعم" : "لا"}
+                      onValueChange={(val) => handleUpdate("sales", "enableQuickSearch", val === "نعم")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">حذف محددات البحث</label>
-                    <select value={systemSettings.sales.clearSearchFilters ? "نعم" : "لا"} onChange={(e) => handleUpdate("sales", "clearSearchFilters", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="نعم">نعم</option>
-                      <option value="لا">لا</option>
-                    </select>
+                    <ComboboxField
+                      items={["نعم", "لا"]}
+                      value={systemSettings.sales.clearSearchFilters ? "نعم" : "لا"}
+                      onValueChange={(val) => handleUpdate("sales", "clearSearchFilters", val === "نعم")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">تفعيل المسوقين</label>
-                    <select value={systemSettings.sales.enableMarketers ? "نعم" : "لا"} onChange={(e) => handleUpdate("sales", "enableMarketers", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="لا">لا</option>
-                      <option value="نعم">نعم</option>
-                    </select>
+                    <ComboboxField
+                      items={["نعم", "لا"]}
+                      value={systemSettings.sales.enableMarketers ? "نعم" : "لا"}
+                      onValueChange={(val) => handleUpdate("sales", "enableMarketers", val === "نعم")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">تفعيل النظارات *</label>
-                    <select value={systemSettings.sales.enableGlasses ? "نعم" : "لا"} onChange={(e) => handleUpdate("sales", "enableGlasses", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="لا">لا</option>
-                      <option value="نعم">نعم</option>
-                    </select>
+                    <ComboboxField
+                      items={["نعم", "لا"]}
+                      value={systemSettings.sales.enableGlasses ? "نعم" : "لا"}
+                      onValueChange={(val) => handleUpdate("sales", "enableGlasses", val === "نعم")}
+                    />
                   </div>
                 </div>
               </SettingSection>
@@ -491,45 +548,51 @@ export default function SystemSettings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">الكسور العشرية *</label>
-                    <select value={systemSettings.money.decimals} onChange={(e) => handleUpdate("money", "decimals", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value={2}>2</option>
-                      <option value={3}>3</option>
-                    </select>
+                    <ComboboxField
+                      items={[2, 3, 4]}
+                      value={systemSettings.money.decimals}
+                      onValueChange={(val) => handleUpdate("money", "decimals", parseInt(val))}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">العلامات العشرية للكمية *</label>
-                    <select value={systemSettings.money.quantityDecimals} onChange={(e) => handleUpdate("money", "quantityDecimals", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value={2}>2</option>
-                    </select>
+                    <ComboboxField
+                      items={[2, 3, 4]}
+                      value={systemSettings.money.quantityDecimals}
+                      onValueChange={(val) => handleUpdate("money", "quantityDecimals", parseInt(val))}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">تنسيق جنوب اسيا لبلدان العملات *</label>
-                    <select value={systemSettings.money.southAsiaFormat ? "تمكين" : "تعطيل"} onChange={(e) => handleUpdate("money", "southAsiaFormat", e.target.value === "تمكين")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="تعطيل">تعطيل</option>
-                      <option value="تمكين">تمكين</option>
-                    </select>
+                    <ComboboxField
+                      items={["تمكين", "تعطيل"]}
+                      value={systemSettings.money.southAsiaFormat ? "تمكين" : "تعطيل"}
+                      onValueChange={(val) => handleUpdate("money", "southAsiaFormat", val === "تمكين")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">فاصل درجة عشرية *</label>
-                    <select value={systemSettings.money.decimalSeparator} onChange={(e) => handleUpdate("money", "decimalSeparator", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value=".">نقطة ( . )</option>
-                      <option value=",">فاصلة ( , )</option>
-                    </select>
+                    <ComboboxField
+                      items={[".", ","]}
+                      value={systemSettings.money.decimalSeparator}
+                      onValueChange={(val) => handleUpdate("money", "decimalSeparator", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">فاصل درجة الفيه *</label>
-                    <select value={systemSettings.money.thousandSeparator} onChange={(e) => handleUpdate("money", "thousandSeparator", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value=",">فاصلة ( , )</option>
-                      <option value=".">نقطة ( . )</option>
-                      <option value=" ">مسافة (Space)</option>
-                    </select>
+                    <ComboboxField
+                      items={[",", ".", " "]}
+                      value={systemSettings.money.thousandSeparator}
+                      onValueChange={(val) => handleUpdate("money", "thousandSeparator", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">اظهار رمز العملة *</label>
-                    <select value={systemSettings.money.showCurrencySymbol ? "تمكين" : "تعطيل"} onChange={(e) => handleUpdate("money", "showCurrencySymbol", e.target.value === "تمكين")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="تعطيل">تعطيل</option>
-                      <option value="تمكين">تمكين</option>
-                    </select>
+                    <ComboboxField
+                      items={["تمكين", "تعطيل"]}
+                      value={systemSettings.money.showCurrencySymbol ? "تمكين" : "تعطيل"}
+                      onValueChange={(val) => handleUpdate("money", "showCurrencySymbol", val === "تمكين")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">رمز العملة</label>
@@ -537,9 +600,11 @@ export default function SystemSettings() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">العلامات العشرية لفاتورة الـ A4 *</label>
-                    <select value={systemSettings.money.a4InvoiceDecimals} onChange={(e) => handleUpdate("money", "a4InvoiceDecimals", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value={4}>4</option>
-                    </select>
+                    <ComboboxField
+                      items={[2, 3, 4]}
+                      value={systemSettings.money.a4InvoiceDecimals}
+                      onValueChange={(val) => handleUpdate("money", "a4InvoiceDecimals", parseInt(val))}
+                    />
                   </div>
                 </div>
               </SettingSection>
@@ -549,9 +614,11 @@ export default function SystemSettings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">نوع الباركود</label>
-                    <select value={systemSettings.barcode.type} onChange={(e) => handleUpdate("barcode", "type", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="الوزن/الكمية">الوزن/الكمية</option>
-                    </select>
+                    <ComboboxField
+                      items={["الوزن/الكمية"]}
+                      value={systemSettings.barcode.type}
+                      onValueChange={(val) => handleUpdate("barcode", "type", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">الحروف الكلية للباركود</label>
@@ -589,9 +656,11 @@ export default function SystemSettings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">بروتوكول البريد الإلكتروني *</label>
-                    <select value={systemSettings.email.protocol} onChange={(e) => handleUpdate("email", "protocol", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="SMTP">SMTP</option>
-                    </select>
+                    <ComboboxField
+                      items={["SMTP"]}
+                      value={systemSettings.email.protocol}
+                      onValueChange={(val) => handleUpdate("email", "protocol", val)}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">المضيف SMTP</label>
@@ -611,10 +680,11 @@ export default function SystemSettings() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">SMTP تشفير</label>
-                    <select value={systemSettings.email.smtpEncryption} onChange={(e) => handleUpdate("email", "smtpEncryption", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="SSL">SSL</option>
-                      <option value="TLS">TLS</option>
-                    </select>
+                    <ComboboxField
+                      items={["SSL", "TLS"]}
+                      value={systemSettings.email.smtpEncryption}
+                      onValueChange={(val) => handleUpdate("email", "smtpEncryption", val)}
+                    />
                   </div>
                 </div>
               </SettingSection>
@@ -684,10 +754,11 @@ export default function SystemSettings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">حالة الترويسة العلوية</label>
-                    <select value={systemSettings.reports.headerStatus ? "إظهار" : "إخفاء"} onChange={(e) => handleUpdate("reports", "headerStatus", e.target.value === "إظهار")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="إظهار">إظهار</option>
-                      <option value="إخفاء">إخفاء</option>
-                    </select>
+                    <ComboboxField
+                      items={["إظهار", "إخفاء"]}
+                      value={systemSettings.reports.headerStatus ? "إظهار" : "إخفاء"}
+                      onValueChange={(val) => handleUpdate("reports", "headerStatus", val === "إظهار")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">صورة الترويسة العلوية Max( 2500px w * 600px h)</label>
@@ -707,10 +778,11 @@ export default function SystemSettings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">طباعة الترويسة العلوية *</label>
-                    <select value={systemSettings.salesPrint.printHeader ? "إظهار" : "إخفاء"} onChange={(e) => handleUpdate("salesPrint", "printHeader", e.target.value === "إظهار")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="إخفاء">إخفاء</option>
-                      <option value="إظهار">إظهار</option>
-                    </select>
+                    <ComboboxField
+                      items={["إظهار", "إخفاء"]}
+                      value={systemSettings.salesPrint.printHeader ? "إظهار" : "إخفاء"}
+                      onValueChange={(val) => handleUpdate("salesPrint", "printHeader", val === "إظهار")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">صورة الترويسة العلوية Max( 2500px w * 600px h)</label>
@@ -724,17 +796,19 @@ export default function SystemSettings() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">خيار البائع والمستلم</label>
-                    <select value={systemSettings.salesPrint.showSellerAndRecipient ? "نعم" : "لا"} onChange={(e) => handleUpdate("salesPrint", "showSellerAndRecipient", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="نعم">نعم</option>
-                      <option value="لا">لا</option>
-                    </select>
+                    <ComboboxField
+                      items={["نعم", "لا"]}
+                      value={systemSettings.salesPrint.showSellerAndRecipient ? "نعم" : "لا"}
+                      onValueChange={(val) => handleUpdate("salesPrint", "showSellerAndRecipient", val === "نعم")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">تفعيل طباعة dot matrix *</label>
-                    <select value={systemSettings.salesPrint.enableDotMatrix ? "نعم" : "لا"} onChange={(e) => handleUpdate("salesPrint", "enableDotMatrix", e.target.value === "نعم")} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]">
-                      <option value="لا">لا</option>
-                      <option value="نعم">نعم</option>
-                    </select>
+                    <ComboboxField
+                      items={["نعم", "لا"]}
+                      value={systemSettings.salesPrint.enableDotMatrix ? "نعم" : "لا"}
+                      onValueChange={(val) => handleUpdate("salesPrint", "enableDotMatrix", val === "نعم")}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">حقل رقم أمر الشراء *</label>

@@ -3,6 +3,7 @@ import { Save } from "lucide-react";
 import ResponsiveModal from "./ResponsiveModal";
 import { useLanguage } from "@/context/LanguageContext";
 import { useUsers } from "@/context/UsersContext";
+import ComboboxField from "../ui/ComboboxField";
 
 interface AddUserModalProps {
   isOpen: boolean;
@@ -83,11 +84,12 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
           </div>
           <div className="space-y-1">
             <label className="text-sm font-bold text-gray-700 dark:text-gray-300">{t("group")}</label>
-            <select value={formData.group} onChange={(e) => setFormData({ ...formData, group: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm">
-              <option value="Admin">Admin</option>
-              <option value="Cashier">Cashier</option>
-              <option value="Manager">Manager</option>
-            </select>
+            <ComboboxField
+              items={["Admin", "Cashier", "Manager"]}
+              value={formData.group}
+              onValueChange={(val) => setFormData({ ...formData, group: val })}
+              placeholder={t("select_group") || "اختر المجموعة"}
+            />
           </div>
         </div>
 

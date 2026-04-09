@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Loader2, Pencil, Truck, Wallet } from "lucide-react";
+import ComboboxField from "@/components/ui/ComboboxField";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
@@ -180,24 +181,14 @@ export default function AddSupplierPaymentModal({
               <h3 className="text-sm font-semibold text-gray-800">{t("treasury")}</h3>
             </div>
 
-            <Field>
-              <select
-                value={treasuryId ?? ""}
-                onChange={(e) =>
-                  setTreasuryId(
-                    e.target.value ? Number(e.target.value) : undefined
-                  )
-                }
-                className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71]"
-              >
-                <option value="">{t("select_treasury")}</option>
-                {(treasurys ?? []).map((tRow: any) => (
-                  <option key={tRow.id} value={tRow.id}>
-                    {tRow.name}
-                  </option>
-                ))}
-              </select>
-            </Field>
+            <ComboboxField
+              value={treasuryId}
+              onValueChange={(val) => setTreasuryId(val ? Number(val) : undefined)}
+              items={treasurys ?? []}
+              valueKey="id"
+              labelKey="name"
+              placeholder={t("select_treasury")}
+            />
           </div>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
@@ -209,23 +200,15 @@ export default function AddSupplierPaymentModal({
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
                 <FieldLabel>{t("supplier_name")}</FieldLabel>
-                <select
-                  value={supplierId ?? ""}
-                  onChange={(e) =>
-                    setSupplierId(
-                      e.target.value ? Number(e.target.value) : undefined
-                    )
-                  }
+                <ComboboxField
+                  value={supplierId}
+                  onValueChange={(val) => setSupplierId(val ? Number(val) : undefined)}
+                  items={suppliers ?? []}
+                  valueKey="id"
+                  labelKey="supplierName"
+                  placeholder={t("select_supplier")}
                   disabled={isEditMode}
-                  className="w-full h-9 rounded-xl border border-gray-200 px-3 bg-white outline-none focus:border-[#2ecc71] disabled:bg-gray-50 disabled:text-gray-500"
-                >
-                  <option value="">{t("select_supplier")}</option>
-                  {(suppliers ?? []).map((s: any) => (
-                    <option key={s.id} value={s.id}>
-                      {s.supplierName}
-                    </option>
-                  ))}
-                </select>
+                />
               </Field>
 
               <Field>

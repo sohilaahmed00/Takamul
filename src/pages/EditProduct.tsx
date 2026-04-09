@@ -1,4 +1,4 @@
-﻿// src/pages/EditProduct.tsx
+// src/pages/EditProduct.tsx
 import React, { useState, useRef, ChangeEvent, FormEvent, useEffect, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -898,11 +898,11 @@ export default function EditProduct() {
                     </div>
                   )}
                   {!vatIncluded && selectedVat && form.sellingPrice && Number(form.sellingPrice) > 0 && (
-                    <div className="rounded-lg p-3 text-sm border bg-amber-50 border-amber-200 space-y-1">
-                      <div className="flex justify-between text-gray-600">
+                    <div className="rounded-xl p-4 text-sm border bg-[#FFFCF2] dark:bg-amber-950/20 border-[#F3E2B4] dark:border-amber-800/40 space-y-2">
+                      <div className="flex justify-between text-slate-500 dark:text-slate-400 font-medium">
                         <span>السعر قبل الضريبة</span><span>{parseFloat(form.sellingPrice).toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between font-bold text-amber-900 border-t border-amber-200 pt-1 mt-1">
+                      <div className="flex justify-between font-bold text-[#8B4513] dark:text-amber-400 border-t border-[#E8D49E] dark:border-amber-800/60 pt-2 mt-2">
                         <span>السعر النهائي</span><span>{finalSellingPrice.toFixed(2)}</span>
                       </div>
                     </div>

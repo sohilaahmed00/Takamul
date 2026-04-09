@@ -40,7 +40,6 @@ export default function Login() {
 
   const isDark = theme === "dark";
 
-  // ✅ Fix: toggleTheme defined locally using setTheme
   const toggleTheme = () => {
     setTheme(isDark ? "light" : "dark");
   };
@@ -53,18 +52,7 @@ export default function Login() {
     try {
       const res = await login({ email: username, password });
 
-      // if (!rawToken) {
-      //   throw new Error("لم يتم العثور على التوكن في response تسجيل الدخول");
-      // }
-
-      // const cleanToken = normalizeToken(rawToken);
-
       localStorage.setItem("token", res?.token);
-      // localStorage.setItem("accessToken", cleanToken);
-      // localStorage.setItem("authToken", cleanToken);
-      // localStorage.setItem("bearerToken", `Bearer ${cleanToken}`);
-      // localStorage.setItem("loginResponse", JSON.stringify(res));
-
       notifySuccess("تم تسجيل الدخول بنجاح");
       navigate("/dashboard");
     } catch (err: unknown) {
@@ -84,48 +72,62 @@ export default function Login() {
     }
   };
 
-  const toggleLanguage = () => {
-    setLanguage(language === "ar" ? "en" : "ar");
-  };
-
   return (
-    <div className={`min-h-screen flex flex-col items-center justify-center p-4 transition-colors duration-300 ${isDark ? "bg-[#0f172a] text-white" : "bg-gray-50 text-gray-900"}`} dir={direction}>
-      <div className={`absolute top-6 ${direction === "rtl" ? "left-6" : "right-6"} flex items-center gap-4`}>
-        <button onClick={toggleLanguage} className="text-sm font-medium text-gray-500 hover:text-[#10b981] transition-colors">
-          {language === "ar" ? "English" : "عربي"}
-        </button>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[var(--bg-main)] to-[var(--bg-card)] relative overflow-hidden" dir={direction}>
+      <div className={`absolute top-6 ${direction === "rtl" ? "left-6" : "right-6"} flex items-center gap-6`}>
+        <div className="flex items-center gap-2 text-sm font-medium dir-ltr">
+          <button onClick={() => setLanguage("ar")} className={`transition-colors ${language === "ar" ? "text-[var(--primary)]" : "text-[var(--text-muted)] hover:text-[var(--primary)]"}`}>عربي</button>
+          <span className="text-[var(--border)]">|</span>
+          <button onClick={() => setLanguage("en")} className={`transition-colors ${language === "en" ? "text-[var(--primary)]" : "text-[var(--text-muted)] hover:text-[var(--primary)]"}`}>English</button>
+          <span className="text-[var(--border)]">|</span>
+          <button onClick={() => setLanguage("ur")} className={`transition-colors ${language === "ur" ? "text-[var(--primary)]" : "text-[var(--text-muted)] hover:text-[var(--primary)]"}`}>اردو</button>
+        </div>
 
-        <button onClick={toggleTheme} className="text-gray-500 hover:text-[#10b981] transition-colors">
+        <button onClick={toggleTheme} className="text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
           {isDark ? <Sun size={20} /> : <Moon size={20} />}
         </button>
       </div>
 
-      <div className={`w-full max-w-md p-8 sm:p-10 rounded-xl border transition-colors duration-300 ${isDark ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"}`}>
+      <div className="w-full max-w-md p-8 sm:p-10 rounded-xl border transition-colors duration-300 bg-[var(--bg-card)] border-[var(--border)] shadow-xl">
         <div className="flex flex-col items-center mb-8 text-center">
           <Logo />
           <h1 className="text-2xl font-bold mt-6">{t("login")}</h1>
-          <p className={`text-sm mt-2 ${isDark ? "text-gray-400" : "text-gray-500"}`}>{t("welcome_login_message")}</p>
+          <p className="text-sm mt-2 text-[var(--text-muted)]">{t("welcome_login_message")}</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
-          <input type="text" placeholder={t("email")} className={`w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] ${isDark ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`} value={username} onChange={(e) => setUsername(e.target.value)} required />
+          <input
+            type="text"
+            placeholder={t("email")}
+            className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
 
-          <input type="password" placeholder={t("password")} className={`w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[#10b981]/20 focus:border-[#10b981] ${isDark ? "bg-gray-900 border-gray-700 text-white" : "bg-gray-50 border-gray-200 text-gray-900"}`} value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <input
+            type="password"
+            placeholder={t("password")}
+            className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
           {error && <p className="text-sm text-red-500 py-1 text-center">{error}</p>}
 
           <div className="flex justify-between items-center text-sm py-2">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4 accent-[#10b981] rounded border-gray-300" />
-              <span className={isDark ? "text-gray-400" : "text-gray-500"}>{t("remember_me")}</span>
+              <input type="checkbox" className="w-4 h-4 accent-[var(--primary)] rounded border-[var(--border)]" />
+              <span className="text-[var(--text-muted)]">{t("remember_me")}</span>
             </label>
 
-            <button type="button" onClick={() => navigate("/forgot-password")} className={`font-medium ${isDark ? "text-gray-300" : "text-gray-600"} hover:text-[#10b981] transition-colors`}>
+            <button type="button" onClick={() => navigate("/forgot-password")} className="font-medium text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
               {t("forgot_password")}
             </button>
           </div>
 
-          <button type="submit" disabled={loading} className="w-full py-3 mt-4 text-white text-base font-bold rounded-lg bg-[#10b981] hover:bg-[#059669] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <button type="submit" disabled={loading} className="w-full py-3 mt-4 text-white text-base font-bold rounded-lg bg-[var(--primary)] hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             {loading ? t("login_loading") : t("login_button")}
           </button>
         </form>
@@ -133,3 +135,4 @@ export default function Login() {
     </div>
   );
 }
+

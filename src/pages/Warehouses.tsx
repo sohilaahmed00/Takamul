@@ -4,6 +4,7 @@ import { useWarehouses, type Warehouse } from "@/context/WarehousesContext";
 import { Plus, Trash2, Edit2, X, ChevronRight, ChevronLeft, Building, Camera, Square } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import MobileDataCard from "../components/MobileDataCard";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 const Warehouses: React.FC = () => {
   const { t, direction } = useLanguage();
@@ -105,11 +106,13 @@ const Warehouses: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <span className="text-sm text-[var(--text-muted)]">اظهار</span>
-              <select className="bg-[var(--input-bg)] border border-[var(--border)] rounded px-2 py-1 text-sm text-[var(--text-main)]">
-                <option>10</option>
-                <option>25</option>
-                <option>50</option>
-              </select>
+              <div className="w-20">
+                <ComboboxField
+                  items={[10, 25, 50]}
+                  value={10}
+                  onValueChange={() => {}}
+                />
+              </div>
             </div>
             <div className="relative flex items-center gap-2">
               <span className="text-sm text-[var(--text-muted)]">بحث</span>
@@ -252,9 +255,11 @@ const Warehouses: React.FC = () => {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-bold text-[var(--primary)] mb-1.5">{t("pricing_group_label")}</label>
-                      <select value={form.pricingGroup || t("general")} onChange={(e) => setForm({ ...form, pricingGroup: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-[var(--primary)]/10 outline-none text-right transition-all">
-                        <option value={t("general")}>عام</option>
-                      </select>
+                      <ComboboxField
+                        items={[t("general")]}
+                        value={form.pricingGroup || t("general")}
+                        onValueChange={(val) => setForm({ ...form, pricingGroup: val })}
+                      />
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-[var(--primary)] mb-1.5">{t("phone")}</label>

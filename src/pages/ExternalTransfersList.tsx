@@ -20,6 +20,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
+import ComboboxField from "@/components/ui/ComboboxField";
 
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetTreasuryStatement } from "@/features/treasury-statement/hooks/useGetTreasuryStatement";
@@ -157,7 +158,7 @@ export default function ExternalTransfersList() {
         </CardHeader>
 
         <CardContent className="space-y-5">
-          <div className="rounded-2xl border border-gray-100 bg-white p-4 md:p-5">
+          <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="flex items-center gap-2 mb-4">
               <div className="h-10 w-10 rounded-2xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center">
                 <Filter size={18} className="text-[var(--primary)]" />
@@ -177,25 +178,19 @@ export default function ExternalTransfersList() {
                 <label className="text-sm font-medium text-[var(--text-main)]">
                   {t("treasury")}
                 </label>
-                <select
-                  value={filters.treasuryId ?? ""}
-                  onChange={(e) =>
+                <ComboboxField
+                  value={filters.treasuryId}
+                  onValueChange={(val) =>
                     setFilters((prev) => ({
                       ...prev,
-                      treasuryId: e.target.value
-                        ? Number(e.target.value)
-                        : undefined,
+                      treasuryId: val ? Number(val) : undefined,
                     }))
                   }
-                  className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
-                >
-                  <option value="">{t("select_treasury")}</option>
-                  {(treasurys ?? []).map((treasury) => (
-                    <option key={treasury.id} value={treasury.id}>
-                      {treasury.name}
-                    </option>
-                  ))}
-                </select>
+                  items={treasurys ?? []}
+                  valueKey="id"
+                  labelKey="name"
+                  placeholder={t("select_treasury")}
+                />
               </div>
 
               <div className="space-y-2">
@@ -208,7 +203,7 @@ export default function ExternalTransfersList() {
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, from: e.target.value }))
                   }
-                  className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
+                  className="takamol-input"
                 />
               </div>
 
@@ -222,7 +217,7 @@ export default function ExternalTransfersList() {
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, to: e.target.value }))
                   }
-                  className="w-full bg-[#f8fafc] border border-transparent hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-xl py-3 px-4 transition-all outline-none"
+                  className="takamol-input"
                 />
               </div>
 
@@ -241,7 +236,7 @@ export default function ExternalTransfersList() {
           </div>
 
           {submittedFilters.treasuryId && (
-            <div className="rounded-2xl border border-gray-100 bg-[#f8fafc] px-4 py-3 flex flex-wrap items-center gap-2">
+            <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-[#f8fafc] dark:bg-slate-900/50 px-4 py-3 flex flex-wrap items-center gap-2">
               <span className="text-xs text-[var(--text-muted)]">
                 {t("selected_treasury")}:
               </span>
@@ -250,13 +245,13 @@ export default function ExternalTransfersList() {
               </span>
 
               {submittedFilters.from && (
-                <span className="rounded-full px-3 py-1 text-xs font-medium bg-white border border-gray-200 text-[var(--text-main)]">
+                <span className="rounded-full px-3 py-1 text-xs font-medium bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-[var(--text-main)]">
                   {t("from")}: {submittedFilters.from}
                 </span>
               )}
 
               {submittedFilters.to && (
-                <span className="rounded-full px-3 py-1 text-xs font-medium bg-white border border-gray-200 text-[var(--text-main)]">
+                <span className="rounded-full px-3 py-1 text-xs font-medium bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-[var(--text-main)]">
                   {t("to")}: {submittedFilters.to}
                 </span>
               )}
@@ -377,7 +372,7 @@ export default function ExternalTransfersList() {
                 {Array.from({ length: 3 }).map((_, index) => (
                   <div
                     key={index}
-                    className="rounded-2xl border border-gray-100 bg-white p-4 animate-pulse"
+                    className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 animate-pulse"
                   >
                     <div className="h-4 w-32 bg-gray-100 rounded mb-4" />
                     <div className="grid grid-cols-2 gap-3">
@@ -402,9 +397,9 @@ export default function ExternalTransfersList() {
                 .map((row) => (
                   <div
                     key={row.rowId}
-                    className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+                    className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent shadow-sm overflow-hidden"
                   >
-                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] border-b border-gray-100">
+                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] dark:bg-slate-900/50 border-b border-gray-100 dark:border-slate-800">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="h-9 w-9 rounded-xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center shrink-0">
                           <ReceiptText size={18} className="text-[var(--primary)]" />
@@ -447,7 +442,7 @@ export default function ExternalTransfersList() {
                         </div>
                       </div>
 
-                      <div className="rounded-xl bg-[#f8fafc] p-3">
+                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/50 p-3">
                         <div className="flex items-center gap-2 mb-1">
                           <UserRound size={14} className="text-[var(--text-muted)]" />
                           <p className="text-xs text-[var(--text-muted)]">
@@ -459,7 +454,7 @@ export default function ExternalTransfersList() {
                         </p>
                       </div>
 
-                      <div className="rounded-xl bg-[#f8fafc] p-3">
+                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/50 p-3">
                         <div className="flex items-center gap-2 mb-1">
                           <CreditCard size={14} className="text-[var(--text-muted)]" />
                           <p className="text-xs text-[var(--text-muted)]">
@@ -472,7 +467,7 @@ export default function ExternalTransfersList() {
                       </div>
 
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="rounded-xl bg-[#f8fafc] p-3 text-center">
+                        <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/50 p-3 text-center">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
                             {t("debit")}
                           </p>
@@ -481,7 +476,7 @@ export default function ExternalTransfersList() {
                           </p>
                         </div>
 
-                        <div className="rounded-xl bg-[#f8fafc] p-3 text-center">
+                        <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/50 p-3 text-center">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
                             {t("credit")}
                           </p>
