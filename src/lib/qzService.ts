@@ -28,8 +28,8 @@ export async function printHtmlSilently(html: string): Promise<void> {
   const config = qz.configs.create(printer, {
     copies: 1,
     margins: 0,
-    scaleContent: false,
-    rasterize: false,
+    scaleContent: true, // 👈 مهم جدًا
+    rasterize: true,
     size: {
       width: 80,
       units: "mm",
