@@ -27,8 +27,13 @@ export async function printHtmlSilently(html: string): Promise<void> {
   const printer = await qz.printers.getDefault();
   const config = qz.configs.create(printer, {
     copies: 1,
-    margins: 0,
-    scaleContent: true, // 👈 مهم جدًا
+    margins: {
+      top: 3,
+      bottom: 3,
+      left: 5,
+      right: 5,
+    },
+    scaleContent: false,
     rasterize: false,
     size: {
       width: 80,
