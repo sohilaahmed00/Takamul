@@ -29,7 +29,7 @@ export async function printHtmlSilently(html: string): Promise<void> {
     copies: 1,
     margins: 0,
     scaleContent: true, // 👈 مهم جدًا
-    rasterize: true,
+    rasterize: false,
     size: {
       width: 80,
       units: "mm",

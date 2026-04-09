@@ -334,13 +334,7 @@ document.fonts.ready.then(function(){
 </body>
 </html>`;
 
-  // const win = window.open("", "_blank", "width=440,height=980");
-  // if (!win) {
-  //   alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
-  //   return;
-  // }
-  // win.document.write(html);
-  // win.document.close();
+ 
   try {
     await printHtmlSilently(html);
   } catch (err: any) {
