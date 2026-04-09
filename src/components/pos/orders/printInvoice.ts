@@ -27,6 +27,8 @@ export interface InvoiceData {
   grandTotal: number;
   notes?: string;
   qrCodeUrl?: string;
+  INSTITUTION_NAME2: string;
+  LOGO: string;
 }
 
 function arabicToEntities(str: string): string {
@@ -223,7 +225,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   ${
     data.logoUrl
       ? `<img src="${data.logoUrl}" alt="logo"/>`
-      : `<span>${arabicToEntities("اللوجو")}</span>
+      : `<span>${data?.LOGO}</span>
 `
   }
 </div>
@@ -241,7 +243,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     </tr>
     <!-- فاتورة ضريبية مبسطة -->
     <tr class="title-row">
-<td colspan="2">${arabicToEntities("فاتورة ضريبية مبسطة")}</td>
+<td colspan="2">${data?.INSTITUTION_NAME2}</td>
     </tr>
     <!-- رقم الفاتورة -->
     <tr>

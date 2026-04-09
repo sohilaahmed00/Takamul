@@ -299,6 +299,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
           institutionPhone: INSTITUTION_PHONE,
           customerName: selectedCustomer?.customerName ?? undefined,
           customerPhone: undefined,
+          INSTITUTION_NAME2: "فاتورة ضريبية مسبطة",
+          LOGO: "اللوجو",
 
           items: cart.map((item) => {
             const base = itemBasePrice(item);

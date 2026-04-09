@@ -10,6 +10,8 @@ import formatDate from "@/lib/formatDate";
 // ── Configurable institution data ────────────────────────────────────────────
 // Replace these constants with values from your settings/store context if available
 const INSTITUTION_NAME = "اسم المؤسسة";
+const INSTITUTION_NAME2 = "فاتورة ضريبية مبسطة";
+const LOGO = "اللوجو";
 const INSTITUTION_TAX_NO = "310XXXXXXXXX";
 const INSTITUTION_ADDRESS = "عنوان المؤسسة";
 const INSTITUTION_PHONE = "05XXXXXXXX";
@@ -58,7 +60,8 @@ export default function OrderDetailPanel() {
       invoiceNumber: order.orderNumber ?? "—",
       institutionName: INSTITUTION_NAME,
       institutionTaxNumber: INSTITUTION_TAX_NO,
-
+      INSTITUTION_NAME2: INSTITUTION_NAME2,
+      LOGO: LOGO,
       invoiceDate: order.orderDate ? formatDate(order.orderDate) : new Date().toLocaleDateString("ar-SA"),
 
       institutionAddress: INSTITUTION_ADDRESS,
