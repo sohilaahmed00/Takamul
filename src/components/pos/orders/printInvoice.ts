@@ -180,11 +180,11 @@ html, body {
 
 /* عمود الصنف */
 .items-table th:nth-child(1),
-.items-table td:nth-child(1) { width: 36%; }
+.items-table td:nth-child(1) { width: 32%; }
 
-/* عمود الكمية — يسع رقمين */
+/* عمود الكمية */
 .items-table th:nth-child(2),
-.items-table td:nth-child(2) { width: 8%; }
+.items-table td:nth-child(2) { width: 12%; }
 
 /* الأعمدة الثلاثة الباقية متساوية */
 .items-table th:nth-child(3),
