@@ -61,7 +61,8 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 <style>
 
   * { margin:0; padding:0; box-sizing:border-box;
-      }
+      -webkit-print-color-adjust:exact !important;
+      print-color-adjust:exact !important; }
 
   html, body {
     width:100%;
@@ -138,9 +139,10 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     vertical-align: middle;
   }
   .items-table td {
-    border: 1px solid #999;
+    border: 3px solid #00;
     padding: 2px 1px;
     text-align: center;
+    font-weight:bold;
     vertical-align: middle;
     line-height: 1.3;
     word-break: break-word;
@@ -346,6 +348,12 @@ document.fonts.ready.then(function(){
 
   try {
     await printHtmlSilently(html);
+    // const win = window.open("", "_blank", "width=440,height=980");
+    // if (!win) {
+    //   alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
+    //   return;
+    // }
+    // win.document.write(html);
   } catch (err: any) {
     const isQZOffline = err?.message?.includes("Unable to establish") || err?.message?.includes("WebSocket");
     if (isQZOffline) {
