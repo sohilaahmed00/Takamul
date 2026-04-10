@@ -44,7 +44,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     .map(
       (item) => `
       <tr>
-        <td class="td-name">منتج جميل وكويس وحلو وشاطر وتست تست تست تست </td>
+        <td class="td-name">${item.productName ?? ""}</td>
         <td>${item.quantity ?? 0}</td>
         <td>${fmt(item.unitPrice)}</td>
         <td>${fmt(item.taxAmount)}</td>
@@ -178,16 +178,16 @@ html, body {
 }
 
 .items-table th:nth-child(1),
-.items-table td:nth-child(1) { width:38%; }
+.items-table td:nth-child(1) { width:32%; }
 
 .items-table th:nth-child(2),
-.items-table td:nth-child(2) { width:10%; }
+.items-table td:nth-child(2) { width:8%; }
 
 .items-table th:nth-child(3),
-.items-table td:nth-child(3) { width:14%; }
+.items-table td:nth-child(3) { width:18%; }
 
 .items-table th:nth-child(4),
-.items-table td:nth-child(4) { width:18%; }
+.items-table td:nth-child(4) { width:22%; }
 
 .items-table th:nth-child(5),
 .items-table td:nth-child(5) { width:20%; }
