@@ -237,7 +237,9 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     </tr>
     <!-- فاتورة ضريبية مبسطة -->
     <tr class="title-row">
-<td colspan="2">${arabicToEntities("فاتورة ضريبية مبسطة")}</td>
+<td colspan="2">
+<h3>فاتورة ضريبية مبسطة</h3>
+</td>
     </tr>
     <!-- رقم الفاتورة -->
     <tr>
