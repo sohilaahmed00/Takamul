@@ -1,24 +1,43 @@
 import * as qz from "qz-tray";
 import { sha256 } from "js-sha256";
+import { KJUR, KEYUTIL, hextob64 } from "jsrsasign";
 
-// إعداد QZ
 qz.api.setSha256Type((data: any) => sha256(data));
 qz.api.setPromiseType((resolver: any) => new Promise(resolver));
 
-// مؤقت (بدون certificate)
-qz.security.setCertificatePromise((resolve: any) => resolve(""));
-qz.security.setSignaturePromise(() => (resolve: any) => resolve(""));
+qz.security.setCertificatePromise((resolve, reject) => {
+  fetch("/qz/certificate.pem")
+    .then((res) => res.text())
+    .then((cert) => resolve(cert.trim()))
+    .catch(reject);
+});
 
-// اتصال
+qz.security.setSignatureAlgorithm("SHA512");
+
+qz.security.setSignaturePromise((toSign) => {
+  return (resolve, reject) => {
+    fetch("/qz/private-key.pem")
+      .then((res) => res.text())
+      .then((privateKey) => {
+        const pk = KEYUTIL.getKey(privateKey);
+
+        const sig = new KJUR.crypto.Signature({
+          alg: "SHA512withRSA",
+        });
+
+        sig.init(pk);
+        sig.updateString(toSign);
+
+        resolve(hextob64(sig.sign()));
+      })
+      .catch(reject);
+  };
+});
+
 async function connect() {
   if (!qz.websocket.isActive()) {
     await qz.websocket.connect();
   }
-}
-
-// تنظيف HTML
-function cleanHtml(html: string) {
-  return html.replace(/window\.print\(\);?/g, "").replace(/window\.close\(\);?/g, "");
 }
 
 // الطباعة
@@ -34,15 +53,22 @@ export async function printHtmlSilently(html: string): Promise<void> {
   // });
   const config = qz.configs.create(printer, {
     copies: 1,
-    margins: 0,
-    scaleContent: false,
+    margins: { top: 0, bottom: 0, left: 5, right: 5 },
+    scaleContent: true,
+    rasterize: true,
+    size: {
+      width: 80,
+      custom: false,
+    },
+    units: "mm",
   });
 
   await qz.print(config, [
     {
-      type: "html",
-      format: "plain",
-      data: cleanHtml(html),
+      type: "pixel",
+      format: "html",
+      flavor: "plain",
+      data: html,
     },
   ]);
 }

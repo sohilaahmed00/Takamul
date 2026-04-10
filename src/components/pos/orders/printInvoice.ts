@@ -63,12 +63,9 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   * { margin:0; padding:0; box-sizing:border-box;
       -webkit-print-color-adjust:exact !important;
       print-color-adjust:exact !important; }
-  @page { size: 80mm auto; margin: 3mm 5mm; }
-
 
   html, body {
     width:100%;
-    font-family: 'Tahoma', Arial, sans-serif;
     font-size: 7.5pt;
     color: #000;
     direction: rtl;
@@ -78,7 +75,15 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   .page { width:100%; display:flex; flex-direction:column; gap:0; }
 
   /* ── LOGO ── */
-
+  .logo {
+    text-align: center;
+    font-size: 18pt;
+    font-weight: 900;
+    padding: 6px 4px 8px;
+    border: 1.5px solid #333;
+    background: #d9d9d9 !important;
+  }
+  .logo img { max-height:44px; max-width:100%; object-fit:contain; }
 
   /* ── INFO GRID ── */
   .info-grid {
@@ -214,7 +219,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   ${
     data.logoUrl
       ? `<img src="${data.logoUrl}" alt="logo"/>`
-      : `<span>اللوجو</span>
+      : `<h3>اللوجو</h3>
 `
   }
 </div>
