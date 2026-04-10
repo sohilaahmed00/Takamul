@@ -53,7 +53,7 @@ export async function printHtmlSilently(html: string): Promise<void> {
   // });
   const config = qz.configs.create(printer, {
     copies: 1,
-    margins: { top: 0, bottom: 0, left: 5, right: 5 },
+    margins: { top: 0, bottom: 0, left: 2, right: 2 },
     scaleContent: true,
     rasterize: false,
     size: {
