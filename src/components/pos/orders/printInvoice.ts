@@ -69,7 +69,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 
 html, body {
   width:100%;
-  font-size: 7.5pt;
+  font-size: 8pt;
   color: #000;
   direction: rtl;
   background: #fff;
