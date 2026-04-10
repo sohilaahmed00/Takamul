@@ -139,10 +139,11 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     vertical-align: middle;
   }
   .items-table td {
-    border: 3px solid #00;
+    border: 3px solid #000;
     padding: 2px 1px;
     text-align: center;
     font-weight:bold;
+    font-size:10px
     vertical-align: middle;
     line-height: 1.3;
     word-break: break-word;
@@ -347,13 +348,13 @@ document.fonts.ready.then(function(){
 </html>`;
 
   try {
-    await printHtmlSilently(html);
-    // const win = window.open("", "_blank", "width=440,height=980");
-    // if (!win) {
-    //   alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
-    //   return;
-    // }
-    // win.document.write(html);
+    // await printHtmlSilently(html);
+    const win = window.open("", "_blank", "width=440,height=980");
+    if (!win) {
+      alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
+      return;
+    }
+    win.document.write(html);
   } catch (err: any) {
     const isQZOffline = err?.message?.includes("Unable to establish") || err?.message?.includes("WebSocket");
     if (isQZOffline) {
