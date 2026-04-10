@@ -54,10 +54,11 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     .join("");
 
   const html = `<!DOCTYPE html>
-<html lang="ar" dir="rtl"  style="unicode-bidi:bidi-override;">
+<html lang="ar" dir="rtl"  >
 <head>
 <meta charset="UTF-8"/>
 <title>فاتورة ضريبية مبسطة</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 * {
   margin:0;
@@ -74,7 +75,9 @@ html, body {
   direction: rtl;
   background: #fff;
 }
-
+body{
+font-family: 'Cairo', Tahoma, Arial, sans-serif;
+}
 .page {
   width:100%;
   display:flex;
@@ -292,7 +295,7 @@ html, body {
     <!-- فاتورة ضريبية مبسطة -->
     <tr class="title-row">
 <td colspan="2">
-<h3>فاتورة ضريبية مبسطة</h3>
+فاتورة ضريبية مبسطة
 </td>
     </tr>
     <!-- رقم الفاتورة -->
@@ -391,22 +394,19 @@ html, body {
   for(var r=0;r<MOD;r++) for(var cc=0;cc<MOD;cc++)
     if(pat[r][cc]) ctx.fillRect(Math.round(cc*cell),Math.round(r*cell),Math.round(cell)-1,Math.round(cell)-1);
 })();
-document.fonts.ready.then(function(){ 
-  // window.print(); 
-  window.close(); 
-});
+
 </script>
 </body>
 </html>`;
 
   try {
-    await printHtmlSilently(html);
-    // const win = window.open("", "_blank", "width=440,height=980");
-    // if (!win) {
-    //   alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
-    //   return;
-    // }
-    // win.document.write(html);
+    // await printHtmlSilently(html);
+    const win = window.open("", "_blank", "width=440,height=980");
+    if (!win) {
+      alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
+      return;
+    }
+    win.document.write(html);
   } catch (err: any) {
     const isQZOffline = err?.message?.includes("Unable to establish") || err?.message?.includes("WebSocket");
     if (isQZOffline) {
