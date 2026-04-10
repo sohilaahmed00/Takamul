@@ -348,13 +348,13 @@ document.fonts.ready.then(function(){
 </html>`;
 
   try {
-    // await printHtmlSilently(html);
-    const win = window.open("", "_blank", "width=440,height=980");
-    if (!win) {
-      alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
-      return;
-    }
-    win.document.write(html);
+    await printHtmlSilently(html);
+    // const win = window.open("", "_blank", "width=440,height=980");
+    // if (!win) {
+    //   alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
+    //   return;
+    // }
+    // win.document.write(html);
   } catch (err: any) {
     const isQZOffline = err?.message?.includes("Unable to establish") || err?.message?.includes("WebSocket");
     if (isQZOffline) {
