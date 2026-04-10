@@ -351,6 +351,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
         ],
       };
 
+      setScreen("home");
       await printPreparationBon(sampleBon);
       await sleep(1500);
       await printInvoice(invoiceData);
@@ -361,7 +362,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
       setSelectedCustomer(null);
       setSelectedGiftCardId(null);
       setSelectedVaultId(null);
-      setScreen("home");
     } catch (e) {
       // notifyError("حدث خطأ أثناء إتمام الطلب");
     }
