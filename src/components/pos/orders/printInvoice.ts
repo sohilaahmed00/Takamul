@@ -65,7 +65,6 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
       print-color-adjust:exact !important; }
 
   html, body {
-    width:80mm;
     font-size: 7.5pt;
     color: #000;
     direction: rtl;
