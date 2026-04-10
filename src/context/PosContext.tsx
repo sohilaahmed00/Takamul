@@ -340,7 +340,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       const sampleBon: BonData = {
         institutionName: "بون التحضير",
         invoiceNumber: "5000",
-        invoiceDate: "2025-01-15 08:42",
+        invoiceDate: formatDate(new Date()),
         customerName: "Ahmed Mohamed",
         items: [
           { productName: "بيتزا كبير", quantity: 1 },
