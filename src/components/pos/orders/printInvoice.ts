@@ -176,6 +176,8 @@ html, body {
 .td-name {
   text-align:right !important;
   padding-right:3px !important;
+  font-size: 7pt;
+
 }
 
 /* عمود الصنف */
