@@ -58,7 +58,6 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 <head>
 <meta charset="UTF-8"/>
 <title>فاتورة ضريبية مبسطة</title>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 * {
   margin:0;
@@ -74,10 +73,9 @@ html, body {
   color: #000;
   direction: rtl;
   background: #fff;
+  font-family: Tahoma, Arial, sans-serif;
 }
-body{
-font-family: 'Cairo', Tahoma, Arial, sans-serif;
-}
+
 .page {
   width:100%;
   display:flex;
