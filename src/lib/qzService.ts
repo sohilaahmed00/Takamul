@@ -43,21 +43,21 @@ async function connect() {
 }
 
 /* ───────── Delay ───────── */
-async function getPrinters() {
-  if (!qz.websocket.isActive()) {
-    await qz.websocket.connect();
-  }
+// async function getPrinters() {
+//   if (!qz.websocket.isActive()) {
+//     await qz.websocket.connect();
+//   }
 
-  const printers = await qz.printers.find();
+//   const printers = await qz.printers.find();
 
-  console.log("Printers:", printers);
-}
+//   console.log("Printers:", printers);
+// }
 
-getPrinters();
+// getPrinters();
 /* ───────── أسماء الطابعات ───────── */
 const PRINTERS = {
-  invoice: "XP-80C",
-  kitchen: "Kitchen Printer",
+  invoice: "POS-80",
+  kitchen: "Kitchen",
 };
 
 /* ───────── الطباعة العامة ───────── */
