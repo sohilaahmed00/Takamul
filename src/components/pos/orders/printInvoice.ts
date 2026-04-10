@@ -69,7 +69,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 
 html, body {
   width:100%;
-  font-size: 8pt;
+  font-size: 7pt;
   color: #000;
   direction: rtl;
   background: #fff;
@@ -108,7 +108,7 @@ html, body {
 
 .info-grid td {
   padding: 3px 4px;
-  font-size: 6.5pt;
+  font-size: 6pt;
   line-height: 1.5;
   vertical-align: middle;
   border: 1px solid #000;
@@ -119,7 +119,7 @@ html, body {
 .info-grid .full td {
   text-align: center;
   font-weight: 700;
-  font-size: 8pt;
+  font-size: 7pt;
   background: #d9d9d9 !important;
   border: 1px solid #000;
 }
@@ -127,7 +127,7 @@ html, body {
 .info-grid .title-row td {
   text-align: center;
   font-weight: 900;
-  font-size: 9pt;
+  font-size: 8pt;
   background: #fff !important;
   border: 1px solid #000;
   padding: 4px;
@@ -148,12 +148,13 @@ html, body {
   font-size: 6pt;
   border: 2px solid #000;
   border-top: none;
+  table-layout: fixed;
 }
 
 .items-table th {
   background: #d9d9d9 !important;
   font-weight: 700;
-  font-size: 5.5pt;
+  font-size: 5pt;
   text-align: center;
   padding: 2px 1px;
   border: 1px solid #000;
@@ -166,7 +167,7 @@ html, body {
   padding: 2px 1px;
   text-align: center;
   font-weight: bold;
-  font-size: 10px;
+  font-size: 6.5pt;
   vertical-align: middle;
   line-height: 1.3;
   word-break: break-word;
@@ -177,26 +178,29 @@ html, body {
   padding-right:3px !important;
 }
 
+/* عمود الصنف */
 .items-table th:nth-child(1),
-.items-table td:nth-child(1) { width:32%; }
+.items-table td:nth-child(1) { width: 36%; }
 
+/* عمود الكمية — يسع رقمين */
 .items-table th:nth-child(2),
-.items-table td:nth-child(2) { width:8%; }
+.items-table td:nth-child(2) { width: 8%; }
 
+/* الأعمدة الثلاثة الباقية متساوية */
 .items-table th:nth-child(3),
-.items-table td:nth-child(3) { width:18%; }
+.items-table td:nth-child(3) { width: 18.67%; }
 
 .items-table th:nth-child(4),
-.items-table td:nth-child(4) { width:22%; }
+.items-table td:nth-child(4) { width: 18.67%; }
 
 .items-table th:nth-child(5),
-.items-table td:nth-child(5) { width:20%; }
+.items-table td:nth-child(5) { width: 18.66%; }
 
 /* ── TOTALS TABLE ── */
 .totals-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 7.5pt;
+  font-size: 7pt;
   border: 2px solid #000;
   border-top: none;
 }
@@ -220,7 +224,7 @@ html, body {
 
 .totals-table tr:last-child td {
   font-weight: 900;
-  font-size: 8.5pt;
+  font-size: 8pt;
   background: #d9d9d9 !important;
 }
 
@@ -230,7 +234,7 @@ html, body {
   border-top: none;
   text-align: center;
   font-weight: 700;
-  font-size: 7.5pt;
+  font-size: 7pt;
   padding: 5px 4px;
   background: #d9d9d9 !important;
   word-break: break-word;
@@ -254,8 +258,7 @@ html, body {
   html, body {
     margin:0;
   }
-}
-  @media print {
+
   .logo,
   .info-grid .full td,
   .items-table th,
