@@ -44,7 +44,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
     .map(
       (item) => `
       <tr>
-        <td class="td-name">${item.productName ?? ""}</td>
+        <td class="td-name">منتج جميل وكويس وحلو وشاطر وتست تست تست تست </td>
         <td>${item.quantity ?? 0}</td>
         <td>${fmt(item.unitPrice)}</td>
         <td>${fmt(item.taxAmount)}</td>
