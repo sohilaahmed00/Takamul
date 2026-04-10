@@ -61,10 +61,10 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
 <style>
 
   * { margin:0; padding:0; box-sizing:border-box;
-      -webkit-print-color-adjust:exact !important;
-      print-color-adjust:exact !important; }
+      }
 
   html, body {
+    width:100%;
     font-size: 7.5pt;
     color: #000;
     direction: rtl;
