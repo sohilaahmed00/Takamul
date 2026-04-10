@@ -1,6 +1,6 @@
 // printInvoice.ts — thermal 80mm — matches design exactly
 
-import { printHtmlSilently } from "@/lib/qzService";
+import { printInvoicePrinter } from "@/lib/qzService";
 
 export interface InvoiceItem {
   productName: string;
@@ -403,7 +403,7 @@ html, body {
 </html>`;
 
   try {
-    await printHtmlSilently(html);
+    await printInvoicePrinter(html);
     // const win = window.open("", "_blank", "width=440,height=980");
     // if (!win) {
     //   alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");

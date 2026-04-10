@@ -1,7 +1,7 @@
 // printPreparationBon.ts — thermal 80mm — بون التحضير
 // لتجربة الطباعة: استدعي printPreparationBon(sampleBon) من أي مكان
 
-import { printHtmlSilently } from "@/lib/qzService";
+import { printKitchenPrinter } from "@/lib/qzService";
 
 export interface BonItem {
   productName: string;
@@ -194,7 +194,7 @@ html, body {
 </html>`;
 
   try {
-    await printHtmlSilently(html);
+    await printKitchenPrinter(html);
     // const win = window.open("", "_blank", "width=440,height=700");
     // if (!win) {
     //   alert("يرجى السماح بالنوافذ المنبثقة لطباعة البون");

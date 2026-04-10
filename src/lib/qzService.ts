@@ -2,6 +2,7 @@ import * as qz from "qz-tray";
 import { sha256 } from "js-sha256";
 import { KJUR, KEYUTIL, hextob64 } from "jsrsasign";
 
+/* ───────── إعداد QZ ───────── */
 qz.api.setSha256Type((data: any) => sha256(data));
 qz.api.setPromiseType((resolver: any) => new Promise(resolver));
 
@@ -34,30 +35,43 @@ qz.security.setSignaturePromise((toSign) => {
   };
 });
 
+/* ───────── الاتصال ───────── */
 async function connect() {
   if (!qz.websocket.isActive()) {
     await qz.websocket.connect();
   }
 }
-export async function printHtmlSilently(html: string): Promise<void> {
+
+/* ───────── Delay ───────── */
+async function getPrinters() {
+  if (!qz.websocket.isActive()) {
+    await qz.websocket.connect();
+  }
+
+  const printers = await qz.printers.find();
+
+  console.log("Printers:", printers);
+}
+
+getPrinters();
+/* ───────── أسماء الطابعات ───────── */
+const PRINTERS = {
+  invoice: "XP-80C",
+  kitchen: "Kitchen Printer",
+};
+
+/* ───────── الطباعة العامة ───────── */
+async function printToPrinter(html: string, printerName: string) {
   await connect();
-  const printer = await qz.printers.getDefault();
-  // const config = qz.configs.create(printer, {
-  //   copies: 1,
-  //   margins: { top: 0, bottom: 0, left: 0, right: 0 },
-  //   scaleContent: false,
-  //   rasterize: true,
-  //   size: { width: 80, units: "mm" },
-  // });
+
+  const printer = await qz.printers.find(printerName);
+
   const config = qz.configs.create(printer, {
     copies: 1,
     margins: { top: 0, bottom: 0, left: 2, right: 2 },
     scaleContent: true,
     rasterize: false,
-    size: {
-      width: 80,
-      custom: false,
-    },
+    size: { width: 80 },
     units: "mm",
   });
 
@@ -70,3 +84,25 @@ export async function printHtmlSilently(html: string): Promise<void> {
     },
   ]);
 }
+
+/* ───────── طابعة الفاتورة ───────── */
+export async function printInvoicePrinter(html: string) {
+  await printToPrinter(html, PRINTERS.invoice);
+}
+
+/* ───────── طابعة المطبخ ───────── */
+export async function printKitchenPrinter(html: string) {
+  await printToPrinter(html, PRINTERS.kitchen);
+}
+
+/* ───────── طباعة بترتيب (بون + فاتورة) ───────── */
+// export async function printOrder(kitchenHtml: string, invoiceHtml: string, delayMs: number = 1000) {
+//   // 🧾 بون المطبخ
+//   await printKitchenPrinter(kitchenHtml);
+
+//   // ⏱️ استنى شوية
+//   await sleep(delayMs);
+
+//   // 🧾 الفاتورة
+//   await printInvoicePrinter(invoiceHtml);
+// }
