@@ -5,6 +5,6 @@ import { GetAllTablesResponse } from "../types/pos.types";
 
 export const useGetAllFreeTables = () =>
   useQuery<GetAllTablesResponse>({
-    queryKey: posKeys.tables(),
+    queryKey: posKeys.tablesFree(),
     queryFn: () => getAllFreeTables(),
   });

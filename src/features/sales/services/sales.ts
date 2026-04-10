@@ -5,7 +5,14 @@ import type { CreateSalesOrder, GetAllSalesOrderResponse, SalesOrder } from "../
 // GET
 // ===================
 
-export const getAllSalesOrders = (page: number, limit: number) => httpClient<GetAllSalesOrderResponse>(`/sales-orders?page=${page}&pageSize=${limit}`);
+export const getAllSalesOrders = (page: number, limit: number, OrderType: "POS" | "A4") =>
+  httpClient<GetAllSalesOrderResponse>(`/sales-orders`, {
+    params: {
+      Page: page,
+      PageSize: limit,
+      OrderType: OrderType,
+    },
+  });
 // export const getCategoryClient = (idOrSlug: string | number) =>
 //   httpClient<Category>(`/categories/${idOrSlug}`);
 
