@@ -12,6 +12,7 @@ import { checkoutDineInOrder } from "@/features/pos/services/pos";
 import { useUpdateDineInOrder } from "@/features/pos/hooks/useUpdateDineInOrder";
 import { InvoiceData, printInvoice } from "@/components/pos/orders/printInvoice";
 import formatDate from "@/lib/formatDate";
+import { BonData, printPreparationBon } from "@/components/pos/orders/printPreparationBon";
 
 // ─── CONTEXT SHAPE ────────────────────────────────────────────────────────────
 interface PosContextValue {
@@ -191,6 +192,21 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
     try {
       await createDineInOrderyOrder(payload);
+      const sampleBon: BonData = {
+        institutionName: "بون التحضير",
+        invoiceNumber: "5000",
+        invoiceDate: "2025-01-15 08:42",
+        customerName: "Ahmed Mohamed",
+        items: [
+          { productName: "بيتزا كبير", quantity: 1 },
+          { productName: "برجر لحم", quantity: 5 },
+          { productName: "شاي أخضر", quantity: 6 },
+          { productName: "قهوة تركي", quantity: 1 },
+          { productName: "عصير برتقال", quantity: 3 },
+        ],
+      };
+
+      printPreparationBon(sampleBon);
       setCart([]);
       setDineInMode(null);
       setDiscount(0);
@@ -320,7 +336,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
           notes: INSTITUTION_NOTES,
         };
 
-        // printInvoice(invoiceData);
         printInvoice(invoiceData);
       }
 
