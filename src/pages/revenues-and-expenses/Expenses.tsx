@@ -244,22 +244,22 @@ export default function Expenses() {
 
           <div className="mt-4 lg:hidden">{header}</div>
 
-          <div className="grid grid-cols-1 gap-4 lg:hidden mt-4">
+          <div className="grid grid-cols-1 gap-5 lg:hidden mt-4">
             {isLoading ? (
-              <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
+              <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/20 p-8 text-center text-sm text-[var(--text-muted)]">
                 {t("loading")}
               </div>
             ) : rows.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
+              <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/20 p-8 text-center text-sm text-[var(--text-muted)]">
                 {t("no_data")}
               </div>
             ) : (
               rows.map((row) => (
                 <div
                   key={row.id}
-                  className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+                  className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 shadow-sm overflow-hidden"
                 >
-                  <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] border-b border-gray-100">
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] dark:bg-slate-900/60 border-b border-gray-100 dark:border-slate-800">
                     <div className="min-w-0">
                       <p className="text-sm font-bold text-[var(--text-main)] break-words">
                         {row.name || "-"}
@@ -269,31 +269,33 @@ export default function Expenses() {
                       </p>
                     </div>
 
-                    <div className="shrink-0 rounded-full px-3 py-1 text-xs font-medium bg-red-50 text-red-600">
+                    <div className="shrink-0 rounded-full px-3 py-1 text-xs font-medium bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400">
                       {formatNumber(row.amount)}
                     </div>
                   </div>
 
-                  <div className="p-4 space-y-3">
-                    <div className="rounded-xl bg-[#f8fafc] p-3">
-                      <p className="text-xs text-[var(--text-muted)] mb-1">
-                        {t("treasury")}
-                      </p>
-                      <p className="text-sm font-semibold text-[var(--text-main)]">
-                        {row.treasuryName || "-"}
-                      </p>
+                  <div className="p-4 space-y-4">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
+                        <p className="text-xs text-[var(--text-muted)] mb-1">
+                          {t("treasury")}
+                        </p>
+                        <p className="text-sm font-semibold text-[var(--text-main)] truncate">
+                          {row.treasuryName || "-"}
+                        </p>
+                      </div>
+
+                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
+                        <p className="text-xs text-[var(--text-muted)] mb-1">
+                          {t("item")}
+                        </p>
+                        <p className="text-sm font-semibold text-[var(--text-main)] truncate">
+                          {row.itemName || row.name || "-"}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="rounded-xl bg-[#f8fafc] p-3">
-                      <p className="text-xs text-[var(--text-muted)] mb-1">
-                        {t("item")}
-                      </p>
-                      <p className="text-sm font-semibold text-[var(--text-main)]">
-                        {row.itemName || row.name || "-"}
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-[#f8fafc] p-3">
+                    <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
                       <p className="text-xs text-[var(--text-muted)] mb-1">
                         {t("statement")}
                       </p>
@@ -309,6 +311,7 @@ export default function Expenses() {
                         type="button"
                       >
                         <Edit2 size={16} />
+                        <span className="text-xs px-1">{t("edit")}</span>
                       </button>
 
                       <button
@@ -317,6 +320,7 @@ export default function Expenses() {
                         type="button"
                       >
                         <Trash2 size={16} />
+                        <span className="text-xs px-1">{t("delete")}</span>
                       </button>
                     </div>
                   </div>
@@ -326,12 +330,12 @@ export default function Expenses() {
           </div>
 
           {rows.length > 0 && (
-            <div className="flex items-center justify-center gap-2 pt-2 lg:hidden">
+            <div className="flex items-center justify-center gap-2 pt-4 lg:hidden">
               <button
                 type="button"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-10 px-4 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-[var(--text-main)] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t("previous")}
               </button>
@@ -348,7 +352,7 @@ export default function Expenses() {
                   )
                 }
                 disabled={currentPage >= totalPages}
-                className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-10 px-4 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-[var(--text-main)] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t("next")}
               </button>
