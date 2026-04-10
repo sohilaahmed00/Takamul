@@ -232,7 +232,7 @@ export default function SupplierPaymentsList() {
 
           <div className="mt-4 lg:hidden">{header}</div>
 
-          <div className="grid grid-cols-1 gap-4 lg:hidden mt-4">
+          <div className="grid grid-cols-1 gap-5 lg:hidden mt-4">
             {isLoading ? (
               <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
                 {t("loading")}
@@ -250,9 +250,9 @@ export default function SupplierPaymentsList() {
                 .map((row) => (
                   <div
                     key={row.id}
-                    className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+                    className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 shadow-sm overflow-hidden"
                   >
-                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] border-b border-gray-100">
+                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] dark:bg-slate-900/60 border-b border-gray-100 dark:border-slate-800">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="h-9 w-9 rounded-xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center shrink-0">
                           <Truck size={18} className="text-[var(--primary)]" />
@@ -274,7 +274,7 @@ export default function SupplierPaymentsList() {
                     </div>
 
                     <div className="p-4 space-y-3">
-                      <div className="rounded-xl bg-[#f8fafc] p-3">
+                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
                           {t("treasury")}
                         </p>
@@ -283,7 +283,7 @@ export default function SupplierPaymentsList() {
                         </p>
                       </div>
 
-                      <div className="rounded-xl bg-[#f8fafc] p-3">
+                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
                           {t("amount")}
                         </p>
@@ -292,7 +292,7 @@ export default function SupplierPaymentsList() {
                         </p>
                       </div>
 
-                      <div className="rounded-xl bg-[#f8fafc] p-3">
+                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
                           {t("statement")}
                         </p>
@@ -308,14 +308,16 @@ export default function SupplierPaymentsList() {
                           type="button"
                         >
                           <Edit2 size={16} />
+                          <span className="text-xs px-1">{t("edit")}</span>
                         </button>
 
                         <button
                           onClick={() => openDeleteModal(row)}
-                          className="btn-minimal-action btn-compact-action"
+                          className="btn-minimal-action btn-compact-action text-red-600"
                           type="button"
                         >
                           <Trash2 size={16} />
+                          <span className="text-xs px-1">{t("delete")}</span>
                         </button>
                       </div>
                     </div>

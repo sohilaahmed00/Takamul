@@ -366,26 +366,13 @@ export default function ExternalTransfersList() {
             </DataTable>
           </div>
 
-          <div className="lg:hidden space-y-3">
+          <div className="grid grid-cols-1 gap-5 lg:hidden">
             {isFetching ? (
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 animate-pulse"
-                  >
-                    <div className="h-4 w-32 bg-gray-100 rounded mb-4" />
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="h-12 bg-gray-100 rounded-xl" />
-                      <div className="h-12 bg-gray-100 rounded-xl" />
-                      <div className="h-12 bg-gray-100 rounded-xl" />
-                      <div className="h-12 bg-gray-100 rounded-xl" />
-                    </div>
-                  </div>
-                ))}
+              <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/20 p-8 text-center text-sm text-[var(--text-muted)]">
+                {t("loading")}
               </div>
             ) : rows.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
+              <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/20 p-8 text-center text-sm text-[var(--text-muted)]">
                 {t("no_data")}
               </div>
             ) : (
@@ -397,9 +384,9 @@ export default function ExternalTransfersList() {
                 .map((row) => (
                   <div
                     key={row.rowId}
-                    className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent shadow-sm overflow-hidden"
+                    className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 shadow-sm overflow-hidden"
                   >
-                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] dark:bg-slate-900/50 border-b border-gray-100 dark:border-slate-800">
+                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] dark:bg-slate-900/60 border-b border-gray-100 dark:border-slate-800">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="h-9 w-9 rounded-xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center shrink-0">
                           <ReceiptText size={18} className="text-[var(--primary)]" />
@@ -422,7 +409,7 @@ export default function ExternalTransfersList() {
 
                     <div className="p-4 space-y-4">
                       <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
+                        <div className="min-0">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
                             {t("document_number")}
                           </p>
@@ -442,7 +429,7 @@ export default function ExternalTransfersList() {
                         </div>
                       </div>
 
-                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/50 p-3">
+                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
                         <div className="flex items-center gap-2 mb-1">
                           <UserRound size={14} className="text-[var(--text-muted)]" />
                           <p className="text-xs text-[var(--text-muted)]">
@@ -454,7 +441,7 @@ export default function ExternalTransfersList() {
                         </p>
                       </div>
 
-                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/50 p-3">
+                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
                         <div className="flex items-center gap-2 mb-1">
                           <CreditCard size={14} className="text-[var(--text-muted)]" />
                           <p className="text-xs text-[var(--text-muted)]">
@@ -467,7 +454,7 @@ export default function ExternalTransfersList() {
                       </div>
 
                       <div className="grid grid-cols-3 gap-3">
-                        <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/50 p-3 text-center">
+                        <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3 text-center">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
                             {t("debit")}
                           </p>
@@ -476,7 +463,7 @@ export default function ExternalTransfersList() {
                           </p>
                         </div>
 
-                        <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/50 p-3 text-center">
+                        <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3 text-center">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
                             {t("credit")}
                           </p>
@@ -505,7 +492,7 @@ export default function ExternalTransfersList() {
                   type="button"
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
-                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-10 px-4 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-[var(--text-main)] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {t("previous")}
                 </button>
@@ -524,13 +511,14 @@ export default function ExternalTransfersList() {
                     )
                   }
                   disabled={currentPage >= Math.ceil(rows.length / entriesPerPage)}
-                  className="h-10 px-4 rounded-xl border border-gray-200 bg-white text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-10 px-4 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-[var(--text-main)] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {t("next")}
                 </button>
               </div>
             )}
           </div>
+
         </CardContent>
       </Card>
     </div>

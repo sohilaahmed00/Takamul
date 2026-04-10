@@ -165,26 +165,15 @@ export default function InternalTransfersList() {
             </div>
           </div>
 
-          <div className="lg:hidden space-y-3">
+          <div className="mt-4 lg:hidden">{header}</div>
+
+          <div className="grid grid-cols-1 gap-5 lg:hidden mt-4">
             {isFetching ? (
-              <div className="space-y-3">
-                {Array.from({ length: 3 }).map((_, index) => (
-                  <div
-                    key={index}
-                    className="rounded-2xl border border-gray-100 bg-white p-4 animate-pulse"
-                  >
-                    <div className="h-4 w-32 bg-gray-100 rounded mb-4" />
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="h-12 bg-gray-100 rounded-xl" />
-                      <div className="h-12 bg-gray-100 rounded-xl" />
-                      <div className="h-12 bg-gray-100 rounded-xl" />
-                      <div className="h-12 bg-gray-100 rounded-xl" />
-                    </div>
-                  </div>
-                ))}
+              <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/20 p-8 text-center text-sm text-[var(--text-muted)]">
+                {t("loading")}
               </div>
             ) : filteredTransfers.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-200 bg-[#fafafa] p-8 text-center text-sm text-[var(--text-muted)]">
+              <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/20 p-8 text-center text-sm text-[var(--text-muted)]">
                 {t("no_data")}
               </div>
             ) : (
@@ -196,9 +185,9 @@ export default function InternalTransfersList() {
                 .map((row) => (
                   <div
                     key={row.id}
-                    className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden"
+                    className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 shadow-sm overflow-hidden"
                   >
-                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] border-b border-gray-100">
+                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] dark:bg-slate-900/60 border-b border-gray-100 dark:border-slate-800">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="h-9 w-9 rounded-xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center shrink-0">
                           <ArrowLeftRight
@@ -221,9 +210,9 @@ export default function InternalTransfersList() {
                       </div>
                     </div>
 
-                    <div className="p-4 space-y-3">
+                    <div className="p-4 space-y-4">
                       <div className="grid grid-cols-2 gap-3">
-                        <div className="rounded-xl bg-[#f8fafc] p-3">
+                        <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
                             {t("from_treasury")}
                           </p>
@@ -232,7 +221,7 @@ export default function InternalTransfersList() {
                           </p>
                         </div>
 
-                        <div className="rounded-xl bg-[#f8fafc] p-3">
+                        <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
                           <p className="text-xs text-[var(--text-muted)] mb-1">
                             {t("to_treasury")}
                           </p>
@@ -242,7 +231,7 @@ export default function InternalTransfersList() {
                         </div>
                       </div>
 
-                      <div className="rounded-xl bg-[#f8fafc] p-3">
+                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
                         <p className="text-xs text-[var(--text-muted)] mb-1">
                           {t("statement")}
                         </p>
@@ -255,6 +244,7 @@ export default function InternalTransfersList() {
                 ))
             )}
           </div>
+
         </CardContent>
       </Card>
 
