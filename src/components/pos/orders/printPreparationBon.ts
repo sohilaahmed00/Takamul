@@ -125,7 +125,7 @@ html, body {
   border: 1px solid #000;
   padding: 4px 2px;
   text-align: center;
-  font-weight: 700;
+  font-weight: 900;
   font-size: 7pt;
   vertical-align: middle;
   line-height: 1.4;
@@ -194,7 +194,13 @@ html, body {
 </html>`;
 
   try {
-    await printHtmlSilently(html);
+    // await printHtmlSilently(html);
+    const win = window.open("", "_blank", "width=440,height=700");
+    if (!win) {
+      alert("يرجى السماح بالنوافذ المنبثقة لطباعة البون");
+      return;
+    }
+    win.document.write(html);
   } catch (err: any) {
     const isQZOffline = err?.message?.includes("Unable to establish") || err?.message?.includes("WebSocket");
     if (isQZOffline) {
@@ -212,6 +218,5 @@ html, body {
 }
 
 // ── داتا تجريبية ──
-
 
 // printPreparationBon(sampleBon);

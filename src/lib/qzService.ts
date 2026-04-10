@@ -39,8 +39,6 @@ async function connect() {
     await qz.websocket.connect();
   }
 }
-
-// الطباعة
 export async function printHtmlSilently(html: string): Promise<void> {
   await connect();
   const printer = await qz.printers.getDefault();

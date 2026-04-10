@@ -77,6 +77,8 @@ interface PosContextValue {
 const PosContext = createContext<PosContextValue | null>(null);
 export type DineInMode = "new-order" | "add-items" | "checkout" | null;
 
+const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
 export function PosProvider({ children }: { children: ReactNode }) {
   const [screen, setScreen] = useState<Screen>("home");
   const navigate = useNavigate();
@@ -295,49 +297,63 @@ export function PosProvider({ children }: { children: ReactNode }) {
         await createDeliveryOrder(basePayload);
       }
 
-      if (orderType === "takeaway" || orderType === "delivery" || orderType === "dine-in") {
-        const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
-        const totals = calcTotals(cart, hasItemDiscounts ? 0 : discount);
-        const discountAmount = hasItemDiscounts
-          ? cart.reduce((acc, item) => {
-              const raw = itemBasePriceRaw(item);
-              const afterDisc = itemBasePrice(item);
-              return acc + (raw - afterDisc);
-            }, 0)
-          : discount;
+      const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
+      const totals = calcTotals(cart, hasItemDiscounts ? 0 : discount);
+      const discountAmount = hasItemDiscounts
+        ? cart.reduce((acc, item) => {
+            const raw = itemBasePriceRaw(item);
+            const afterDisc = itemBasePrice(item);
+            return acc + (raw - afterDisc);
+          }, 0)
+        : discount;
 
-        const invoiceData: InvoiceData = {
-          logoUrl: LOGO_URL,
-          invoiceNumber: `—`,
-          institutionName: INSTITUTION_NAME,
-          institutionTaxNumber: INSTITUTION_TAX_NO,
-          invoiceDate: formatDate(new Date()),
-          institutionAddress: INSTITUTION_ADDRESS,
-          institutionPhone: INSTITUTION_PHONE,
-          customerName: selectedCustomer?.customerName ?? undefined,
-          customerPhone: undefined,
+      const invoiceData: InvoiceData = {
+        logoUrl: LOGO_URL,
+        invoiceNumber: `—`,
+        institutionName: INSTITUTION_NAME,
+        institutionTaxNumber: INSTITUTION_TAX_NO,
+        invoiceDate: formatDate(new Date()),
+        institutionAddress: INSTITUTION_ADDRESS,
+        institutionPhone: INSTITUTION_PHONE,
+        customerName: selectedCustomer?.customerName ?? undefined,
+        customerPhone: undefined,
 
-          items: cart.map((item) => {
-            const base = itemBasePrice(item);
-            const tax = calcItemTax(item);
-            return {
-              productName: item.name,
-              quantity: item.qty,
-              unitPrice: Number(base.toFixed(2)),
-              taxAmount: Number(tax.toFixed(2)),
-              total: Number((base + tax).toFixed(2)),
-            };
-          }),
+        items: cart.map((item) => {
+          const base = itemBasePrice(item);
+          const tax = calcItemTax(item);
+          return {
+            productName: item.name,
+            quantity: item.qty,
+            unitPrice: Number(base.toFixed(2)),
+            taxAmount: Number(tax.toFixed(2)),
+            total: Number((base + tax).toFixed(2)),
+          };
+        }),
 
-          subTotal: Number(totals.sub.toFixed(2)),
-          discountAmount: Number(discountAmount.toFixed(2)),
-          taxAmount: totals.originalTax,
-          grandTotal: totals.total,
-          notes: INSTITUTION_NOTES,
-        };
+        subTotal: Number(totals.sub.toFixed(2)),
+        discountAmount: Number(discountAmount.toFixed(2)),
+        taxAmount: totals.originalTax,
+        grandTotal: totals.total,
+        notes: INSTITUTION_NOTES,
+      };
 
-        printInvoice(invoiceData);
-      }
+      const sampleBon: BonData = {
+        institutionName: "بون التحضير",
+        invoiceNumber: "5000",
+        invoiceDate: "2025-01-15 08:42",
+        customerName: "Ahmed Mohamed",
+        items: [
+          { productName: "بيتزا كبير", quantity: 1 },
+          { productName: "برجر لحم", quantity: 5 },
+          { productName: "شاي أخضر", quantity: 6 },
+          { productName: "قهوة تركي", quantity: 1 },
+          { productName: "عصير برتقال", quantity: 3 },
+        ],
+      };
+
+      await printPreparationBon(sampleBon);
+      await sleep(1500);
+      await printInvoice(invoiceData);
 
       setSuccessInfo({ method, amount });
       setCart([]);
