@@ -1,19 +1,19 @@
 import { create } from "zustand";
-import type { Permission } from "@/lib/permissions"; // ✅
+import type { Permission } from "@/lib/permissions"; 
 
 type AuthState = {
   accessToken: string | null;
   expiresAt: number | null;
-  permissions: Permission[]; // ✅
+  permissions: Permission[]; 
 
-  setAuth: (token: string, expiresAt: number, permissions: Permission[]) => void; // ✅
+  setAuth: (token: string, expiresAt: number, permissions: Permission[]) => void; 
   clearAuth: () => void;
 
   isExpired: () => boolean;
   isInitialized: boolean;
   setInitialized: (v: boolean) => void;
 
-  hasPermission: (permission: Permission) => boolean; // ✅
+  hasPermission: (permission: Permission) => boolean; 
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
