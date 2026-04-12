@@ -41,7 +41,14 @@ async function connect() {
     await qz.websocket.connect();
   }
 }
-
+export async function initQZ() {
+  try {
+    if (!qz.websocket.isActive()) {
+      await qz.websocket.connect();
+      console.log("QZ connected");
+    }
+  } catch (e) {}
+}
 /* ───────── Delay ───────── */
 // async function getPrinters() {
 //   if (!qz.websocket.isActive()) {
@@ -62,8 +69,9 @@ const PRINTERS = {
 
 /* ───────── الطباعة العامة ───────── */
 async function printToPrinter(html: string, printerName: string) {
-  await connect();
-
+  if (!qz.websocket.isActive()) {
+    throw new Error("QZ not connected");
+  }
   const printer = await qz.printers.find(printerName);
 
   const config = qz.configs.create(printer, {
@@ -94,15 +102,3 @@ export async function printInvoicePrinter(html: string) {
 export async function printKitchenPrinter(html: string) {
   await printToPrinter(html, PRINTERS.kitchen);
 }
-
-/* ───────── طباعة بترتيب (بون + فاتورة) ───────── */
-// export async function printOrder(kitchenHtml: string, invoiceHtml: string, delayMs: number = 1000) {
-//   // 🧾 بون المطبخ
-//   await printKitchenPrinter(kitchenHtml);
-
-//   // ⏱️ استنى شوية
-//   await sleep(delayMs);
-
-//   // 🧾 الفاتورة
-//   await printInvoicePrinter(invoiceHtml);
-// }

@@ -302,7 +302,7 @@ export default function CartPanel() {
   const GRID = "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_45px_50px_85px] gap-2 px-2";
   return (
     <>
-      <div className="bg-white flex flex-col" style={{ width: 550 }}>
+      <div className="flex flex-col" style={{ width: 550 }}>
         {/* Head – Customer selector */}
         <div className="px-3 py-2.5 border-b border-gray-100 flex items-center gap-2">
           {!selectedCustomer ? (

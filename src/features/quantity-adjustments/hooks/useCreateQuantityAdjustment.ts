@@ -3,6 +3,7 @@ import { createQuantityAdjustment } from "../services/quantityAdjustmentsService
 import { quantityAdjustmentKeys } from "../keys/quantityAdjustmentKeys";
 import { handleApiError } from "@/lib/handleApiError";
 import useToast from "@/hooks/useToast";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 export function useCreateQuantityAdjustment() {
   const queryClient = useQueryClient();
@@ -16,7 +17,7 @@ export function useCreateQuantityAdjustment() {
       queryClient.invalidateQueries({
         queryKey: quantityAdjustmentKeys.stockInventories,
       });
-      notifySuccess(response?.message);
+      handleApiSuccess(response, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

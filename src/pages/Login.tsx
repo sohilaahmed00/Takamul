@@ -9,23 +9,6 @@ import Logo from "@/components/Logo";
 import { useLogin } from "@/features/auth/hooks/useLogin";
 import useToast from "@/hooks/useToast";
 
-type LoginResponseShape = {
-  token?: string;
-  accessToken?: string;
-  jwt?: string;
-  data?: {
-    token?: string;
-    accessToken?: string;
-    jwt?: string;
-    data?: { token?: string; accessToken?: string; jwt?: string };
-  };
-  result?: { token?: string; accessToken?: string; jwt?: string };
-};
-
-function normalizeToken(token: string) {
-  return token.replace(/^Bearer\s+/i, "").trim();
-}
-
 export default function Login() {
   const navigate = useNavigate();
   const { mutateAsync: login } = useLogin();
@@ -51,8 +34,6 @@ export default function Login() {
 
     try {
       const res = await login({ email: username, password });
-
-      localStorage.setItem("token", res?.token);
       notifySuccess("تم تسجيل الدخول بنجاح");
       navigate("/dashboard");
     } catch (err: unknown) {
@@ -76,11 +57,17 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-[var(--bg-main)] to-[var(--bg-card)] relative overflow-hidden" dir={direction}>
       <div className={`absolute top-6 ${direction === "rtl" ? "left-6" : "right-6"} flex items-center gap-6`}>
         <div className="flex items-center gap-2 text-sm font-medium dir-ltr">
-          <button onClick={() => setLanguage("ar")} className={`transition-colors ${language === "ar" ? "text-[var(--primary)]" : "text-[var(--text-muted)] hover:text-[var(--primary)]"}`}>عربي</button>
+          <button onClick={() => setLanguage("ar")} className={`transition-colors ${language === "ar" ? "text-[var(--primary)]" : "text-[var(--text-muted)] hover:text-[var(--primary)]"}`}>
+            عربي
+          </button>
           <span className="text-[var(--border)]">|</span>
-          <button onClick={() => setLanguage("en")} className={`transition-colors ${language === "en" ? "text-[var(--primary)]" : "text-[var(--text-muted)] hover:text-[var(--primary)]"}`}>English</button>
+          <button onClick={() => setLanguage("en")} className={`transition-colors ${language === "en" ? "text-[var(--primary)]" : "text-[var(--text-muted)] hover:text-[var(--primary)]"}`}>
+            English
+          </button>
           <span className="text-[var(--border)]">|</span>
-          <button onClick={() => setLanguage("ur")} className={`transition-colors ${language === "ur" ? "text-[var(--primary)]" : "text-[var(--text-muted)] hover:text-[var(--primary)]"}`}>اردو</button>
+          <button onClick={() => setLanguage("ur")} className={`transition-colors ${language === "ur" ? "text-[var(--primary)]" : "text-[var(--text-muted)] hover:text-[var(--primary)]"}`}>
+            اردو
+          </button>
         </div>
 
         <button onClick={toggleTheme} className="text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors">
@@ -96,23 +83,9 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
-          <input
-            type="text"
-            placeholder={t("email")}
-            className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-          />
+          <input type="text" placeholder={t("email")} className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]" value={username} onChange={(e) => setUsername(e.target.value)} required />
 
-          <input
-            type="password"
-            placeholder={t("password")}
-            className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <input type="password" placeholder={t("password")} className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]" value={password} onChange={(e) => setPassword(e.target.value)} required />
 
           {error && <p className="text-sm text-red-500 py-1 text-center">{error}</p>}
 
@@ -135,4 +108,3 @@ export default function Login() {
     </div>
   );
 }
-

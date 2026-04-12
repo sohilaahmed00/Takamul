@@ -90,7 +90,7 @@ export default function GiftCards() {
             <Column header={t("customer") || "العميل"} body={(raw: GiftCard) => <span>{raw?.customerName}</span>} sortable />
             <Column header={t("expiry_date") || "تاريخ الانتهاء"} field="expiryDate" body={(raw: GiftCard) => <span>{formatDate(raw?.expiryDate ?? "")}</span>} sortable />
             <Column header={t("status") || "الحالة"} field="isActive" body={(rawData) => statusBodyTemplate(rawData)} sortable />
-            <Column header={t("notes") || "ملاحظات"} field="notes" sortable />
+            <Column header={t("notes") || "ملاحظات"} field="notes" />
             <Column
               header={t("actions")}
               body={(giftCard: GiftCard) => (

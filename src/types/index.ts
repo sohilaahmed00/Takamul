@@ -1,3 +1,6 @@
+import { Permission } from "@/lib/permissions";
+import { JwtPayload } from "jwt-decode";
+
 export const PurchaseStatus = {
   RECEIVED: "RECEIVED",
   PENDING: "PENDING",
@@ -194,4 +197,8 @@ export interface PaginationMeta {
   totalCount: number;
   pageNumber: number;
   pageSize: number;
+}
+
+export interface AppJwtPayload extends JwtPayload {
+  Permission: Permission[];
 }

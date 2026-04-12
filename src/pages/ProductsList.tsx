@@ -18,13 +18,17 @@ import { useGetAllProductsBranched } from "@/features/products/hooks/useGetAllPr
 import { useGetAllProductsRawMatrial } from "@/features/products/hooks/useGetAllProductsRawMatrial";
 import { useGetAllProductsPrepared } from "@/features/products/hooks/useGetAllProductsPrepared";
 import { useDeleteProduct } from "@/features/products/hooks/useDeleteCustomer";
+import { useAuthStore } from "@/store/authStore";
+import { Permission, Permissions } from "@/lib/permissions";
+import { Input } from "@/components/ui/input";
 
 export default function ProductsList() {
   const { direction, t } = useLanguage();
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
-  const [activeTab, setActiveTab] = useState("allProducts");
+  type ProductType = "Direct" | "Branched" | "Prepared" | "RawMatrial";
+  const [activeTab, setActiveTab] = useState<ProductType | "allProducts">("allProducts");
   const { mutateAsync: deleteProduct } = useDeleteProduct();
   const { data: products, isLoading } = useGetAllProducts(
     {
@@ -36,6 +40,7 @@ export default function ProductsList() {
       enabled: activeTab === "allProducts",
     },
   );
+  const hasPermission = useAuthStore((s) => s.hasPermission);
 
   const { data: productsDirect } = useGetAllProductsDirect(
     {
@@ -84,7 +89,7 @@ export default function ProductsList() {
     setGlobalFilterValue(value);
     setCurrentPage(1);
   };
-  const handleTabChange = (newTab: string) => {
+  const handleTabChange = (newTab: typeof activeTab) => {
     console.log(activeTab);
     setActiveTab(newTab);
     setGlobalFilterValue("");
@@ -97,11 +102,18 @@ export default function ProductsList() {
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
-          <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder")} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
+          <Input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder")} className=" pr-11 " />
         </div>
       </div>
     );
   };
+  const productEditPermissionMap: Record<ProductType, Permission> = {
+    Direct: Permissions.products.editDirect,
+    Branched: Permissions.products.editVariant,
+    Prepared: Permissions.products.editReady,
+    RawMatrial: Permissions.products.editRaw,
+  };
+
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
   const currentTableData = useMemo(() => {
     switch (activeTab) {
@@ -143,6 +155,7 @@ export default function ProductsList() {
         return { items: [], total: 0, loading: false };
     }
   }, [activeTab, products, productsDirect, productsBranched, productsPrepared, productsRawMaterials]);
+
   return (
     <>
       <Card>
@@ -150,9 +163,11 @@ export default function ProductsList() {
           <CardTitle>إدارة الاصناف</CardTitle>
           <CardDescription>إدارة الأصناف المباشرة والمتفرعة والمجهزة والخامات</CardDescription>
           <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
-            <Button size={"xl"} variant={"default"} asChild>
-              <Link to={"/products/create"}>إضافة صنف</Link>
-            </Button>
+            {(hasPermission(Permissions?.products?.add) || hasPermission(Permissions?.products?.all)) && (
+              <Button size={"xl"} variant={"default"} asChild>
+                <Link to={"/products/create"}>إضافة صنف</Link>
+              </Button>
+            )}
           </CardAction>
         </CardHeader>
         <CardContent>
@@ -221,24 +236,43 @@ export default function ProductsList() {
             />
             <Column field="sellingPrice" sortable header={"سعر البيع"} />
 
-            <Column field="productType" sortable header={"النوع"} />
+            {activeTab == "allProducts" && (
+              <Column
+                field="productType"
+                body={(raw: Product) => {
+                  if (raw?.productType == "Direct") {
+                    return "مباشر";
+                  } else if (raw?.productType == "Branched") {
+                    return "متفرع";
+                  } else if (raw?.productType == "Prepared") {
+                    return "مجهز";
+                  } else if (raw?.productType == "RawMatrial") {
+                    return "خامات";
+                  }
+                }}
+                sortable
+                header={"النوع"}
+              />
+            )}
             <Column
               header={t("actions")}
-              body={(product: Product) => (
-                <div className="space-x-2">
-                  <Link to={`/products/edit/${product?.id}?type=${activeTab == "allProducts" ? product?.productType : activeTab}`} className="btn-minimal-action btn-edit">
-                    <Edit2 size={16} />
-                  </Link>
-                  <button
-                    onClick={async () => {
-                      await deleteProduct(product?.id);
-                    }}
-                    className="btn-minimal-action btn-delete"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              )}
+              body={(product: Product) => {
+                const editPermission = activeTab === "allProducts" ? (hasPermission(Permissions.products.edit) ? Permissions.products.edit : productEditPermissionMap[product.productType]) : hasPermission(Permissions.products.edit) ? Permissions.products.edit : productEditPermissionMap[activeTab as ProductType];
+                return (
+                  <div className="space-x-2">
+                    {(hasPermission(editPermission) || hasPermission(Permissions?.products?.all)) && (
+                      <Link to={`/products/edit/${product?.id}?type=${activeTab == "allProducts" ? product?.productType : activeTab}`} className="btn-minimal-action btn-edit">
+                        <Edit2 size={16} />
+                      </Link>
+                    )}
+                    {(hasPermission(Permissions.products.delete) || hasPermission(Permissions?.products?.all)) && (
+                      <button onClick={async () => await deleteProduct(product?.id)} className="btn-minimal-action btn-delete">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                );
+              }}
             />
           </DataTable>
         </CardContent>

@@ -1,10 +1,10 @@
 import { httpClient } from "@/api/httpClient";
 import type { CreateQuantityAdjustmentPayload, QuantityAdjustment, QuantityAdjustmentListResponse, UpdateQuantityAdjustmentPayload } from "../types/adjustments.types";
 
-export async function getQuantityAdjustments(params: { pageNumber: number; pageSize: number }): Promise<QuantityAdjustmentListResponse> {
+export async function getQuantityAdjustments({ pageNumber = 1, pageSize = 5, searchTerm }: { pageNumber?: number; pageSize?: number; searchTerm?: string }): Promise<QuantityAdjustmentListResponse> {
   const response = await httpClient<QuantityAdjustmentListResponse>("/StockInventory/bulk-adjustments", {
     method: "GET",
-    params: { page: params.pageNumber, pageSize: params.pageSize },
+    params: { page: pageNumber, pageSize: pageSize, searchTerm },
   });
 
   return response;
@@ -27,7 +27,6 @@ export async function createQuantityAdjustment(payload: CreateQuantityAdjustment
 }
 
 export async function updateQuantityAdjustment(id: number, payload: UpdateQuantityAdjustmentPayload): Promise<any> {
-  // ✅ PUT /StockInventory/{id}
   return await httpClient<any>(`/StockInventory/${id}`, {
     method: "PUT",
     data: payload,

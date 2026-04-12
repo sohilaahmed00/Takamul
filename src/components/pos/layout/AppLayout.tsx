@@ -21,6 +21,7 @@ import { HoldListPage } from "../pages/Holdlistpage";
 import { PlaceholderPage } from "../pages/PlaceholderPage";
 import { ToastContainer } from "react-toastify";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useEffect } from "react";
 
 function PageContent() {
   const { screen } = usePos();
@@ -53,7 +54,7 @@ export default function AppLayout() {
   const { showHoldModal, setShowHoldModal, confirmHold } = usePos();
 
   return (
-    <div className="relative flex h-screen bg-gray-100 overflow-hidden rounded-xl border border-gray-200" style={{ minHeight: 600 }}>
+    <div className="relative flex h-screen  overflow-hidden rounded-xl border border-gray-200" style={{ minHeight: 600 }}>
       <ToastContainer pauseOnHover={false} />
 
       {/* Global overlay modal */}
@@ -72,8 +73,10 @@ export default function AppLayout() {
           {/* Page takes all remaining horizontal space */}
           <TooltipProvider>
             {/* Page */}
-            <div className="flex-1 overflow-y-auto min-w-0 p-4 bg-[#f6f6f6]">
+            <div className="flex-1 overflow-y-auto min-w-0 p-4 bg-white dark:bg-background">
               <PageContent />
+
+              <span className="bg-accent">121212</span>
             </div>
 
             {/* Right Panel */}

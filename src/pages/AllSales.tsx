@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter } from "lucide-react";
+import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, MoreHorizontal, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
@@ -12,14 +12,15 @@ import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitl
 import { Button } from "@/components/ui/button";
 import { FilterMatchMode } from "primereact/api";
 import type { SalesOrder } from "@/features/sales/types/sales.types";
-
+import formatDate from "@/lib/formatDate";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 export default function AllSales() {
   type Payment = SalesOrder["payments"][number];
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
-  const { data: salesOrders } = useGetAllSales(currentPage, entriesPerPage);
+  const { data: salesOrders } = useGetAllSales({ page: currentPage, limit: entriesPerPage });
   const [globalFilterValue, setGlobalFilterValue] = useState("");
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,6 +41,11 @@ export default function AllSales() {
     );
   };
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
+  const statusBodyTemplate = (rowData: SalesOrder) => {
+    const isActive = rowData?.orderStatus == "Confirmed";
+
+    return <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${isActive ? `text-[#09ad95] bg-[#00e6821a]` : `text-[#b40b09] bg-[#f50b0b1a]`}`}>{isActive ? "مؤكدة" : "غير مؤكدة"}</span>;
+  };
   return (
     <div className="space-y-4 pb-12" dir={direction}>
       <div className="text-sm text-gray-500 flex items-center gap-1 font-medium px-2">
@@ -54,11 +60,11 @@ export default function AllSales() {
         <CardHeader className="">
           <CardTitle>{t("sales_title")}</CardTitle>
           <CardDescription>{t("manage_sales_desc")}</CardDescription>
-          <CardAction>
-            <Button variant={"default"} asChild>
+          {/* <CardAction>
+            <Button size="xl" variant={"default"} asChild>
               <Link to={"/sales/create"}>{t("add_sales_invoice")}</Link>
             </Button>
-          </CardAction>
+          </CardAction> */}
         </CardHeader>
         <CardContent>
           <DataTable
@@ -82,29 +88,96 @@ export default function AllSales() {
             stripedRows={false}
           >
             <Column header={t("invoice_number")} sortable field="orderNumber" />
-            <Column header={t("date")} sortable field="orderDate" body={(row) => new Date(row.orderDate).toLocaleDateString("ar-EG")} />
+            <Column header={t("date")} sortable field="orderDate" body={(row) => formatDate(row.orderDat)} />
             <Column header={t("customer_name")} sortable field="customerName" />
             <Column header={t("cashier")} sortable field="createdBy" />
-            <Column header={t("invoice_status")} sortable field="orderStatus" />
+            <Column header={t("invoice_status")} sortable body={(rawData) => statusBodyTemplate(rawData)} field="orderStatus" />
             <Column header={t("total_amount")} sortable field="grandTotal" />
             <Column header={t("paid_amount")} sortable field="payments" body={(rowData) => rowData.payments?.reduce((sum: number, p: Payment) => sum + p.amount, 0) ?? 0} />
             {/* <Column header={t("remaining_amount")} sortable field="" /> */}
             <Column
               header={t("actions")}
               body={(row) => (
-                <div className="flex gap-2">
-                  <Link to={`/sales/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
-                    <Edit2 size={16} />
-                  </Link>
-                  <button onClick={() => { }} className="btn-minimal-action btn-compact-action text-red-500">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <button className="btn-minimal-action btn-compact-action">
+                      <MoreHorizontal size={18} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52 p-1">
+                    <DropdownMenuItem asChild>
+                      <Link to={`/sales/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                        <FileText size={14} />
+                        تفاصيل فاتورة المبيعات
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem asChild>
+                      <Link to={`/sales/return/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                        <RotateCcw size={14} />
+                        إرجاع مبيع
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link to={`/sales/warehouse/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                        <Warehouse size={14} />
+                        سند مخزني
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem asChild>
+                      <Link to={`/sales/claim/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                        <FileCheck size={14} />
+                        سند مطالبة
+                      </Link>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                      <FileDown size={14} />
+                      {t("download_pdf")}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                      <FileSpreadsheet size={14} />
+                      {t("download_excel")}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                      <FileSpreadsheet size={14} />
+                      {t("download_csv")}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                      <Mail size={14} />
+                      {t("send_email")}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                      <MessageCircle size={14} />
+                      {t("send_whatsapp")}
+                    </DropdownMenuItem>
+
+                    <DropdownMenuSeparator />
+
+                    <DropdownMenuItem asChild>
+                      <Link to={`/sales/edit-agent/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                        <UserCog size={14} />
+                        تعديل المندوب / الموظف
+                      </Link>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             />
           </DataTable>
         </CardContent>
-
       </Card>
     </div>
   );

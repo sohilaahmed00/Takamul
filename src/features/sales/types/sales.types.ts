@@ -40,7 +40,7 @@ export interface SalesOrder {
   discountAmount: number;
   grandTotal: number;
 
-  orderStatus: string;
+  orderStatus: "Confirmed" | "UnConfirmed";
   paymentStatus: string;
 
   notes: string;

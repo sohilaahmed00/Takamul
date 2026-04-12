@@ -2,22 +2,21 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateQuantityAdjustment } from "../services/quantityAdjustmentsService";
 import { quantityAdjustmentKeys } from "../keys/quantityAdjustmentKeys";
 import type { UpdateQuantityAdjustmentPayload } from "../types/adjustments.types";
+import { handleApiError } from "@/lib/handleApiError";
+import useToast from "@/hooks/useToast";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 export function useUpdateQuantityAdjustment() {
   const queryClient = useQueryClient();
-
+  const { notifyError, notifySuccess } = useToast();
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: UpdateQuantityAdjustmentPayload }) => updateQuantityAdjustment(id, payload),
-    onSuccess: (_, variables) => {
+    onSuccess: (response, variables) => {
       queryClient.invalidateQueries({
         queryKey: quantityAdjustmentKeys.all,
       });
-      // queryClient.invalidateQueries({
-      //   queryKey: quantityAdjustmentKeys.detail(variables.id),
-      // });
-      // queryClient.invalidateQueries({
-      //   queryKey: quantityAdjustmentKeys.stockInventories,
-      // });
+      handleApiSuccess(response, notifySuccess);
     },
+    onError: (error) => handleApiError(error, notifyError),
   });
 }

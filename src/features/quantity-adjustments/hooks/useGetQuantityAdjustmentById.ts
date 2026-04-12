@@ -6,6 +6,6 @@ export function useGetQuantityAdjustmentById(id?: number) {
   return useQuery({
     queryKey: quantityAdjustmentKeys.detail(id ?? 0),
     queryFn: () => getQuantityAdjustmentById(id as number),
-    enabled: typeof id === "number" && id > 0,
+    enabled: typeof id === "number" && !!id,
   });
 }
