@@ -202,12 +202,12 @@
   color: var(--text-main) !important;
 }
 
-/* .dark .shadow-sm,
+.dark .shadow-sm,
 .dark .shadow-md,
 .dark .shadow-lg,
 .dark .shadow-xl {
   box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.6) !important;
-} */
+}
 
 .dark .p-datatable-header {
   background-color: var(--bg-card) !important;
