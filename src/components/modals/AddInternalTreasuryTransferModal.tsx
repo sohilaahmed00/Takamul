@@ -143,7 +143,7 @@ export default function AddInternalTreasuryTransferModal({
                 <FieldLabel>{t("select_treasury")}</FieldLabel>
                 <ComboboxField
                   value={fromTreasuryId}
-                  onValueChange={(val) => setFromTreasuryId(val ? Number(val) : undefined)}
+                  onChange={(val) => setFromTreasuryId(val ? Number(val) : undefined)}
                   items={treasurys ?? []}
                   valueKey="id"
                   labelKey="name"
@@ -175,7 +175,7 @@ export default function AddInternalTreasuryTransferModal({
                 <FieldLabel>{t("select_treasury")}</FieldLabel>
                 <ComboboxField
                   value={toTreasuryId}
-                  onValueChange={(val) => setToTreasuryId(val ? Number(val) : undefined)}
+                  onChange={(val) => setToTreasuryId(val ? Number(val) : undefined)}
                   items={treasurys ?? []}
                   valueKey="id"
                   labelKey="name"

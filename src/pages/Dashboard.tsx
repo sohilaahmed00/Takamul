@@ -101,15 +101,13 @@ export default function Dashboard() {
           icon={SaudiRiyal}
           bgClass="bg-[#38BDF8]"
           delay={0.1}
-          onClick={() => navigate('/reports/sales')}
         />
         <StatCard
-          title={t('total_purchases')}
-          value={formatCurrency(totalPurchasesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}
-          icon={ShoppingBag}
-          bgClass="bg-[#CE2029]"
+          title={t('total_expenses')}
+          value={formatCurrency(totalExpensesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}
+          icon={Banknote}
+          bgClass="bg-[#D97706]"
           delay={0.2}
-          onClick={() => navigate('/reports/purchases')}
         />
         <StatCard
           title={t('net_profit')}
@@ -117,16 +115,15 @@ export default function Dashboard() {
           icon={TrendingUp}
           bgClass="bg-[var(--dashboard-purple)]"
           delay={0.3}
-          onClick={() => navigate('/reports/income-statement')}
         />
         <StatCard
-          title={t('total_expenses')}
-          value={formatCurrency(totalExpensesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}
-          icon={Banknote}
-          bgClass="bg-[#D97706]"
+          title={t('total_purchases')}
+          value={formatCurrency(totalPurchasesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}
+          icon={ShoppingBag}
+          bgClass="bg-[#CE2029]"
           delay={0.4}
-          onClick={() => navigate('/reports/expenses')}
         />
+
       </div>
 
       {/* Charts Section */}

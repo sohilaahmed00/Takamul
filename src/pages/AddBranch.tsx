@@ -315,7 +315,7 @@ export default function AddBranch() {
                       </FieldLabel>
                       <ComboboxField
                         value={countryId ?? undefined}
-                        onValueChange={handleCountryChange}
+                        onChange={handleCountryChange}
                         items={countries ?? []}
                         valueKey="id"
                         labelKey="countryName"
@@ -331,7 +331,7 @@ export default function AddBranch() {
                       </FieldLabel>
                       <ComboboxField
                         value={cityId ?? undefined}
-                        onValueChange={handleCityChange}
+                        onChange={handleCityChange}
                         items={cities ?? []}
                         valueKey="id"
                         labelKey="cityName"
@@ -347,7 +347,7 @@ export default function AddBranch() {
                       </FieldLabel>
                       <ComboboxField
                         value={stateId ?? undefined}
-                        onValueChange={(val) => setStateId(val ? Number(val) : null)}
+                        onChange={(val) => setStateId(val ? Number(val) : null)}
                         items={states ?? []}
                         valueKey="id"
                         labelKey="statesName"

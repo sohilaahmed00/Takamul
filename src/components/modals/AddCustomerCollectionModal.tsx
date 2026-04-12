@@ -164,7 +164,7 @@ export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "ad
 
             <ComboboxField
               value={treasuryId}
-              onValueChange={(val) => setTreasuryId(val ? Number(val) : undefined)}
+              onChange={(val) => setTreasuryId(val ? Number(val) : undefined)}
               items={treasurys ?? []}
               valueKey="id"
               labelKey="name"
@@ -178,7 +178,7 @@ export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "ad
                 <FieldLabel>{t("customer_name")}</FieldLabel>
                 <ComboboxField
                   value={customerId}
-                  onValueChange={(val) => setCustomerId(val ? Number(val) : undefined)}
+                  onChange={(val) => setCustomerId(val ? Number(val) : undefined)}
                   items={customers?.items ?? []}
                   valueKey="id"
                   labelKey="customerName"

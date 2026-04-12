@@ -72,11 +72,14 @@ function ComboboxField<T, TFieldValues extends FieldValues, TName extends FieldP
 
     if (selectedItem) {
       if (typeof selectedItem === "object" && selectedItem !== null && valueKey) {
-        handleChange?.(selectedItem[valueKey]);
+        const actualValue = selectedItem[valueKey];
+        handleChange?.(actualValue);
       } else {
         handleChange?.(selectedItem);
       }
     } else {
+      // Fallback: If item not found in local list (e.g. search filtered it out), 
+      // still propagate the change if it looks like a valid ID
       handleChange?.(val);
     }
 

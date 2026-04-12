@@ -152,7 +152,14 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
               <h3 className="text-sm font-semibold text-gray-800">{t("treasury")}</h3>
             </div>
 
-            <ComboboxField value={treasuryId} onValueChange={(val) => setTreasuryId(val ? Number(val) : undefined)} items={treasurys ?? []} valueKey="id" labelKey="name" placeholder={t("select_treasury")} />
+            <ComboboxField
+              value={treasuryId}
+              onChange={(val) => setTreasuryId(val ? Number(val) : undefined)}
+              items={treasurys ?? []}
+              valueKey="id"
+              labelKey="name"
+              placeholder={t("select_treasury")}
+            />
           </div>
 
           <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
@@ -164,7 +171,15 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
                 <FieldLabel>{t("supplier_name")}</FieldLabel>
-                <ComboboxField value={supplierId} onValueChange={(val) => setSupplierId(val ? Number(val) : undefined)} items={suppliers ?? []} valueKey="id" labelKey="supplierName" placeholder={t("select_supplier")} disabled={isEditMode} />
+                <ComboboxField
+                  value={supplierId}
+                  onChange={(val) => setSupplierId(val ? Number(val) : undefined)}
+                  items={suppliers ?? []}
+                  valueKey="id"
+                  labelKey="supplierName"
+                  placeholder={t("select_supplier")}
+                  disabled={isEditMode}
+                />
               </Field>
 
               <Field>

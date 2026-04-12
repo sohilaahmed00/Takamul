@@ -1,17 +1,17 @@
 import React from 'react';
 import ReportsDashboardBase from '@/components/ReportsDashboardBase';
 import { useLanguage } from '@/context/LanguageContext';
-import { UserPlus, FileText } from 'lucide-react';
+import { Truck, History, List } from 'lucide-react';
 
 const SuppliersReportsCategory: React.FC = () => {
   const { t } = useLanguage();
 
   const reports = [
-    { title: t('supplier_reports'), icon: <UserPlus />, path: '/reports/vendors' },
-    { title: t('supplier_account_statement'), icon: <FileText />, path: '/reports/vendor-aging' },
+    { title: t('suppliers_list', 'قائمة الموردين'), icon: <List />, path: '/reports/vendors' },
+    { title: t('supplier_statement', 'كشف حساب مورد'), icon: <History />, path: '/reports/supplier-statement' },
   ];
 
-  return <ReportsDashboardBase title={t('supplier_reports')} reports={reports} />;
+  return <ReportsDashboardBase title={t('suppliers_reports', 'تقارير الموردين')} reports={reports} />;
 };
 
 export default SuppliersReportsCategory;

@@ -1,128 +1,193 @@
-import React from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { BarChart2, FileText } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import {
+  BarChart2,
+  CalendarDays,
+  Filter,
+  RotateCcw,
+  Search,
+  Printer,
+  FileText,
+  FileSpreadsheet,
+} from "lucide-react";
+import { DataTable } from "primereact/datatable";
+import { Column } from "primereact/column";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
+import { useGetTopSellingProducts } from "@/features/reports/hooks/useGetTopSellingProducts";
 
-const BestSellersChart = () => {
-  const { dir } = useLanguage();
-
-  const colors = ["#3b82f6", "#10b981", "#f59e0b", "#10b981", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#14b8a6", "#6366f1"];
-
-  const periods = [
-    {
-      title: "Jan 2026",
-      data: [
-        { name: "حجز غرفة - غرفة 2 (حبة)", value: 28.7 },
-        { name: "دجاج 900 جرام", value: 12.9 },
-        { name: "تنظيف بشرة", value: 10.5 },
-        { name: "حجز غرفة - غرفة 1 (حبة)", value: 9.4 },
-        { name: "test", value: 8.8 },
-        { name: "حلاقة ذقن", value: 6.4 },
-        { name: "حلاقة شعر", value: 6.4 },
-        { name: "بيتزا لحم", value: 6.4 },
-        { name: "بيتزا خضار وسط PIZ MIDUEM", value: 5.3 },
-        { name: "حجز غرفة - غرفة 1", value: 5.3 },
-      ],
-    },
-    {
-      title: "Feb 2026",
-      data: [
-        { name: "تنظيف بشرة", value: 20.0 },
-        { name: "وجبة سندوتش زنجر", value: 14.3 },
-        { name: "سفنج اورينكس", value: 11.4 },
-        { name: "وجبة برجر دجاج", value: 11.4 },
-        { name: "حلاقة شعر", value: 8.6 },
-        { name: "وجبة برجر زنجر", value: 8.6 },
-        { name: "برجر حراق", value: 8.6 },
-        { name: "برجر فيليه", value: 5.7 },
-        { name: "برجر جمبري", value: 5.7 },
-        { name: "غسول نايتشرز باونتي 150 مل", value: 5.7 },
-      ],
-    },
-    {
-      title: "Mar 2025 - Feb 2026",
-      data: [
-        { name: "بيتزا دجاج", value: 17.9 },
-        { name: "كباب لحم", value: 14.5 },
-        { name: "حجز غرفة - غرفة 2 (حبة)", value: 12.9 },
-        { name: "تنظيف بشرة", value: 10.8 },
-        { name: "بيتزا خضار", value: 8.9 },
-        { name: "حلاقة شعر", value: 7.9 },
-        { name: "حلاقة ذقن", value: 7.4 },
-        { name: "بيتزا لحم", value: 7.1 },
-        { name: "شيش طاووق", value: 6.3 },
-        { name: "دجاج 900 جرام", value: 6.3 },
-      ],
-    },
-    {
-      title: "Dec 2025 - Feb 2026",
-      data: [
-        { name: "بيتزا دجاج", value: 16.1 },
-        { name: "كباب لحم", value: 15.5 },
-        { name: "حجز غرفة - غرفة 2 (حبة)", value: 14.4 },
-        { name: "تنظيف بشرة", value: 12.0 },
-        { name: "حلاقة شعر", value: 8.8 },
-        { name: "حلاقة ذقن", value: 8.2 },
-        { name: "دجاج 900 جرام", value: 7.0 },
-        { name: "مقبلات", value: 6.2 },
-        { name: "بيتزا لحم", value: 5.9 },
-        { name: "كرتون مويه", value: 5.9 },
-      ],
-    },
-  ];
-
-  return (
-    <div className="p-6 bg-gray-50 min-h-screen" dir={dir}>
-      {/* Header */}
-      <div className="bg-white rounded-t-lg border-b border-gray-200 p-4 flex justify-between items-center">
-        <div className="flex items-center gap-2 text-emerald-800">
-          <BarChart2 className="w-5 h-5" />
-          <h1 className="text-xl font-bold">الافضل مبيعا (جميع الفروع)</h1>
-        </div>
-        <div className="flex gap-2">
-          <button className="p-2 hover:bg-gray-100 rounded text-emerald-800 border border-emerald-800">
-            <FileText className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-
-      <div className="bg-white p-6 border-x border-b border-gray-200 rounded-b-lg">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {periods.map((period, pIdx) => (
-            <div key={period.title} className="border border-gray-100 rounded-lg p-4 shadow-sm">
-              <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-                <h3 className="text-emerald-800 font-bold">{period.title}</h3>
-              </div>
-
-              <div className="flex flex-col md:flex-row items-center gap-4">
-                <div className="h-[300px] w-full md:w-1/2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={period.data} cx="50%" cy="50%" innerRadius={0} outerRadius={100} paddingAngle={0} dataKey="value" label={({ percent }) => `${(Number(percent) * 100).toFixed(1)}%`}>
-                        {period.data.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="flex flex-col gap-1 overflow-y-auto max-h-[300px] w-full md:w-1/2">
-                  {period.data.map((item, index) => (
-                    <div key={item.name} className="flex items-center gap-2 text-[10px]">
-                      <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: colors[index % colors.length] }} />
-                      <span className="font-medium text-gray-600 truncate">{item.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+type FilterState = {
+  from: string;
+  to: string;
 };
 
-export default BestSellersChart;
+export default function BestSellersChart() {
+  const { t, direction } = useLanguage();
+
+  const [filters, setFilters] = useState<FilterState>({
+    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+    to: new Date().toISOString().split('T')[0],
+  });
+
+  const [searchParams, setSearchParams] = useState<FilterState>(filters);
+
+  const { data: reportData, isLoading, isFetching } = useGetTopSellingProducts(searchParams);
+
+  const handleSearch = () => {
+    setSearchParams(filters);
+  };
+
+  const handleClear = () => {
+    const resetState: FilterState = {
+      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
+      to: new Date().toISOString().split('T')[0],
+    };
+    setFilters(resetState);
+    setSearchParams(resetState);
+  };
+
+  const formatNumber = (value?: number) => {
+    return Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const totalQty = useMemo(() => reportData?.reduce((s, r) => s + r.totalQuantitySold, 0) || 0, [reportData]);
+  const totalSales = useMemo(() => reportData?.reduce((s, r) => s + r.totalSales, 0) || 0, [reportData]);
+
+  return (
+    <div dir={direction}>
+      <Card>
+        <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart2 size={20} className="text-[var(--primary)]" />
+              {t("top_selling_product_report", "تقرير المنتج الأكثر مبيعا")}
+            </CardTitle>
+            <CardDescription>{t("customize_report_below", "استخدم الفلاتر لتخصيص التقرير")}</CardDescription>
+          </div>
+          
+          <div className="flex items-center gap-2 self-start md:self-auto">
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
+              <Printer size={16} className="text-gray-600 dark:text-gray-300" />
+              <span className="hidden sm:inline">Print</span>
+            </Button>
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
+              <FileText size={16} className="text-gray-600 dark:text-gray-300" />
+              <span className="hidden sm:inline">PDF</span>
+            </Button>
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
+              <FileSpreadsheet size={16} className="text-gray-600 dark:text-gray-300" />
+              <span className="hidden sm:inline">XML</span>
+            </Button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="space-y-5">
+          {/* Summary Boxes */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-orange-500 text-white rounded-xl p-4 shadow-sm flex flex-col justify-center">
+              <p className="opacity-90 text-xs font-medium mb-1">{t("total_quantity_sold", "إجمالي الكمية المباعة")}</p>
+              <h2 className="text-2xl font-bold">{totalQty}</h2>
+            </div>
+            <div className="bg-teal-500 text-white rounded-xl p-4 shadow-sm flex flex-col justify-center">
+              <p className="opacity-90 text-xs font-medium mb-1">{t("total_sales_value", "إجمالي قيمة المبيعات")}</p>
+              <h2 className="text-2xl font-bold">{formatNumber(totalSales)}</h2>
+            </div>
+          </div>
+
+          {/* Filters */}
+          <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[var(--text-main)]">
+                  {t("from_date", "تاريخ البداية")}
+                </label>
+                <input
+                  type="date"
+                  value={filters.from}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, from: e.target.value }))
+                  }
+                  className="takamol-input"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[var(--text-main)]">
+                  {t("to_date", "تاريخ النهاية")}
+                </label>
+                <input
+                  type="date"
+                  value={filters.to}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, to: e.target.value }))
+                  }
+                  className="takamol-input"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 py-3 xl:col-span-2">
+                <Button 
+                  onClick={handleSearch} 
+                  variant="default" 
+                  size="xl" 
+                   className="w-full sm:w-auto min-w-[120px] h-10 gap-2"
+                   disabled={isLoading || isFetching}
+                >
+                  <Search size={18} />
+                  {t("execute_operation", "اتمام العملية")}
+                </Button>
+
+                <Button onClick={handleClear} variant="outline" size="xl" className="w-full sm:w-auto h-10">
+                  <RotateCcw size={16} />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
+            <DataTable
+              value={reportData || []}
+              loading={isLoading || isFetching}
+              responsiveLayout="stack"
+              className="custom-green-table custom-compact-table"
+              emptyMessage={t("no_data", "لا توجد بيانات")}
+              paginator
+              rows={10}
+            >
+              <Column 
+                header={t("serial", "م")} 
+                body={(_, options) => options.rowIndex + 1} 
+                className="w-16"
+              />
+              <Column field="barcode" header={t("barcode", "باركود")} sortable />
+              <Column field="productName" header={t("product_name", "اسم المنتج")} sortable />
+              <Column 
+                field="sellingPrice" 
+                header={t("selling_price", "سعر البيع")} 
+                body={(r) => formatNumber(r.sellingPrice)} 
+                sortable 
+              />
+              <Column 
+                field="totalQuantitySold" 
+                header={t("sales_count", "عدد مرات البيع")} 
+                sortable 
+              />
+              <Column 
+                field="totalSales" 
+                header={t("total_sales", "إجمالي المبيعات")} 
+                body={(r) => formatNumber(r.totalSales)} 
+                sortable 
+              />
+            </DataTable>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
