@@ -9,9 +9,9 @@ import type {
 
 export const getItems = (params: GetItemsParams = {}) => {
   const qs = new URLSearchParams();
-  if (params.page) qs.append("Page", String(params.page));
-  if (params.pageSize) qs.append("PageSize", String(params.pageSize));
-  if (params.searchTerm) qs.append("SearchTerm", params.searchTerm);
+  if (params.page) qs.append("page", String(params.page));
+  if (params.pageSize) qs.append("pageSize", String(params.pageSize));
+  if (params.searchTerm) qs.append("searchTerm", params.searchTerm);
   const query = qs.toString();
   return httpClient<ItemsResponse>(`/Items${query ? `?${query}` : ""}`);
 };

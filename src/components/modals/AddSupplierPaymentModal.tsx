@@ -183,7 +183,7 @@ export default function AddSupplierPaymentModal({
 
             <ComboboxField
               value={treasuryId}
-              onValueChange={(val) => setTreasuryId(val ? Number(val) : undefined)}
+              onChange={(val) => setTreasuryId(val ? Number(val) : undefined)}
               items={treasurys ?? []}
               valueKey="id"
               labelKey="name"
@@ -202,7 +202,7 @@ export default function AddSupplierPaymentModal({
                 <FieldLabel>{t("supplier_name")}</FieldLabel>
                 <ComboboxField
                   value={supplierId}
-                  onValueChange={(val) => setSupplierId(val ? Number(val) : undefined)}
+                  onChange={(val) => setSupplierId(val ? Number(val) : undefined)}
                   items={suppliers ?? []}
                   valueKey="id"
                   labelKey="supplierName"

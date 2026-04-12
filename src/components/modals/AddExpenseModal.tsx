@@ -207,7 +207,7 @@ export default function AddExpenseModal({
                 <FieldLabel>{t("treasury")}</FieldLabel>
                 <ComboboxField
                   value={treasuryId}
-                  onValueChange={(val) => setTreasuryId(val ? Number(val) : undefined)}
+                  onChange={(val) => setTreasuryId(val ? Number(val) : undefined)}
                   items={treasuryRows}
                   valueKey="id"
                   labelKey="name"
@@ -241,7 +241,7 @@ export default function AddExpenseModal({
             <FieldLabel>{t("item")}</FieldLabel>
             <ComboboxField
               value={itemId ?? ""}
-              onValueChange={(val) => setItemId(val ? Number(val) : null)}
+              onChange={(val) => setItemId(val ? Number(val) : null)}
               items={allItems}
               valueKey="id"
               labelKey="name"

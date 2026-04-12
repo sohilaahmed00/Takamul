@@ -98,6 +98,16 @@ import MonthlyPurchasesReport from "@/pages/reports/MonthlyPurchasesReport";
 import ExpensesReport from "@/pages/reports/ExpensesReport";
 import ChartsOverview from "@/pages/reports/ChartsOverview";
 import InventoryChart from "@/pages/reports/InventoryChart";
+import ItemSalesReport from "@/pages/reports/ItemSalesReport";
+import SalesByInvoiceReport from "@/pages/reports/SalesByInvoiceReport";
+import SalesByDayReport from "@/pages/reports/SalesByDayReport";
+import PurchasesByInvoiceReport from "@/pages/reports/PurchasesByInvoiceReport";
+import PurchasesByDayReport from "@/pages/reports/PurchasesByDayReport";
+import ItemPurchasesReport from "@/pages/reports/ItemPurchasesReport";
+import CustomerStatementReport from "@/pages/reports/CustomerStatementReport";
+import SupplierStatementReport from "@/pages/reports/SupplierStatementReport";
+import ExpensesDetailReport from "@/pages/reports/ExpensesDetailReport";
+import ProfitReport from "@/pages/reports/ProfitReport";
 import BestSellersChart from "@/pages/reports/BestSellersChart";
 import QuantityAdjustmentsReport from "@/pages/reports/QuantityAdjustmentsReport";
 import MachineQuantityAdjustments from "@/pages/reports/MachineQuantityAdjustments";
@@ -137,10 +147,12 @@ import FinancialSummary from "@/pages/reports/accounts/FinancialSummary";
 import ItemsReportsCategory from "@/pages/reports/ItemsReportsCategory";
 import SalesReportsCategory from "@/pages/reports/SalesReportsCategory";
 import PurchasesReportsCategory from "@/pages/reports/PurchasesReportsCategory";
-import TaxReportsCategory from "@/pages/reports/TaxReportsCategory";
 import CustomersReportsCategory from "@/pages/reports/CustomersReportsCategory";
 import SuppliersReportsCategory from "@/pages/reports/SuppliersReportsCategory";
 import ExpensesReportsCategory from "@/pages/reports/ExpensesReportsCategory";
+import ProfitsReportsCategory from "@/pages/reports/ProfitsReportsCategory";
+
+
 
 import Revenues from "@/pages/revenues-and-expenses/Revenues";
 import Expenses from "@/pages/revenues-and-expenses/Expenses";
@@ -307,6 +319,17 @@ function AppRoutes() {
           <Route path="/reports/daily-sales" element={<DailySalesReport />} />
           <Route path="/reports/monthly-sales" element={<MonthlySalesReport />} />
           <Route path="/reports/sales" element={<SalesReport />} />
+          <Route path="/reports/item-sales" element={<ItemSalesReport />} />
+          <Route path="/reports/sales-by-invoice" element={<SalesByInvoiceReport />} />
+          <Route path="/reports/sales-by-day" element={<SalesByDayReport />} />
+          <Route path="/reports/purchases-by-invoice" element={<PurchasesByInvoiceReport />} />
+          <Route path="/reports/purchases-by-day" element={<PurchasesByDayReport />} />
+          <Route path="/reports/item-purchases" element={<ItemPurchasesReport />} />
+          <Route path="/reports/customer-statement" element={<CustomerStatementReport />} />
+          <Route path="/reports/supplier-statement" element={<SupplierStatementReport />} />
+          <Route path="/reports/expenses-detail" element={<ExpensesDetailReport />} />
+          <Route path="/reports/profit" element={<ProfitReport />} />
+          <Route path="/reports/item-movement" element={<ItemMovementReport />} />
           <Route path="/reports/detailed-daily-sales" element={<DetailedDailySalesReport />} />
           <Route path="/reports/cashier-sales-summary" element={<CashierSalesSummaryReport />} />
           <Route path="/reports/sales-by-item-invoice" element={<SalesByItemInvoiceReport />} />
@@ -320,10 +343,12 @@ function AppRoutes() {
           <Route path="/reports/category/items" element={<ItemsReportsCategory />} />
           <Route path="/reports/category/sales" element={<SalesReportsCategory />} />
           <Route path="/reports/category/purchases" element={<PurchasesReportsCategory />} />
-          <Route path="/reports/category/taxes" element={<TaxReportsCategory />} />
           <Route path="/reports/category/customers" element={<CustomersReportsCategory />} />
+
           <Route path="/reports/category/suppliers" element={<SuppliersReportsCategory />} />
           <Route path="/reports/category/expenses" element={<ExpensesReportsCategory />} />
+          <Route path="/reports/category/profits" element={<ProfitsReportsCategory />} />
+
 
           {/* التقارير المالية */}
           <Route path="/reports/balance-sheet" element={<BalanceSheet />} />

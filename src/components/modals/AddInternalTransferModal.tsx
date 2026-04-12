@@ -66,7 +66,7 @@ export default function AddInternalTransferModal({
             </label>
             <ComboboxField
               value={formData.type}
-              onValueChange={(val) => setFormData({ ...formData, type: val })}
+              onChange={(val) => setFormData({ ...formData, type: val })}
               placeholder={t("select_transfer_type")}
               items={[
                 { value: "fund_to_bank", label: t("transfer_from_fund") },
@@ -89,7 +89,7 @@ export default function AddInternalTransferModal({
             </label>
             <ComboboxField
               value={formData.type === "fund_to_bank" ? formData.to : formData.from}
-              onValueChange={(val) => {
+              onChange={(val) => {
                 if (formData.type === "fund_to_bank") {
                   setFormData({ ...formData, to: val, from: "Fund" });
                 } else {

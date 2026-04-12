@@ -18,7 +18,7 @@ export default function RecentTransactions() {
   const { t, direction } = useLanguage();
   const [activeTab, setActiveTab] = useState('sales');
 
-  const { data: salesOrders } = useGetAllSales(1, 5);
+  const { data: salesOrders } = useGetAllSales({ page: 1, limit: 5 });
   const { data: purchases } = useGetAllPurchases({ page: 1, limit: 5, searchTerm: "" });
   const { data: quotations } = useGetAllQuotations();
   const { data: suppliers } = useGetAllSuppliers();
@@ -136,20 +136,18 @@ export default function RecentTransactions() {
         )}
 
         {activeTab === 'customers' && (
-          <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
             <DataTable
               value={customersResponse?.items?.slice(0, 5) || []}
               responsiveLayout="stack"
               className="custom-green-table custom-compact-table"
               dataKey="id"
-              emptyMessage={t("no_customers_found") || t("no_data")}
+              emptyMessage={t("no_data")}
             >
-              <Column field="customerCode" header={t("code")} sortable style={{ width: "10%" }} />
-              <Column field="customerName" header={t("name")} sortable style={{ width: "30%" }} />
-              <Column field="phone" header={t("phone")} style={{ width: "20%" }} />
-              <Column field="city" header={t("city")} style={{ width: "20%" }} />
+              <Column field="customerCode" header={t("code")} sortable />
+              <Column field="customerName" header={t("name")} sortable />
+              <Column field="phone" header={t("phone")} />
+              <Column field="city" header={t("city")} />
             </DataTable>
-          </div>
         )}
       </div>
     </div>

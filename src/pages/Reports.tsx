@@ -64,7 +64,11 @@ export default function Reports() {
     // Sales Reports
     { category: 'sales', title: 'المبيعات اليومية', icon: <Clock className="w-8 h-8" />, path: '/reports/daily-sales' },
     { category: 'sales', title: 'المبيعات الشهرية', icon: <Calendar className="w-8 h-8" />, path: '/reports/monthly-sales' },
-    { category: 'sales', title: 'تقرير المبيعات', icon: <SaudiRiyal className="w-8 h-8" />, path: '/reports/sales' },
+    { category: 'sales', title: 'تقرير إجمالي المبيعات على مستوى أرقام الفواتير', icon: <FileText className="w-8 h-8" />, path: '/reports/sales-by-invoice' },
+    { category: 'sales', title: 'تقرير إجمالي المبيعات على مستوى الأيام', icon: <Calendar className="w-8 h-8" />, path: '/reports/sales-by-day' },
+    { category: 'sales', title: 'تقرير مبيعات صنف', icon: <Barcode className="w-8 h-8" />, path: '/reports/item-sales' },
+    { category: 'sales', title: 'تقرير مبيعات مستخدم', icon: <UserCheck className="w-8 h-8" />, path: '/reports/user-sales' },
+    { category: 'sales', title: 'تقرير الورديات', icon: <Clock className="w-8 h-8" />, path: '/reports/shifts' },
     { category: 'sales', title: 'تقرير المبيعات اليومية مفصل', icon: <List className="w-8 h-8" />, path: '/reports/detailed-daily-sales' },
     { category: 'sales', title: 'تقرير المبيعات اليومية مفصل بالأصناف', icon: <List className="w-8 h-8" />, path: '/reports/detailed-daily-sales' },
     { category: 'sales', title: 'تقرير مبيعات الكاشيرات اجمالي', icon: <Users className="w-8 h-8" />, path: '/reports/cashier-sales-summary' },

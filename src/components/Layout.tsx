@@ -350,11 +350,13 @@ export default function Layout() {
                 <SubmenuItem label={t("item_reports")} icon={Package} path="/reports/category/items" />
                 <SubmenuItem label={t("sales_reports")} icon={ShoppingCart} path="/reports/category/sales" />
                 <SubmenuItem label={t("purchase_reports")} icon={CornerUpLeft} path="/reports/category/purchases" />
-                <SubmenuItem label={t("tax_reports")} icon={Calculator} path="/reports/category/taxes" />
                 <SubmenuItem label={t("customer_reports")} icon={User} path="/reports/category/customers" />
+
                 <SubmenuItem label={t("supplier_reports")} icon={Truck} path="/reports/category/suppliers" />
                 <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />
+                <SubmenuItem label={t("profits_reports")} icon={Calculator} path="/reports/category/profits" />
                 <div className="h-px bg-gray-100 my-1 mx-2" />
+
                 {/* <SubmenuItem label={t("sales_report_by_category")} icon={List} path="/reports/sales-by-category" /> */}
               </motion.div>
             )}
