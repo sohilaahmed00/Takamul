@@ -362,7 +362,7 @@ const CreateQuote: React.FC = () => {
         <CardContent>
           <form onSubmit={form.handleSubmit(handleSubmit, console.log)} className="space-y-6">
             {/* البيانات الأساسية */}
-            <div className="bg-white p-6 rounded-sm border border-gray-100">
+            <div className=" p-6 rounded-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800 mb-6">{t("basic_data")}</h2>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Controller
@@ -370,7 +370,7 @@ const CreateQuote: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("date")} *</FieldLabel>
+                      <FieldLabel>{t("date")} <span className="text-red-500">*</span></FieldLabel>
                       <Input type="date" {...field} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -382,7 +382,7 @@ const CreateQuote: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("valid_until")} *</FieldLabel>
+                      <FieldLabel>{t("valid_until")} <span className="text-red-500">*</span></FieldLabel>
                       <Input type="date" {...field} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -394,7 +394,7 @@ const CreateQuote: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("customer")} *</FieldLabel>
+                      <FieldLabel>{t("customer")} <span className="text-red-500">*</span></FieldLabel>
                       <ComboboxField field={field} items={customers} valueKey="id" labelKey="customerName" placeholder={t("choose_customer")} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -406,7 +406,7 @@ const CreateQuote: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("discount_amount_value")} *</FieldLabel>
+                      <FieldLabel>{t("discount_amount_value")} </FieldLabel>
                       <Input type="number" value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>

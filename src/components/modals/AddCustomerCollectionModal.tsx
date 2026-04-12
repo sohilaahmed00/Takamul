@@ -156,7 +156,7 @@ export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "ad
             />
           </Field>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
+          <div className="rounded-2xl border border-gray-200  p-3 space-y-3">
             <div className="flex items-center gap-2">
               <Wallet size={16} className="text-[#2ecc71]" />
               <h3 className="text-sm font-semibold text-gray-800">{t("treasury")}</h3>
@@ -172,7 +172,7 @@ export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "ad
             />
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
+          <div className="rounded-2xl border border-gray-200  p-3 space-y-3">
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
                 <FieldLabel>{t("customer_name")}</FieldLabel>

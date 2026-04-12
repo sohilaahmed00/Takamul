@@ -146,7 +146,7 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
             <Input type="date" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} className="h-9" />
           </Field>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
+          <div className="rounded-2xl border border-gray-200  p-3 space-y-3">
             <div className="flex items-center gap-2">
               <Wallet size={16} className="text-[#2ecc71]" />
               <h3 className="text-sm font-semibold text-gray-800">{t("treasury")}</h3>
@@ -162,7 +162,7 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
             />
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-3 space-y-3">
+          <div className="rounded-2xl border border-gray-200  p-3 space-y-3">
             <div className="flex items-center gap-2">
               <Truck size={16} className="text-[#2ecc71]" />
               <h3 className="text-sm font-semibold text-gray-800">{t("account_name")}</h3>

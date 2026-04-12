@@ -2,18 +2,14 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, MoreHorizontal, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
-import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import { useGetAllSales } from "../features/sales/hooks/useGetAllSales";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, type DataTableFilterMeta, type DataTablePageEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Popover, PopoverContent, PopoverDescription, PopoverHeader, PopoverTitle, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { FilterMatchMode } from "primereact/api";
 import type { SalesOrder } from "@/features/sales/types/sales.types";
 import formatDate from "@/lib/formatDate";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 export default function AllSales() {
   type Payment = SalesOrder["payments"][number];
   const { t, direction } = useLanguage();
@@ -35,7 +31,7 @@ export default function AllSales() {
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
-          <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder")} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
+          <Input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder")} className=" pr-11 " />
         </div>
       </div>
     );
