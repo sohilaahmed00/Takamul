@@ -5,6 +5,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useUsers } from "@/context/UsersContext";
 import ComboboxField from "../ui/ComboboxField";
 
+import { Input } from "@/components/ui/input";
+
 interface AddUserModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -59,28 +61,28 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-sm font-bold text-gray-700 dark:text-gray-300">{t("first_name")}</label>
-            <input type="text" required value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
+            <Input type="text" required value={formData.firstName} onChange={(e) => setFormData({ ...formData, firstName: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
           </div>
           <div className="space-y-1">
             <label className="text-sm font-bold text-gray-700 dark:text-gray-300">{t("last_name")}</label>
-            <input type="text" required value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
+            <Input type="text" required value={formData.lastName} onChange={(e) => setFormData({ ...formData, lastName: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
           </div>
         </div>
 
         <div className="space-y-1">
           <label className="text-sm font-bold text-gray-700 dark:text-gray-300">{t("email")}</label>
-          <input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
+          <Input type="email" required value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
         </div>
 
         <div className="space-y-1">
           <label className="text-sm font-bold text-gray-700 dark:text-gray-300">{t("username_email")}</label>
-          <input type="text" required value={formData.usernameEmail} onChange={(e) => setFormData({ ...formData, usernameEmail: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
+          <Input type="text" required value={formData.usernameEmail} onChange={(e) => setFormData({ ...formData, usernameEmail: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-sm font-bold text-gray-700 dark:text-gray-300">{t("phone")}</label>
-            <input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
+            <Input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
           </div>
           <div className="space-y-1">
             <label className="text-sm font-bold text-gray-700 dark:text-gray-300">{t("group")}</label>
@@ -95,7 +97,7 @@ const AddUserModal: React.FC<AddUserModalProps> = ({ isOpen, onClose }) => {
 
         <div className="space-y-1">
           <label className="text-sm font-bold text-gray-700 dark:text-gray-300">{t("company")}</label>
-          <input type="text" value={formData.company} onChange={(e) => setFormData({ ...formData, company: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
+          <Input type="text" value={formData.company} onChange={(e) => setFormData({ ...formData, company: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
         </div>
       </form>
     </ResponsiveModal>

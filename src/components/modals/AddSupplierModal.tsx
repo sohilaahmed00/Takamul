@@ -6,6 +6,8 @@ import { useSuppliers } from "@/context/SuppliersContext";
 import ResponsiveModal from "./ResponsiveModal";
 import Toast from "../Toast";
 
+import { Input } from "@/components/ui/input";
+
 interface AddSupplierModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -200,7 +202,7 @@ export default function AddSupplierModal({
                   <form id="supplier-form-modal" onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                       <Field label={`${t("supplier_name")} *`}>
-                        <input
+                        <Input
                           type="text"
                           required
                           value={formData.supplierName}
@@ -215,7 +217,7 @@ export default function AddSupplierModal({
                       </Field>
 
                       <Field label={`${t("mobile")} *`}>
-                        <input
+                        <Input
                           type="text"
                           required
                           value={formData.mobile}
@@ -230,7 +232,7 @@ export default function AddSupplierModal({
                       </Field>
 
                       <Field label={t("phone")}>
-                        <input
+                        <Input
                           type="text"
                           value={formData.phone}
                           onChange={(e) =>
@@ -244,7 +246,7 @@ export default function AddSupplierModal({
                       </Field>
 
                       <Field label={t("email_address")}>
-                        <input
+                        <Input
                           type="email"
                           value={formData.email}
                           onChange={(e) =>
@@ -258,7 +260,7 @@ export default function AddSupplierModal({
                       </Field>
 
                       <Field label={t("tax_number")}>
-                        <input
+                        <Input
                           type="text"
                           value={formData.taxNumber}
                           onChange={(e) =>
@@ -272,7 +274,7 @@ export default function AddSupplierModal({
                       </Field>
 
                       <Field label={t("commercial_registration")}>
-                        <input
+                        <Input
                           type="text"
                           value={formData.commercialRegistration}
                           onChange={(e) =>
@@ -286,7 +288,7 @@ export default function AddSupplierModal({
                       </Field>
 
                       <Field label={t("opening_balance")}>
-                        <input
+                        <Input
                           type="number"
                           value={formData.openingBalance}
                           onChange={(e) =>
@@ -300,7 +302,7 @@ export default function AddSupplierModal({
                       </Field>
 
                       <Field label={t("payment_terms_days")}>
-                        <input
+                        <Input
                           type="number"
                           value={formData.paymentTerms}
                           onChange={(e) =>
@@ -315,7 +317,7 @@ export default function AddSupplierModal({
                     </div>
 
                     <Field label={t("address")}>
-                      <input
+                      <Input
                         type="text"
                         value={formData.address}
                         onChange={(e) =>
@@ -330,7 +332,7 @@ export default function AddSupplierModal({
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                       <Field label={`${t("city")} *`}>
-                        <input
+                        <Input
                           type="text"
                           required
                           value={formData.city}
@@ -345,7 +347,7 @@ export default function AddSupplierModal({
                       </Field>
 
                       <Field label={`${t("state")} *`}>
-                        <input
+                        <Input
                           type="text"
                           required
                           value={formData.state}
@@ -360,7 +362,7 @@ export default function AddSupplierModal({
                       </Field>
 
                       <Field label={`${t("country")} *`}>
-                        <input
+                        <Input
                           type="text"
                           required
                           value={formData.country}
@@ -375,7 +377,7 @@ export default function AddSupplierModal({
                       </Field>
 
                       <Field label={`${t("postal_code")} *`}>
-                        <input
+                        <Input
                           type="text"
                           required
                           value={formData.postalCode}
@@ -392,7 +394,7 @@ export default function AddSupplierModal({
 
                     <div className="flex items-center gap-3 justify-end">
                       <span className="text-sm font-medium text-gray-700">{t("active")}</span>
-                      <input
+                      <Input
                         type="checkbox"
                         checked={formData.isActive}
                         onChange={(e) =>

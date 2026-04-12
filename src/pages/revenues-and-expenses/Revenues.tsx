@@ -22,6 +22,8 @@ import AddRevenueModal from "@/components/modals/AddRevenueModal";
 import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { Revenue } from "@/features/revenues/types/revenues.types";
 
+import { Input } from "@/components/ui/input";
+
 export default function Revenues() {
   const { direction, t } = useLanguage();
   const { notifyError } = useToast();
@@ -159,7 +161,7 @@ export default function Revenues() {
         <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
           <Search size={18} className="text-gray-400" />
         </div>
-        <input
+        <Input
           type="text"
           value={searchTerm}
           onChange={(e) => {

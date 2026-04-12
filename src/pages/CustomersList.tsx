@@ -10,6 +10,8 @@ import useToast from "@/hooks/useToast";
 import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerById";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 
+import { Input } from "@/components/ui/input";
+
 export default function CustomersList() {
   const { t, direction } = useLanguage();
 
@@ -60,7 +62,7 @@ export default function CustomersList() {
             <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
               <Search size={18} className="text-gray-400" />
             </div>
-            <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t("search_placeholder")} className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-transparent hover:border-gray-200 dark:hover:border-slate-700 focus:border-primary focus:bg-white dark:focus:bg-slate-800 text-gray-700 dark:text-slate-200 text-sm rounded-xl py-3 pr-11 pl-4 transition-all outline-none" />
+            <Input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} placeholder={t("search_placeholder")} className="w-full bg-[#f8fafc] dark:bg-slate-900 border border-transparent hover:border-gray-200 dark:hover:border-slate-700 focus:border-primary focus:bg-white dark:focus:bg-slate-800 text-gray-700 dark:text-slate-200 text-sm rounded-xl py-3 pr-11 pl-4 transition-all outline-none" />
           </div>
 
           <div className="grid grid-cols-1 gap-4 lg:hidden">

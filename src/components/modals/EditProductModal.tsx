@@ -5,6 +5,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { Product, ProductCategoryOption, useProducts } from "@/context/ProductsContext";
 import Toast from "../Toast";
 
+import { Input } from "@/components/ui/input";
+
 interface EditProductModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -237,19 +239,19 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-4 border border-gray-100 p-4 rounded-xl">
                 <Field label="اسم الصنف بالعربي *" error={errors.nameAr}>
-                  <input type="text" className={inputClass(errors.nameAr)} value={formData.nameAr} onChange={(e) => setField("nameAr", e.target.value)} />
+                  <Input type="text" className={inputClass(errors.nameAr)} value={formData.nameAr} onChange={(e) => setField("nameAr", e.target.value)} />
                 </Field>
 
                 <Field label="اسم الصنف بالإنجليزي *" error={errors.nameEn}>
-                  <input type="text" className={inputClass(errors.nameEn)} value={formData.nameEn} onChange={(e) => setField("nameEn", e.target.value)} />
+                  <Input type="text" className={inputClass(errors.nameEn)} value={formData.nameEn} onChange={(e) => setField("nameEn", e.target.value)} />
                 </Field>
 
                 <Field label="اسم الصنف الثالث *" error={errors.nameUr}>
-                  <input type="text" className={inputClass(errors.nameUr)} value={formData.nameUr} onChange={(e) => setField("nameUr", e.target.value)} />
+                  <Input type="text" className={inputClass(errors.nameUr)} value={formData.nameUr} onChange={(e) => setField("nameUr", e.target.value)} />
                 </Field>
 
                 <Field label="باركود الصنف" error={errors.code}>
-                  <input type="text" className={inputClass(errors.code)} value={formData.code} onChange={(e) => setField("code", e.target.value)} />
+                  <Input type="text" className={inputClass(errors.code)} value={formData.code} onChange={(e) => setField("code", e.target.value)} />
                 </Field>
 
                 <Field label="التصنيف الرئيسي *" error={errors.category}>
@@ -276,15 +278,15 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
 
               <div className="space-y-4 border border-gray-100 p-4 rounded-xl">
                 <Field label="التكلفة *" error={errors.cost}>
-                  <input type="number" className={inputClass(errors.cost)} value={formData.cost} onChange={(e) => setField("cost", e.target.value)} placeholder="أدخل التكلفة" />
+                  <Input type="number" className={inputClass(errors.cost)} value={formData.cost} onChange={(e) => setField("cost", e.target.value)} placeholder="أدخل التكلفة" />
                 </Field>
 
                 <Field label="سعر البيع *" error={errors.price}>
-                  <input type="number" className={inputClass(errors.price)} value={formData.price} onChange={(e) => setField("price", e.target.value)} placeholder="أدخل سعر البيع" />
+                  <Input type="number" className={inputClass(errors.price)} value={formData.price} onChange={(e) => setField("price", e.target.value)} placeholder="أدخل سعر البيع" />
                 </Field>
 
                 <Field label="حد تنبيه المخزون *" error={errors.alertQuantity}>
-                  <input type="number" className={inputClass(errors.alertQuantity)} value={formData.alertQuantity} onChange={(e) => setField("alertQuantity", e.target.value)} placeholder="أدخل حد التنبيه" />
+                  <Input type="number" className={inputClass(errors.alertQuantity)} value={formData.alertQuantity} onChange={(e) => setField("alertQuantity", e.target.value)} placeholder="أدخل حد التنبيه" />
                 </Field>
 
                 <div className="space-y-2">
@@ -303,7 +305,7 @@ export default function EditProductModal({ isOpen, onClose, product }: EditProdu
 
                     {errors.image && <p className="text-red-500 text-xs mt-2 text-right">{errors.image}</p>}
 
-                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onImageChange} />
+                    <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onImageChange} />
                   </div>
                 </div>
               </div>

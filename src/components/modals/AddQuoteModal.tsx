@@ -4,6 +4,8 @@ import ResponsiveModal from "./ResponsiveModal";
 import { useLanguage } from "@/context/LanguageContext";
 import { useQuotes } from "@/context/QuotesContext";
 
+import { Input } from "@/components/ui/input";
+
 interface AddQuoteModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -53,15 +55,15 @@ const AddQuoteModal: React.FC<AddQuoteModalProps> = ({ isOpen, onClose }) => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-1">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("customer")}</label>
-            <input type="text" required value={formData.customer} onChange={(e) => setFormData({ ...formData, customer: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
+            <Input type="text" required value={formData.customer} onChange={(e) => setFormData({ ...formData, customer: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("ref_no")}</label>
-            <input type="text" value={formData.refNo} onChange={(e) => setFormData({ ...formData, refNo: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
+            <Input type="text" value={formData.refNo} onChange={(e) => setFormData({ ...formData, refNo: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
           </div>
           <div className="space-y-1">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("date")}</label>
-            <input type="date" required value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
+            <Input type="date" required value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-emerald-500 text-sm" />
           </div>
         </div>
 

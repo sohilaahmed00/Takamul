@@ -19,6 +19,8 @@ import { useDeleteTreasury } from "@/features/treasurys/hooks/useDeleteTreasury"
 import TreasuryModal from "@/components/modals/TreasuryModal";
 import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 
+import { Input } from "@/components/ui/input";
+
 type TreasuryRow = {
   id: number;
   name: string;
@@ -94,7 +96,7 @@ export default function TreasurysList() {
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
-          <input
+          <Input
             type="text"
             value={searchTerm}
             onChange={(e) => {

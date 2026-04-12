@@ -27,6 +27,8 @@ import { useNavigate } from "react-router-dom";
 import MobileDataCard from "@/components/MobileDataCard";
 import ComboboxField from "@/components/ui/ComboboxField";
 
+import { Input } from "@/components/ui/input";
+
 interface PurchaseItem {
   id: string;
   code: string;
@@ -312,11 +314,11 @@ export default function AddPurchase() {
               <label className="text-sm font-medium text-gray-700">
                 {t("date")} *
               </label>
-              <input
+              <Input
                 type="datetime-local"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="takamol-input h-10 text-right"
+                
                 required
               />
             </div>
@@ -325,11 +327,11 @@ export default function AddPurchase() {
               <label className="text-sm font-medium text-gray-700">
                 {t("ref_no")} *
               </label>
-              <input
+              <Input
                 type="text"
                 value={formData.refNo}
                 onChange={(e) => setFormData({ ...formData, refNo: e.target.value })}
-                className="takamol-input h-10"
+                
                 required
               />
             </div>
@@ -405,16 +407,16 @@ export default function AddPurchase() {
                   <Upload size={16} />
                   {t("browse")}
                 </button>
-                <input
+                <Input
                   type="file"
                   ref={fileInputRef}
                   className="hidden"
                   onChange={(e) => setFileName(e.target.files?.[0]?.name || "")}
                 />
-                <input
+                <Input
                   type="text"
                   value={fileName}
-                  className="takamol-input h-10 !bg-gray-50 dark:!bg-slate-900"
+                  
                   readOnly
                   placeholder={t("no_file_chosen") || "لم يتم اختيار ملف"}
                 />
@@ -460,7 +462,7 @@ export default function AddPurchase() {
                 <label className="text-sm font-medium text-gray-700">
                   {t("expected_profit") || "الربح المتوقع"}
                 </label>
-                <div className="takamol-input h-10 !bg-gray-50 dark:!bg-slate-900 text-center font-bold">
+                <div >
                   {expectedProfit.toFixed(2)}
                 </div>
               </div>
@@ -483,7 +485,7 @@ export default function AddPurchase() {
                 </button>
               </div>
 
-              <input
+              <Input
                 type="text"
                 placeholder={t("please_add_items")}
                 value={searchQuery}
@@ -595,7 +597,7 @@ export default function AddPurchase() {
                           {item.code} - {item.name}
                         </td>
                         <td className="p-3 border-l border-gray-100">
-                          <input
+                          <Input
                             type="date"
                             className="w-full border-none bg-transparent outline-none text-right"
                             value={item.expiryDate}
@@ -605,7 +607,7 @@ export default function AddPurchase() {
                           />
                         </td>
                         <td className="p-3 border-l border-gray-100">
-                          <input
+                          <Input
                             type="number"
                             className="w-20 border-none bg-transparent outline-none text-center"
                             value={item.unitCost}
@@ -615,7 +617,7 @@ export default function AddPurchase() {
                           />
                         </td>
                         <td className="p-3 border-l border-gray-100">
-                          <input
+                          <Input
                             type="number"
                             className="w-16 border-none bg-transparent outline-none text-center"
                             value={item.quantity}
@@ -625,7 +627,7 @@ export default function AddPurchase() {
                           />
                         </td>
                         <td className="p-3 border-l border-gray-100">
-                          <input
+                          <Input
                             type="number"
                             className="w-16 border-none bg-transparent outline-none text-center"
                             value={item.free}
@@ -647,7 +649,7 @@ export default function AddPurchase() {
                           {item.totalSr.toFixed(2)}
                         </td>
                         <td className="p-3 border-l border-gray-100">
-                          <input
+                          <Input
                             type="number"
                             className="w-24 border-none bg-transparent outline-none text-center"
                             value={item.publicPrice}
@@ -686,7 +688,7 @@ export default function AddPurchase() {
                     {
                       label: t("unit_cost"),
                       value: (
-                        <input
+                        <Input
                           type="number"
                           className="w-20 border-b border-gray-300 outline-none focus:border-primary text-center font-bold"
                           value={item.unitCost}
@@ -709,7 +711,7 @@ export default function AddPurchase() {
                           >
                             +
                           </button>
-                          <input
+                          <Input
                             type="number"
                             className="w-12 text-center border-b border-gray-300 outline-none focus:border-primary font-bold"
                             value={item.quantity}
@@ -741,7 +743,7 @@ export default function AddPurchase() {
                     {
                       label: t("public_price"),
                       value: (
-                        <input
+                        <Input
                           type="number"
                           className="w-24 border-b border-gray-300 outline-none focus:border-primary text-center"
                           value={item.publicPrice}
@@ -781,7 +783,7 @@ export default function AddPurchase() {
                 <label className="text-sm font-medium text-gray-700">
                   {t("discount_before_vat") || "خصم بالنسبة أو بالرقم (قبل الضريبة)"}
                 </label>
-                <input
+                <Input
                   type="number"
                   value={formData.discountBeforeVat}
                   onChange={(e) =>
@@ -790,7 +792,7 @@ export default function AddPurchase() {
                       discountBeforeVat: Number(e.target.value),
                     })
                   }
-                  className="takamol-input h-10"
+                  
                 />
               </div>
 
@@ -798,7 +800,7 @@ export default function AddPurchase() {
                 <label className="text-sm font-medium text-gray-700">
                   {t("discount_after_vat") || "خصم بالنسبة أو بالرقم (بعد الضريبة)"}
                 </label>
-                <input
+                <Input
                   type="number"
                   value={formData.discountAfterVat}
                   onChange={(e) =>
@@ -807,7 +809,7 @@ export default function AddPurchase() {
                       discountAfterVat: Number(e.target.value),
                     })
                   }
-                  className="takamol-input h-10"
+                  
                 />
               </div>
 
@@ -815,13 +817,13 @@ export default function AddPurchase() {
                 <label className="text-sm font-medium text-gray-700">
                   {t("paid_amount")}
                 </label>
-                <input
+                <Input
                   type="number"
                   value={formData.amountPaid}
                   onChange={(e) =>
                     setFormData({ ...formData, amountPaid: Number(e.target.value) })
                   }
-                  className="takamol-input h-10 text-center font-bold !text-[var(--primary)]"
+                  
                 />
               </div>
 
@@ -849,13 +851,13 @@ export default function AddPurchase() {
                 <label className="text-sm font-medium text-gray-700">
                   {t("payment_terms") || "شروط الدفع"}
                 </label>
-                <input
+                <Input
                   type="text"
                   value={formData.paymentTerms}
                   onChange={(e) =>
                     setFormData({ ...formData, paymentTerms: e.target.value })
                   }
-                  className="takamol-input h-10"
+                  
                 />
               </div>
 

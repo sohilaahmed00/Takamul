@@ -5,6 +5,8 @@ import { Column } from 'primereact/column';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useLanguage } from '@/context/LanguageContext';
 
+import { Input } from "@/components/ui/input";
+
 const SummaryCard = ({ title, value, color, icon: Icon }: { title: string; value: string; color: string; icon: any }) => (
   <div className={`rounded-xl p-5 text-white shadow-md relative overflow-hidden ${color}`}>
     <div className="relative z-10">
@@ -41,7 +43,7 @@ export default function CustomerAgingReport() {
       </div>
       <div className="relative w-full sm:w-64">
         <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none"><Search size={16} className="text-gray-400" /></div>
-        <input type="text" value={globalFilterValue} onChange={e => setGlobalFilterValue(e.target.value)}
+        <Input type="text" value={globalFilterValue} onChange={e => setGlobalFilterValue(e.target.value)}
           placeholder={t('search_placeholder')}
           className="w-full border border-gray-200 focus:border-[var(--primary)] text-gray-700 text-sm rounded-lg py-2 pr-10 pl-4 outline-none transition-all" />
       </div>

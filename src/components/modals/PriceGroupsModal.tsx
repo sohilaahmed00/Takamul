@@ -4,6 +4,8 @@ import { useLanguage } from '@/context/LanguageContext';
 import ResponsiveModal from './ResponsiveModal';
 import type { PriceGroup } from '@/types';
 
+import { Input } from "@/components/ui/input";
+
 interface PriceGroupsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -46,12 +48,12 @@ export default function PriceGroupsModal({ isOpen, onClose, onSave, initialData 
             <label className="takamol-label">
               {t('group_name')} *
             </label>
-            <input
+            <Input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="takamol-input"
+              
               placeholder={t('enter_group_name')}
             />
           </div>

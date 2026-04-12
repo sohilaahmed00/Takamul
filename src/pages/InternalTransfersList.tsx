@@ -16,6 +16,8 @@ import AddInternalTreasuryTransferModal from "@/components/modals/AddInternalTre
 import { useGetAllInternalTreasuryTransfers } from "@/features/internal-treasury-transfers/hooks/useGetAllInternalTreasuryTransfers";
 import type { InternalTreasuryTransferRow } from "@/features/internal-treasury-transfers/types/internalTreasuryTransfers.types";
 
+import { Input } from "@/components/ui/input";
+
 export default function InternalTransfersList() {
   const { t, direction } = useLanguage();
 
@@ -75,7 +77,7 @@ export default function InternalTransfersList() {
           <Search size={18} className="text-gray-400" />
         </div>
 
-        <input
+        <Input
           type="text"
           value={searchTerm}
           onChange={(e) => {

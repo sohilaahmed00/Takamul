@@ -3,6 +3,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import ResponsiveModal from "@/components/modals/ResponsiveModal";
 import type { Bank } from "@/types";
 
+import { Input } from "@/components/ui/input";
+
 interface AddBankModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -38,22 +40,22 @@ export default function AddBankModal({ isOpen, onClose, onSave }: AddBankModalPr
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="takamol-label">{t("bank_code")} *</label>
-            <input type="text" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className="takamol-input" required />
+            <Input type="text" value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })}  required />
           </div>
 
           <div className="space-y-2">
             <label className="takamol-label">{t("bank_name")} *</label>
-            <input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="takamol-input" required />
+            <Input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}  required />
           </div>
 
           <div className="space-y-2">
             <label className="takamol-label">{t("bank_opening_balance")}</label>
-            <input type="number" value={formData.openingBalance} onChange={(e) => setFormData({ ...formData, openingBalance: Number(e.target.value) })} className="takamol-input text-center" />
+            <Input type="number" value={formData.openingBalance} onChange={(e) => setFormData({ ...formData, openingBalance: Number(e.target.value) })}  />
           </div>
 
           <div className="space-y-2">
             <label className="takamol-label">{t("notes")}</label>
-            <input type="text" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} className="takamol-input" />
+            <Input type="text" value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })}  />
           </div>
         </div>
 

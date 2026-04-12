@@ -4,6 +4,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import ResponsiveModal from "./ResponsiveModal";
 import type { CustomerGroup } from "@/context/CustomerGroupsContext";
 
+import { Input } from "@/components/ui/input";
+
 interface CustomerGroupsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -57,18 +59,18 @@ const CustomerGroupsModal: React.FC<CustomerGroupsModalProps> = ({
             <label className="takamol-label">
               {t("group_name")} *
             </label>
-            <input
+            <Input
               type="text"
               required
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="takamol-input"
+              
               placeholder={t("group_name_placeholder")}
             />
           </div>
 
           <div className="flex items-center gap-3 p-4 bg-[var(--bg-main)] rounded-2xl border border-[var(--border)]">
-            <input
+            <Input
               type="checkbox"
               id="sellAtCost"
               checked={sellAtCost}
@@ -87,12 +89,12 @@ const CustomerGroupsModal: React.FC<CustomerGroupsModalProps> = ({
             <label className="takamol-label">
               {t("group_percentage_no_sign")} *
             </label>
-            <input
+            <Input
               type="number"
               required
               value={percentage}
               onChange={(e) => setPercentage(Number(e.target.value))}
-              className="takamol-input text-center"
+              
               placeholder="0"
             />
           </div>

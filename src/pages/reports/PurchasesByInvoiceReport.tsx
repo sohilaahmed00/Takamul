@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Search, RotateCcw, FileText, Printer, FileSpreadsheet } from "lucide-react";
 import ComboboxField from "@/components/ui/ComboboxField";
 
+import { Input } from "@/components/ui/input";
+
 interface FilterState { fiscalYear: string; fiscalQuarter: string; from: string; to: string; }
 
 const FISCAL_YEARS = ["2022", "2023", "2024", "2025", "2026"];
@@ -81,11 +83,11 @@ export default function PurchasesByInvoiceReport() {
               </div>
               <div className="space-y-2 lg:col-span-1">
                 <label className="text-xs font-medium text-[var(--text-main)]">{t("from_date", "تاريخ البداية")}</label>
-                <input type="date" value={filters.from} onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value, fiscalQuarter: "" }))} className="takamol-input h-10 w-full" />
+                <Input type="date" value={filters.from} onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value, fiscalQuarter: "" }))}  />
               </div>
               <div className="space-y-2 lg:col-span-1">
                 <label className="text-xs font-medium text-[var(--text-main)]">{t("to_date", "تاريخ النهاية")}</label>
-                <input type="date" value={filters.to} onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value, fiscalQuarter: "" }))} className="takamol-input h-10 w-full" />
+                <Input type="date" value={filters.to} onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value, fiscalQuarter: "" }))}  />
               </div>
               <div className="flex flex-col sm:flex-row items-end gap-2 lg:col-span-2">
                 <Button onClick={handleSearch} variant="default" className="w-full sm:w-auto h-10 px-6 gap-2"><Search size={16} />{t("execute_operation", "اتمام العملية")}</Button>

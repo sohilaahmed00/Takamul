@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import MobileDataCard from "@/components/MobileDataCard";
 import type { ExpenseCategory } from "@/types";
 
+import { Input } from "@/components/ui/input";
+
 export default function ExpenseCategories() {
   const { t, direction, language } = useLanguage();
   const { categories, deleteCategory } = useExpenseCategories();
@@ -73,7 +75,7 @@ export default function ExpenseCategories() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Search */}
             <div className="relative w-full md:w-64 order-2 md:order-1">
-              <input type="text" placeholder={t("search_placeholder") || "اكتب ما تريد ان تبحث عنه"} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn("w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-primary text-sm", direction === "rtl" ? "pr-10" : "pl-10")} />
+              <Input type="text" placeholder={t("search_placeholder") || "اكتب ما تريد ان تبحث عنه"} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn("w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-primary text-sm", direction === "rtl" ? "pr-10" : "pl-10")} />
               <Search className={cn("absolute top-1/2 -translate-y-1/2 text-gray-400", direction === "rtl" ? "right-3" : "left-3")} size={18} />
             </div>
 
@@ -128,7 +130,7 @@ export default function ExpenseCategories() {
                         </div>
                       </td>
                       <td className="p-3 text-center">
-                        <input type="checkbox" className="w-4 h-4 accent-primary" />
+                        <Input type="checkbox" className="w-4 h-4 accent-primary" />
                       </td>
                     </tr>
                   ))

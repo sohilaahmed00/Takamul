@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../lib/utils";
 import type { PaymentMethod } from "../types";
 
+import { Input } from "@/components/ui/input";
+
 const PaymentMethods: React.FC = () => {
   const { t, direction } = useLanguage();
   const { paymentMethods, addPaymentMethod, updatePaymentMethod, deletePaymentMethod } = usePaymentMethods();
@@ -83,7 +85,7 @@ const PaymentMethods: React.FC = () => {
               </select>
             </div>
             <div className="relative">
-              <input type="text" placeholder={t("search")} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-[var(--input-bg)] border border-[var(--border)] rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] w-64" />
+              <Input type="text" placeholder={t("search")} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-[var(--input-bg)] border border-[var(--border)] rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] w-64" />
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
             </div>
           </div>
@@ -93,7 +95,7 @@ const PaymentMethods: React.FC = () => {
               <thead>
                 <tr className="bg-[var(--table-header)] text-white">
                   <th className="p-3 border border-white/10 w-12">
-                    <input type="checkbox" className="rounded border-white/20" />
+                    <Input type="checkbox" className="rounded border-white/20" />
                   </th>
                   <th className="p-3 border border-white/10">{t("payment_method_image")}</th>
                   <th className="p-3 border border-white/10">{t("payment_method_code")}</th>
@@ -113,7 +115,7 @@ const PaymentMethods: React.FC = () => {
                   filteredMethods.map((m) => (
                     <tr key={`desktop-${m.id}`} className="border-b border-[var(--border)] hover:bg-[var(--bg-main)]/50 transition-colors">
                       <td className="p-3 text-center">
-                        <input type="checkbox" className="rounded border-[var(--border)]" />
+                        <Input type="checkbox" className="rounded border-[var(--border)]" />
                       </td>
                       <td className="p-3">
                         {m.image ? (
@@ -228,7 +230,7 @@ const PaymentMethods: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t("payment_method_name")} *</label>
-                    <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all" />
+                    <Input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all" />
                   </div>
 
                   {editingMethod && (
@@ -244,7 +246,7 @@ const PaymentMethods: React.FC = () => {
                   <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t("payment_method_image")}</label>
                     <div className="flex gap-2">
-                      <input type="text" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} className="flex-1 p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all" placeholder="رابط الصورة" />
+                      <Input type="text" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} className="flex-1 p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-emerald-100 outline-none text-right transition-all" placeholder="رابط الصورة" />
                       <button type="button" className="bg-emerald-600 text-white px-4 py-2 rounded-xl flex items-center gap-2 text-sm hover:bg-emerald-700 transition-all font-bold">
                         <Upload size={16} />
                         {t("browse")}

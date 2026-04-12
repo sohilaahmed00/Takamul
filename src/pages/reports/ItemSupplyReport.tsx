@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { FileText, FileSpreadsheet, Printer, Download } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
+import { Input } from "@/components/ui/input";
+
 export default function ItemSupplyReport() {
   const { direction } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,7 +46,7 @@ export default function ItemSupplyReport() {
 
           <div className="flex items-center gap-2 w-full md:w-auto">
             <span className="text-sm font-bold text-gray-600 dark:text-gray-400">بحث</span>
-            <input
+            <Input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

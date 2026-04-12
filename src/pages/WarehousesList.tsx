@@ -18,6 +18,8 @@ import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import { useDeleteWarehouse } from "@/features/Warehouses/hooks/useDeleteWarehouse";
 import { useGetAllWarehouses } from "@/features/Warehouses/hooks/useGetAllWarehouses";
 
+import { Input } from "@/components/ui/input";
+
 export default function WarehousesList() {
   const { t, direction } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
@@ -54,7 +56,7 @@ export default function WarehousesList() {
   const header = (
     <div className="relative w-full md:w-80">
       <Search className="absolute right-3 top-2.5 text-gray-400" size={18} />
-      <input
+      <Input
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}

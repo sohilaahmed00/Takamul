@@ -19,6 +19,8 @@ import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import MobileDataCard from "@/components/MobileDataCard";
 
+import { Input } from "@/components/ui/input";
+
 export default function AddQuote() {
   const { t, direction } = useLanguage();
   const { products: allProducts } = useProducts();
@@ -189,7 +191,7 @@ export default function AddQuote() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-2 text-right">
               <label className="text-sm font-bold text-primary">{t("date")} *</label>
-              <input
+              <Input
                 type="text"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
@@ -199,7 +201,7 @@ export default function AddQuote() {
 
             <div className="space-y-2 text-right">
               <label className="text-sm font-bold text-primary">{t("ref_no")}</label>
-              <input
+              <Input
                 type="text"
                 value={refNo}
                 onChange={(e) => setRefNo(e.target.value)}
@@ -226,7 +228,7 @@ export default function AddQuote() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-2 text-right">
               <label className="text-sm font-bold text-primary">{t("discount")}</label>
-              <input
+              <Input
                 type="text"
                 value={discount}
                 onChange={(e) => setDiscount(e.target.value)}
@@ -236,7 +238,7 @@ export default function AddQuote() {
 
             <div className="space-y-2 text-right">
               <label className="text-sm font-bold text-primary">{t("shipping")}</label>
-              <input
+              <Input
                 type="text"
                 value={shipping}
                 onChange={(e) => setShipping(e.target.value)}
@@ -262,13 +264,13 @@ export default function AddQuote() {
               {t("attach_documents")}
             </label>
             <div className="flex gap-2">
-              <input
+              <Input
                 type="text"
                 value={fileName}
                 className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary text-right"
                 readOnly
               />
-              <input
+              <Input
                 type="file"
                 ref={fileInputRef}
                 className="hidden"
@@ -362,7 +364,7 @@ export default function AddQuote() {
               </button>
             </div>
 
-            <input
+            <Input
               type="text"
               placeholder={t("please_add_items")}
               value={searchQuery}
@@ -460,7 +462,7 @@ export default function AddQuote() {
                           {product.priceWithVat}
                         </td>
                         <td className="p-3 border border-gray-200">
-                          <input
+                          <Input
                             type="number"
                             min="1"
                             value={product.quantity}
@@ -506,7 +508,7 @@ export default function AddQuote() {
                           >
                             +
                           </button>
-                          <input
+                          <Input
                             type="number"
                             min="1"
                             value={product.quantity}

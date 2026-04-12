@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
+import { Input } from "@/components/ui/input";
+
 // بيانات وهمية لمحاكاة الفاتورة الأصلية والأصناف المتاحة
 const MOCK_INVOICE_ITEMS = [
     { id: 1, code: '60990980', name: 'عباية كريب مع اكمام مموجه', unitPrice: 250.00, originalQty: 2, returnQty: 1, extraFees: 0 },
@@ -160,23 +162,23 @@ export default function ReturnSale() {
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-gray-700">التاريخ *</label>
-                            <input type="text" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} className="takamol-input bg-gray-50 text-center font-mono" dir="ltr" readOnly />
+                            <Input type="text" value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })}  dir="ltr" readOnly />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-gray-700">الرقم المرجعي</label>
-                            <input type="text" value={formData.reference} onChange={e => setFormData({ ...formData, reference: e.target.value })} className="takamol-input font-bold text-[#00a651]" />
+                            <Input type="text" value={formData.reference} onChange={e => setFormData({ ...formData, reference: e.target.value })}  />
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-gray-700">الخصم على المرتجع</label>
                             <div className="relative">
-                                <input type="number" value={formData.discount || ''} onChange={e => setFormData({ ...formData, discount: Number(e.target.value) })} className="takamol-input text-center pl-8" />
+                                <Input type="number" value={formData.discount || ''} onChange={e => setFormData({ ...formData, discount: Number(e.target.value) })}  />
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">SAR</span>
                             </div>
                         </div>
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-gray-700">المرفقات</label>
                             <div className="flex h-[42px]">
-                                <input type="text" placeholder="اختر ملف..." readOnly className="flex-1 border border-gray-300 border-l-0 rounded-r-lg px-3 text-sm outline-none bg-gray-50" />
+                                <Input type="text" placeholder="اختر ملف..." readOnly className="flex-1 border border-gray-300 border-l-0 rounded-r-lg px-3 text-sm outline-none bg-gray-50" />
                                 <button className="bg-[#00a651] hover:bg-[#008f45] text-white px-4 rounded-l-lg text-sm font-bold flex items-center justify-center transition-colors">
                                     <Upload size={16} />
                                 </button>
@@ -186,7 +188,7 @@ export default function ReturnSale() {
 
                     <div className="flex flex-wrap items-center gap-6 mt-6 p-4 bg-blue-50/50 border border-blue-100 rounded-lg">
                         <label className="flex items-center gap-2 cursor-pointer select-none">
-                            <input
+                            <Input
                                 type="checkbox"
                                 className="w-5 h-5 accent-blue-600 rounded cursor-pointer"
                                 checked={formData.isFullReturn}
@@ -213,13 +215,13 @@ export default function ReturnSale() {
                     </span>
 
                     <div className="relative w-64">
-                        <input
+                        <Input
                             type="text"
                             placeholder="ابحث لإضافة صنف يدوي..."
                             value={searchTerm}
                             onChange={(e) => { setSearchTerm(e.target.value); setShowDropdown(true); }}
                             onFocus={() => setShowDropdown(true)}
-                            className="takamol-input !py-1.5 !text-sm !pr-8"
+                            
                         />
                         <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
 
@@ -271,13 +273,13 @@ export default function ReturnSale() {
                                             <div className="text-xs text-gray-400 font-normal mt-1">الكمية في الفاتورة: {item.originalQty}</div>
                                         </td>
                                         <td className="p-2 border-l border-gray-100">
-                                            <input type="number" value={item.unitPrice || ''} onChange={e => handleItemChange(item.id, 'unitPrice', Number(e.target.value))} className="w-full border border-gray-300 rounded px-2 py-1.5 text-center focus:border-[#00a651] outline-none" />
+                                            <Input type="number" value={item.unitPrice || ''} onChange={e => handleItemChange(item.id, 'unitPrice', Number(e.target.value))} className="w-full border border-gray-300 rounded px-2 py-1.5 text-center focus:border-[#00a651] outline-none" />
                                         </td>
                                         <td className="p-2 border-l border-gray-100">
-                                            <input type="number" value={item.returnQty || ''} max={item.originalQty} min={0} onChange={e => handleItemChange(item.id, 'returnQty', Number(e.target.value))} className="w-full border border-gray-300 rounded px-2 py-1.5 text-center font-bold text-lg text-blue-600 focus:border-[#00a651] outline-none bg-blue-50/30" />
+                                            <Input type="number" value={item.returnQty || ''} max={item.originalQty} min={0} onChange={e => handleItemChange(item.id, 'returnQty', Number(e.target.value))} className="w-full border border-gray-300 rounded px-2 py-1.5 text-center font-bold text-lg text-blue-600 focus:border-[#00a651] outline-none bg-blue-50/30" />
                                         </td>
                                         <td className="p-2 border-l border-gray-100">
-                                            <input type="number" value={item.extraFees || ''} onChange={e => handleItemChange(item.id, 'extraFees', Number(e.target.value))} className="w-full border border-gray-300 rounded px-2 py-1.5 text-center focus:border-[#00a651] outline-none text-red-600" />
+                                            <Input type="number" value={item.extraFees || ''} onChange={e => handleItemChange(item.id, 'extraFees', Number(e.target.value))} className="w-full border border-gray-300 rounded px-2 py-1.5 text-center focus:border-[#00a651] outline-none text-red-600" />
                                         </td>
                                         <td className="p-3 font-bold text-lg text-[#00a651] bg-[#e6f4ea]/30">
                                             {((Number(item.unitPrice) * Number(item.returnQty)) + Number(item.extraFees)).toFixed(2)}
@@ -321,7 +323,7 @@ export default function ReturnSale() {
 
                             <div className="w-full md:w-1/4 space-y-2">
                                 <label className="text-xs font-bold text-gray-600">طريقة الدفع</label>
-                                <select value={payment.method} onChange={e => handlePaymentChange(payment.id, 'method', e.target.value)} className="takamol-input font-bold bg-white">
+                                <select value={payment.method} onChange={e => handlePaymentChange(payment.id, 'method', e.target.value)} >
                                     <option value="cash">نقداً</option>
                                     <option value="mada">شبكة (مدى)</option>
                                     <option value="bank">تحويل بنكي</option>
@@ -329,11 +331,11 @@ export default function ReturnSale() {
                             </div>
                             <div className="w-full md:w-1/4 space-y-2">
                                 <label className="text-xs font-bold text-gray-600">المبلغ</label>
-                                <input type="number" value={payment.amount || ''} onChange={e => handlePaymentChange(payment.id, 'amount', Number(e.target.value))} className="takamol-input font-bold text-lg text-center" />
+                                <Input type="number" value={payment.amount || ''} onChange={e => handlePaymentChange(payment.id, 'amount', Number(e.target.value))}  />
                             </div>
                             <div className="w-full md:w-2/4 space-y-2">
                                 <label className="text-xs font-bold text-gray-600">الرقم المرجعي للدفع (اختياري)</label>
-                                <input type="text" value={payment.ref} onChange={e => handlePaymentChange(payment.id, 'ref', e.target.value)} placeholder="مثال: رقم التحويل" className="takamol-input" />
+                                <Input type="text" value={payment.ref} onChange={e => handlePaymentChange(payment.id, 'ref', e.target.value)} placeholder="مثال: رقم التحويل"  />
                             </div>
                         </div>
                     ))}

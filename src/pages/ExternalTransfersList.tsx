@@ -25,6 +25,8 @@ import ComboboxField from "@/components/ui/ComboboxField";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetTreasuryStatement } from "@/features/treasury-statement/hooks/useGetTreasuryStatement";
 
+import { Input } from "@/components/ui/input";
+
 type FilterState = {
   treasuryId?: number;
   from: string;
@@ -197,13 +199,13 @@ export default function ExternalTransfersList() {
                 <label className="text-sm font-medium text-[var(--text-main)]">
                   {t("from_date")}
                 </label>
-                <input
+                <Input
                   type="date"
                   value={filters.from}
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, from: e.target.value }))
                   }
-                  className="takamol-input"
+                  
                 />
               </div>
 
@@ -211,13 +213,13 @@ export default function ExternalTransfersList() {
                 <label className="text-sm font-medium text-[var(--text-main)]">
                   {t("to_date")}
                 </label>
-                <input
+                <Input
                   type="date"
                   value={filters.to}
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, to: e.target.value }))
                   }
-                  className="takamol-input"
+                  
                 />
               </div>
 

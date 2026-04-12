@@ -14,6 +14,8 @@ import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { SupplierTransaction } from "@/features/supplier-transactions/types/supplierTransactions.types";
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
 
+import { Input } from "@/components/ui/input";
+
 export default function SupplierPaymentsList() {
   const { direction, t } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
@@ -100,7 +102,7 @@ export default function SupplierPaymentsList() {
           <Search size={18} className="text-gray-400" />
         </div>
 
-        <input
+        <Input
           type="text"
           value={searchTerm}
           onChange={(e) => {

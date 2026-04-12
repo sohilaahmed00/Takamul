@@ -6,6 +6,8 @@ import {
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 
+import { Input } from "@/components/ui/input";
+
 type TabType = 'sales' | 'zero-sales' | 'non-zero-sales' | 'purchases' | 'zero-purchases' | 'non-zero-purchases';
 
 export default function TaxReport() {
@@ -237,7 +239,7 @@ export default function TaxReport() {
 
           <div className="flex items-center gap-2 w-full md:w-auto">
             <span className="text-sm font-bold text-gray-600 dark:text-gray-400">بحث</span>
-            <input
+            <Input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

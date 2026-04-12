@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { FileText, ChevronDown, List as ListIcon, FileSpreadsheet, Truck, X, Edit, Trash2, Download, Printer } from 'lucide-react';
 
+import { Input } from "@/components/ui/input";
+
 interface DeliveryRecord {
   id: string;
   date: string;
@@ -143,7 +145,7 @@ export default function Deliveries() {
               </div>
               <div className="relative w-full md:w-80 flex items-center gap-2">
                   <div className="relative flex-1">
-                    <input 
+                    <Input 
                         type="text" 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -160,7 +162,7 @@ export default function Deliveries() {
                   <thead>
                       <tr className="bg-primary text-white">
                           <th className="p-3 border border-primary-hover w-10 text-center">
-                              <input type="checkbox" className="rounded border-gray-300" />
+                              <Input type="checkbox" className="rounded border-gray-300" />
                           </th>
                           <th className="p-3 border border-primary-hover whitespace-nowrap">التاريخ</th>
                           <th className="p-3 border border-primary-hover whitespace-nowrap">الرقم المرجعي للتسليم</th>
@@ -179,7 +181,7 @@ export default function Deliveries() {
                             onClick={() => handleActionClick('details', delivery)}
                           >
                               <td className="p-3 text-center border-x border-gray-200" onClick={(e) => e.stopPropagation()}>
-                                  <input type="checkbox" className="rounded border-gray-300" />
+                                  <Input type="checkbox" className="rounded border-gray-300" />
                               </td>
                               <td className="p-3 border-x border-gray-200">{delivery.date}</td>
                               <td className="p-3 border-x border-gray-200">{delivery.deliveryRef}</td>

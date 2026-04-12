@@ -16,6 +16,8 @@ import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { Input } from "@/components/ui/input";
+
 export default function ViewQuote() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
@@ -231,23 +233,23 @@ export default function ViewQuote() {
                 <p className="text-sm text-red-600">برجاء ادخال المعلومات أدناه. تسميات الحقول التي تحمل علامة * هي حقول اجبارية .</p>
                 <div className="space-y-2 text-right">
                   <label className="text-sm font-bold text-[#8b0000]">إلى *</label>
-                  <input type="email" defaultValue="mtawfik12b@gmail.com" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
+                  <Input type="email" defaultValue="mtawfik12b@gmail.com" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
                 </div>
                 {showBcc && (
                   <>
                     <div className="space-y-2 text-right">
                       <label className="text-sm font-bold text-[#8b0000]">شبكة</label>
-                      <input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
+                      <Input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
                     </div>
                     <div className="space-y-2 text-right">
                       <label className="text-sm font-bold text-[#8b0000]">BCC</label>
-                      <input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
+                      <Input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
                     </div>
                   </>
                 )}
                 <div className="space-y-2 text-right">
                   <label className="text-sm font-bold text-[#8b0000]">موضوع *</label>
-                  <input type="text" defaultValue="عرض أسعار (QUOTE2025/09/0003) من مؤسسة تكامل" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
+                  <Input type="text" defaultValue="عرض أسعار (QUOTE2025/09/0003) من مؤسسة تكامل" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-red-600" />
                 </div>
                 <div className="space-y-2 text-right">
                   <label className="text-sm font-bold text-[#8b0000]">رسالة</label>

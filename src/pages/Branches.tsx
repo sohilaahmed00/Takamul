@@ -5,6 +5,8 @@ import { Plus, Trash2, Edit2, X, ChevronRight, ChevronLeft, Building, Camera, Sq
 import { motion, AnimatePresence } from 'framer-motion';
 import MobileDataCard from '../components/MobileDataCard';
 
+import { Input } from "@/components/ui/input";
+
 const Branches: React.FC = () => {
   const { t, direction } = useLanguage();
   const { warehouses, addWarehouse, updateWarehouse, deleteWarehouse } = useWarehouses();
@@ -129,7 +131,7 @@ const Branches: React.FC = () => {
             <div className="relative flex items-center gap-2">
               <span className="text-sm text-[var(--text-muted)]">بحث</span>
               <div className="relative">
-                <input
+                <Input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -287,7 +289,7 @@ const Branches: React.FC = () => {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('code')} *</label>
-                      <input
+                      <Input
                         type="text"
                         required
                         value={form.code || ''}
@@ -297,7 +299,7 @@ const Branches: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('name')} *</label>
-                      <input
+                      <Input
                         type="text"
                         required
                         value={form.name || ''}
@@ -320,7 +322,7 @@ const Branches: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('phone')}</label>
-                      <input
+                      <Input
                         type="text"
                         value={form.phone || ''}
                         onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -338,7 +340,7 @@ const Branches: React.FC = () => {
                     { key: 'printPrepSlip', label: t('print_prep_slip') }
                   ].map((item) => (
                     <label key={item.key} className="flex items-center justify-start gap-2 cursor-pointer group">
-                      <input
+                      <Input
                         type="checkbox"
                         checked={!!(form as any)[item.key]}
                         onChange={(e) => {
@@ -361,7 +363,7 @@ const Branches: React.FC = () => {
                 <div className="space-y-4 text-start">
                   <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('email_address')}</label>
-                    <input
+                    <Input
                       type="email"
                       value={form.email || ''}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}

@@ -23,6 +23,8 @@ import ComboboxField from "@/components/ui/ComboboxField";
 import { useGetItems } from "@/features/items/hooks/useGetItems";
 import { useGetProductMovement } from "@/features/reports/hooks/useGetProductMovement";
 
+import { Input } from "@/components/ui/input";
+
 type FilterState = {
   productId: string;
   from: string;
@@ -168,13 +170,13 @@ export default function ItemMovementReport() {
                 <label className="text-sm font-medium text-[var(--text-main)] mb-1 block">
                   {t("from_date", "تاريخ البداية")}
                 </label>
-                <input
+                <Input
                   type="date"
                   value={filters.from}
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, from: e.target.value }))
                   }
-                  className="takamol-input h-10 w-full"
+                  
                 />
               </div>
 
@@ -182,13 +184,13 @@ export default function ItemMovementReport() {
                 <label className="text-sm font-medium text-[var(--text-main)] mb-1 block">
                   {t("to_date", "تاريخ النهاية")}
                 </label>
-                <input
+                <Input
                   type="date"
                   value={filters.to}
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, to: e.target.value }))
                   }
-                  className="takamol-input h-10 w-full"
+                  
                 />
               </div>
 

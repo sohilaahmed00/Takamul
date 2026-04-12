@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import { cn } from "../lib/utils";
 import { useSettings, type POSSettings as IPOSSettings } from "../context/SettingsContext";
 
+import { Input } from "@/components/ui/input";
+
 const POSSettings: React.FC = () => {
   const { t, direction } = useLanguage();
   const { posSettings, updatePOSSettings, saveSettings } = useSettings();
@@ -98,7 +100,7 @@ const POSSettings: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-right">
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("display_items")} *</label>
-                  <input type="number" value={posSettings.config.displayItems} onChange={(e) => handleUpdate("config", "displayItems", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
+                  <Input type="number" value={posSettings.config.displayItems} onChange={(e) => handleUpdate("config", "displayItems", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("default_category")} *</label>
@@ -195,7 +197,7 @@ const POSSettings: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("operation_password")}</label>
-                  <input type="password" value={posSettings.config.operationPassword} onChange={(e) => handleUpdate("config", "operationPassword", e.target.value)} placeholder="كلمة المرور للعمليات" className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
+                  <Input type="password" value={posSettings.config.operationPassword} onChange={(e) => handleUpdate("config", "operationPassword", e.target.value)} placeholder="كلمة المرور للعمليات" className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("enable_order_number")} *</label>
@@ -279,7 +281,7 @@ const POSSettings: React.FC = () => {
               <SectionHeader id="custom_fields_receipt" title={t("custom_fields_receipt")} />
               <div className="text-right">
                 <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("custom_field_1_value")}</label>
-                <input type="text" value={posSettings.customFields.field1Value} onChange={(e) => handleUpdate("customFields", "field1Value", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
+                <Input type="text" value={posSettings.customFields.field1Value} onChange={(e) => handleUpdate("customFields", "field1Value", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
               </div>
               <SaveButton />
             </motion.div>
@@ -365,35 +367,35 @@ const POSSettings: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-right">
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("focus_search")}</label>
-                  <input type="text" value={posSettings.shortcuts.focusSearch} onChange={(e) => handleUpdate("shortcuts", "focusSearch", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
+                  <Input type="text" value={posSettings.shortcuts.focusSearch} onChange={(e) => handleUpdate("shortcuts", "focusSearch", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("cancel_sale")}</label>
-                  <input type="text" value={posSettings.shortcuts.cancelSale} onChange={(e) => handleUpdate("shortcuts", "cancelSale", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
+                  <Input type="text" value={posSettings.shortcuts.cancelSale} onChange={(e) => handleUpdate("shortcuts", "cancelSale", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("suspend_sale")}</label>
-                  <input type="text" value={posSettings.shortcuts.suspendSale} onChange={(e) => handleUpdate("shortcuts", "suspendSale", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
+                  <Input type="text" value={posSettings.shortcuts.suspendSale} onChange={(e) => handleUpdate("shortcuts", "suspendSale", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("last_invoice")}</label>
-                  <input type="text" value={posSettings.shortcuts.lastInvoice} onChange={(e) => handleUpdate("shortcuts", "lastInvoice", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
+                  <Input type="text" value={posSettings.shortcuts.lastInvoice} onChange={(e) => handleUpdate("shortcuts", "lastInvoice", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("finish_sale")}</label>
-                  <input type="text" value={posSettings.shortcuts.finishSale} onChange={(e) => handleUpdate("shortcuts", "finishSale", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
+                  <Input type="text" value={posSettings.shortcuts.finishSale} onChange={(e) => handleUpdate("shortcuts", "finishSale", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("today_sales")}</label>
-                  <input type="text" value={posSettings.shortcuts.todaySales} onChange={(e) => handleUpdate("shortcuts", "todaySales", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
+                  <Input type="text" value={posSettings.shortcuts.todaySales} onChange={(e) => handleUpdate("shortcuts", "todaySales", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("open_suspended_sales")}</label>
-                  <input type="text" value={posSettings.shortcuts.openSuspendedSales} onChange={(e) => handleUpdate("shortcuts", "openSuspendedSales", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
+                  <Input type="text" value={posSettings.shortcuts.openSuspendedSales} onChange={(e) => handleUpdate("shortcuts", "openSuspendedSales", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-bold text-[var(--text-main)] mb-2">{t("close_shift")}</label>
-                  <input type="text" value={posSettings.shortcuts.closeShift} onChange={(e) => handleUpdate("shortcuts", "closeShift", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
+                  <Input type="text" value={posSettings.shortcuts.closeShift} onChange={(e) => handleUpdate("shortcuts", "closeShift", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded bg-[var(--input-bg)] text-[var(--text-main)] outline-none focus:ring-1 focus:ring-[var(--primary)]" />
                 </div>
               </div>
               <SaveButton />

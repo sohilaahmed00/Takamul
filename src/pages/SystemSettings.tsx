@@ -5,6 +5,8 @@ import { Settings, Package, ShoppingCart, Hash, DollarSign, Barcode, Mail, Star,
 import { cn } from "@/lib/utils";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
+import { Input } from "@/components/ui/input";
+
 interface SettingSectionProps {
   id: string;
   title: string;
@@ -123,7 +125,7 @@ export default function SystemSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">{t("company_name")} *</label>
-                  <input type="text" value={systemSettings.site.companyName} onChange={(e) => handleUpdate("site", "companyName", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                  <Input type="text" value={systemSettings.site.companyName} onChange={(e) => handleUpdate("site", "companyName", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">{t("language")} *</label>
@@ -143,11 +145,11 @@ export default function SystemSettings() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">الرقم الضريبي *</label>
-                  <input type="text" className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                  <Input type="text" className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">* رقم السجل التجاري (CR)</label>
-                  <input type="text" className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                  <Input type="text" className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">{t("accounting_method")} *</label>
@@ -159,7 +161,7 @@ export default function SystemSettings() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">{t("default_email")} *</label>
-                  <input type="email" value={systemSettings.site.defaultEmail} onChange={(e) => handleUpdate("site", "defaultEmail", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                  <Input type="email" value={systemSettings.site.defaultEmail} onChange={(e) => handleUpdate("site", "defaultEmail", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">{t("default_customer_group")} *</label>
@@ -187,7 +189,7 @@ export default function SystemSettings() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">عدد الأيام التى لا يمكن تعديل فواتير المبيعات بعدها *</label>
-                  <input type="number" value={systemSettings.site.invoiceEditDays} onChange={(e) => handleUpdate("site", "invoiceEditDays", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                  <Input type="number" value={systemSettings.site.invoiceEditDays} onChange={(e) => handleUpdate("site", "invoiceEditDays", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">الصفوف لكل صفحة *</label>
@@ -239,7 +241,7 @@ export default function SystemSettings() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">عدد أيام تنبيه الصلاحية *</label>
-                  <input type="number" value={systemSettings.site.expiryAlertDays} onChange={(e) => handleUpdate("site", "expiryAlertDays", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                  <Input type="number" value={systemSettings.site.expiryAlertDays} onChange={(e) => handleUpdate("site", "expiryAlertDays", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-main)] mb-1">إظهار الرصيد الفعلي في قائمة العملاء *</label>
@@ -329,19 +331,19 @@ export default function SystemSettings() {
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-sm font-medium text-[var(--text-main)] mb-1">حجم الصورة (Width : Height) *</label>
-                      <input type="number" value={systemSettings.items.imageSize.width} onChange={(e) => handleNestedUpdate("items", "imageSize", "width", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                      <Input type="number" value={systemSettings.items.imageSize.width} onChange={(e) => handleNestedUpdate("items", "imageSize", "width", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                     </div>
                     <div className="pt-6">
-                      <input type="number" value={systemSettings.items.imageSize.height} onChange={(e) => handleNestedUpdate("items", "imageSize", "height", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                      <Input type="number" value={systemSettings.items.imageSize.height} onChange={(e) => handleNestedUpdate("items", "imageSize", "height", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="block text-sm font-medium text-[var(--text-main)] mb-1">حجم الصورة المصغرة (Width : Height) *</label>
-                      <input type="number" value={systemSettings.items.thumbnailSize.width} onChange={(e) => handleNestedUpdate("items", "thumbnailSize", "width", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                      <Input type="number" value={systemSettings.items.thumbnailSize.width} onChange={(e) => handleNestedUpdate("items", "thumbnailSize", "width", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                     </div>
                     <div className="pt-6">
-                      <input type="number" value={systemSettings.items.thumbnailSize.height} onChange={(e) => handleNestedUpdate("items", "thumbnailSize", "height", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                      <Input type="number" value={systemSettings.items.thumbnailSize.height} onChange={(e) => handleNestedUpdate("items", "thumbnailSize", "height", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                     </div>
                   </div>
                   <div>
@@ -448,7 +450,7 @@ export default function SystemSettings() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">اسم الرقم التسلسلي في الفواتير</label>
-                    <input type="text" value={systemSettings.sales.serialNameInInvoices} onChange={(e) => handleUpdate("sales", "serialNameInInvoices", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.sales.serialNameInInvoices} onChange={(e) => handleUpdate("sales", "serialNameInInvoices", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">طريقة الدفع الافتراضية للمشتريات</label>
@@ -498,47 +500,47 @@ export default function SystemSettings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">البادئة المرجعية للمبيعات</label>
-                    <input type="text" value={systemSettings.prefixes.sales} onChange={(e) => handleUpdate("prefixes", "sales", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.prefixes.sales} onChange={(e) => handleUpdate("prefixes", "sales", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">البادئة المرجعية لرجيع المبيعات</label>
-                    <input type="text" value={systemSettings.prefixes.salesReturn} onChange={(e) => handleUpdate("prefixes", "salesReturn", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.prefixes.salesReturn} onChange={(e) => handleUpdate("prefixes", "salesReturn", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">البادئة المرجعية للدفع</label>
-                    <input type="text" value={systemSettings.prefixes.payment} onChange={(e) => handleUpdate("prefixes", "payment", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.prefixes.payment} onChange={(e) => handleUpdate("prefixes", "payment", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">Purchase Payment Prefix</label>
-                    <input type="text" value={systemSettings.prefixes.purchasePayment} onChange={(e) => handleUpdate("prefixes", "purchasePayment", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.prefixes.purchasePayment} onChange={(e) => handleUpdate("prefixes", "purchasePayment", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">البادئة المرجعية للتسليم</label>
-                    <input type="text" value={systemSettings.prefixes.delivery} onChange={(e) => handleUpdate("prefixes", "delivery", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.prefixes.delivery} onChange={(e) => handleUpdate("prefixes", "delivery", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">البادئة المرجعية لعروض الأسعار</label>
-                    <input type="text" value={systemSettings.prefixes.quotes} onChange={(e) => handleUpdate("prefixes", "quotes", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.prefixes.quotes} onChange={(e) => handleUpdate("prefixes", "quotes", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">البادئة المرجعية للمشتريات</label>
-                    <input type="text" value={systemSettings.prefixes.purchases} onChange={(e) => handleUpdate("prefixes", "purchases", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.prefixes.purchases} onChange={(e) => handleUpdate("prefixes", "purchases", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">البادئة المرجعية لرجيع المشتريات</label>
-                    <input type="text" value={systemSettings.prefixes.purchasesReturn} onChange={(e) => handleUpdate("prefixes", "purchasesReturn", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.prefixes.purchasesReturn} onChange={(e) => handleUpdate("prefixes", "purchasesReturn", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">نقل وتحويل</label>
-                    <input type="text" value={systemSettings.prefixes.transfer} onChange={(e) => handleUpdate("prefixes", "transfer", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.prefixes.transfer} onChange={(e) => handleUpdate("prefixes", "transfer", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">البادئة المرجعية للمصروفات</label>
-                    <input type="text" value={systemSettings.prefixes.expenses} onChange={(e) => handleUpdate("prefixes", "expenses", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.prefixes.expenses} onChange={(e) => handleUpdate("prefixes", "expenses", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">البادئة المرجعية لتعديل الكميات</label>
-                    <input type="text" value={systemSettings.prefixes.quantityAdjustment} onChange={(e) => handleUpdate("prefixes", "quantityAdjustment", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.prefixes.quantityAdjustment} onChange={(e) => handleUpdate("prefixes", "quantityAdjustment", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                 </div>
               </SettingSection>
@@ -596,7 +598,7 @@ export default function SystemSettings() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">رمز العملة</label>
-                    <input type="text" value={systemSettings.money.currencySymbol} onChange={(e) => handleUpdate("money", "currencySymbol", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.money.currencySymbol} onChange={(e) => handleUpdate("money", "currencySymbol", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">العلامات العشرية لفاتورة الـ A4 *</label>
@@ -622,31 +624,31 @@ export default function SystemSettings() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">الحروف الكلية للباركود</label>
-                    <input type="number" value={systemSettings.barcode.totalCharacters} onChange={(e) => handleUpdate("barcode", "totalCharacters", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="number" value={systemSettings.barcode.totalCharacters} onChange={(e) => handleUpdate("barcode", "totalCharacters", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">Flag Characters</label>
-                    <input type="text" value={systemSettings.barcode.flagCharacters} onChange={(e) => handleUpdate("barcode", "flagCharacters", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.barcode.flagCharacters} onChange={(e) => handleUpdate("barcode", "flagCharacters", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">مكان بدء الباركود</label>
-                    <input type="number" value={systemSettings.barcode.codeStart} onChange={(e) => handleUpdate("barcode", "codeStart", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="number" value={systemSettings.barcode.codeStart} onChange={(e) => handleUpdate("barcode", "codeStart", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">عدد الحروف فى الكود</label>
-                    <input type="number" value={systemSettings.barcode.codeLength} onChange={(e) => handleUpdate("barcode", "codeLength", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="number" value={systemSettings.barcode.codeLength} onChange={(e) => handleUpdate("barcode", "codeLength", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">مكان بداية الوزن</label>
-                    <input type="number" value={systemSettings.barcode.weightStart} onChange={(e) => handleUpdate("barcode", "weightStart", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="number" value={systemSettings.barcode.weightStart} onChange={(e) => handleUpdate("barcode", "weightStart", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">عدد الحروف فى الوزن</label>
-                    <input type="number" value={systemSettings.barcode.weightLength} onChange={(e) => handleUpdate("barcode", "weightLength", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="number" value={systemSettings.barcode.weightLength} onChange={(e) => handleUpdate("barcode", "weightLength", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">الوزن مقسوم على</label>
-                    <input type="number" value={systemSettings.barcode.weightDivider} onChange={(e) => handleUpdate("barcode", "weightDivider", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="number" value={systemSettings.barcode.weightDivider} onChange={(e) => handleUpdate("barcode", "weightDivider", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                 </div>
               </SettingSection>
@@ -664,19 +666,19 @@ export default function SystemSettings() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">المضيف SMTP</label>
-                    <input type="text" value={systemSettings.email.smtpHost} onChange={(e) => handleUpdate("email", "smtpHost", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.email.smtpHost} onChange={(e) => handleUpdate("email", "smtpHost", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">SMTP مستخدم</label>
-                    <input type="text" value={systemSettings.email.smtpUser} onChange={(e) => handleUpdate("email", "smtpUser", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.email.smtpUser} onChange={(e) => handleUpdate("email", "smtpUser", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">SMTP كلمة المرور</label>
-                    <input type="password" value={systemSettings.email.smtpPassword} onChange={(e) => handleUpdate("email", "smtpPassword", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="password" value={systemSettings.email.smtpPassword} onChange={(e) => handleUpdate("email", "smtpPassword", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">SMTP PORT</label>
-                    <input type="number" value={systemSettings.email.smtpPort} onChange={(e) => handleUpdate("email", "smtpPort", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="number" value={systemSettings.email.smtpPort} onChange={(e) => handleUpdate("email", "smtpPort", parseInt(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">SMTP تشفير</label>
@@ -697,14 +699,14 @@ export default function SystemSettings() {
                     <div className="flex items-center gap-4">
                       <div className="flex-1">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">كل مصروف يساوي</label>
-                        <input type="number" value={systemSettings.points.customerPointsPerSpend} onChange={(e) => handleUpdate("points", "customerPointsPerSpend", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                        <Input type="number" value={systemSettings.points.customerPointsPerSpend} onChange={(e) => handleUpdate("points", "customerPointsPerSpend", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                       </div>
                       <div className="pt-6">
                         <Save size={20} className="text-[var(--primary)]" />
                       </div>
                       <div className="flex-1">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">اجمالي النقاط المكتسبة</label>
-                        <input type="number" value={systemSettings.points.totalCustomerPoints} onChange={(e) => handleUpdate("points", "totalCustomerPoints", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                        <Input type="number" value={systemSettings.points.totalCustomerPoints} onChange={(e) => handleUpdate("points", "totalCustomerPoints", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                       </div>
                     </div>
                   </div>
@@ -713,14 +715,14 @@ export default function SystemSettings() {
                     <div className="flex items-center gap-4">
                       <div className="flex-1">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">كل في بيع ما يعادل</label>
-                        <input type="number" value={systemSettings.points.staffPointsPerSale} onChange={(e) => handleUpdate("points", "staffPointsPerSale", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                        <Input type="number" value={systemSettings.points.staffPointsPerSale} onChange={(e) => handleUpdate("points", "staffPointsPerSale", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                       </div>
                       <div className="pt-6">
                         <Save size={20} className="text-[var(--primary)]" />
                       </div>
                       <div className="flex-1">
                         <label className="block text-xs text-[var(--text-muted)] mb-1">اجمالي النقاط المكتسبة</label>
-                        <input type="number" value={systemSettings.points.totalStaffPoints} onChange={(e) => handleUpdate("points", "totalStaffPoints", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                        <Input type="number" value={systemSettings.points.totalStaffPoints} onChange={(e) => handleUpdate("points", "totalStaffPoints", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                       </div>
                     </div>
                   </div>
@@ -731,7 +733,7 @@ export default function SystemSettings() {
               <SettingSection id="fees" title={t("sales_fees")} onSave={handleSave}>
                 <div className="space-y-6">
                   <div className="flex items-center gap-2">
-                    <input type="checkbox" id="enable_fees" checked={systemSettings.fees.enableFees} onChange={(e) => handleUpdate("fees", "enableFees", e.target.checked)} className="w-4 h-4 text-[var(--primary)] border-[var(--border)] rounded" />
+                    <Input type="checkbox" id="enable_fees" checked={systemSettings.fees.enableFees} onChange={(e) => handleUpdate("fees", "enableFees", e.target.checked)} className="w-4 h-4 text-[var(--primary)] border-[var(--border)] rounded" />
                     <label htmlFor="enable_fees" className="text-sm font-medium text-[var(--text-main)]">
                       تفعيل رسوم البيع
                     </label>
@@ -739,11 +741,11 @@ export default function SystemSettings() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-medium text-[var(--text-main)] mb-1">قيمة رسوم البيع % *</label>
-                      <input type="number" value={systemSettings.fees.feesValue} onChange={(e) => handleUpdate("fees", "feesValue", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                      <Input type="number" value={systemSettings.fees.feesValue} onChange={(e) => handleUpdate("fees", "feesValue", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-[var(--text-main)] mb-1">الحد الأدنى لرسوم البيع *</label>
-                      <input type="number" value={systemSettings.fees.minFees} onChange={(e) => handleUpdate("fees", "minFees", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                      <Input type="number" value={systemSettings.fees.minFees} onChange={(e) => handleUpdate("fees", "minFees", parseFloat(e.target.value))} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                     </div>
                   </div>
                 </div>
@@ -767,7 +769,7 @@ export default function SystemSettings() {
                         <FileText size={16} />
                         استعراض ...
                       </button>
-                      <input type="text" value={systemSettings.reports.headerImage} onChange={(e) => handleUpdate("reports", "headerImage", e.target.value)} className="flex-1 p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                      <Input type="text" value={systemSettings.reports.headerImage} onChange={(e) => handleUpdate("reports", "headerImage", e.target.value)} className="flex-1 p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                     </div>
                   </div>
                 </div>
@@ -791,7 +793,7 @@ export default function SystemSettings() {
                         <FileText size={16} />
                         استعراض ...
                       </button>
-                      <input type="text" value={systemSettings.salesPrint.headerImage} onChange={(e) => handleUpdate("salesPrint", "headerImage", e.target.value)} className="flex-1 p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                      <Input type="text" value={systemSettings.salesPrint.headerImage} onChange={(e) => handleUpdate("salesPrint", "headerImage", e.target.value)} className="flex-1 p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                     </div>
                   </div>
                   <div>
@@ -812,11 +814,11 @@ export default function SystemSettings() {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">حقل رقم أمر الشراء *</label>
-                    <input type="text" value={systemSettings.salesPrint.purchaseOrderField} onChange={(e) => handleUpdate("salesPrint", "purchaseOrderField", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.salesPrint.purchaseOrderField} onChange={(e) => handleUpdate("salesPrint", "purchaseOrderField", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">حقل اسم المشروع *</label>
-                    <input type="text" value={systemSettings.salesPrint.projectNameField} onChange={(e) => handleUpdate("salesPrint", "projectNameField", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
+                    <Input type="text" value={systemSettings.salesPrint.projectNameField} onChange={(e) => handleUpdate("salesPrint", "projectNameField", e.target.value)} className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" />
                   </div>
                 </div>
               </SettingSection>

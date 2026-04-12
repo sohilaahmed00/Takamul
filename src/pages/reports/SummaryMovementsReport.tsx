@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
+import { Input } from "@/components/ui/input";
+
 const SummaryMovementsReport = () => {
   const { dir } = useLanguage();
   const [startDate, setStartDate] = useState('2026-03-01');
@@ -67,7 +69,7 @@ const SummaryMovementsReport = () => {
           </div>
           <div>
             <label className="block text-[var(--primary)] font-bold mb-2">تاريخ البداية</label>
-            <input 
+            <Input 
               type="date" 
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               value={startDate}
@@ -76,7 +78,7 @@ const SummaryMovementsReport = () => {
           </div>
           <div>
             <label className="block text-[var(--primary)] font-bold mb-2">تاريخ النهاية</label>
-            <input 
+            <Input 
               type="date" 
               className="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
               value={endDate}

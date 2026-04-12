@@ -2,6 +2,8 @@ import { useState, useRef } from 'react';
 import { FileDown, Upload, FileSpreadsheet } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
+import { Input } from "@/components/ui/input";
+
 export default function ImportProducts() {
   const { t } = useLanguage();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,7 +66,7 @@ export default function ImportProducts() {
               <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">{t('upload_file')} *</label>
                   <div className="flex gap-2">
-                      <input 
+                      <Input 
                         type="file" 
                         ref={fileInputRef} 
                         className="hidden" 
@@ -74,7 +76,7 @@ export default function ImportProducts() {
                           <Upload size={16} />
                           {t('browse')}
                       </button>
-                      <input type="text" value={fileName} className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm outline-none bg-white" readOnly />
+                      <Input type="text" value={fileName} className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm outline-none bg-white" readOnly />
                   </div>
               </div>
 

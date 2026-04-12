@@ -7,6 +7,8 @@ import Logo from '@/components/Logo';
 
 import { localizeAuthError, AUTH_API_BASE } from '@/lib/utils';
 
+import { Input } from "@/components/ui/input";
+
 const AUTH_API = `${AUTH_API_BASE}/api/Auth`;
 
 export default function ForgotPassword() {
@@ -83,7 +85,7 @@ export default function ForgotPassword() {
                 <div className={`absolute top-0 h-full w-12 flex items-center justify-center border-gray-300 text-gray-500 ${direction === 'rtl' ? 'right-0 border-l' : 'left-0 border-r'}`}>
                   <Mail size={20} />
                 </div>
-                <input 
+                <Input 
                   type="text" 
                   placeholder={t('email_username')}
                   className={`w-full h-12 border border-gray-300 rounded-lg outline-none focus:border-[#1e3a8a] focus:ring-1 focus:ring-[#1e3a8a] transition-all ${direction === 'rtl' ? 'pr-14 pl-4 text-right' : 'pl-14 pr-4 text-left'}`}

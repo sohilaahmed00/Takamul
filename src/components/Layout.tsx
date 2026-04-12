@@ -13,6 +13,8 @@ import LogoModal from "@/components/modals/LogoModal";
 import { ToastContainer } from "react-toastify";
 import { TooltipProvider } from "./ui/tooltip";
 
+import { Input } from "@/components/ui/input";
+
 interface SidebarItemProps {
   icon: LucideIcon;
   label: string;
@@ -418,7 +420,7 @@ export default function Layout() {
 
             <div className="hidden md:flex items-center bg-[var(--input-bg)] rounded-xl px-4 py-2 w-72 border border-[var(--border)] focus-within:border-[var(--primary)] transition-all">
               <Search size={18} className="text-[var(--text-muted)]" />
-              <input type="text" placeholder={t("search")} className="bg-transparent border-none outline-none text-sm w-full text-[var(--text-main)] placeholder-[var(--text-muted)] px-2" dir={direction} />
+              <Input type="text" placeholder={t("search")} className="bg-transparent border-none outline-none text-sm w-full text-[var(--text-main)] placeholder-[var(--text-muted)] px-2" dir={direction} />
             </div>
           </div>
 

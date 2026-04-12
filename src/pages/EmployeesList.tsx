@@ -9,6 +9,8 @@ import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
 import AddEmployeeModal from "@/components/modals/AddEmployeeModal";
 
+import { Input } from "@/components/ui/input";
+
 export default function AllEmployees() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
@@ -33,7 +35,7 @@ export default function AllEmployees() {
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
-          <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder")} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
+          <Input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder")} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
         </div>
       </div>
     );

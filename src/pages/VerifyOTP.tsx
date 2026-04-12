@@ -6,6 +6,8 @@ import { useLanguage } from '@/context/LanguageContext';
 import Logo from '@/components/Logo';
 import { localizeAuthError, AUTH_API_BASE } from '@/lib/utils';
 
+import { Input } from "@/components/ui/input";
+
 const AUTH_API = `${AUTH_API_BASE}/api/Auth`;
 
 export default function VerifyOTP() {
@@ -89,7 +91,7 @@ export default function VerifyOTP() {
             <div className={`absolute top-0 h-full w-12 flex items-center justify-center border-gray-300 text-gray-500 ${direction === 'rtl' ? 'right-0 border-l' : 'left-0 border-r'}`}>
               <KeyRound size={20} />
             </div>
-            <input
+            <Input
               type="text"
               inputMode="numeric"
               autoComplete="one-time-code"

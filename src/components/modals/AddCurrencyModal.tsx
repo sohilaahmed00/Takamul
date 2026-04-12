@@ -3,6 +3,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useCurrencies, type Currency } from "@/context/CurrenciesContext";
 import ResponsiveModal from "./ResponsiveModal";
 
+import { Input } from "@/components/ui/input";
+
 interface AddCurrencyModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -59,26 +61,26 @@ export default function AddCurrencyModal({ isOpen, onClose, currency }: AddCurre
         <div className="space-y-4">
           <div className="space-y-2">
             <label className="takamol-label">{t("currency_code")} *</label>
-            <input type="text" required value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className="takamol-input" />
+            <Input type="text" required value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })}  />
           </div>
 
           <div className="space-y-2">
             <label className="takamol-label">{t("currency_name")} *</label>
-            <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="takamol-input" />
+            <Input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}  />
           </div>
 
           <div className="space-y-2">
             <label className="takamol-label">{t("symbol")} *</label>
-            <input type="text" required value={formData.symbol} onChange={(e) => setFormData({ ...formData, symbol: e.target.value })} className="takamol-input" />
+            <Input type="text" required value={formData.symbol} onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}  />
           </div>
 
           <div className="space-y-2">
             <label className="takamol-label">{t("exchange_rate")} *</label>
-            <input type="text" required value={formData.exchangeRate} onChange={(e) => setFormData({ ...formData, exchangeRate: e.target.value })} className="takamol-input text-center" />
+            <Input type="text" required value={formData.exchangeRate} onChange={(e) => setFormData({ ...formData, exchangeRate: e.target.value })}  />
           </div>
 
           <div className="flex items-center gap-3 pt-2">
-            <input type="checkbox" id="autoUpdate" checked={formData.autoUpdate} onChange={(e) => setFormData({ ...formData, autoUpdate: e.target.checked })} className="w-5 h-5 accent-[var(--primary)] rounded cursor-pointer" />
+            <Input type="checkbox" id="autoUpdate" checked={formData.autoUpdate} onChange={(e) => setFormData({ ...formData, autoUpdate: e.target.checked })} className="w-5 h-5 accent-[var(--primary)] rounded cursor-pointer" />
             <label htmlFor="autoUpdate" className="text-sm font-bold text-[var(--text-main)] cursor-pointer">
               {t("auto_update")}
             </label>

@@ -3,6 +3,8 @@ import { Upload, Download } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import ResponsiveModal from "@/components/modals/ResponsiveModal";
 
+import { Input } from "@/components/ui/input";
+
 interface ImportExpenseCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -46,7 +48,7 @@ export default function ImportExpenseCategoryModal({ isOpen, onClose }: ImportEx
               <label className="flex items-center gap-2 px-4 py-2 bg-[#004d3d] text-white rounded-lg cursor-pointer hover:bg-[#003d30] transition-colors font-bold text-sm">
                 <Upload size={16} />
                 <span>{t("browse")} ...</span>
-                <input type="file" className="hidden" onChange={handleFileChange} accept=".csv" />
+                <Input type="file" className="hidden" onChange={handleFileChange} accept=".csv" />
               </label>
               <div className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-500 truncate">{file ? file.name : t("no_file_chosen")}</div>
             </div>

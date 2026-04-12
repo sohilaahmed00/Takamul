@@ -5,6 +5,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useGetQuantityAdjustmentDetails } from "@/features/quantity-adjustments/hooks/useGetQuantityAdjustmentDetails";
 import { useGetStockInventory } from "@/features/quantity-adjustments/hooks/useGetStockInventory";
 
+import { Input } from "@/components/ui/input";
+
 function formatOperationType(value: unknown) {
   if (value === "Remove") return "طرح";
   if (value === "Subtract") return "طرح";
@@ -66,10 +68,10 @@ export default function ViewQuantityAdjustment() {
         <div className="grid grid-cols-1 gap-4 mb-6">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">{t("date")} *</label>
-            <input
+            <Input
               type="text"
               value={formattedDate}
-              className="takamol-input font-mono text-center bg-gray-50"
+              
               readOnly
             />
           </div>

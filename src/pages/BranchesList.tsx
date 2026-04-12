@@ -15,6 +15,8 @@ import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { BranchListItem } from "@/features/Branches/types/Branches.types";
 import useToast from "@/hooks/useToast";
 
+import { Input } from "@/components/ui/input";
+
 export default function Branches() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
@@ -54,7 +56,7 @@ export default function Branches() {
         <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
           <Search size={18} className="text-gray-400" />
         </div>
-        <input
+        <Input
           type="text"
           value={globalFilterValue}
           onChange={(e) => { setGlobalFilterValue(e.target.value); setCurrentPage(1); }}

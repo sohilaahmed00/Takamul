@@ -164,7 +164,7 @@ function DiscountPopover({ item, disabled, idx, onDiscChange, onDiscTypeToggle, 
           <button onClick={() => onDiscTypeToggle(idx)} className="w-8 h-8 rounded-lg border border-gray-200 text-xs font-bold text-gray-500 hover:border-primary/40 shrink-0">
             {(item.itemDiscount?.type ?? "pct") === "pct" ? "%" : "$"}
           </button>
-          <input
+          <Input
             className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs outline-none text-right font-semibold focus:border-primary/40 bg-white"
             value={raw}
             placeholder="0"
@@ -522,7 +522,7 @@ export default function CartPanel() {
                 <button onClick={() => setDiscType("pct")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "pct" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>
                   %
                 </button>
-                <input value={discInput} onChange={(e) => setDiscInput(e.target.value)} className="flex-1 h-12 px-3 border border-gray-200 rounded-xl text-sm outline-none text-right font-semibold focus:border-primary/40 bg-white" placeholder="0" type="number" min="0" />
+                <Input value={discInput} onChange={(e) => setDiscInput(e.target.value)} className="flex-1 h-12 px-3 border border-gray-200 rounded-xl text-sm outline-none text-right font-semibold focus:border-primary/40 bg-white" placeholder="0" type="number" min="0" />
               </div>
               <div className="flex gap-2">
                 <Button size={"2xl"} className="flex-1" onClick={() => setActiveTab("add")} variant="destructive">

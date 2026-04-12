@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { FileText, FileSpreadsheet, Network, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
+import { Input } from "@/components/ui/input";
+
 export default function CategoriesReport() {
   const { direction, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -48,7 +50,7 @@ export default function CategoriesReport() {
 
           <div className="flex items-center gap-2 w-full md:w-auto">
             <span className="text-sm font-bold text-gray-600 dark:text-gray-400">بحث</span>
-            <input
+            <Input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}

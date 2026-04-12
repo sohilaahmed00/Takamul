@@ -5,6 +5,8 @@ import { useUsers } from "@/context/UsersContext";
 import { useUserGroups } from "@/context/UserGroupsContext";
 import { useNavigate } from "react-router-dom";
 
+import { Input } from "@/components/ui/input";
+
 export default function AddUser() {
   const { t, direction } = useLanguage();
   const { addUser } = useUsers();
@@ -80,7 +82,7 @@ export default function AddUser() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className={labelClasses}>{t("first_name")} *</label>
-              <input
+              <Input
                 type="text"
                 name="firstName"
                 value={formData.firstName}
@@ -92,7 +94,7 @@ export default function AddUser() {
 
             <div>
               <label className={labelClasses}>{t("last_name")} *</label>
-              <input
+              <Input
                 type="text"
                 name="lastName"
                 value={formData.lastName}
@@ -118,7 +120,7 @@ export default function AddUser() {
 
             <div>
               <label className={labelClasses}>{t("company")} *</label>
-              <input
+              <Input
                 type="text"
                 name="company"
                 value={formData.company}
@@ -130,7 +132,7 @@ export default function AddUser() {
 
             <div>
               <label className={labelClasses}>{t("phone")} *</label>
-              <input
+              <Input
                 type="tel"
                 name="phone"
                 value={formData.phone}
@@ -142,7 +144,7 @@ export default function AddUser() {
 
             <div>
               <label className={labelClasses}>{t("email")} *</label>
-              <input
+              <Input
                 type="email"
                 name="email"
                 value={formData.email}
@@ -154,7 +156,7 @@ export default function AddUser() {
 
             <div>
               <label className={labelClasses}>{t("username_email")} *</label>
-              <input
+              <Input
                 type="text"
                 name="usernameEmail"
                 value={formData.usernameEmail}
@@ -166,7 +168,7 @@ export default function AddUser() {
 
             <div>
               <label className={labelClasses}>{t("password")} *</label>
-              <input
+              <Input
                 type="password"
                 name="password"
                 value={formData.password}
@@ -179,7 +181,7 @@ export default function AddUser() {
 
             <div>
               <label className={labelClasses}>{t("confirm_password")} *</label>
-              <input
+              <Input
                 type="password"
                 name="confirmPassword"
                 value={formData.confirmPassword}
@@ -271,7 +273,7 @@ export default function AddUser() {
           </div>
 
           <div className="flex items-center gap-2 pt-4">
-            <input
+            <Input
               type="checkbox"
               id="notifyEmail"
               name="notifyEmail"

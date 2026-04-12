@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { FileText, FileSpreadsheet, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
+import { Input } from "@/components/ui/input";
+
 export default function StagnantItemsReport() {
   const { direction } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -45,7 +47,7 @@ export default function StagnantItemsReport() {
 
           <div className="flex items-center gap-2 w-full md:w-auto">
             <span className="text-sm font-bold text-gray-600 dark:text-gray-400">بحث</span>
-            <input
+            <Input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
