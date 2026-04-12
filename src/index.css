@@ -202,12 +202,12 @@
   color: var(--text-main) !important;
 }
 
-.dark .shadow-sm,
+/* .dark .shadow-sm,
 .dark .shadow-md,
 .dark .shadow-lg,
 .dark .shadow-xl {
   box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.6) !important;
-}
+} */
 
 .dark .p-datatable-header {
   background-color: var(--bg-card) !important;
@@ -271,18 +271,6 @@ body {
 ::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
-
-/* Shadcn / Radix inputs in dark mode
-[data-theme="dark"] [data-slot="input"],
-[data-theme="dark"] [data-slot="textarea"],
-[data-theme="dark"] [data-slot="select-trigger"],
-.dark [data-slot="input"],
-.dark [data-slot="textarea"],
-.dark [data-slot="select-trigger"] {
-  background-color: var(--input-bg) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  color: var(--text-main) !important;
-} */
 
 .dark {
   --primary: #22c55e;
