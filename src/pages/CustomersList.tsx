@@ -10,9 +10,6 @@ import useToast from "@/hooks/useToast";
 import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerById";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
-import { Input } from "@/components/ui/input";
-
 import { Input } from "@/components/ui/input";
 
 export default function CustomersList() {
@@ -85,7 +82,6 @@ export default function CustomersList() {
             dataKey="id"
             stripedRows={false}
           >
-            {" "}
             <Column field="customerCode" header={t("code")} sortable style={{ width: "10%" }} />
             <Column field="customerName" header={t("name")} sortable style={{ width: "30%" }} />
             <Column field="phone" header={t("phone")} style={{ width: "20%" }} />
