@@ -14,6 +14,8 @@ import { ToastContainer } from "react-toastify";
 import { TooltipProvider } from "./ui/tooltip";
 
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 interface SidebarItemProps {
   icon: LucideIcon;
@@ -35,17 +37,7 @@ interface SubmenuItemProps {
 
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarOpen = true, onClick }: SidebarItemProps) => {
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200",
-        active
-          ? "bg-[var(--primary)] text-white shadow-md scale-[1.02]"
-          : "text-[var(--text-main)] hover:bg-[var(--bg-main)] hover:text-[var(--primary)] hover:scale-[1.02]",
-        !isSidebarOpen && "justify-center"
-      )}
-      title={!isSidebarOpen ? label : undefined}
-    >
+    <button onClick={onClick} className={cn("w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200", active ? "bg-[var(--primary)] text-white shadow-md scale-[1.02]" : "text-[var(--text-main)] hover:bg-[var(--bg-main)] hover:text-[var(--primary)] hover:scale-[1.02]", !isSidebarOpen && "justify-center")} title={!isSidebarOpen ? label : undefined}>
       <div className="flex items-center gap-4">
         <Icon size={24} />
         {isSidebarOpen && <span className="font-bold text-base tracking-wide">{label}</span>}
@@ -94,6 +86,8 @@ export default function Layout() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const hasPermission = useAuthStore((s) => s.hasPermission);
+
   const toggleSubmenu = (menu: string) => {
     if (!isSidebarOpen && !isMobile) {
       setIsSidebarOpen(true);
@@ -129,20 +123,10 @@ export default function Layout() {
           }
           if (isMobile) setIsMobileMenuOpen(false);
         }}
-        className={cn(
-          "w-full flex items-center justify-between p-2 text-sm rounded-md transition-colors group",
-          isActive
-            ? "bg-[var(--primary)] text-white"
-            : "text-[var(--text-main)] hover:text-[var(--primary)] hover:bg-[var(--bg-main)]"
-        )}
+        className={cn("w-full flex items-center justify-between p-2 text-sm rounded-md transition-colors group", isActive ? "bg-[var(--primary)] text-white" : "text-[var(--text-main)] hover:text-[var(--primary)] hover:bg-[var(--bg-main)]")}
       >
         <div className="flex items-center gap-2 w-full">
-          <Icon
-            size={16}
-            className={cn(
-              isActive ? "text-white" : "text-[var(--text-main)] group-hover:text-[var(--primary)]"
-            )}
-          />
+          <Icon size={16} className={cn(isActive ? "text-white" : "text-[var(--text-main)] group-hover:text-[var(--primary)]")} />
           <span>{label}</span>
         </div>
       </button>
@@ -195,13 +179,7 @@ export default function Layout() {
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--border)]">
-          <div className={cn("flex items-center overflow-hidden flex-1")}>
-            {showSidebarContent ? (
-              <Logo onClick={closeAllMenus} />
-            ) : (
-              <Logo showText={false} onClick={closeAllMenus} />
-            )}
-          </div>
+          <div className={cn("flex items-center overflow-hidden flex-1")}>{showSidebarContent ? <Logo onClick={closeAllMenus} /> : <Logo showText={false} onClick={closeAllMenus} />}</div>
 
           {isMobile && (
             <button onClick={() => setIsMobileMenuOpen(false)} className="text-[var(--text-muted)] hover:text-red-500 transition-colors p-1">
@@ -211,22 +189,28 @@ export default function Layout() {
         </div>
 
         <div className="p-3 space-y-1">
-          <SidebarItem icon={LayoutDashboard} label={t("dashboard")} isSidebarOpen={showSidebarContent} active={location.pathname === "/dashboard"} onClick={() => {
-            navigate("/dashboard");
-            setOpenSubmenu(null);
-            setOpenNestedSubmenu(null);
-          }} />
+          <SidebarItem
+            icon={LayoutDashboard}
+            label={t("dashboard")}
+            isSidebarOpen={showSidebarContent}
+            active={location.pathname === "/dashboard"}
+            onClick={() => {
+              navigate("/dashboard");
+              setOpenSubmenu(null);
+              setOpenNestedSubmenu(null);
+            }}
+          />
 
           <SidebarItem icon={Package} label={t("products")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "products"} onClick={() => toggleSubmenu("products")} />
           <AnimatePresence>
             {openSubmenu === "products" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                <SubmenuItem label={t("products_list")} icon={List} path="/products" />
-                <SubmenuItem label={t("add_product")} icon={PlusCircle} path="/products/create" />
+                {(hasPermission(Permissions?.products?.all) || hasPermission(Permissions?.products?.view)) && <SubmenuItem label={t("products_list")} icon={List} path="/products" />}
+                {(hasPermission(Permissions?.products?.add) || hasPermission(Permissions?.products?.addDirect) || hasPermission(Permissions?.products?.addVariant) || hasPermission(Permissions?.products?.addReady) || hasPermission(Permissions?.products?.addRaw)) && <SubmenuItem label={t("add_product")} icon={PlusCircle} path="/products/create" />}
                 <SubmenuItem label={t("print_barcode")} icon={Tag} path="/products/barcode" />
                 <SubmenuItem label={t("quantity_adjustments")} icon={SlidersHorizontal} path="/products/quantity-adjustments" />
                 <SubmenuItem label={t("groups")} icon={Folder} path="/products/groups" />
-                <SubmenuItem label={t("units")} icon={Wrench} path="/products/units" />
+                {(hasPermission(Permissions?.units?.all) || hasPermission(Permissions?.units?.view)) && <SubmenuItem label={t("units")} icon={Wrench} path="/products/units" />}
                 <SubmenuItem label={t("additions")} icon={Folder} path="/products/additions" />
               </motion.div>
             )}
@@ -243,8 +227,6 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-
-
 
           <SidebarItem icon={Share2} label={t("quotes")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "quotes"} onClick={() => toggleSubmenu("quotes")} />
           <AnimatePresence>
@@ -355,6 +337,7 @@ export default function Layout() {
                 <SubmenuItem label={t("customer_reports")} icon={User} path="/reports/category/customers" />
 
                 <SubmenuItem label={t("supplier_reports")} icon={Truck} path="/reports/category/suppliers" />
+
                 <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />
                 <SubmenuItem label={t("profits_reports")} icon={Calculator} path="/reports/category/profits" />
                 <div className="h-px bg-gray-100 my-1 mx-2" />
@@ -426,34 +409,22 @@ export default function Layout() {
 
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2">
-              <button
-                onClick={() => navigate("/sales/create")}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
-              >
+              <button onClick={() => navigate("/sales/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                 <LayoutGrid size={16} />
                 <span>{t("sales_a4_quick")}</span>
               </button>
 
-              <button
-                onClick={() => navigate("/pos")}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
-              >
+              <button onClick={() => navigate("/pos")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                 <ShoppingCart size={16} />
                 <span>{t("pos_quick")}</span>
               </button>
 
-              <button
-                onClick={() => navigate("/sales/all")}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
-              >
+              <button onClick={() => navigate("/sales/all")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                 <List size={16} />
                 <span>{t("all_sales")}</span>
               </button>
 
-              <button
-                onClick={() => navigate("/products/create")}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
-              >
+              <button onClick={() => navigate("/products/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                 <Package size={16} />
                 <span>{t("add_product")}</span>
               </button>
