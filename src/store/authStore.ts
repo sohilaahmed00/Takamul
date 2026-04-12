@@ -1,0 +1,52 @@
+import { create } from "zustand";
+import type { Permission } from "@/lib/permissions"; // ✅
+
+type AuthState = {
+  accessToken: string | null;
+  expiresAt: number | null;
+  permissions: Permission[]; // ✅
+
+  setAuth: (token: string, expiresAt: number, permissions: Permission[]) => void; // ✅
+  clearAuth: () => void;
+
+  isExpired: () => boolean;
+  isInitialized: boolean;
+  setInitialized: (v: boolean) => void;
+
+  hasPermission: (permission: Permission) => boolean; // ✅
+};
+
+export const useAuthStore = create<AuthState>((set, get) => ({
+  accessToken: null,
+  expiresAt: null,
+  permissions: [],
+  isInitialized: false,
+
+  setAuth: (token, expiresAt, permissions) =>
+    set({
+      accessToken: token,
+      expiresAt,
+      permissions,
+      isInitialized: true,
+    }),
+
+  clearAuth: () =>
+    set({
+      accessToken: null,
+      expiresAt: null,
+      permissions: [],
+    }),
+
+  setInitialized: (v: boolean) => set({ isInitialized: v }),
+
+  isExpired: () => {
+    const { expiresAt } = get();
+    if (!expiresAt) return true;
+    return Date.now() >= expiresAt;
+  },
+
+  hasPermission: (permission) => {
+    const { permissions } = get();
+    return permissions.includes(permission);
+  },
+}));

@@ -30,10 +30,9 @@ const additionSchema = (t: (key: string) => string) =>
 
 export default function AdditionModal({ isOpen, onClose, addition }: AdditionModalProps) {
   const { t, direction } = useLanguage();
-  const { mutateAsync: createAddition } = useCreateAddition();
-  const { mutateAsync: updateAddition } = useUpdateAddition();
-  const { notifySuccess, notifyError } = useToast();
-
+  const { mutateAsync: createAddition, isPending: loadingCreate } = useCreateAddition();
+  const { mutateAsync: updateAddition, isPending: loadingUpdate } = useUpdateAddition();
+  const isLoading = loadingCreate || loadingUpdate;
   const schema = additionSchema(t);
 
   const form = useForm<z.infer<typeof schema>>({
@@ -75,13 +74,10 @@ export default function AdditionModal({ isOpen, onClose, addition }: AdditionMod
         await createAddition(payload);
       } else {
         await updateAddition({ id: addition.id, data: payload });
-        }
-
+      }
       form.reset();
       onClose();
-    } catch (error: any) {
-      notifyError(error?.response?.data?.message || error?.message || t("save_error"));
-    }
+    } catch (error: any) {}
   };
 
   return (
@@ -102,7 +98,8 @@ export default function AdditionModal({ isOpen, onClose, addition }: AdditionMod
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>
-                    {t("addition_name_ar")} <span className="text-red-500">*</span>
+                    {t("addition_name_ar")}
+                    <span className="text-red-500">*</span>
                   </FieldLabel>
                   <Input {...field} placeholder={t("enter_addition_name_ar")} />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -122,22 +119,24 @@ export default function AdditionModal({ isOpen, onClose, addition }: AdditionMod
               )}
             />
 
-            <Controller
-              name="additionNameUr"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>{t("addition_name_ur")}</FieldLabel>
-                  <Input {...field} placeholder={t("enter_addition_name_ur")} />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
+            <div className="col-span-2">
+              <Controller
+                name="additionNameUr"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>{t("addition_name_ur")}</FieldLabel>
+                    <Input {...field} placeholder={t("enter_addition_name_ur")} />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+            </div>
           </div>
         </form>
 
         <DialogFooter>
-          <Button form="additionForm" className="h-12 px-6 text-base" type="submit">
+          <Button loading={isLoading} form="additionForm" className="h-12 px-6 text-base" type="submit">
             {addition?.id ? t("edit_addition") : t("add_new_addition")}
           </Button>
         </DialogFooter>

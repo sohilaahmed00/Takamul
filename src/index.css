@@ -48,7 +48,7 @@
   --bg-gradient: linear-gradient(to bottom, #f8f9fa, #ffffff);
   --bg-card: #ffffff;
 
-  --text-main: #4B5563;
+  --text-main: #4b5563;
   --text-muted: #6b7280;
 
   --border: oklch(0.922 0 0);
@@ -57,7 +57,7 @@
   /* Table — white header */
   --table-header: #ffffff;
   --table-header-border: #e2e8f0;
-  --table-header-text: #9CA3AF;
+  --table-header-text: #9ca3af;
   --table-row-bg: #ffffff;
   --table-row-hover: #f1f5f9;
 
@@ -96,61 +96,10 @@
 /* =========================
    Dark Mode
 ========================= */
-[data-theme="dark"] {
-  --primary: #22c55e;
-  --primary-hover: #16a34a;
-  --secondary: #1e293b;
-  --accent: #22c55e;
-
-  /* Premium Deep Navy Full-Page Sync */
-  --bg-main: #0a1222;
-  --bg-gradient: linear-gradient(180deg, #0b0f1a 0%, #111827 100%);
-  --bg-card: #0b0f1a;
-
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-
-  --border: rgba(255, 255, 255, 0.1);
-  --input-bg: oklch(.24 .04 260); /* Lighter than bg-card so inputs are visible */
-
-  /* Table — dark mode keeps header dark */
-  --table-header: #111827;
-  --table-header-border: rgba(255, 255, 255, 0.08);
-  --table-header-text: #94a3b8;
-  --table-row-bg: #111827;
-  --table-row-hover: rgba(255, 255, 255, 0.05);
-
-  /* PrimeReact Sync */
-  --surface-ground: var(--bg-main);
-  --surface-section: var(--bg-main);
-  --surface-card: var(--bg-card);
-  --surface-overlay: var(--bg-card);
-  --surface-border: var(--border);
-  --surface-hover: var(--table-row-hover);
-  --text-color: var(--text-main);
-  --text-color-secondary: var(--text-muted);
-
-  /* Shadcn standard tokens */
-  --background: #0a1222;
-  --foreground: #f8fafc;
-  --card: #0b0f1a;
-  --card-foreground: #f8fafc;
-  --popover: #1e293b; /* Dropdowns popover */
-  --popover-foreground: #f8fafc;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --secondary-foreground: #f8fafc;
-  --accent-foreground: #ffffff;
-  --destructive: #ef4444;
-  --input: rgba(255,255,255,0.15); /* Stronger border for inputs */
-  --ring: #22c55e; /* Green focus ring */
-}
 
 /* Global Dark Mode Overrides for ALL Hardcoded Light Classes */
-.dark .bg-white,
 .dark .bg-slate-50,
 .dark .bg-neutral-50,
-.dark .bg-gray-50,
 .dark .bg-gray-100,
 .dark [data-slot="card"],
 .dark [data-slot="card-header"],
@@ -297,89 +246,8 @@ body {
     color 0.3s;
 }
 
-/* =========================
-   Tables
-========================= */
-
-.takamol-table-container {
-  @apply w-full overflow-hidden;
-}
-
-.takamol-table {
-  @apply w-full text-center text-sm bg-[var(--bg-card)] shadow-sm;
-
-  border-collapse: separate !important;
-  border-spacing: 0;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.takamol-table thead {
-  background: var(--table-header) !important;
-}
-
-.takamol-table th {
-  @apply p-4 font-bold whitespace-nowrap align-middle;
-
-  border-left: 1px solid var(--table-header-border);
-  color: var(--table-header-text) !important;
-}
-
-.takamol-table th:last-child {
-  border-left: none;
-}
-
-.takamol-table td {
-  @apply p-4 text-center align-middle font-medium;
-
-  border-left: 1px solid var(--border);
-  border-top: 1px solid var(--border);
-  background: var(--table-row-bg);
-  color: var(--text-main);
-  transition: 0.2s;
-}
-
-.takamol-table td:last-child {
-  border-left: none;
-}
-
-.takamol-table tbody tr:hover td {
-  background: var(--table-row-hover);
-}
-
-/* =========================
-   Buttons
-========================= */
-
-.btn-primary {
-  @apply bg-[var(--primary)] text-white px-6 py-2 rounded-lg font-bold hover:bg-[var(--primary-hover)] transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2;
-
-  width: max-content;
-}
-
-.btn-secondary {
-  @apply bg-white border border-[var(--border)] text-[var(--text-main)] px-6 py-2 rounded-lg font-bold hover:bg-gray-50 transition-all shadow-sm active:scale-95 flex items-center justify-center gap-2;
-
-  width: max-content;
-}
-
-/* =========================
-   Inputs
-========================= */
-
-.takamol-input {
-  @apply w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-xl px-4 py-2.5 outline-none focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] transition-all text-[var(--text-main)];
-}
-
-input,
-select,
-textarea {
-  color: inherit;
-}
-
 /* Dark mode — make ALL inputs visibly lighter than the background */
-[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+/* [data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
 [data-theme="dark"] select,
 [data-theme="dark"] textarea,
 .dark input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
@@ -388,7 +256,7 @@ textarea {
   background-color: var(--input-bg) !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
   color: var(--text-main) !important;
-}
+} */
 
 /* PrimeReact inputs in dark mode */
 [data-theme="dark"] .p-inputtext,
@@ -400,7 +268,7 @@ textarea {
   color: var(--text-main) !important;
 }
 
-/* Shadcn / Radix inputs in dark mode */
+/* Shadcn / Radix inputs in dark mode
 [data-theme="dark"] [data-slot="input"],
 [data-theme="dark"] [data-slot="textarea"],
 [data-theme="dark"] [data-slot="select-trigger"],
@@ -410,44 +278,32 @@ textarea {
   background-color: var(--input-bg) !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
   color: var(--text-main) !important;
-}
+} */
 
-/* =========================
-   Page Header
-========================= */
-
-.takamol-page-header {
-  @apply bg-[var(--bg-card)] px-6 py-5 rounded-xl border border-[var(--border)] shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 w-full mb-6;
-}
-
-.takamol-page-title {
-  @apply text-xl font-bold;
-}
-
-.takamol-page-subtitle {
-  @apply text-sm mt-1.5 font-medium text-gray-500;
-}
-
-/* =========================
-   Dropdown menus
-========================= */
-
-.action-menu-container div[class*="absolute"]>button,
-.top-menu-container div[class*="absolute"]>button {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  width: 100%;
-  padding: 0.6rem 1.2rem;
-}
-
-.action-menu-container svg,
-.top-menu-container svg {
-  margin-inline-end: 0.75rem;
-}
 
 .dark {
-  --background: oklch(0.129 0.042 264.695);
+  --primary: #22c55e;
+  --primary-hover: #16a34a;
+  --secondary: #1e293b;
+  /* --accent: #22c55e; */
+  --bg-main: #0a1222;
+  --bg-gradient: linear-gradient(180deg, #0b0f1a 0%, #111827 100%);
+  --bg-card: #0b0f1a;
+
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+
+  --border: rgba(255, 255, 255, 0.1);
+  --input-bg: oklch(0.24 0.04 260);
+
+  /* Table — dark mode keeps header dark */
+  --table-header: #111827;
+  --table-header-border: rgba(255, 255, 255, 0.08);
+  --table-header-text: #94a3b8;
+  --table-row-bg: #111827;
+  --table-row-hover: rgba(255, 255, 255, 0.05);
+
+  --background: #0a1222;
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.187 0.033 264.492);
   --card-foreground: oklch(0.985 0 0);
@@ -464,7 +320,7 @@ textarea {
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(0.24 0.04 260 / 50%);
   --input: oklch(0.24 0.04 260 / 40%);
-  --ring: oklch(0.556 0 0);
+  --ring: #22c55e;
   --chart-1: oklch(0.809 0.105 251.813);
   --chart-2: oklch(0.623 0.214 259.815);
   --chart-3: oklch(0.546 0.245 262.881);
@@ -555,7 +411,7 @@ textarea {
   color: var(--text-main) !important;
 }
 
-.custom-green-table .p-datatable-thead>tr>th {
+.custom-green-table .p-datatable-thead > tr > th {
   background-color: white !important;
   color: #9ca3af !important;
   font-weight: 600 !important;
@@ -566,20 +422,20 @@ textarea {
   text-align: center !important;
 }
 
-.dark .custom-green-table .p-datatable-thead>tr>th {
+.dark .custom-green-table .p-datatable-thead > tr > th {
   background-color: var(--bg-card) !important;
   color: var(--text-muted) !important;
   border-bottom: 1px solid var(--border) !important;
 }
 
-.custom-green-table .p-datatable-thead>tr>th .p-column-header-content {
+.custom-green-table .p-datatable-thead > tr > th .p-column-header-content {
   display: flex !important;
   justify-content: center !important;
   align-items: center !important;
   text-align: center !important;
 }
 
-.custom-green-table .p-datatable-tbody>tr>td {
+.custom-green-table .p-datatable-tbody > tr > td {
   background-color: var(--bg-card) !important;
   color: var(--text-main) !important;
   font-size: 14px;
@@ -590,11 +446,11 @@ textarea {
   text-align: center !important;
 }
 
-.dark .p-datatable-tbody>tr {
+.dark .p-datatable-tbody > tr {
   background-color: var(--bg-card) !important;
 }
 
-.dark .p-datatable-tbody>tr:nth-child(even) {
+.dark .p-datatable-tbody > tr:nth-child(even) {
   background-color: var(--bg-main) !important;
 }
 
@@ -631,15 +487,15 @@ textarea {
   border-color: var(--border) !important;
 }
 
-.custom-green-table .p-datatable-tbody>tr:last-child>td {
+.custom-green-table .p-datatable-tbody > tr:last-child > td {
   border-bottom: none;
 }
 
-.custom-green-table .p-datatable-tbody>tr:hover>td {
+.custom-green-table .p-datatable-tbody > tr:hover > td {
   background-color: var(--table-row-hover) !important;
 }
 
-.custom-green-table .p-datatable-tbody>tr:hover .btn-minimal-action {
+.custom-green-table .p-datatable-tbody > tr:hover .btn-minimal-action {
   background-color: var(--bg-card) !important;
 }
 
@@ -656,12 +512,12 @@ textarea {
   transition: all 0.2s ease;
 }
 
-.custom-green-table .p-datatable-tbody>tr:hover .btn-minimal-action.btn-edit:hover {
+.custom-green-table .p-datatable-tbody > tr:hover .btn-minimal-action.btn-edit:hover {
   background: #f0fdf4;
   color: #16a34a;
 }
 
-.custom-green-table .p-datatable-tbody>tr:hover .btn-minimal-action.btn-delete:hover {
+.custom-green-table .p-datatable-tbody > tr:hover .btn-minimal-action.btn-delete:hover {
   background: #fef2f2;
   color: #dc2626;
 }
@@ -685,8 +541,8 @@ textarea {
   background-color: #10b981 !important;
 }
 
-.custom-green-table .p-datatable-tbody>tr>td:first-child,
-.custom-green-table .p-datatable-thead>tr>th:first-child {
+.custom-green-table .p-datatable-tbody > tr > td:first-child,
+.custom-green-table .p-datatable-thead > tr > th:first-child {
   padding-right: 1.5rem !important;
 }
 
@@ -704,8 +560,8 @@ textarea {
   color: white !important;
 }
 
-.custom-compact-table .p-datatable-thead>tr>th,
-.custom-compact-table .p-datatable-tbody>tr>td {
+.custom-compact-table .p-datatable-thead > tr > th,
+.custom-compact-table .p-datatable-tbody > tr > td {
   white-space: nowrap;
 }
 

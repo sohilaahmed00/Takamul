@@ -1,7 +1,43 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { login } from "../services/auth";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
+import useToast from "@/hooks/useToast";
+import { LoginPayload } from "../types/auth.types";
+import { handleApiError } from "@/lib/handleApiError";
+import { useAuthStore } from "@/store/authStore";
+import { jwtDecode } from "jwt-decode";
+import { AppJwtPayload } from "@/types";
 
-export const useLogin = () =>
-  useMutation({
-    mutationFn: login,
+type TokenPayload = {
+  sub: string;
+  name?: string;
+  role?: string;
+  exp: number;
+};
+
+export const useLogin = () => {
+  const { notifyError, notifySuccess } = useToast();
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: LoginPayload) => login(data),
+
+    onSuccess: (response) => {
+      handleApiSuccess(response, notifySuccess);
+
+      if (!response?.accessToken || !response?.accessTokenExpiration) return;
+
+      const token = response.accessToken;
+
+      const expiresAt = new Date(response.accessTokenExpiration).getTime();
+
+      const decoded = jwtDecode<AppJwtPayload>(token);
+
+      setAuth(token, expiresAt, decoded?.Permission);
+      queryClient.setQueryData(["authUser"], decoded);
+    },
+
+    onError: (error) => handleApiError(error, notifyError),
   });
+};

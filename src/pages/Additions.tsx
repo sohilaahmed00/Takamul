@@ -8,14 +8,7 @@ import { useGetAllAdditions } from "@/features/Additions/hooks/useGetAllAddition
 import type { Addition } from "@/features/Additions/types/additions.types";
 import AdditionModal from "@/components/modals/AdditionModal";
 import { useDeleteAddition } from "@/features/Additions/hooks/useDeleteAddition";
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Additions() {
   const { t, direction, language } = useLanguage();
@@ -38,10 +31,17 @@ export default function Additions() {
     const rows = additions ?? [];
     if (!term) return rows;
 
-    return rows.filter((addition: Addition) =>
-      String(addition.additionNameAr || "").toLowerCase().includes(term) ||
-      String(addition.additionNameEn || "").toLowerCase().includes(term) ||
-      String(addition.additionNameUr || "").toLowerCase().includes(term)
+    return rows.filter(
+      (addition: Addition) =>
+        String(addition.additionNameAr || "")
+          .toLowerCase()
+          .includes(term) ||
+        String(addition.additionNameEn || "")
+          .toLowerCase()
+          .includes(term) ||
+        String(addition.additionNameUr || "")
+          .toLowerCase()
+          .includes(term),
     );
   }, [additions, globalFilterValue]);
 
@@ -52,13 +52,7 @@ export default function Additions() {
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
-          <input
-            type="text"
-            value={globalFilterValue}
-            onChange={onGlobalFilterChange}
-            placeholder={t("search_placeholder")}
-            className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none"
-          />
+          <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder")} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
         </div>
       </div>
     );
@@ -71,12 +65,9 @@ export default function Additions() {
       <Card>
         <CardHeader className="max-md:flex max-md:flex-col">
           <CardTitle>{t("manage_additions_title") || "إدارة الإضافات"}</CardTitle>
-          <CardDescription>
-            {t("manage_additions_desc") ||
-              "إدارة الإضافات الخاصة بالأصناف مثل الخيارات الإضافية والتعديلات التي يمكن تطبيقها على المنتجات داخل النظام."}
-          </CardDescription>
+          <CardDescription>{t("manage_additions_desc") || "إدارة الإضافات الخاصة بالأصناف مثل الخيارات الإضافية والتعديلات التي يمكن تطبيقها على المنتجات داخل النظام."}</CardDescription>
           <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
-            <Button variant="default" onClick={() => setIsAddModalOpen(true)}>
+            <Button size="xl" variant="default" onClick={() => setIsAddModalOpen(true)}>
               {t("add_new_addition") || "إضافة جديدة"}
             </Button>
           </CardAction>
@@ -108,13 +99,7 @@ export default function Additions() {
               sortable
               body={(addition: Addition) => (
                 <div className="cell-data-stack">
-                  <span className="customer-name-main">
-                    {language === "en" 
-                      ? addition.additionNameEn || addition.additionNameAr 
-                      : language === "ur" 
-                      ? addition.additionNameUr || addition.additionNameAr 
-                      : addition.additionNameAr}
-                  </span>
+                  <span className="customer-name-main">{language === "en" ? addition.additionNameEn || addition.additionNameAr : language === "ur" ? addition.additionNameUr || addition.additionNameAr : addition.additionNameAr}</span>
                 </div>
               )}
             />

@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { Routes, Route } from "react-router-dom";
 import Login from "@/pages/Login";
 import ForgotPassword from "@/pages/ForgotPassword";
@@ -18,6 +13,7 @@ import CreateA4Invoice from "@/pages/CreateA4Invoice";
 import AllSales from "@/pages/AllSales";
 import QuotesList from "@/pages/QuotesList";
 import AddQuote from "@/pages/AddQuote";
+
 import ViewQuote from "@/pages/ViewQuote";
 import CreateSalesInvoice from "@/pages/CreateSalesInvoice";
 import Units from "@/pages/Units";
@@ -160,6 +156,11 @@ import WarehousesList from "./pages/WarehousesList";
 import AppLayout from "./components/pos/layout/AppLayout";
 import HomePage from "./components/pos/pages/HomePage";
 import EmployeesList from "./pages/EmployeesList";
+import ProtectedRoute from "./lib/ProtectedRoute";
+import AppLayout2 from "./components/pos/layout/AppLayout2";
+import CreateReturnSalesInvoice from "./pages/CreateReturnSalesInvoice";
+import CreateReturnPurchasesInvoice from "./pages/CreateReturnPurchasesInvoice";
+import PosSales from "./pages/PosSales";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
@@ -173,6 +174,7 @@ function AppRoutes() {
         <Route path="/reset-password" element={<ResetPassword />} />
         {/* <Route path="/pos" element={<POSPage />} /> */}
         <Route path="/pos" element={<AppLayout />} />
+        <Route path="/pos2" element={<AppLayout2 />} />
 
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
@@ -201,13 +203,13 @@ function AppRoutes() {
           <Route path="/sales/create" element={<CreateSalesInvoice />} />
           <Route path="/sales/edit/:id" element={<CreateSalesInvoice />} />
           <Route path="/sales/all" element={<AllSales />} />
-          <Route path="/sales/pos-invoices" element={<POSInvoices />} />
+          <Route path="/sales/pos-invoices" element={<PosSales />} />
           <Route path="/sales/pos-invoices/:id" element={<POSInvoiceDetails />} />
           <Route path="/sales/pos-invoices/return/:id" element={<ReturnPOSSale />} />
           <Route path="/sales/gift-cards" element={<GiftCards />} />
           <Route path="/sales/deliveries" element={<Deliveries />} />
           <Route path="/sales/create-from-quote" element={<CreateSalesInvoice />} />
-          <Route path="/sales/return/:id" element={<ReturnSale />} />
+          <Route path="/sales/return/:id" element={<CreateReturnSalesInvoice />} />
           <Route path="/sales/pos" element={<POS />} />
 
           {/* نقطة البيع */}
@@ -222,6 +224,7 @@ function AppRoutes() {
 
           {/* المشتريات */}
           <Route path="/purchases" element={<PurchasesList />} />
+          <Route path="/purchases/return" element={<CreateReturnPurchasesInvoice />} />
           <Route path="/purchases/create" element={<CreatePurchaseInvoice />} />
           <Route path="/purchases/edit/:id" element={<EditPurchase />} />
           <Route path="/purchases/edit/:id" element={<CreatePurchaseInvoice />} />
@@ -354,9 +357,5 @@ function AppRoutes() {
 }
 
 export default function App() {
-  return (
-    <PrintProvider>
-      <AppRoutes />
-    </PrintProvider>
-  );
+  return <AppRoutes />;
 }

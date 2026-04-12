@@ -98,7 +98,7 @@ function ComboboxField<T, TFieldValues extends FieldValues, TName extends FieldP
           disabled={disabled}
           showClear={showClear && !!currentValue}
           className={cn(
-            "takamol-input h-10 pr-4 pl-10",
+            "h-10 ",
             disabled ? "bg-gray-50 dark:bg-slate-900/50 cursor-not-allowed" : ""
           )}
         />

@@ -86,7 +86,7 @@ export default function HomePage() {
   }, [productPranched, language, getProductName]);
 
   return (
-    <div className="flex-1 p-3 overflow-y-auto bg-gray-50 h-full">
+    <div className="flex-1 p-3 overflow-y-auto h-full">
       {/* Main category pills */}
       <div className="flex gap-1.5 mb-2 flex-wrap">
         {mainCategories?.map((c) => (

@@ -58,7 +58,7 @@ const CreateSalesInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
   const { id } = useParams();
-  const isEditMode = Boolean(id);
+  // const isEditMode = Boolean(id);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [discountOpen, setDiscountOpen] = useState<Record<number, boolean>>({});
 
@@ -114,51 +114,51 @@ const CreateSalesInvoice: React.FC = () => {
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
-  const { data: salesOrder } = useGetSalesOrderById(isEditMode ? Number(id) : undefined);
+  // const { data: salesOrder } = useGetSalesOrderById(isEditMode ? Number(id) : undefined);
   const { mutateAsync: createSalesOrders } = useCreateSalesOrders();
 
   const customers = customersResponse?.items ?? [];
 
-  useEffect(() => {
-    if (!salesOrder || !isEditMode) return;
-    if (!products?.items || !units?.items || !wareHouses) return;
+  // useEffect(() => {
+  //   if (!salesOrder || !isEditMode) return;
+  //   if (!products?.items || !units?.items || !wareHouses) return;
 
-    const customer = customers.find((c) => c.customerName === salesOrder.customerName);
-    const warehouse = wareHouses.find((w) => w.warehouseName === salesOrder.warehouseName);
+  //   const customer = customers.find((c) => c.customerName === salesOrder.customerName);
+  //   const warehouse = wareHouses.find((w) => w.warehouseName === salesOrder.warehouseName);
 
-    form.reset({
-      orderDate: salesOrder.orderDate?.split("T")[0] ?? new Date().toISOString().split("T")[0],
-      customerId: customer?.id ?? 0,
-      warehouseId: warehouse?.id ?? 0,
-      notes: (salesOrder as any).notes ?? "",
-      items: salesOrder.items.map((item) => {
-        const product = products.items.find((p) => p.id === item.productId);
-        console.log(salesOrder?.items);
-        return {
-          productId: item.productId,
-          unitId: item.unitId,
-          quantity: item.quantity,
-          price: (item as any).unitPrice ?? product?.sellingPrice ?? 0,
-          discountType: item.discountValue > 0 ? "fixed" : item.discountPercentage > 0 ? "percentage" : "fixed",
-          discountValue: item.discountValue > 0 ? item.discountValue : (item.discountPercentage ?? 0),
-        };
-      }),
-      payments:
-        salesOrder.payments?.length > 0
-          ? salesOrder.payments.map((p) => ({
-              amount: p.amount,
-              // paymentMethod: p.paymentMethod === "Visa" ? "CreditCard" : p.paymentMethod === "" ? "BankTransfer" : (p.paymentMethod as SalesInvoiceType["payments"][number]["paymentMethod"]),
-            }))
-          : [
-              {
-                amount: 0,
-                paymentMethod: "Cash",
-              },
-            ],
-      invoiceDiscountType: (salesOrder as any).globalDiscountValue > 0 ? "fixed" : "percentage",
-      invoiceDiscountValue: (salesOrder as any).globalDiscountValue > 0 ? (salesOrder as any).globalDiscountValue : ((salesOrder as any).globalDiscountPercentage ?? 0),
-    });
-  }, [salesOrder, isEditMode, products, units, wareHouses, customers, form]);
+  //   form.reset({
+  //     orderDate: salesOrder.orderDate?.split("T")[0] ?? new Date().toISOString().split("T")[0],
+  //     customerId: customer?.id ?? 0,
+  //     warehouseId: warehouse?.id ?? 0,
+  //     notes: (salesOrder as any).notes ?? "",
+  //     items: salesOrder.items.map((item) => {
+  //       const product = products.items.find((p) => p.id === item.productId);
+  //       console.log(salesOrder?.items);
+  //       return {
+  //         productId: item.productId,
+  //         unitId: item.unitId,
+  //         quantity: item.quantity,
+  //         price: (item as any).unitPrice ?? product?.sellingPrice ?? 0,
+  //         discountType: item.discountValue > 0 ? "fixed" : item.discountPercentage > 0 ? "percentage" : "fixed",
+  //         discountValue: item.discountValue > 0 ? item.discountValue : (item.discountPercentage ?? 0),
+  //       };
+  //     }),
+  //     payments:
+  //       salesOrder.payments?.length > 0
+  //         ? salesOrder.payments.map((p) => ({
+  //             amount: p.amount,
+  //             // paymentMethod: p.paymentMethod === "Visa" ? "CreditCard" : p.paymentMethod === "" ? "BankTransfer" : (p.paymentMethod as SalesInvoiceType["payments"][number]["paymentMethod"]),
+  //           }))
+  //         : [
+  //             {
+  //               amount: 0,
+  //               paymentMethod: "Cash",
+  //             },
+  //           ],
+  //     invoiceDiscountType: (salesOrder as any).globalDiscountValue > 0 ? "fixed" : "percentage",
+  //     invoiceDiscountValue: (salesOrder as any).globalDiscountValue > 0 ? (salesOrder as any).globalDiscountValue : ((salesOrder as any).globalDiscountPercentage ?? 0),
+  //   });
+  // }, [salesOrder, isEditMode, products, units, wareHouses, customers, form]);
 
   const {
     fields: itemFields,
@@ -301,15 +301,6 @@ const CreateSalesInvoice: React.FC = () => {
       })),
     };
 
-    if (isEditMode) {
-      // TODO: replace with update hook when available
-      // await updateSalesOrder({ id: Number(id), ...payload });
-      // console.log("Update payload:", payload);
-      // navigate("/sales/all");
-      console.warn("عمر لسة معملهاش ");
-      return;
-    }
-
     await createSalesOrders(payload);
     form.reset();
     navigate("/sales/all");
@@ -319,7 +310,7 @@ const CreateSalesInvoice: React.FC = () => {
     <>
       <Card dir={direction}>
         <CardHeader>
-          <CardTitle>{isEditMode ? `${t("edit_sales_invoice")} #${salesOrder?.orderNumber ?? id}` : t("add_sales_invoice")}</CardTitle>
+          <CardTitle>{t("add_sales_invoice")}</CardTitle>
 
           <CardAction>
             <Button size="xl" variant="outline" asChild>
@@ -342,7 +333,7 @@ const CreateSalesInvoice: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("date")} *</FieldLabel>
+                      <FieldLabel>{t("date")} <span className="text-red-500">*</span></FieldLabel>
                       <Input type="date" {...field} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -354,7 +345,7 @@ const CreateSalesInvoice: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("warehouse")} *</FieldLabel>
+                      <FieldLabel>{t("warehouse")} <span className="text-red-500">*</span></FieldLabel>
                       <ComboboxField field={field} items={wareHouses} valueKey="id" labelKey="warehouseName" placeholder={t("choose_warehouse")} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -368,7 +359,7 @@ const CreateSalesInvoice: React.FC = () => {
                       control={form.control}
                       render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>{t("customer")} *</FieldLabel>
+                          <FieldLabel>{t("customer")} <span className="text-red-500">*</span></FieldLabel>
                           <ComboboxField field={field} items={customers} valueKey="id" labelKey="customerName" placeholder={t("choose_customer")} />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
@@ -388,7 +379,7 @@ const CreateSalesInvoice: React.FC = () => {
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>{t("notes")}</FieldLabel>
+                        <FieldLabel>{t("notes")} </FieldLabel>
                         <Textarea {...field} placeholder={t("enter_notes")} />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
@@ -470,13 +461,7 @@ const CreateSalesInvoice: React.FC = () => {
                                   name={`items.${index}.unitId`}
                                   render={({ field, fieldState }) => (
                                     <Field>
-                                      <ComboboxField
-                                        field={field}
-                                        items={units?.items}
-                                        valueKey="id"
-                                        labelKey="name"
-                                        placeholder={t("unit")}
-                                      />
+                                      <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder={t("unit")} />
                                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                     </Field>
                                   )}
@@ -585,7 +570,7 @@ const CreateSalesInvoice: React.FC = () => {
                           name={`payments.${index}.amount`}
                           render={({ field, fieldState }) => (
                             <Field className="relative" data-invalid={fieldState.invalid}>
-                              <Input type="number" placeholder="0.00" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="bg-white dark:bg-[var(--input-bg)]" />
+                              <Input type="number" placeholder="0.00" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="" />
                               {fieldState.invalid && (
                                 <div className="absolute top-full mt-1 right-0 z-10 w-full">
                                   <FieldError errors={[fieldState.error]} />
@@ -727,7 +712,7 @@ const CreateSalesInvoice: React.FC = () => {
               </Button>
 
               <Button type="submit" className="h-12 px-4">
-                {isEditMode ? t("save_changes") : t("save_and_issue_invoice")}
+                {t("save_and_issue_invoice")}
               </Button>
             </div>
           </form>

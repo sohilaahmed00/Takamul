@@ -1,9 +1,7 @@
 export type LoginResponse = {
-  token: string;
+  accessToken: string;
+  accessTokenExpiration: string;
   roles: string[];
-  tokenExpiration: string;
-  refreshToken: string;
-  refreshTokenExpiration: string;
 };
 
 export type LoginPayload = {

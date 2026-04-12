@@ -11,6 +11,10 @@ export const login = (data: LoginPayload) =>
     data,
   });
 
+export const refreshToken = async () =>
+  await httpClient<LoginResponse>("/Auth/refresh-token", {
+    method: "POST",
+  });
 // export const getCategoryClient = (idOrSlug: string | number) =>
 //   httpClient<Category>(`/categories/${idOrSlug}`);
 

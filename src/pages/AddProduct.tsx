@@ -51,6 +51,7 @@ export const createProductSchema = z.object({
   MinStockLevel: z.number().min(1, "الحد الأدنى للمخزون غير صحيح").optional(),
   TaxId: z.number().min(1, "الضريبة مطلوبة"),
   TaxCalculation: z.number().min(1, "طريقة حساب الضريبة مطلوبة"),
+  // BaseUnit: z.coerce.number().min(1, "اختر الوحدة"),
   Image: z.union([z.instanceof(File), z.string()]).optional(),
 });
 
@@ -92,6 +93,7 @@ export const createRawMaterialSchema = createProductSchema
     TaxCalculation: true,
     SellingPrice: true,
     MinStockLevel: true,
+    // BaseUnit: true,
   })
   .extend({
     BaseUnitId: z
@@ -127,6 +129,7 @@ export const baseDefaultValues: FormValues = {
   CostPrice: undefined,
   SellingPrice: undefined,
   MinStockLevel: undefined,
+  // BaseUnit: undefined,
   TaxId: 0,
   TaxCalculation: 0,
   Image: undefined,
@@ -232,25 +235,22 @@ export default function AddProduct() {
     const taxRate = (selectedTax.amount || 0) / 100;
     const inputPrice = Number(SellingPrice) || 0;
 
-    let basePrice = inputPrice; // السعر قبل الضريبة
+    let basePrice = inputPrice;
     let taxAmount = 0;
     let finalPrice = inputPrice;
 
     if (TaxCalculation === 2) {
-      // السعر المدخل شامل الضريبة → نستخرج السعر قبلها
       basePrice = inputPrice / (1 + taxRate);
       taxAmount = inputPrice - basePrice;
-      finalPrice = inputPrice; // السعر النهائي = المدخل نفسه
+      finalPrice = inputPrice;
     } else if (TaxCalculation === 3) {
-      // السعر المدخل قبل الضريبة → نضيف الضريبة
       basePrice = inputPrice;
       taxAmount = inputPrice * taxRate;
       finalPrice = inputPrice + taxAmount;
     }
-    // TaxCalculation === 1 → لا ضريبة، كل الأرقام = inputPrice
 
     const cost = Number(CostPrice) || 0;
-    const profit = basePrice - cost; // الربح على السعر قبل الضريبة
+    const profit = basePrice - cost;
     const profitMargin = basePrice > 0 ? (profit / basePrice) * 100 : 0;
 
     return {
@@ -264,9 +264,6 @@ export default function AddProduct() {
     };
   }, [CostPrice, SellingPrice, TaxId, TaxCalculation, taxesData]);
 
-  // ── Populate form on edit ────────────────────────────────────────────────
-  // FIX: was checking `productDataPrepared` instead of `productDataRawMaterial`
-  //      for the RawMatrial case
   useEffect(() => {
     if (!id) return;
     switch (type) {
@@ -472,7 +469,7 @@ export default function AddProduct() {
 
         <CardContent>
           {/* Product type tabs */}
-          <Tabs value={productType} onValueChange={(val) => setProductType(val as ProductType)} className="w-full bg-white rounded-sm">
+          <Tabs value={productType} onValueChange={(val) => setProductType(val as ProductType)} className="w-full  rounded-sm">
             <TabsList className="mb-8 w-full! h-fit!">
               <TabsTrigger className="py-2!" value="Direct">
                 الصنف المباشر
@@ -519,14 +516,7 @@ export default function AddProduct() {
                     <FieldLabel className="gap-x-0">
                       التصنيف الرئيسي<span className="text-red-500">*</span>
                     </FieldLabel>
-                    <ComboboxField
-                      value={mainCategoryId}
-                      onValueChange={(val) => setMainCategoryId(val ? Number(val) : undefined)}
-                      items={mainCategories}
-                      valueKey="id"
-                      labelKey="categoryNameAr"
-                      placeholder="اختر التصنيف الرئيسي"
-                    />
+                    <ComboboxField value={mainCategoryId} onValueChange={(val) => setMainCategoryId(val ? Number(val) : undefined)} items={mainCategories} valueKey="id" labelKey="categoryNameAr" placeholder="اختر التصنيف الرئيسي" />
                   </Field>
                 )}
 
@@ -553,20 +543,13 @@ export default function AddProduct() {
                         <FieldLabel className="gap-x-0">
                           التصنيف الفرعي <span className="text-red-500">*</span>
                         </FieldLabel>
-                        <ComboboxField
-                          field={field}
-                          items={subCategories}
-                          valueKey="id"
-                          labelKey="categoryNameAr"
-                          placeholder="اختر التصنيف الفرعي"
-                        />
+                        <ComboboxField field={field} items={subCategories} valueKey="id" labelKey="categoryNameAr" placeholder="اختر التصنيف الفرعي" />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
                   />
                 )}
 
-                {/* Urdu / third language name */}
                 <Controller
                   name="ProductNameUr"
                   control={control}
@@ -617,7 +600,7 @@ export default function AddProduct() {
                     control={control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel className="gap-x-0">
+                        <FieldLabel>
                           التكلفة <span className="text-red-500">*</span>
                         </FieldLabel>
                         <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} type="number" placeholder="ادخل التكلفة *" />
@@ -666,13 +649,7 @@ export default function AddProduct() {
                           <FieldLabel>
                             الضريبة المطبقة <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <ComboboxField
-                            field={field}
-                            items={taxesData}
-                            valueKey="id"
-                            labelKey="name"
-                            placeholder="اختر الضريبة"
-                          />
+                          <ComboboxField field={field} items={taxesData} valueKey="id" labelKey="name" placeholder="اختر الضريبة" />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -753,13 +730,7 @@ export default function AddProduct() {
                           <FieldLabel>
                             وحدة المخازن <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <ComboboxField
-                            field={field}
-                            items={units?.items}
-                            valueKey="id"
-                            labelKey="name"
-                            placeholder="اختر وحدة المخازن"
-                          />
+                          <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder="اختر وحدة المخازن" />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -773,13 +744,7 @@ export default function AddProduct() {
                           <FieldLabel>
                             وحدة النسب <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <ComboboxField
-                            field={field}
-                            items={units?.items}
-                            valueKey="id"
-                            labelKey="name"
-                            placeholder="اختر وحدة النسب"
-                          />
+                          <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder="اختر وحدة النسب" />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -897,13 +862,7 @@ export default function AddProduct() {
                                 <FieldLabel>
                                   الخامة <span className="text-red-500">*</span>
                                 </FieldLabel>
-                                <ComboboxField
-                                  field={field}
-                                  items={productRawMatrial?.items}
-                                  valueKey="id"
-                                  labelKey="productNameAr"
-                                  placeholder="اختر الخامة"
-                                />
+                                <ComboboxField field={field} items={productRawMatrial?.items} valueKey="id" labelKey="productNameAr" placeholder="اختر الخامة" />
                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                               </Field>
                             )}
@@ -935,13 +894,7 @@ export default function AddProduct() {
                                 <FieldLabel>
                                   الوحدة <span className="text-red-500">*</span>
                                 </FieldLabel>
-                                <ComboboxField
-                                  field={field}
-                                  items={units?.items}
-                                  valueKey="id"
-                                  labelKey="name"
-                                  placeholder="الوحدة"
-                                />
+                                <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder="الوحدة" />
                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                               </Field>
                             )}

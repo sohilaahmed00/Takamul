@@ -43,13 +43,7 @@ const Units = () => {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const {
-    data: units,
-    isLoading,
-    error,
-    isFetching,
-    refetch,
-  } = useGetAllUnits({
+  const { data: units } = useGetAllUnits({
     page: currentPage,
     size: entriesPerPage,
     search: searchTerm,

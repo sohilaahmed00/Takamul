@@ -202,18 +202,13 @@ html, body {
     // }
     // win.document.write(html);
   } catch (err: any) {
-    const isQZOffline = err?.message?.includes("Unable to establish") || err?.message?.includes("WebSocket");
-    if (isQZOffline) {
-      const win = window.open("", "_blank", "width=440,height=700");
-      if (!win) {
-        alert("يرجى السماح بالنوافذ المنبثقة لطباعة البون");
-        return;
-      }
-      win.document.write(html);
-      win.document.close();
-    } else {
-      console.error("Print error:", err);
+    const win = window.open("", "_blank", "width=440,height=700");
+    if (!win) {
+      alert("يرجى السماح بالنوافذ المنبثقة لطباعة البون");
+      return;
     }
+    win.document.write(html);
+    win.document.close();
   }
 }
 
