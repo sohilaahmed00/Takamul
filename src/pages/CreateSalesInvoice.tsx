@@ -17,7 +17,6 @@ import type { CreateSalesOrder } from "@/features/sales/types/sales.types";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { useGetSalesOrderById } from "@/features/sales/hooks/useGetSalesOrderById";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 
 const SalesInvoiceSchema = (t: (key: string) => string) =>
@@ -536,6 +535,7 @@ const CreateSalesInvoice: React.FC = () => {
                                       />
                                     )}
                                   />
+
 
                                   <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} />} />
                                 </div>

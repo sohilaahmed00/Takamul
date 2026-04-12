@@ -1,29 +1,16 @@
 import React, { useMemo, useState } from "react";
-import {
-  Search,
-  WalletCards,
-  CalendarDays,
-  ReceiptText,
-  UserRound,
-  CreditCard,
-  Filter,
-  RotateCcw,
-} from "lucide-react";
+import { Search, WalletCards, CalendarDays, ReceiptText, UserRound, CreditCard, Filter, RotateCcw } from "lucide-react";
 import { DataTable, type DataTablePageEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
 import ComboboxField from "@/components/ui/ComboboxField";
 
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetTreasuryStatement } from "@/features/treasury-statement/hooks/useGetTreasuryStatement";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 import { Input } from "@/components/ui/input";
 
@@ -82,8 +69,7 @@ export default function ExternalTransfersList() {
     return params;
   }, [submittedFilters]);
 
-  const { data: statementData, isFetching } =
-    useGetTreasuryStatement(statementParams);
+  const { data: statementData, isFetching } = useGetTreasuryStatement(statementParams);
 
   const rows: StatementRow[] = useMemo(() => {
     return (statementData ?? []).map((item, index) => ({
@@ -122,9 +108,7 @@ export default function ExternalTransfersList() {
     return Number(value ?? 0).toLocaleString("en-US");
   };
 
-  const selectedTreasuryName =
-    treasurys?.find((item) => item.id === submittedFilters.treasuryId)?.name ||
-    "";
+  const selectedTreasuryName = treasurys?.find((item) => item.id === submittedFilters.treasuryId)?.name || "";
 
   return (
     <div dir={direction}>
@@ -166,20 +150,14 @@ export default function ExternalTransfersList() {
                 <Filter size={18} className="text-[var(--primary)]" />
               </div>
               <div>
-                <h3 className="text-sm md:text-base font-bold text-[var(--text-main)]">
-                  {t("report_filters")}
-                </h3>
-                <p className="text-xs md:text-sm text-[var(--text-muted)]">
-                  {t("treasury_statement_filters_desc")}
-                </p>
+                <h3 className="text-sm md:text-base font-bold text-[var(--text-main)]">{t("report_filters")}</h3>
+                <p className="text-xs md:text-sm text-[var(--text-muted)]">{t("treasury_statement_filters_desc")}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[var(--text-main)]">
-                  {t("treasury")}
-                </label>
+                <Label className="text-sm font-medium text-[var(--text-main)]">{t("treasury")}</Label>
                 <ComboboxField
                   value={filters.treasuryId}
                   onValueChange={(val) =>
@@ -239,12 +217,8 @@ export default function ExternalTransfersList() {
 
           {submittedFilters.treasuryId && (
             <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-[#f8fafc] dark:bg-slate-900/50 px-4 py-3 flex flex-wrap items-center gap-2">
-              <span className="text-xs text-[var(--text-muted)]">
-                {t("selected_treasury")}:
-              </span>
-              <span className="rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">
-                {selectedTreasuryName || t("treasury")}
-              </span>
+              <span className="text-xs text-[var(--text-muted)]">{t("selected_treasury")}:</span>
+              <span className="rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">{selectedTreasuryName || t("treasury")}</span>
 
               {submittedFilters.from && (
                 <span className="rounded-full px-3 py-1 text-xs font-medium bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 text-[var(--text-main)]">
@@ -276,251 +250,114 @@ export default function ExternalTransfersList() {
               emptyMessage={t("no_data")}
               responsiveLayout="stack"
             >
-              <Column
-                field="type"
-                header={t("movement_type")}
-                sortable
-                style={{ minWidth: "12rem" }}
-                body={(rowData) => (
-                  <span className="text-sm break-words">{rowData.type}</span>
-                )}
-              />
+              <Column field="type" header={t("movement_type")} sortable style={{ minWidth: "12rem" }} body={(rowData) => <span className="text-sm break-words">{rowData.type}</span>} />
 
-              <Column
-                field="date"
-                header={t("date")}
-                sortable
-                style={{ minWidth: "10rem" }}
-                body={(rowData) => (
-                  <span className="text-sm whitespace-nowrap">
-                    {formatDate(rowData.date)}
-                  </span>
-                )}
-              />
+              <Column field="date" header={t("date")} sortable style={{ minWidth: "10rem" }} body={(rowData) => <span className="text-sm whitespace-nowrap">{formatDate(rowData.date)}</span>} />
 
-              <Column
-                field="number"
-                header={t("document_number")}
-                sortable
-                style={{ minWidth: "12rem" }}
-                body={(rowData) => (
-                  <span className="text-sm break-all">{rowData.number}</span>
-                )}
-              />
+              <Column field="number" header={t("document_number")} sortable style={{ minWidth: "12rem" }} body={(rowData) => <span className="text-sm break-all">{rowData.number}</span>} />
 
-              <Column
-                field="partyName"
-                header={t("party_name")}
-                sortable
-                style={{ minWidth: "12rem" }}
-                body={(rowData) => (
-                  <span className="text-sm break-words">{rowData.partyName}</span>
-                )}
-              />
+              <Column field="partyName" header={t("party_name")} sortable style={{ minWidth: "12rem" }} body={(rowData) => <span className="text-sm break-words">{rowData.partyName}</span>} />
 
-              <Column
-                field="paymentMethod"
-                header={t("payment_method")}
-                sortable
-                style={{ minWidth: "11rem" }}
-                body={(rowData) => (
-                  <span className="text-sm break-words">
-                    {rowData.paymentMethod || "-"}
-                  </span>
-                )}
-              />
+              <Column field="paymentMethod" header={t("payment_method")} sortable style={{ minWidth: "11rem" }} body={(rowData) => <span className="text-sm break-words">{rowData.paymentMethod || "-"}</span>} />
 
-              <Column
-                field="debit"
-                header={t("debit")}
-                sortable
-                style={{ minWidth: "8rem" }}
-                body={(rowData) => (
-                  <span className="text-sm whitespace-nowrap">
-                    {formatNumber(rowData.debit)}
-                  </span>
-                )}
-              />
+              <Column field="debit" header={t("debit")} sortable style={{ minWidth: "8rem" }} body={(rowData) => <span className="text-sm whitespace-nowrap">{formatNumber(rowData.debit)}</span>} />
 
-              <Column
-                field="credit"
-                header={t("credit")}
-                sortable
-                style={{ minWidth: "8rem" }}
-                body={(rowData) => (
-                  <span className="text-sm whitespace-nowrap">
-                    {formatNumber(rowData.credit)}
-                  </span>
-                )}
-              />
+              <Column field="credit" header={t("credit")} sortable style={{ minWidth: "8rem" }} body={(rowData) => <span className="text-sm whitespace-nowrap">{formatNumber(rowData.credit)}</span>} />
 
-              <Column
-                field="balance"
-                header={t("balance")}
-                sortable
-                style={{ minWidth: "8rem" }}
-                body={(rowData) => (
-                  <span className="text-sm font-semibold text-[var(--primary)] whitespace-nowrap">
-                    {formatNumber(rowData.balance)}
-                  </span>
-                )}
-              />
+              <Column field="balance" header={t("balance")} sortable style={{ minWidth: "8rem" }} body={(rowData) => <span className="text-sm font-semibold text-[var(--primary)] whitespace-nowrap">{formatNumber(rowData.balance)}</span>} />
             </DataTable>
           </div>
 
           <div className="grid grid-cols-1 gap-5 lg:hidden">
             {isFetching ? (
-              <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/20 p-8 text-center text-sm text-[var(--text-muted)]">
-                {t("loading")}
-              </div>
+              <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/20 p-8 text-center text-sm text-[var(--text-muted)]">{t("loading")}</div>
             ) : rows.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/20 p-8 text-center text-sm text-[var(--text-muted)]">
-                {t("no_data")}
-              </div>
+              <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/20 p-8 text-center text-sm text-[var(--text-muted)]">{t("no_data")}</div>
             ) : (
-              rows
-                .slice(
-                  (currentPage - 1) * entriesPerPage,
-                  currentPage * entriesPerPage
-                )
-                .map((row) => (
-                  <div
-                    key={row.rowId}
-                    className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 shadow-sm overflow-hidden"
-                  >
-                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] dark:bg-slate-900/60 border-b border-gray-100 dark:border-slate-800">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="h-9 w-9 rounded-xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center shrink-0">
-                          <ReceiptText size={18} className="text-[var(--primary)]" />
-                        </div>
-
-                        <div className="min-w-0">
-                          <p className="text-xs text-[var(--text-muted)]">
-                            {t("movement_type")}
-                          </p>
-                          <p className="text-sm font-bold text-[var(--text-main)] truncate">
-                            {row.type}
-                          </p>
-                        </div>
+              rows.slice((currentPage - 1) * entriesPerPage, currentPage * entriesPerPage).map((row) => (
+                <div key={row.rowId} className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 shadow-sm overflow-hidden">
+                  <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] dark:bg-slate-900/60 border-b border-gray-100 dark:border-slate-800">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="h-9 w-9 rounded-xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center shrink-0">
+                        <ReceiptText size={18} className="text-[var(--primary)]" />
                       </div>
 
-                      <div className="shrink-0 rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">
-                        {selectedTreasuryName || t("treasury")}
+                      <div className="min-w-0">
+                        <p className="text-xs text-[var(--text-muted)]">{t("movement_type")}</p>
+                        <p className="text-sm font-bold text-[var(--text-main)] truncate">{row.type}</p>
                       </div>
                     </div>
 
-                    <div className="p-4 space-y-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-0">
-                          <p className="text-xs text-[var(--text-muted)] mb-1">
-                            {t("document_number")}
-                          </p>
-                          <p className="text-sm font-semibold text-[var(--text-main)] break-all">
-                            {row.number}
-                          </p>
-                        </div>
+                    <div className="shrink-0 rounded-full px-3 py-1 text-xs font-medium bg-[rgba(49,201,110,0.12)] text-[var(--primary)]">{selectedTreasuryName || t("treasury")}</div>
+                  </div>
 
-                        <div className="shrink-0 text-left">
-                          <div className="flex items-center gap-1 text-[var(--text-muted)] text-xs mb-1">
-                            <CalendarDays size={14} />
-                            <span>{t("date")}</span>
-                          </div>
-                          <p className="text-sm font-medium text-[var(--text-main)]">
-                            {formatDate(row.date)}
-                          </p>
-                        </div>
+                  <div className="p-4 space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-0">
+                        <p className="text-xs text-[var(--text-muted)] mb-1">{t("document_number")}</p>
+                        <p className="text-sm font-semibold text-[var(--text-main)] break-all">{row.number}</p>
                       </div>
 
-                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <UserRound size={14} className="text-[var(--text-muted)]" />
-                          <p className="text-xs text-[var(--text-muted)]">
-                            {t("party_name")}
-                          </p>
+                      <div className="shrink-0 text-left">
+                        <div className="flex items-center gap-1 text-[var(--text-muted)] text-xs mb-1">
+                          <CalendarDays size={14} />
+                          <span>{t("date")}</span>
                         </div>
-                        <p className="text-sm font-semibold text-[var(--text-main)] break-words">
-                          {row.partyName}
-                        </p>
+                        <p className="text-sm font-medium text-[var(--text-main)]">{formatDate(row.date)}</p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <UserRound size={14} className="text-[var(--text-muted)]" />
+                        <p className="text-xs text-[var(--text-muted)]">{t("party_name")}</p>
+                      </div>
+                      <p className="text-sm font-semibold text-[var(--text-main)] break-words">{row.partyName}</p>
+                    </div>
+
+                    <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <CreditCard size={14} className="text-[var(--text-muted)]" />
+                        <p className="text-xs text-[var(--text-muted)]">{t("payment_method")}</p>
+                      </div>
+                      <p className="text-sm font-semibold text-[var(--text-main)] break-words">{row.paymentMethod || "-"}</p>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3 text-center">
+                        <p className="text-xs text-[var(--text-muted)] mb-1">{t("debit")}</p>
+                        <p className="text-sm font-bold text-[var(--text-main)]">{formatNumber(row.debit)}</p>
                       </div>
 
-                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3">
-                        <div className="flex items-center gap-2 mb-1">
-                          <CreditCard size={14} className="text-[var(--text-muted)]" />
-                          <p className="text-xs text-[var(--text-muted)]">
-                            {t("payment_method")}
-                          </p>
-                        </div>
-                        <p className="text-sm font-semibold text-[var(--text-main)] break-words">
-                          {row.paymentMethod || "-"}
-                        </p>
+                      <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3 text-center">
+                        <p className="text-xs text-[var(--text-muted)] mb-1">{t("credit")}</p>
+                        <p className="text-sm font-bold text-[var(--text-main)]">{formatNumber(row.credit)}</p>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3 text-center">
-                          <p className="text-xs text-[var(--text-muted)] mb-1">
-                            {t("debit")}
-                          </p>
-                          <p className="text-sm font-bold text-[var(--text-main)]">
-                            {formatNumber(row.debit)}
-                          </p>
-                        </div>
-
-                        <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3 text-center">
-                          <p className="text-xs text-[var(--text-muted)] mb-1">
-                            {t("credit")}
-                          </p>
-                          <p className="text-sm font-bold text-[var(--text-main)]">
-                            {formatNumber(row.credit)}
-                          </p>
-                        </div>
-
-                        <div className="rounded-xl bg-[rgba(49,201,110,0.08)] p-3 text-center border border-[rgba(49,201,110,0.14)]">
-                          <p className="text-xs text-[var(--text-muted)] mb-1">
-                            {t("balance")}
-                          </p>
-                          <p className="text-sm font-bold text-[var(--primary)]">
-                            {formatNumber(row.balance)}
-                          </p>
-                        </div>
+                      <div className="rounded-xl bg-[rgba(49,201,110,0.08)] p-3 text-center border border-[rgba(49,201,110,0.14)]">
+                        <p className="text-xs text-[var(--text-muted)] mb-1">{t("balance")}</p>
+                        <p className="text-sm font-bold text-[var(--primary)]">{formatNumber(row.balance)}</p>
                       </div>
                     </div>
                   </div>
-                ))
+                </div>
+              ))
             )}
 
             {!isFetching && rows.length > 0 && (
               <div className="flex items-center justify-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="h-10 px-4 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-[var(--text-main)] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+                <button type="button" onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="h-10 px-4 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-[var(--text-main)] text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                   {t("previous")}
                 </button>
 
-                <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
-                  {currentPage}
-                </div>
+                <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">{currentPage}</div>
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCurrentPage((prev) =>
-                      prev < Math.ceil(rows.length / entriesPerPage)
-                        ? prev + 1
-                        : prev
-                    )
-                  }
-                  disabled={currentPage >= Math.ceil(rows.length / entriesPerPage)}
-                  className="h-10 px-4 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-[var(--text-main)] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+                <button type="button" onClick={() => setCurrentPage((prev) => (prev < Math.ceil(rows.length / entriesPerPage) ? prev + 1 : prev))} disabled={currentPage >= Math.ceil(rows.length / entriesPerPage)} className="h-10 px-4 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-[var(--text-main)] text-sm disabled:opacity-50 disabled:cursor-not-allowed">
                   {t("next")}
                 </button>
               </div>
             )}
           </div>
-
         </CardContent>
       </Card>
     </div>

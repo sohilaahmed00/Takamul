@@ -370,7 +370,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
               />
             </div>
 
-            <div className="col-span-1 md:col-span-2 bg-white border border-gray-200 rounded-2xl p-5 my-2">
+            <div className="col-span-1 md:col-span-2  border border-gray-200 rounded-2xl p-5 my-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h3 className="text-base font-bold text-gray-800">{t("national_address")}</h3>

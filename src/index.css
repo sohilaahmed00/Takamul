@@ -268,18 +268,9 @@ body {
   color: var(--text-main) !important;
 }
 
-/* Shadcn / Radix inputs in dark mode
-[data-theme="dark"] [data-slot="input"],
-[data-theme="dark"] [data-slot="textarea"],
-[data-theme="dark"] [data-slot="select-trigger"],
-.dark [data-slot="input"],
-.dark [data-slot="textarea"],
-.dark [data-slot="select-trigger"] {
-  background-color: var(--input-bg) !important;
-  border-color: rgba(255, 255, 255, 0.15) !important;
-  color: var(--text-main) !important;
-} */
-
+::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}
 
 .dark {
   --primary: #22c55e;
