@@ -16,6 +16,8 @@ import type {
 } from "@/features/quantity-adjustments/types/adjustments.types";
 import ComboboxField from "@/components/ui/ComboboxField";
 
+import { Input } from "@/components/ui/input";
+
 // ─── Toast ────────────────────────────────────────────────────────────────────
 type ToastType = "success" | "error" | "warning";
 
@@ -264,7 +266,7 @@ const EditQuantityAdjustment = () => {
         {/* Date */}
         <div className="mb-6">
           <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t("date")} *</label>
-          <input type="text" value={formData.date} className="takamol-input font-mono text-center bg-gray-50" readOnly />
+          <Input type="text" value={formData.date}  readOnly />
         </div>
 
         {/* Search */}
@@ -272,13 +274,13 @@ const EditQuantityAdjustment = () => {
           <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t("products")} *</label>
           <div className="relative" ref={searchRef}>
             <div className="relative">
-              <input
+              <Input
                 type="text"
                 placeholder="الرجاء إضافة الأصناف..."
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setShowDropdown(true); }}
                 onFocus={() => setShowDropdown(true)}
-                className="takamol-input !pr-10"
+                
               />
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             </div>
@@ -338,7 +340,7 @@ const EditQuantityAdjustment = () => {
                       />
                     </td>
                     <td className="p-3 text-center">
-                      <input
+                      <Input
                         type="number" min={1} value={item.quantityChanged}
                         onChange={(e) => handleItemChange(item.stockInventoryId, "quantityChanged", e.target.value)}
                         className="border border-gray-300 dark:border-gray-600 rounded px-2 py-1.5 text-sm w-16 text-center outline-none focus:border-[#2ecc71] dark:bg-[var(--input-bg)] dark:text-white font-bold"

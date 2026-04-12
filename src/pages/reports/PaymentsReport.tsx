@@ -13,6 +13,8 @@ import {
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 
+import { Input } from "@/components/ui/input";
+
 const PaymentsReport = () => {
   const { t, dir } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,7 +55,7 @@ const PaymentsReport = () => {
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
           <div className="relative w-full md:w-64">
-            <input
+            <Input
               type="text"
               placeholder={t("search_label")}
               className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-right"

@@ -254,7 +254,7 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
                       <button type="button" className="mt-1 text-xs border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 text-gray-600">تصفح الملفات</button>
                     </div>
                   )}
-                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageFile(f); }} />
+                  <Input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageFile(f); }} />
                 </div>
               </div>
 

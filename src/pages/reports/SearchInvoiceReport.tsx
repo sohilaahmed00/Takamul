@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
+import { Input } from "@/components/ui/input";
+
 export default function SearchInvoiceReport() {
   const { direction } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -33,11 +35,11 @@ export default function SearchInvoiceReport() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="space-y-1 text-right">
             <label className="text-sm font-bold text-emerald-800">رقم الفاتورة</label>
-            <input type="text" className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm outline-none focus:border-emerald-800 dark:bg-gray-700 text-right" />
+            <Input type="text" className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm outline-none focus:border-emerald-800 dark:bg-gray-700 text-right" />
           </div>
           <div className="space-y-1 text-right">
             <label className="text-sm font-bold text-emerald-800">الرقم المرجعي</label>
-            <input type="text" className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm outline-none focus:border-emerald-800 dark:bg-gray-700 text-right" />
+            <Input type="text" className="w-full border border-gray-300 dark:border-gray-600 rounded px-3 py-2 text-sm outline-none focus:border-emerald-800 dark:bg-gray-700 text-right" />
           </div>
           <div className="space-y-1 text-right">
             <label className="text-sm font-bold text-emerald-800">عميل</label>
@@ -62,7 +64,7 @@ export default function SearchInvoiceReport() {
           </div>
           <div className="flex items-center gap-2 w-full md:w-auto">
             <span className="text-sm font-bold text-gray-600 dark:text-gray-400">بحث</span>
-            <input type="text" className="border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm outline-none focus:border-emerald-800 dark:bg-gray-700 w-full md:w-64" />
+            <Input type="text" className="border border-gray-300 dark:border-gray-600 rounded px-3 py-1 text-sm outline-none focus:border-emerald-800 dark:bg-gray-700 w-full md:w-64" />
           </div>
         </div>
 

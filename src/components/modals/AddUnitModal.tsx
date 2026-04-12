@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/context/LanguageContext";
 import ResponsiveModal from "./ResponsiveModal";
 
+import { Input } from "@/components/ui/input";
+
 type UnitOfMeasure = {
   id: number;
   name: string;
@@ -66,7 +68,7 @@ const AddUnitModal: React.FC<AddUnitModalProps> = ({ isOpen, onClose, unit, onSu
 
                 <div className="space-y-2">
                   <label className="block text-sm font-bold text-[#2ecc71] text-right">{t("unit_name") || "اسم الوحدة"} *</label>
-                  <input type="text" value={unitName} onChange={(e) => setUnitName(e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-[#2ecc71] focus:ring-1 focus:ring-[#2ecc71]/20" placeholder={t("unit_name") || "اسم الوحدة"} required />
+                  <Input type="text" value={unitName} onChange={(e) => setUnitName(e.target.value)} className="w-full border border-gray-300 rounded-lg px-4 py-2.5 outline-none focus:border-[#2ecc71] focus:ring-1 focus:ring-[#2ecc71]/20" placeholder={t("unit_name") || "اسم الوحدة"} required />
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2 pt-4 border-t border-gray-100">

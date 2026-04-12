@@ -11,6 +11,8 @@ import { usePurchases } from '@/context/PurchasesContext';
 import { useExpenses } from '@/context/ExpensesContext';
 import type { SalesOrder } from '@/features/sales/types/sales.types';
 
+import { Input } from "@/components/ui/input";
+
 const StatusBadge = ({ status }: { status: string }) => {
   const { t } = useLanguage();
   return (
@@ -71,7 +73,7 @@ export default function SalesReport() {
       </div>
       <div className="relative w-full sm:w-64">
         <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none"><Search size={16} className="text-gray-400" /></div>
-        <input type="text" value={globalFilterValue} onChange={e => { setGlobalFilterValue(e.target.value); setCurrentPage(1); }}
+        <Input type="text" value={globalFilterValue} onChange={e => { setGlobalFilterValue(e.target.value); setCurrentPage(1); }}
           placeholder={t('search_placeholder')}
           className="w-full border border-gray-200 focus:border-[var(--primary)] text-gray-700 text-sm rounded-lg py-2 pr-10 pl-4 outline-none transition-all" />
       </div>

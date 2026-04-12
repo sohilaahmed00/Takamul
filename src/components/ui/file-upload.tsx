@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { useAsRef } from "@/hooks/use-as-ref";
 import { useLazyRef } from "@/hooks/use-lazy-ref";
 
+import { Input } from "@/components/ui/input";
+
 const ROOT_NAME = "FileUpload";
 const DROPZONE_NAME = "FileUploadDropzone";
 const TRIGGER_NAME = "FileUploadTrigger";
@@ -539,7 +541,7 @@ function FileUpload(props: FileUploadProps) {
       <FileUploadContext.Provider value={contextValue}>
         <RootPrimitive data-disabled={disabled ? "" : undefined} data-slot="file-upload" dir={dir} {...rootProps} className={cn("relative flex flex-col gap-2", className)}>
           {children}
-          <input type="file" id={inputId} aria-labelledby={labelId} aria-describedby={dropzoneId} ref={inputRef} tabIndex={-1} accept={accept} name={name} className="sr-only" disabled={disabled} multiple={multiple} required={required} onChange={onInputChange} />
+          <Input type="file" id={inputId} aria-labelledby={labelId} aria-describedby={dropzoneId} ref={inputRef} tabIndex={-1} accept={accept} name={name} className="sr-only" disabled={disabled} multiple={multiple} required={required} onChange={onInputChange} />
           <div id={labelId} className="sr-only">
             {label ?? "File upload"}
           </div>

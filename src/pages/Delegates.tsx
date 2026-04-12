@@ -5,6 +5,8 @@ import { Plus, Trash2, Edit2, X, ChevronRight, ChevronLeft, Users } from 'lucide
 import { motion, AnimatePresence } from 'framer-motion';
 import MobileDataCard from '../components/MobileDataCard';
 
+import { Input } from "@/components/ui/input";
+
 const Delegates: React.FC = () => {
   const { t, direction } = useLanguage();
   const { delegates, addDelegate, updateDelegate, deleteDelegate } = useDelegates();
@@ -82,7 +84,7 @@ const Delegates: React.FC = () => {
             <div className="relative flex items-center gap-2">
               <span className="text-sm text-[var(--text-muted)]">بحث</span>
               <div className="relative">
-                <input
+                <Input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -223,7 +225,7 @@ const Delegates: React.FC = () => {
                 <div className="space-y-4 text-right">
                   <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('code')} *</label>
-                    <input
+                    <Input
                       type="text"
                       required
                       value={form.code}
@@ -233,7 +235,7 @@ const Delegates: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('name')} *</label>
-                    <input
+                    <Input
                       type="text"
                       required
                       value={form.name}
@@ -243,7 +245,7 @@ const Delegates: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('phone')} *</label>
-                    <input
+                    <Input
                       type="text"
                       required
                       value={form.phone}

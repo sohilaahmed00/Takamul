@@ -4,6 +4,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useCategories, type Category } from "@/context/CategoriesContext";
 import ResponsiveModal from "./ResponsiveModal";
 
+import { Input } from "@/components/ui/input";
+
 interface AddCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -82,22 +84,22 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, onClose, ca
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <label className="takamol-label">{t("category_code")} *</label>
-            <input type="text" required value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })} className="takamol-input" />
+            <Input type="text" required value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })}  />
           </div>
 
           <div className="space-y-2">
             <label className="takamol-label">{t("category_name")} *</label>
-            <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="takamol-input" />
+            <Input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}  />
           </div>
 
           <div className="space-y-2">
             <label className="takamol-label">{t("slug")} *</label>
-            <input type="text" required value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })} className="takamol-input" />
+            <Input type="text" required value={formData.slug} onChange={(e) => setFormData({ ...formData, slug: e.target.value })}  />
           </div>
 
           <div className="space-y-2">
             <label className="takamol-label">{t("description")} *</label>
-            <textarea required value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="takamol-input min-h-[100px]" />
+            <textarea required value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })}  />
           </div>
 
           <div className="space-y-2">
@@ -107,8 +109,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, onClose, ca
                 <Upload size={16} />
                 {t("browse")}
               </button>
-              <input type="text" readOnly value={imageName} className="takamol-input !py-2 !bg-[var(--bg-main)]" />
-              <input type="file" ref={imageInputRef} className="hidden" onChange={(e) => setImageName(e.target.files?.[0]?.name || "")} />
+              <Input type="text" readOnly value={imageName}  />
+              <Input type="file" ref={imageInputRef} className="hidden" onChange={(e) => setImageName(e.target.files?.[0]?.name || "")} />
             </div>
           </div>
 
@@ -119,14 +121,14 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, onClose, ca
                 <Upload size={16} />
                 {t("browse")}
               </button>
-              <input type="text" readOnly value={bannerName} className="takamol-input !py-2 !bg-[var(--bg-main)]" />
-              <input type="file" ref={bannerInputRef} className="hidden" onChange={(e) => setBannerName(e.target.files?.[0]?.name || "")} />
+              <Input type="text" readOnly value={bannerName}  />
+              <Input type="file" ref={bannerInputRef} className="hidden" onChange={(e) => setBannerName(e.target.files?.[0]?.name || "")} />
             </div>
           </div>
 
           <div className="space-y-2">
             <label className="takamol-label">{t("main_category")}</label>
-            <select value={formData.mainCategory} onChange={(e) => setFormData({ ...formData, mainCategory: e.target.value })} className="takamol-input">
+            <select value={formData.mainCategory} onChange={(e) => setFormData({ ...formData, mainCategory: e.target.value })} >
               <option value="">{t("main_category_select")}</option>
               <option value="electronics">Electronics</option>
               <option value="clothing">Clothing</option>
@@ -134,7 +136,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, onClose, ca
           </div>
 
           <div className="flex items-center gap-3 pt-8">
-            <input type="checkbox" id="showInPOS" checked={formData.showInPOS} onChange={(e) => setFormData({ ...formData, showInPOS: e.target.checked })} className="w-5 h-5 accent-[var(--primary)] rounded cursor-pointer" />
+            <Input type="checkbox" id="showInPOS" checked={formData.showInPOS} onChange={(e) => setFormData({ ...formData, showInPOS: e.target.checked })} className="w-5 h-5 accent-[var(--primary)] rounded cursor-pointer" />
             <label htmlFor="showInPOS" className="text-sm font-bold text-[var(--text-main)] cursor-pointer">
               {t("show_in_pos")}
             </label>
@@ -163,7 +165,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ isOpen, onClose, ca
                           newBranches[idx].status = e.target.value === "yes";
                           setFormData({ ...formData, branchAvailability: newBranches });
                         }}
-                        className="takamol-input !py-1 !px-2 !text-xs w-24 mx-auto"
+                        
                       >
                         <option value="yes">{t("yes")}</option>
                         <option value="no">{t("no")}</option>

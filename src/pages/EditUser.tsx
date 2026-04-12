@@ -7,6 +7,8 @@ import { useUserGroups } from '@/context/UserGroupsContext';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { Input } from "@/components/ui/input";
+
 type Tab = 'edit' | 'password' | 'avatar';
 
 export default function EditUser() {
@@ -164,7 +166,7 @@ export default function EditUser() {
                       {/* First Name */}
                       <div>
                         <label className={labelClasses}>{t('first_name')} *</label>
-                        <input
+                        <Input
                           type="text"
                           name="firstName"
                           value={formData.firstName}
@@ -177,7 +179,7 @@ export default function EditUser() {
                       {/* Last Name */}
                       <div>
                         <label className={labelClasses}>{t('last_name')} *</label>
-                        <input
+                        <Input
                           type="text"
                           name="lastName"
                           value={formData.lastName}
@@ -190,7 +192,7 @@ export default function EditUser() {
                       {/* Company */}
                       <div>
                         <label className={labelClasses}>{t('company')} *</label>
-                        <input
+                        <Input
                           type="text"
                           name="company"
                           value={formData.company}
@@ -203,7 +205,7 @@ export default function EditUser() {
                       {/* Phone */}
                       <div>
                         <label className={labelClasses}>{t('phone')} *</label>
-                        <input
+                        <Input
                           type="tel"
                           name="phone"
                           value={formData.phone}
@@ -231,7 +233,7 @@ export default function EditUser() {
                       {/* Username */}
                       <div>
                         <label className={labelClasses}>{t('username') || 'اسم المستخدم'} *</label>
-                        <input
+                        <Input
                           type="text"
                           name="usernameEmail"
                           value={formData.usernameEmail}
@@ -244,7 +246,7 @@ export default function EditUser() {
                       {/* Email */}
                       <div>
                         <label className={labelClasses}>{t('email')} *</label>
-                        <input
+                        <Input
                           type="email"
                           name="email"
                           value={formData.email}
@@ -293,15 +295,15 @@ export default function EditUser() {
                     <div className="grid grid-cols-1 gap-6">
                       <div>
                         <label className={labelClasses}>{t('current_password') || 'كلمة المرور الحالية'}</label>
-                        <input type="password" className={inputClasses} />
+                        <Input type="password" className={inputClasses} />
                       </div>
                       <div>
                         <label className={labelClasses}>{t('new_password') || 'كلمة المرور الجديدة'}</label>
-                        <input type="password" className={inputClasses} />
+                        <Input type="password" className={inputClasses} />
                       </div>
                       <div>
                         <label className={labelClasses}>{t('confirm_password')}</label>
-                        <input type="password" className={inputClasses} />
+                        <Input type="password" className={inputClasses} />
                       </div>
                     </div>
                     <div className="flex justify-end pt-4">

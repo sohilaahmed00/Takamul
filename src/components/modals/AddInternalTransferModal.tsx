@@ -5,6 +5,8 @@ import { useBanks } from "@/context/BanksContext";
 import type { InternalTransfer } from "@/types";
 import ComboboxField from "@/components/ui/ComboboxField";
 
+import { Input } from "@/components/ui/input";
+
 interface AddInternalTransferModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -107,13 +109,13 @@ export default function AddInternalTransferModal({
             <label className="block text-sm font-medium text-[var(--text-main)] mb-1">
               {t("paid_amount")} *
             </label>
-            <input
+            <Input
               type="number"
               value={formData.amount}
               onChange={(e) =>
                 setFormData({ ...formData, amount: Number(e.target.value) })
               }
-              className="takamol-input"
+              
               required
             />
           </div>
@@ -125,7 +127,7 @@ export default function AddInternalTransferModal({
             <textarea
               value={formData.notes}
               onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="takamol-input"
+              
               rows={3}
             />
           </div>

@@ -85,7 +85,7 @@ export default function ShiftsList() {
   const header = (
     <div className="relative w-full md:w-80">
       <Search className={cn("absolute top-2.5 text-gray-400", direction === "rtl" ? "right-3" : "left-3")} size={18} />
-      <input
+      <Input
         type="text"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}

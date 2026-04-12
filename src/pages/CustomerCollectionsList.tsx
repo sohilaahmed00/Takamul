@@ -19,6 +19,8 @@ import AddCustomerCollectionModal from "@/components/modals/AddCustomerCollectio
 import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { CustomerTransaction } from "@/features/customer-transactions/types/customerTransactions.types";
 
+import { Input } from "@/components/ui/input";
+
 export default function CustomerCollectionsList() {
   const { direction, t } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
@@ -125,7 +127,7 @@ export default function CustomerCollectionsList() {
           <Search size={18} className="text-gray-400" />
         </div>
 
-        <input
+        <Input
           type="text"
           value={searchTerm}
           onChange={(e) => {

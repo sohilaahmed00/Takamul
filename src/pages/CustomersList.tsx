@@ -13,6 +13,8 @@ import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader,
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 
+import { Input } from "@/components/ui/input";
+
 export default function CustomersList() {
   const { t, direction } = useLanguage();
 

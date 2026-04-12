@@ -12,7 +12,7 @@ interface LanguageContextType {
   direction: Direction;
   dir: Direction;
   setLanguage: (lang: Language) => void;
-  t: (key: string) => string;
+  t: (key: string, defaultValue?: string) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -60,10 +60,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     setLanguageState(lang);
   };
 
-  const t = (key: string) => {
+  const t = (key: string, defaultValue?: string) => {
     return (
       translations[language]?.[key] ||
       translations.ar?.[key] ||
+      defaultValue ||
       key
     );
   };

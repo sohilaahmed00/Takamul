@@ -4,6 +4,8 @@ import { Calendar, Search, Download, Printer, Share2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Pagination from '@/components/Pagination';
 
+import { Input } from "@/components/ui/input";
+
 export default function SessionsReport() {
   const { t, direction } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,7 +64,7 @@ export default function SessionsReport() {
             </div>
 
             <div className="relative w-full md:w-64">
-              <input
+              <Input
                 type="text"
                 placeholder={t("search_placeholder")}
                 value={searchTerm}

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
+import { Input } from "@/components/ui/input";
+
 import { 
   Calendar, Search, Printer, Download, Share2, 
   Filter, ChevronRight, ChevronLeft, MoreHorizontal,
@@ -90,7 +92,7 @@ export default function ReservationsReport() {
       <div className="p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex flex-wrap items-center gap-4">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input
+          <Input
             type="text"
             placeholder="بحث باسم العميل أو رقم الهاتف..."
             className="w-full pr-10 pl-4 py-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] transition-all"
@@ -113,7 +115,7 @@ export default function ReservationsReport() {
         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
           <Filter size={16} />
           <span>تصفية حسب التاريخ:</span>
-          <input type="date" className="px-2 py-1 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded" />
+          <Input type="date" className="px-2 py-1 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded" />
         </div>
       </div>
 

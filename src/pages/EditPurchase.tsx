@@ -9,6 +9,8 @@ import { initialPurchases } from "@/data";
 import { PaymentStatus } from "@/types";
 import AddSupplierModal from "@/components/modals/AddSupplierModal";
 
+import { Input } from "@/components/ui/input";
+
 interface PurchaseItem {
   id: string;
   code: string;
@@ -205,13 +207,13 @@ export default function EditPurchase() {
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700 flex items-center gap-1">{t("date")} *</label>
               <div className="relative">
-                <input type="datetime-local" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary text-right" required />
+                <Input type="datetime-local" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary text-right" required />
               </div>
             </div>
 
             <div className="space-y-1">
               <label className="text-sm font-medium text-gray-700">{t("ref_no")} *</label>
-              <input type="text" value={formData.refNo} onChange={(e) => setFormData({ ...formData, refNo: e.target.value })} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary" required />
+              <Input type="text" value={formData.refNo} onChange={(e) => setFormData({ ...formData, refNo: e.target.value })} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary" required />
             </div>
 
             <div className="space-y-1">
@@ -246,8 +248,8 @@ export default function EditPurchase() {
                   <Upload size={16} />
                   {t("browse")}
                 </button>
-                <input type="file" ref={fileInputRef} className="hidden" onChange={(e) => setFileName(e.target.files?.[0]?.name || "")} />
-                <input type="text" value={fileName} className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm outline-none bg-gray-50" readOnly placeholder={t("no_file_chosen")} />
+                <Input type="file" ref={fileInputRef} className="hidden" onChange={(e) => setFileName(e.target.files?.[0]?.name || "")} />
+                <Input type="text" value={fileName} className="flex-1 border border-gray-300 rounded-md px-3 py-2 text-sm outline-none bg-gray-50" readOnly placeholder={t("no_file_chosen")} />
               </div>
             </div>
           </div>
@@ -293,7 +295,7 @@ export default function EditPurchase() {
                   <Plus size={20} />
                 </button>
               </div>
-              <input
+              <Input
                 type="text"
                 placeholder={t("please_add_items")}
                 value={searchQuery}
@@ -364,23 +366,23 @@ export default function EditPurchase() {
                           {item.code} - {item.name}
                         </td>
                         <td className="p-3 border-l border-gray-100">
-                          <input type="date" className="w-full border-none bg-transparent outline-none text-right" value={item.expiryDate} onChange={(e) => updateItem(item.id, "expiryDate", e.target.value)} />
+                          <Input type="date" className="w-full border-none bg-transparent outline-none text-right" value={item.expiryDate} onChange={(e) => updateItem(item.id, "expiryDate", e.target.value)} />
                         </td>
                         <td className="p-3 border-l border-gray-100">
-                          <input type="number" className="w-20 border-none bg-transparent outline-none text-center" value={item.unitCost} onChange={(e) => updateItem(item.id, "unitCost", e.target.value)} />
+                          <Input type="number" className="w-20 border-none bg-transparent outline-none text-center" value={item.unitCost} onChange={(e) => updateItem(item.id, "unitCost", e.target.value)} />
                         </td>
                         <td className="p-3 border-l border-gray-100">
-                          <input type="number" className="w-16 border-none bg-transparent outline-none text-center" value={item.quantity} onChange={(e) => updateItem(item.id, "quantity", e.target.value)} />
+                          <Input type="number" className="w-16 border-none bg-transparent outline-none text-center" value={item.quantity} onChange={(e) => updateItem(item.id, "quantity", e.target.value)} />
                         </td>
                         <td className="p-3 border-l border-gray-100">
-                          <input type="number" className="w-16 border-none bg-transparent outline-none text-center" value={item.free} onChange={(e) => updateItem(item.id, "free", e.target.value)} />
+                          <Input type="number" className="w-16 border-none bg-transparent outline-none text-center" value={item.free} onChange={(e) => updateItem(item.id, "free", e.target.value)} />
                         </td>
                         <td className="p-3 border-l border-gray-100 text-center">{item.totalNoVat.toFixed(2)}</td>
                         <td className="p-3 border-l border-gray-100 text-center">{item.vatRate}%</td>
                         <td className="p-3 border-l border-gray-100 text-center">{item.vatAmount.toFixed(2)}</td>
                         <td className="p-3 border-l border-gray-100 text-center font-bold">{item.totalSr.toFixed(2)}</td>
                         <td className="p-3 border-l border-gray-100">
-                          <input type="number" className="w-24 border-none bg-transparent outline-none text-center" value={item.publicPrice} onChange={(e) => updateItem(item.id, "publicPrice", e.target.value)} />
+                          <Input type="number" className="w-24 border-none bg-transparent outline-none text-center" value={item.publicPrice} onChange={(e) => updateItem(item.id, "publicPrice", e.target.value)} />
                         </td>
                         <td className="p-3 text-center">
                           <button type="button" onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700 transition-colors">
@@ -400,15 +402,15 @@ export default function EditPurchase() {
             <div className="space-y-4">
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">{t("discount_before_vat")}</label>
-                <input type="text" className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary" />
+                <Input type="text" className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">{t("discount_after_vat")}</label>
-                <input type="text" className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary" />
+                <Input type="text" className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">{t("paid_amount")}</label>
-                <input type="number" value={formData.amountPaid} onChange={(e) => setFormData({ ...formData, amountPaid: Number(e.target.value) })} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary" />
+                <Input type="number" value={formData.amountPaid} onChange={(e) => setFormData({ ...formData, amountPaid: Number(e.target.value) })} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary" />
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">{t("payment_type")}</label>
@@ -420,7 +422,7 @@ export default function EditPurchase() {
               </div>
               <div className="space-y-1">
                 <label className="text-sm font-medium text-gray-700">{t("payment_terms")}</label>
-                <input type="text" value={formData.paymentTerms} onChange={(e) => setFormData({ ...formData, paymentTerms: e.target.value })} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary" />
+                <Input type="text" value={formData.paymentTerms} onChange={(e) => setFormData({ ...formData, paymentTerms: e.target.value })} className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm outline-none focus:border-primary" />
               </div>
             </div>
 

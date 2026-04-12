@@ -3,6 +3,8 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useGroups, Group } from '@/context/GroupsContext';
 import ResponsiveModal from './ResponsiveModal';
 
+import { Input } from "@/components/ui/input";
+
 interface EditGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -43,11 +45,11 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({ isOpen, onClose, group 
             <label className="takamol-label">
               {t('group_name')} *
             </label>
-            <input
+            <Input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="takamol-input"
+              
               required
             />
           </div>
@@ -56,11 +58,11 @@ const EditGroupModal: React.FC<EditGroupModalProps> = ({ isOpen, onClose, group 
             <label className="takamol-label">
               {t('description')} *
             </label>
-            <input
+            <Input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="takamol-input"
+              
               required
             />
           </div>

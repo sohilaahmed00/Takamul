@@ -4,6 +4,8 @@ import { useExpenseCategories } from "@/context/ExpenseCategoriesContext";
 import ResponsiveModal from "@/components/modals/ResponsiveModal";
 import type { ExpenseCategory } from "@/types";
 
+import { Input } from "@/components/ui/input";
+
 interface AddExpenseCategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -44,12 +46,12 @@ export default function AddExpenseCategoryModal({ isOpen, onClose, category }: A
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
             <label className="text-sm font-bold text-gray-700">{t("category_code")} *</label>
-            <input type="text" value={code} onChange={(e) => setCode(e.target.value)} required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all" />
+            <Input type="text" value={code} onChange={(e) => setCode(e.target.value)} required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all" />
           </div>
 
           <div className="space-y-1">
             <label className="text-sm font-bold text-gray-700">{t("category_name")} *</label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all" />
+            <Input type="text" value={name} onChange={(e) => setName(e.target.value)} required className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all" />
           </div>
 
           <button type="submit" className="w-fit px-6 py-2 bg-[#004d3d] hover:bg-[#003d30] text-white rounded-lg font-bold transition-colors mt-4">

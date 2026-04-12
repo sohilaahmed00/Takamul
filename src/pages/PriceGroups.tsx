@@ -13,6 +13,8 @@ import DeleteConfirmationModal from '@/components/modals/DeleteConfirmationModal
 import MobileDataCard from '@/components/MobileDataCard';
 import { cn } from '@/lib/utils';
 
+import { Input } from "@/components/ui/input";
+
 export default function PriceGroups() {
   const { t, direction, language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -100,7 +102,7 @@ export default function PriceGroups() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Search */}
             <div className="relative w-full md:w-64 order-2 md:order-1">
-              <input
+              <Input
                 type="text"
                 placeholder={t('search_placeholder') || "اكتب ما تريد ان تبحث عنه"}
                 value={searchTerm}
@@ -184,7 +186,7 @@ export default function PriceGroups() {
                         </div>
                       </td>
                       <td className="p-3 text-center">
-                        <input type="checkbox" className="w-4 h-4 accent-primary" />
+                        <Input type="checkbox" className="w-4 h-4 accent-primary" />
                       </td>
                     </tr>
                   ))

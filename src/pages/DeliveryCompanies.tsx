@@ -5,6 +5,8 @@ import { Plus, Trash2, Edit2, X, ChevronRight, ChevronLeft, Truck } from 'lucide
 import { motion, AnimatePresence } from 'framer-motion';
 import MobileDataCard from '../components/MobileDataCard';
 
+import { Input } from "@/components/ui/input";
+
 const DeliveryCompanies: React.FC = () => {
   const { t, direction } = useLanguage();
   const { deliveryCompanies, addDeliveryCompany, updateDeliveryCompany, deleteDeliveryCompany } = useDeliveryCompanies();
@@ -80,7 +82,7 @@ const DeliveryCompanies: React.FC = () => {
             <div className="relative flex items-center gap-2">
               <span className="text-sm text-[var(--text-muted)]">بحث</span>
               <div className="relative">
-                <input
+                <Input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -211,7 +213,7 @@ const DeliveryCompanies: React.FC = () => {
                 <div className="space-y-4 text-right">
                   <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">اسم *</label>
-                    <input
+                    <Input
                       type="text"
                       required
                       value={form.name}

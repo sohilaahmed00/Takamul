@@ -5,6 +5,8 @@ import { RotateCcw, Trash2, Upload, Plus, X, Barcode } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { cn } from "../lib/utils";
 
+import { Input } from "@/components/ui/input";
+
 export default function ReturnPOSSale() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -87,25 +89,25 @@ export default function ReturnPOSSale() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-right">
             <div className="space-y-1">
               <label className="block text-sm font-bold text-primary">{t("date")} *</label>
-              <input type="text" value={formData.date} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary bg-gray-50" readOnly />
+              <Input type="text" value={formData.date} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary bg-gray-50" readOnly />
             </div>
             <div className="space-y-1">
               <label className="block text-sm font-bold text-primary">{t("reference_no")}</label>
-              <input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary" />
+              <Input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary" />
             </div>
             <div className="space-y-1">
               <label className="block text-sm font-bold text-primary">{t("discount")}</label>
-              <input type="text" value={formData.discount} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary" />
+              <Input type="text" value={formData.discount} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary" />
             </div>
             <div className="space-y-1">
               <label className="block text-sm font-bold text-primary">{t("shipping")} *</label>
-              <input type="text" value={formData.shipping} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary" />
+              <Input type="text" value={formData.shipping} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary" />
             </div>
             <div className="space-y-1">
               <label className="block text-sm font-bold text-primary">{t("attachment")}</label>
               <div className="flex gap-2">
-                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-                <input type="text" value={formData.fileName} placeholder={t("browse")} className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary bg-gray-50" readOnly onClick={handleBrowse} />
+                <Input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+                <Input type="text" value={formData.fileName} placeholder={t("browse")} className="flex-1 border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary bg-gray-50" readOnly onClick={handleBrowse} />
                 <button onClick={handleBrowse} className="bg-primary text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-primary-hover">
                   <Upload size={16} /> {t("browse")}
                 </button>
@@ -114,7 +116,7 @@ export default function ReturnPOSSale() {
             <div className="flex items-end justify-end gap-6 pb-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <span className="text-sm font-bold text-primary">{t("return_full_invoice")}</span>
-                <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                <Input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />
               </label>
               <button onClick={() => setShowItemsModal(true)} className="bg-[var(--primary)] text-white px-4 py-2 rounded text-sm font-bold hover:bg-[var(--primary-hover)]">
                 {t("view_invoice_items")}
@@ -127,7 +129,7 @@ export default function ReturnPOSSale() {
             <div className={cn("absolute inset-y-0 flex items-center pointer-events-none", direction === "rtl" ? "right-3" : "left-3")}>
               <Barcode size={20} className="text-gray-400" />
             </div>
-            <input type="text" placeholder={t("barcode_search_placeholder")} className={cn("w-full border border-gray-300 rounded-lg py-3 outline-none focus:border-primary shadow-sm", direction === "rtl" ? "pr-10 pl-4 text-right" : "pl-10 pr-4 text-left")} />
+            <Input type="text" placeholder={t("barcode_search_placeholder")} className={cn("w-full border border-gray-300 rounded-lg py-3 outline-none focus:border-primary shadow-sm", direction === "rtl" ? "pr-10 pl-4 text-right" : "pl-10 pr-4 text-left")} />
           </div>
 
           {/* Items Table */}
@@ -186,11 +188,11 @@ export default function ReturnPOSSale() {
                 )}
                 <div className="space-y-1">
                   <label className="block text-sm font-bold text-primary">{t("payment_ref_no")}</label>
-                  <input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary" />
+                  <Input type="text" className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary" />
                 </div>
                 <div className="space-y-1">
                   <label className="block text-sm font-bold text-primary">{t("amount_paid")}</label>
-                  <input type="text" defaultValue={payment.amount} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary" />
+                  <Input type="text" defaultValue={payment.amount} className="w-full border border-gray-300 rounded px-3 py-2 text-sm outline-none focus:border-primary" />
                 </div>
                 <div className="space-y-1">
                   <label className="block text-sm font-bold text-primary">{t("payment_method")}</label>

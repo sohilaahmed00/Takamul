@@ -9,6 +9,8 @@ import Logo from "@/components/Logo";
 import { useLogin } from "@/features/auth/hooks/useLogin";
 import useToast from "@/hooks/useToast";
 
+import { Input } from "@/components/ui/input";
+
 export default function Login() {
   const navigate = useNavigate();
   const { mutateAsync: login } = useLogin();
@@ -83,15 +85,15 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleLogin} className="space-y-4">
-          <input type="text" placeholder={t("email")} className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]" value={username} onChange={(e) => setUsername(e.target.value)} required />
+          <Input type="text" placeholder={t("email")} className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]" value={username} onChange={(e) => setUsername(e.target.value)} required />
 
-          <input type="password" placeholder={t("password")} className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <Input type="password" placeholder={t("password")} className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]" value={password} onChange={(e) => setPassword(e.target.value)} required />
 
           {error && <p className="text-sm text-red-500 py-1 text-center">{error}</p>}
 
           <div className="flex justify-between items-center text-sm py-2">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="w-4 h-4 accent-[var(--primary)] rounded border-[var(--border)]" />
+              <Input type="checkbox" className="w-4 h-4 accent-[var(--primary)] rounded border-[var(--border)]" />
               <span className="text-[var(--text-muted)]">{t("remember_me")}</span>
             </label>
 

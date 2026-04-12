@@ -8,6 +8,8 @@ import { useCategories, type Category } from "@/context/CategoriesContext";
 import { cn } from "@/lib/utils";
 import MobileDataCard from "@/components/MobileDataCard";
 
+import { Input } from "@/components/ui/input";
+
 const Categories = () => {
   const { t, direction, language } = useLanguage();
   const { categories, deleteCategory } = useCategories();
@@ -94,7 +96,7 @@ const Categories = () => {
 
             {/* Search */}
             <div className="relative w-full md:w-80">
-              <input type="text" placeholder={t("search_placeholder") || "اكتب ما تريد ان تبحث عنه"} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn("w-full border border-[var(--border)] bg-[var(--input-bg)] rounded-xl px-4 py-2 text-sm outline-none focus:border-[var(--primary)] transition-all", direction === "rtl" ? "pr-10" : "pl-10")} />
+              <Input type="text" placeholder={t("search_placeholder") || "اكتب ما تريد ان تبحث عنه"} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn("w-full border border-[var(--border)] bg-[var(--input-bg)] rounded-xl px-4 py-2 text-sm outline-none focus:border-[var(--primary)] transition-all", direction === "rtl" ? "pr-10" : "pl-10")} />
               <Search className={cn("absolute top-1/2 -translate-y-1/2 text-[var(--text-muted)]", direction === "rtl" ? "right-3" : "left-3")} size={18} />
             </div>
           </div>
@@ -111,7 +113,7 @@ const Categories = () => {
                   <th>{t("main_category")}</th>
                   <th className="w-24">{t("actions")}</th>
                   <th className="w-10">
-                    <input type="checkbox" className="rounded w-4 h-4 accent-white" />
+                    <Input type="checkbox" className="rounded w-4 h-4 accent-white" />
                   </th>
                 </tr>
               </thead>
@@ -141,7 +143,7 @@ const Categories = () => {
                         </div>
                       </td>
                       <td className="text-center">
-                        <input type="checkbox" className="w-4 h-4 accent-[var(--primary)]" />
+                        <Input type="checkbox" className="w-4 h-4 accent-[var(--primary)]" />
                       </td>
                     </tr>
                   ))

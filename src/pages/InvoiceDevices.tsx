@@ -5,6 +5,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import MobileDataCard from "@/components/MobileDataCard";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 
+import { Input } from "@/components/ui/input";
+
 interface InvoiceDevice {
   id: string;
   activityName: string;
@@ -87,7 +89,7 @@ export default function InvoiceDevices() {
           <div className="flex items-center gap-3">
             <div className="relative flex-1 md:w-64">
               <Search size={18} className={cn("absolute top-1/2 -translate-y-1/2 text-[var(--text-muted)]", direction === "rtl" ? "right-3" : "left-3")} />
-              <input type="text" placeholder={t("search")} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn("w-full py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all text-sm text-[var(--text-main)]", direction === "rtl" ? "pr-10 pl-4" : "pl-10 pr-4")} />
+              <Input type="text" placeholder={t("search")} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn("w-full py-2 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg outline-none focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] transition-all text-sm text-[var(--text-main)]", direction === "rtl" ? "pr-10 pl-4" : "pl-10 pr-4")} />
             </div>
           </div>
         </div>

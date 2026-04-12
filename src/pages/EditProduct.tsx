@@ -12,6 +12,8 @@ import { useSettings } from "@/context/SettingsContext";
 import { Toast } from "primereact/toast";
 import { cn } from "@/lib/utils";
 
+import { Input } from "@/components/ui/input";
+
 const REAL_API = "http://takamulerp.runasp.net";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -777,7 +779,7 @@ export default function EditProduct() {
                     ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-md"
                     : "bg-white border-gray-200",
                 )}>
-                  <input type="radio" disabled checked={productNature === nature} className="w-5 h-5 accent-white" />
+                  <Input type="radio" disabled checked={productNature === nature} className="w-5 h-5 accent-white" />
                   {getNatureIcon(nature)}
                   <span className="font-bold">{getNatureLabel(nature, t)}</span>
                 </label>
@@ -799,7 +801,7 @@ export default function EditProduct() {
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   اسم {getNatureLabel(productNature, t)} (عربي) <span className="text-red-500">*</span>
                 </label>
-                <input type="text" name="name" value={form.name} onChange={handleChange}
+                <Input type="text" name="name" value={form.name} onChange={handleChange}
                   className={cn("takamol-input", errors.name && "border-red-400")} placeholder="أدخل الاسم بالعربية..." />
                 <ErrMsg field="name" />
               </div>
@@ -809,7 +811,7 @@ export default function EditProduct() {
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   الاسم بالإنجليزية <span className="text-red-500">*</span>
                 </label>
-                <input type="text" name="nameLang2" value={form.nameLang2} onChange={handleChange}
+                <Input type="text" name="nameLang2" value={form.nameLang2} onChange={handleChange}
                   className={cn("takamol-input", errors.nameLang2 && "border-red-400")} placeholder="Enter English name..." />
                 <ErrMsg field="nameLang2" />
               </div>
@@ -819,7 +821,7 @@ export default function EditProduct() {
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   الاسم باللغة الثالثة <span className="text-red-500">*</span>
                 </label>
-                <input type="text" name="nameLang3" value={form.nameLang3} onChange={handleChange}
+                <Input type="text" name="nameLang3" value={form.nameLang3} onChange={handleChange}
                   className={cn("takamol-input", errors.nameLang3 && "border-red-400")} placeholder="نام به زبان سوم..." />
                 <ErrMsg field="nameLang3" />
               </div>
@@ -830,7 +832,7 @@ export default function EditProduct() {
                   <label className="block text-sm font-bold text-gray-700 mb-2">
                     الكود / الباركود <span className="text-red-500">*</span>
                   </label>
-                  <input type="text" name="code" value={form.code} onChange={handleChange}
+                  <Input type="text" name="code" value={form.code} onChange={handleChange}
                     className={cn("takamol-input font-mono", errors.code && "border-red-400")} />
                   <ErrMsg field="code" />
                 </div>
@@ -842,7 +844,7 @@ export default function EditProduct() {
                   <label className="block text-sm font-bold text-gray-700 mb-2">
                     التكلفة <span className="text-red-500">*</span>
                   </label>
-                  <input type="number" name="cost" value={form.cost} onChange={handleChange}
+                  <Input type="number" name="cost" value={form.cost} onChange={handleChange}
                     className={cn("takamol-input font-bold text-[var(--primary)]", errors.cost && "border-red-400")}
                     step="0.01" min="0" />
                   <ErrMsg field="cost" />
@@ -853,8 +855,8 @@ export default function EditProduct() {
               {productNature === "prepared" && (
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">تكلفة الصنف المجهز (محسوبة تلقائياً)</label>
-                  <input type="number" value={preparedCost.toFixed(2)} readOnly
-                    className="takamol-input font-bold text-[var(--primary)] bg-gray-50 cursor-not-allowed" />
+                  <Input type="number" value={preparedCost.toFixed(2)} readOnly
+                     />
                 </div>
               )}
 
@@ -864,7 +866,7 @@ export default function EditProduct() {
                   <label className="block text-sm font-bold text-gray-700">
                     سعر البيع <span className="text-red-500">*</span>
                   </label>
-                  <input type="number" name="sellingPrice" value={form.sellingPrice} onChange={handleChange}
+                  <Input type="number" name="sellingPrice" value={form.sellingPrice} onChange={handleChange}
                     className={cn("takamol-input", errors.sellingPrice && "border-red-400")}
                     step="0.01" min="0" />
                   <ErrMsg field="sellingPrice" />
@@ -914,8 +916,8 @@ export default function EditProduct() {
               {productNature === "materials" && (
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-2">حد التنبيه من نفاذ الكمية</label>
-                  <input type="number" name="alertQuantity" value={form.alertQuantity} onChange={handleChange}
-                    className="takamol-input" min="0" />
+                  <Input type="number" name="alertQuantity" value={form.alertQuantity} onChange={handleChange}
+                     min="0" />
                 </div>
               )}
 
@@ -924,22 +926,22 @@ export default function EditProduct() {
                 <>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">وحدة الأساس</label>
-                    <select name="baseUnitId" value={form.baseUnitId} onChange={handleChange} className="takamol-input">
+                    <select name="baseUnitId" value={form.baseUnitId} onChange={handleChange} >
                       <option value="">اختياري</option>
                       {unitsForPrepared.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">وحدة الشراء</label>
-                    <select name="purchaseUnitId" value={form.purchaseUnitId} onChange={handleChange} className="takamol-input">
+                    <select name="purchaseUnitId" value={form.purchaseUnitId} onChange={handleChange} >
                       <option value="">اختياري</option>
                       {unitsForPrepared.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-gray-700 mb-2">معامل التحويل</label>
-                    <input type="number" name="conversionFactor" value={form.conversionFactor} onChange={handleChange}
-                      className="takamol-input" step="0.001" min="0" />
+                    <Input type="number" name="conversionFactor" value={form.conversionFactor} onChange={handleChange}
+                       step="0.001" min="0" />
                   </div>
                 </>
               )}
@@ -963,10 +965,10 @@ export default function EditProduct() {
                     )}
                     <div className="dp-wrap relative">
                       <div className="relative">
-                        <input type="text" value={parentSearch}
+                        <Input type="text" value={parentSearch}
                           onChange={e => { setParentSearch(e.target.value); setShowParentSearch(true); }}
                           onFocus={() => setShowParentSearch(true)}
-                          className="takamol-input w-full pr-10" placeholder="ابحث عن صنف..." />
+                           placeholder="ابحث عن صنف..." />
                         <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                       </div>
                       {showParentSearch && (
@@ -1005,10 +1007,10 @@ export default function EditProduct() {
                       <div className="col-span-5 dp-wrap relative">
                         <label className="block text-xs font-bold text-gray-600 mb-1">بحث في الخامات</label>
                         <div className="relative">
-                          <input type="text" value={matSearch}
+                          <Input type="text" value={matSearch}
                             onChange={e => { setMatSearch(e.target.value); setShowMatSearch(true); }}
                             onFocus={() => setShowMatSearch(true)}
-                            className="takamol-input w-full pr-8 text-sm" placeholder="ابحث..." />
+                             placeholder="ابحث..." />
                           <Search className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400" size={13} />
                         </div>
                         {showMatSearch && matSearch && (
@@ -1028,15 +1030,15 @@ export default function EditProduct() {
                       </div>
                       <div className="col-span-3">
                         <label className="block text-xs font-bold text-gray-600 mb-1">الكمية</label>
-                        <input type="number" value={matQty} onChange={e => setMatQty(e.target.value)}
-                          className="takamol-input w-full text-center text-sm" min="0.01" step="0.01" />
+                        <Input type="number" value={matQty} onChange={e => setMatQty(e.target.value)}
+                           min="0.01" step="0.01" />
                       </div>
                       <div className="col-span-2 dp-wrap relative">
                         <label className="block text-xs font-bold text-gray-600 mb-1">الوحدة</label>
-                        <input type="text"
+                        <Input type="text"
                           value={unitsForPrepared.find(u => u.id === unitSearch)?.name || ""}
                           onFocus={() => setShowUnitSearch(true)} onClick={() => setShowUnitSearch(true)}
-                          className="takamol-input w-full text-sm" placeholder="وحدة" readOnly />
+                           placeholder="وحدة" readOnly />
                         {showUnitSearch && (
                           <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-40 overflow-y-auto">
                             {unitsForPrepared.map(u => (
@@ -1130,7 +1132,7 @@ export default function EditProduct() {
                 <label className="block text-sm font-bold text-gray-700 mb-2">التصنيف الفرعي</label>
                 <div className="relative">
                   <select name="subCategoryId" value={form.subCategoryId} onChange={handleChange}
-                    className="takamol-input appearance-none pr-10"
+                    
                     disabled={!form.categoryId || loadingSub}>
                     <option value="">
                       {!form.categoryId ? "اختر التصنيف الرئيسي أولًا"
@@ -1148,7 +1150,7 @@ export default function EditProduct() {
               {/* Hide in POS */}
               {productNature !== "materials" && (
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <input type="checkbox" id="hideInPos" name="hideInPos"
+                  <Input type="checkbox" id="hideInPos" name="hideInPos"
                     checked={form.hideInPos} onChange={handleChange}
                     className="w-5 h-5 rounded border-gray-300 text-[var(--primary)]" />
                   <label htmlFor="hideInPos" className="text-sm font-bold text-gray-700 cursor-pointer">
@@ -1161,7 +1163,7 @@ export default function EditProduct() {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">الوصف</label>
                 <textarea name="details" value={form.details} onChange={handleChange}
-                  className="takamol-input w-full min-h-[120px] resize-y"
+                  
                   placeholder="أدخل الوصف..." />
               </div>
 
@@ -1179,14 +1181,14 @@ export default function EditProduct() {
                     </div>
                   )}
                   <div className="flex gap-2">
-                    <input type="file" ref={fileInputRef} className="hidden"
+                    <Input type="file" ref={fileInputRef} className="hidden"
                       accept="image/png,image/jpeg,image/jpg,image/webp"
                       onChange={e => { const f = e.target.files?.[0] || null; setImageFile(f); if (f) setFileName(f.name); }} />
                     <button type="button" onClick={() => fileInputRef.current?.click()}
                       className="bg-gray-100 border border-gray-300 px-4 py-2.5 rounded-lg text-sm hover:bg-gray-200 flex items-center gap-2 transition-colors whitespace-nowrap">
                       <Upload size={16} /> {imageFile ? "تغيير الصورة" : "استعراض"}
                     </button>
-                    <input type="text" value={imageFile ? imageFile.name : ""} readOnly
+                    <Input type="text" value={imageFile ? imageFile.name : ""} readOnly
                       className="flex-1 border border-gray-300 rounded-lg px-3 py-2.5 text-sm bg-gray-50 min-w-0"
                       placeholder="لم يتم اختيار صورة جديدة" />
                     {imageFile && (

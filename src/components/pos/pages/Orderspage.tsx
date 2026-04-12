@@ -7,6 +7,8 @@ import { usePos } from "@/context/PosContext";
 import { DataTable, type DataTablePageEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 
+import { Input } from "@/components/ui/input";
+
 export default function OrdersPage() {
   const { setSelectedOrderId, selectedOrderId } = usePos();
 
@@ -26,7 +28,7 @@ export default function OrdersPage() {
 
   const renderHeader = () => (
     <div className="flex items-center">
-      <input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Search Order Id or Customers" className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-primaary focus:bg-white text-gray-700 text-sm rounded-lg py-2 px-3  transition-all outline-none" />
+      <Input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder="Search Order Id or Customers" className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-primaary focus:bg-white text-gray-700 text-sm rounded-lg py-2 px-3  transition-all outline-none" />
     </div>
   );
 

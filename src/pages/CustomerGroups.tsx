@@ -18,6 +18,8 @@ import CustomerGroupsModal from "@/components/modals/CustomerGroupsModal";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { Input } from "@/components/ui/input";
+
 const CustomerGroups = () => {
   const { t, direction } = useLanguage();
   const { groups, addGroup, updateGroup, deleteGroup } = useCustomerGroups();
@@ -96,7 +98,7 @@ const CustomerGroups = () => {
               className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
               size={18}
             />
-            <input
+            <Input
               type="text"
               placeholder={t("search_placeholder")}
               value={searchTerm}

@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import MobileDataCard from "../components/MobileDataCard";
 import ComboboxField from "@/components/ui/ComboboxField";
 
+import { Input } from "@/components/ui/input";
+
 const Warehouses: React.FC = () => {
   const { t, direction } = useLanguage();
   const { warehouses, addWarehouse, updateWarehouse, deleteWarehouse } = useWarehouses();
@@ -117,7 +119,7 @@ const Warehouses: React.FC = () => {
             <div className="relative flex items-center gap-2">
               <span className="text-sm text-[var(--text-muted)]">بحث</span>
               <div className="relative">
-                <input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] w-64 text-[var(--text-main)]" />
+                <Input type="text" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--primary)] w-64 text-[var(--text-main)]" />
               </div>
             </div>
           </div>
@@ -244,11 +246,11 @@ const Warehouses: React.FC = () => {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-bold text-[var(--primary)] mb-1.5">{t("code")} *</label>
-                      <input type="text" required value={form.code || ""} onChange={(e) => setForm({ ...form, code: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-[var(--primary)]/10 outline-none text-right transition-all" />
+                      <Input type="text" required value={form.code || ""} onChange={(e) => setForm({ ...form, code: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-[var(--primary)]/10 outline-none text-right transition-all" />
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-[var(--primary)] mb-1.5">{t("name")} *</label>
-                      <input type="text" required value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-[var(--primary)]/10 outline-none text-right transition-all" />
+                      <Input type="text" required value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-[var(--primary)]/10 outline-none text-right transition-all" />
                     </div>
                   </div>
 
@@ -263,7 +265,7 @@ const Warehouses: React.FC = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-[var(--primary)] mb-1.5">{t("phone")}</label>
-                      <input type="text" value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-[var(--primary)]/10 outline-none text-right transition-all" />
+                      <Input type="text" value={form.phone || ""} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-[var(--primary)]/10 outline-none text-right transition-all" />
                     </div>
                   </div>
                 </div>
@@ -281,7 +283,7 @@ const Warehouses: React.FC = () => {
                   ].map((item) => (
                     <label key={item.key} className="flex items-center justify-end gap-2 cursor-pointer group">
                       <span className="text-xs font-bold text-[var(--primary)] group-hover:text-[var(--primary-hover)] transition-colors">{item.label}</span>
-                      <input
+                      <Input
                         type="checkbox"
                         checked={!!(form as any)[item.key]}
                         onChange={(e) => {
@@ -303,7 +305,7 @@ const Warehouses: React.FC = () => {
                 <div className="space-y-4 text-right">
                   <div>
                     <label className="block text-sm font-bold text-[var(--primary)] mb-1.5">{t("email_address")}</label>
-                    <input type="email" value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-[var(--primary)]/10 outline-none text-right transition-all" />
+                    <Input type="email" value={form.email || ""} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full p-3 border border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-2 focus:ring-[var(--primary)]/10 outline-none text-right transition-all" />
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-[var(--primary)] mb-1.5">{t("address")} *</label>

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Search, RotateCcw, FileText, Printer, FileSpreadsheet, Users } from "lucide-react";
 import ComboboxField from "@/components/ui/ComboboxField";
 
+import { Input } from "@/components/ui/input";
+
 interface FilterState { customerId: string; from: string; to: string; operationType: string; }
 
 const mockCustomers = [
@@ -86,11 +88,11 @@ export default function CustomerStatementReport() {
               </div>
               <div className="space-y-2 lg:col-span-1">
                 <label className="text-xs font-medium text-[var(--text-main)]">{t("from_date", "تاريخ البداية")}</label>
-                <input type="date" value={filters.from} onChange={e => setFilters(p => ({ ...p, from: e.target.value }))} className="takamol-input h-10 w-full" />
+                <Input type="date" value={filters.from} onChange={e => setFilters(p => ({ ...p, from: e.target.value }))}  />
               </div>
               <div className="space-y-2 lg:col-span-1">
                 <label className="text-xs font-medium text-[var(--text-main)]">{t("to_date", "تاريخ النهاية")}</label>
-                <input type="date" value={filters.to} onChange={e => setFilters(p => ({ ...p, to: e.target.value }))} className="takamol-input h-10 w-full" />
+                <Input type="date" value={filters.to} onChange={e => setFilters(p => ({ ...p, to: e.target.value }))}  />
               </div>
               <div className="space-y-2 lg:col-span-1">
                 <label className="text-xs font-medium text-[var(--text-main)]">{t("operation_type", "نوع العملية")}</label>

@@ -6,6 +6,8 @@ import { useWarehouses } from '../context/WarehousesContext';
 import { cn } from '../lib/utils';
 import { useProducts, type Product } from '../context/ProductsContext';
 import ComboboxField from '@/components/ui/ComboboxField';
+import { Input } from "@/components/ui/input";
+
 import {
   Plus,
   Eye,
@@ -440,7 +442,7 @@ export default function POS() {
                 <Search size={18} />
               </div>
 
-              <input
+              <Input
                 type="text"
                 placeholder={t('search') || 'ابحث بالاسم أو الباركود...'}
                 className="w-full border-2 border-gray-300 rounded-lg py-2.5 text-sm font-bold outline-none focus:border-[#0c4a3b] bg-white"
@@ -575,7 +577,7 @@ export default function POS() {
 
               <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-gray-800 items-center">
                 <span>الخصم:</span>
-                <input
+                <Input
                   type="number"
                   value={invoiceDiscount}
                   onChange={(e) => setInvoiceDiscount(parseFloat(e.target.value) || 0)}
@@ -632,7 +634,7 @@ export default function POS() {
               <Search size={18} />
             </div>
 
-            <input
+            <Input
               type="text"
               placeholder="ابحث هنا لإضافة صنف..."
               className="w-full border-2 border-blue-200 rounded-xl py-2.5 text-sm font-bold outline-none focus:border-blue-500 bg-blue-50/30"
@@ -671,7 +673,7 @@ export default function POS() {
               <User size={18} />
             </div>
 
-            <input
+            <Input
               type="text"
               className="w-full border-2 border-blue-200 rounded-r-xl py-2.5 text-sm font-bold outline-none bg-gray-50 text-gray-700"
               style={{ paddingRight: '40px', paddingLeft: '16px' }}
@@ -698,7 +700,7 @@ export default function POS() {
         <div className="space-y-2">
           <label className="text-sm font-bold text-blue-800 block">الرصيد الحالي</label>
           <div className="flex">
-            <input
+            <Input
               type="text"
               readOnly
               value="0"
@@ -777,7 +779,7 @@ export default function POS() {
                             -
                           </button>
 
-                          <input
+                          <Input
                             type="number"
                             value={item.cartQuantity}
                             onChange={(e) => {
@@ -847,7 +849,7 @@ export default function POS() {
 
           <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col items-center justify-center gap-1">
             <span className="text-sm text-blue-600 font-bold mb-1">الخصم</span>
-            <input
+            <Input
               type="number"
               value={invoiceDiscount}
               onChange={(e) => setInvoiceDiscount(parseFloat(e.target.value) || 0)}
@@ -889,7 +891,7 @@ export default function POS() {
 
           <div className="flex items-center gap-4">
             <label className="flex items-center gap-2 cursor-pointer text-blue-800 font-bold select-none">
-              <input
+              <Input
                 type="checkbox"
                 className="w-5 h-5 accent-blue-600 rounded border-gray-300"
                 defaultChecked
@@ -1208,7 +1210,7 @@ export default function POS() {
                 >
                   الاسم *
                 </label>
-                <input
+                <Input
                   type="text"
                   value={editCustomerData.name}
                   onChange={(e) =>
@@ -1232,7 +1234,7 @@ export default function POS() {
                 >
                   الهاتف
                 </label>
-                <input
+                <Input
                   type="text"
                   value={editCustomerData.phone}
                   onChange={(e) =>
@@ -1308,7 +1310,7 @@ export default function POS() {
                 >
                   الاسم *
                 </label>
-                <input
+                <Input
                   type="text"
                   className={cn(
                     'w-full border-2 rounded-lg px-4 py-2.5 outline-none font-bold',
@@ -1329,7 +1331,7 @@ export default function POS() {
                 >
                   الهاتف
                 </label>
-                <input
+                <Input
                   type="text"
                   className={cn(
                     'w-full border-2 rounded-lg px-4 py-2.5 outline-none font-bold',

@@ -4,6 +4,8 @@ import { usePaymentCompanies } from '../context/PaymentCompaniesContext';
 import { Plus, Search, Trash2, Edit2, X, ChevronRight, ChevronLeft, LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import { Input } from "@/components/ui/input";
+
 const PaymentCompanies: React.FC = () => {
   const { t, direction } = useLanguage();
   const { paymentCompanies, addPaymentCompany, updatePaymentCompany, deletePaymentCompany } = usePaymentCompanies();
@@ -78,7 +80,7 @@ const PaymentCompanies: React.FC = () => {
               </select>
             </div>
             <div className="relative">
-              <input
+              <Input
                 type="text"
                 placeholder={t('search')}
                 value={searchTerm}
@@ -94,7 +96,7 @@ const PaymentCompanies: React.FC = () => {
               <thead>
                 <tr>
                   <th className="w-12">
-                    <input type="checkbox" className="rounded border-white/20" />
+                    <Input type="checkbox" className="rounded border-white/20" />
                   </th>
                   <th>{t('company_code')}</th>
                   <th>{t('company_name_label')}</th>
@@ -112,7 +114,7 @@ const PaymentCompanies: React.FC = () => {
                   filteredCompanies.map((c) => (
                     <tr key={`desktop-${c.id}`} className="border-b border-[var(--border)] hover:bg-[var(--bg-main)]/50 transition-colors">
                       <td className="p-3 text-center">
-                        <input type="checkbox" className="rounded border-[var(--border)]" />
+                        <Input type="checkbox" className="rounded border-[var(--border)]" />
                       </td>
                       <td className="p-3 font-mono">{c.code}</td>
                       <td className="p-3">{c.name}</td>
@@ -150,7 +152,7 @@ const PaymentCompanies: React.FC = () => {
                 <div key={`mobile-${c.id}`} className="bg-[var(--bg-main)]/30 p-4 rounded-xl border border-[var(--border)] space-y-3">
                   <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
                     <div className="flex items-center gap-2">
-                      <input type="checkbox" className="rounded border-[var(--border)]" />
+                      <Input type="checkbox" className="rounded border-[var(--border)]" />
                       <span className="font-bold text-[var(--text-main)]">{c.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -223,7 +225,7 @@ const PaymentCompanies: React.FC = () => {
                 <div className="space-y-4 text-right">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('company_code')}</label>
-                    <input
+                    <Input
                       type="text"
                       value={form.code}
                       onChange={(e) => setForm({ ...form, code: e.target.value })}
@@ -233,7 +235,7 @@ const PaymentCompanies: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('company_name_label')} *</label>
-                    <input
+                    <Input
                       type="text"
                       required
                       value={form.name}

@@ -15,6 +15,8 @@ import { useSuppliers } from "@/context/SuppliersContext";
 import AddSupplierModal from "@/components/modals/AddSupplierModal";
 import { motion, AnimatePresence } from "framer-motion";
 
+import { Input } from "@/components/ui/input";
+
 export default function AddPurchaseCSV() {
   const { t, direction } = useLanguage();
   const { suppliers } = useSuppliers();
@@ -114,7 +116,7 @@ export default function AddPurchaseCSV() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600"
                   size={18}
                 />
-                <input
+                <Input
                   type="text"
                   value={formData.date}
                   readOnly
@@ -132,7 +134,7 @@ export default function AddPurchaseCSV() {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600"
                   size={18}
                 />
-                <input
+                <Input
                   type="text"
                   value={formData.reference}
                   onChange={(e) =>
@@ -206,7 +208,7 @@ export default function AddPurchaseCSV() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-600"
                     size={18}
                   />
-                  <input
+                  <Input
                     type="text"
                     placeholder={t("choose_supplier")}
                     value={supplierSearch}
@@ -286,7 +288,7 @@ export default function AddPurchaseCSV() {
                   <Upload size={16} />
                   <span>{t("browse")}</span>
                 </button>
-                <input
+                <Input
                   type="file"
                   ref={csvInputRef}
                   onChange={(e) => handleFileChange(e, "csvFile")}
@@ -312,7 +314,7 @@ export default function AddPurchaseCSV() {
                   <Upload size={16} />
                   <span>{t("browse")}</span>
                 </button>
-                <input
+                <Input
                   type="file"
                   ref={docInputRef}
                   onChange={(e) => handleFileChange(e, "documents")}

@@ -9,6 +9,8 @@ import MobileDataCard from '@/components/MobileDataCard';
 // 1. استيراد مدير الطباعة المركزي
 import { usePrint } from '@/context/PrintContext';
 
+import { Input } from "@/components/ui/input";
+
 const FormatBox = ({ title, icon: Icon, colorClass, borderColorClass, direction }: any) => {
     const [fontSize, setFontSize] = useState(11);
     const [spacing, setSpacing] = useState(0);
@@ -37,7 +39,7 @@ const FormatBox = ({ title, icon: Icon, colorClass, borderColorClass, direction 
                     <label className="text-xs text-gray-500 font-bold whitespace-nowrap">حجم الخط</label>
                     <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden h-[40px] bg-white">
                         <button onClick={() => setFontSize(prev => prev + 1)} className="w-8 h-full flex items-center justify-center hover:bg-gray-100 border-r border-gray-300 text-gray-600 transition-colors cursor-pointer"><Plus size={14} /></button>
-                        <input type="text" value={fontSize} onChange={(e) => handleFontSizeChange(e.target.value)} className="w-10 h-full text-center text-sm font-bold outline-none !border-none !rounded-none !p-0 !m-0 !bg-transparent" style={{ minHeight: 'unset', height: '100%' }} />
+                        <Input type="text" value={fontSize} onChange={(e) => handleFontSizeChange(e.target.value)} className="w-10 h-full text-center text-sm font-bold outline-none !border-none !rounded-none !p-0 !m-0 !bg-transparent" style={{ minHeight: 'unset', height: '100%' }} />
                         <button onClick={() => setFontSize(prev => Math.max(1, prev - 1))} className="w-8 h-full flex items-center justify-center hover:bg-gray-100 border-l border-gray-300 text-gray-600 transition-colors cursor-pointer"><Minus size={14} /></button>
                     </div>
                 </div>
@@ -46,7 +48,7 @@ const FormatBox = ({ title, icon: Icon, colorClass, borderColorClass, direction 
                     <label className="text-xs text-gray-500 font-bold whitespace-nowrap">التباعد</label>
                     <div className="flex items-center border border-gray-300 rounded-lg overflow-hidden h-[40px] bg-white">
                         <button onClick={() => setSpacing(prev => prev + 1)} className="w-8 h-full flex items-center justify-center hover:bg-gray-100 border-r border-gray-300 text-gray-600 transition-colors cursor-pointer"><Plus size={14} /></button>
-                        <input type="text" value={spacing} onChange={(e) => handleSpacingChange(e.target.value)} className="w-10 h-full text-center text-sm font-bold outline-none !border-none !rounded-none !p-0 !m-0 !bg-transparent" style={{ minHeight: 'unset', height: '100%' }} />
+                        <Input type="text" value={spacing} onChange={(e) => handleSpacingChange(e.target.value)} className="w-10 h-full text-center text-sm font-bold outline-none !border-none !rounded-none !p-0 !m-0 !bg-transparent" style={{ minHeight: 'unset', height: '100%' }} />
                         <button onClick={() => setSpacing(prev => Math.max(0, prev - 1))} className="w-8 h-full flex items-center justify-center hover:bg-gray-100 border-l border-gray-300 text-gray-600 transition-colors cursor-pointer"><Minus size={14} /></button>
                     </div>
                 </div>
@@ -86,7 +88,7 @@ const BarcodeRow = ({ item, onRemove, onUpdateQty }: any) => {
             <td className="p-3 border border-gray-200">
                 <div className="flex items-center justify-center border border-gray-300 rounded-lg overflow-hidden h-[40px] w-32 mx-auto bg-white">
                     <button onClick={() => onUpdateQty(Math.max(0, item.qty - 1))} className="w-10 h-full flex items-center justify-center hover:bg-gray-100 text-gray-600 border-l border-gray-300"><Minus size={14} /></button>
-                    <input type="text" value={item.qty} onChange={(e) => handleQtyChange(e.target.value)} className="flex-1 h-full text-center text-sm font-bold outline-none !border-none !rounded-none !p-0 !m-0 !bg-transparent" style={{ minHeight: 'unset' }} />
+                    <Input type="text" value={item.qty} onChange={(e) => handleQtyChange(e.target.value)} className="flex-1 h-full text-center text-sm font-bold outline-none !border-none !rounded-none !p-0 !m-0 !bg-transparent" style={{ minHeight: 'unset' }} />
                     <button onClick={() => onUpdateQty(item.qty + 1)} className="w-10 h-full flex items-center justify-center hover:bg-gray-100 text-gray-600 border-r border-gray-300"><Plus size={14} /></button>
                 </div>
             </td>
@@ -189,7 +191,7 @@ export default function PrintBarcode() {
                     <div className="mb-4 relative" ref={searchRef}>
                         <div className="absolute inset-y-0 left-0 flex items-center pl-3 gap-2"><Barcode size={24} className="text-gray-400" /></div>
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3"><button type="button" className="p-2 bg-[var(--primary)] text-white rounded-lg hover:bg-[var(--primary-hover)]"><Plus size={18} /></button></div>
-                        <input type="text" placeholder={t('please_add_items') || 'الرجاء إضافة الأصناف'} value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setShowDropdown(true); }} onFocus={() => setShowDropdown(true)} className="takamol-input !pr-14 !pl-12 text-right" />
+                        <Input type="text" placeholder={t('please_add_items') || 'الرجاء إضافة الأصناف'} value={searchTerm} onChange={(e) => { setSearchTerm(e.target.value); setShowDropdown(true); }} onFocus={() => setShowDropdown(true)}  />
                         {showDropdown && searchTerm && (
                             <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
                                 {filteredProducts.length > 0 ? filteredProducts.map(product => (
@@ -211,7 +213,7 @@ export default function PrintBarcode() {
                                         label: 'كمية', value: (
                                             <div className="flex items-center justify-center border border-gray-300 rounded-lg overflow-hidden h-[32px] w-24 bg-white mt-1">
                                                 <button onClick={() => handleUpdateQty(item.id, Math.max(0, item.qty - 1))} className="w-8 h-full flex items-center justify-center hover:bg-gray-100 text-gray-600 border-l border-gray-300"><Minus size={12} /></button>
-                                                <input type="text" value={item.qty} onChange={(e) => handleUpdateQty(item.id, parseInt(e.target.value) || 0)} className="flex-1 h-full text-center text-xs font-bold outline-none !border-none !rounded-none !p-0 !m-0 !bg-transparent" style={{ minHeight: 'unset' }} />
+                                                <Input type="text" value={item.qty} onChange={(e) => handleUpdateQty(item.id, parseInt(e.target.value) || 0)} className="flex-1 h-full text-center text-xs font-bold outline-none !border-none !rounded-none !p-0 !m-0 !bg-transparent" style={{ minHeight: 'unset' }} />
                                                 <button onClick={() => handleUpdateQty(item.id, item.qty + 1)} className="w-8 h-full flex items-center justify-center hover:bg-gray-100 text-gray-600 border-r border-gray-300"><Plus size={12} /></button>
                                             </div>
                                         )
@@ -248,19 +250,19 @@ export default function PrintBarcode() {
                 <div className="bg-gray-50/50 p-5 rounded-xl border border-gray-200 mb-8">
                     <div className="mb-5">
                         <label className="block text-sm font-bold text-gray-700 mb-2">طريقة الطباعة **</label>
-                        <select className="takamol-input md:w-1/3">
+                        <select >
                             <option>طباعة مستمرة (طابعة باركود)</option>
                             <option>ورق A4</option>
                         </select>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-                        <div><label className="block text-sm font-bold text-gray-700 mb-2">العرض</label><input type="text" defaultValue="50" className="takamol-input text-center font-bold" /></div>
-                        <div><label className="block text-sm font-bold text-gray-700 mb-2">الارتفاع</label><div className="flex"><input type="text" defaultValue="25" className="takamol-input !rounded-l-none text-center font-bold" /><span className="bg-gray-100 border border-gray-300 border-r-0 px-4 py-2.5 rounded-l-lg text-sm text-gray-600 font-bold whitespace-nowrap">مللي</span></div></div>
-                        <div><label className="block text-sm font-bold text-gray-700 mb-2 whitespace-nowrap">ارتفاع أعمدة الباركود</label><div className="flex"><input type="text" defaultValue="28" className="takamol-input !rounded-l-none text-center font-bold" /><span className="bg-gray-100 border border-gray-300 border-r-0 px-4 py-2.5 rounded-l-lg text-sm text-gray-600 font-bold whitespace-nowrap">مللي</span></div></div>
-                        <div><label className="block text-sm font-bold text-gray-700 mb-2 whitespace-nowrap">اتجاه أعمدة الباركود</label><div className="flex"><select className="takamol-input !rounded-l-none text-center font-bold"><option>عمودي</option><option>أفقي</option></select><span className="bg-gray-100 border border-gray-300 border-r-0 px-4 py-2.5 rounded-l-lg text-sm text-gray-600 font-bold whitespace-nowrap">px</span></div></div>
+                        <div><label className="block text-sm font-bold text-gray-700 mb-2">العرض</label><Input type="text" defaultValue="50"  /></div>
+                        <div><label className="block text-sm font-bold text-gray-700 mb-2">الارتفاع</label><div className="flex"><Input type="text" defaultValue="25"  /><span className="bg-gray-100 border border-gray-300 border-r-0 px-4 py-2.5 rounded-l-lg text-sm text-gray-600 font-bold whitespace-nowrap">مللي</span></div></div>
+                        <div><label className="block text-sm font-bold text-gray-700 mb-2 whitespace-nowrap">ارتفاع أعمدة الباركود</label><div className="flex"><Input type="text" defaultValue="28"  /><span className="bg-gray-100 border border-gray-300 border-r-0 px-4 py-2.5 rounded-l-lg text-sm text-gray-600 font-bold whitespace-nowrap">مللي</span></div></div>
+                        <div><label className="block text-sm font-bold text-gray-700 mb-2 whitespace-nowrap">اتجاه أعمدة الباركود</label><div className="flex"><select ><option>عمودي</option><option>أفقي</option></select><span className="bg-gray-100 border border-gray-300 border-r-0 px-4 py-2.5 rounded-l-lg text-sm text-gray-600 font-bold whitespace-nowrap">px</span></div></div>
                         <div className="flex items-center justify-start md:justify-center pt-2 md:pt-6">
-                            <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" className="w-5 h-5 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]" /><span className="text-sm font-bold text-gray-700">فحص سعر الترويج</span></label>
+                            <label className="flex items-center gap-2 cursor-pointer"><Input type="checkbox" className="w-5 h-5 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]" /><span className="text-sm font-bold text-gray-700">فحص سعر الترويج</span></label>
                         </div>
                     </div>
 
@@ -276,7 +278,7 @@ export default function PrintBarcode() {
                             { id: 'printExpDate', label: 'انتهاء', defaultChecked: true },
                         ].map(cb => (
                             <label key={cb.id} className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" defaultChecked={cb.defaultChecked} className="w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]" />
+                                <Input type="checkbox" defaultChecked={cb.defaultChecked} className="w-4 h-4 rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]" />
                                 <span className="text-sm font-bold text-gray-700">{cb.label}</span>
                             </label>
                         ))}

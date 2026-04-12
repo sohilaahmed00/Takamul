@@ -8,6 +8,8 @@ import { Search, Trash2, X, LayoutGrid, Save, Printer, User, Clock, Calendar, Bu
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
+import { Input } from "@/components/ui/input";
+
 interface InvoiceItem {
   id: string;
   productId: string;
@@ -115,7 +117,7 @@ const CreateA4Invoice: React.FC = () => {
 
         <div className="p-4 border-b border-emerald-50">
           <div className="relative">
-            <input type="text" placeholder={t("barcode_search_placeholder")} className="w-full bg-gray-50 border border-emerald-100 rounded-lg px-4 py-2.5 text-sm text-right outline-none focus:ring-2 focus:ring-emerald-100" />
+            <Input type="text" placeholder={t("barcode_search_placeholder")} className="w-full bg-gray-50 border border-emerald-100 rounded-lg px-4 py-2.5 text-sm text-right outline-none focus:ring-2 focus:ring-emerald-100" />
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-400" />
           </div>
         </div>
@@ -141,7 +143,7 @@ const CreateA4Invoice: React.FC = () => {
                   </td>
                   <td className="p-2 font-bold text-emerald-900">{item.total.toFixed(2)}</td>
                   <td className="p-2 text-center">
-                    <input type="number" value={item.qty} onChange={(e) => handleUpdateQty(item.id, parseInt(e.target.value) || 1)} className="w-12 border border-emerald-100 rounded px-1 py-0.5 text-center outline-none focus:border-emerald-500" />
+                    <Input type="number" value={item.qty} onChange={(e) => handleUpdateQty(item.id, parseInt(e.target.value) || 1)} className="w-12 border border-emerald-100 rounded px-1 py-0.5 text-center outline-none focus:border-emerald-500" />
                   </td>
                   <td className="p-2">{item.price.toFixed(2)}</td>
                   <td className="p-2 font-medium text-emerald-800">{item.name}</td>
@@ -201,11 +203,11 @@ const CreateA4Invoice: React.FC = () => {
             </div>
             <div className="flex items-center gap-4 mr-4">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="payType" defaultChecked className="w-4 h-4 accent-blue-600" />
+                <Input type="radio" name="payType" defaultChecked className="w-4 h-4 accent-blue-600" />
                 <span>{t("cash")}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="radio" name="payType" className="w-4 h-4 accent-blue-600" />
+                <Input type="radio" name="payType" className="w-4 h-4 accent-blue-600" />
                 <span>{t("credit")}</span>
               </label>
             </div>
@@ -216,7 +218,7 @@ const CreateA4Invoice: React.FC = () => {
           <div className="space-y-2 relative">
             <label className="text-sm font-bold text-blue-800 block">{t("name_phone_code")}</label>
             <div className="relative">
-              <input type="text" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder={t("search_customer")} className="w-full border border-blue-200 rounded-xl px-4 py-2.5 text-right outline-none focus:ring-2 focus:ring-blue-100 shadow-sm" />
+              <Input type="text" value={customerSearch} onChange={(e) => setCustomerSearch(e.target.value)} placeholder={t("search_customer")} className="w-full border border-blue-200 rounded-xl px-4 py-2.5 text-right outline-none focus:ring-2 focus:ring-blue-100 shadow-sm" />
               <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400" />
             </div>
             {customerSearch && !selectedCustomer && (
@@ -242,7 +244,7 @@ const CreateA4Invoice: React.FC = () => {
           <div className="space-y-2">
             <label className="text-sm font-bold text-blue-800 block">{t("current_balance")}</label>
             <div className="flex">
-              <input type="text" readOnly value="0" className="w-full border border-blue-200 rounded-r-xl px-4 py-2.5 text-center bg-gray-50 font-bold" />
+              <Input type="text" readOnly value="0" className="w-full border border-blue-200 rounded-r-xl px-4 py-2.5 text-center bg-gray-50 font-bold" />
               <span className="bg-blue-600 text-white px-4 py-2.5 rounded-l-xl flex items-center justify-center font-bold">{t("debtor")}</span>
             </div>
           </div>
@@ -276,7 +278,7 @@ const CreateA4Invoice: React.FC = () => {
                 <td className="p-3 border-l border-blue-50">{t("piece")}</td>
                 <td className="p-3 border-l border-blue-50">{item.price.toFixed(2)}</td>
                 <td className="p-3 border-l border-blue-50">
-                  <input type="number" value={item.qty} onChange={(e) => handleUpdateQty(item.id, parseInt(e.target.value) || 1)} className="w-20 border border-blue-100 rounded px-2 py-1 text-center outline-none focus:border-blue-500" />
+                  <Input type="number" value={item.qty} onChange={(e) => handleUpdateQty(item.id, parseInt(e.target.value) || 1)} className="w-20 border border-blue-100 rounded px-2 py-1 text-center outline-none focus:border-blue-500" />
                 </td>
                 <td className="p-3 border-l border-blue-50">{item.price.toFixed(2)}</td>
                 <td className="p-3 border-l border-blue-50">{item.vat.toFixed(2)}</td>
@@ -287,7 +289,7 @@ const CreateA4Invoice: React.FC = () => {
               <td className="p-3 border-l border-blue-100 text-center text-emerald-600 font-bold">{t("new")}</td>
               <td colSpan={6} className="p-0">
                 <div className="relative">
-                  <input type="text" placeholder={t("search_product")} className="w-full bg-transparent p-3 text-right outline-none placeholder:text-blue-300 pr-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                  <Input type="text" placeholder={t("search_product")} className="w-full bg-transparent p-3 text-right outline-none placeholder:text-blue-300 pr-10" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                   <Search size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-300" />
                   {searchTerm && (
                     <div className="absolute top-full left-0 right-0 bg-white border border-blue-100 shadow-xl z-50 max-h-60 overflow-y-auto rounded-b-xl">
@@ -342,7 +344,7 @@ const CreateA4Invoice: React.FC = () => {
               {t("sales")}
             </button>
             <label className="flex items-center gap-2 cursor-pointer text-blue-800 font-bold">
-              <input type="checkbox" className="w-5 h-5 accent-blue-600" defaultChecked />
+              <Input type="checkbox" className="w-5 h-5 accent-blue-600" defaultChecked />
               <span>{t("print")}</span>
             </label>
           </div>

@@ -3,6 +3,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import { Printer, Trash2, Edit2 } from "lucide-react";
 import ResponsiveModal from "@/components/modals/ResponsiveModal";
 
+import { Input } from "@/components/ui/input";
+
 const ViewPaymentsModal = ({ isOpen, onClose, customer, payments = [] }: any) => {
   const { t, direction } = useLanguage();
 
@@ -20,7 +22,7 @@ const ViewPaymentsModal = ({ isOpen, onClose, customer, payments = [] }: any) =>
         </div>
         <div className="flex items-center gap-2 w-full md:w-auto">
           <span className="text-sm whitespace-nowrap">{t("search")}</span>
-          <input type="text" className="border border-gray-300 rounded px-2 py-1 focus:border-primary outline-none text-sm w-full md:w-64" />
+          <Input type="text" className="border border-gray-300 rounded px-2 py-1 focus:border-primary outline-none text-sm w-full md:w-64" />
         </div>
       </div>
       <div className="overflow-x-auto rounded-lg border border-gray-200">

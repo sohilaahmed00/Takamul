@@ -7,6 +7,8 @@ import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal
 
 import ResponsiveModal from "@/components/modals/ResponsiveModal";
 
+import { Input } from "@/components/ui/input";
+
 export default function UserGroups() {
   const { t, direction } = useLanguage();
   const { userGroups, addUserGroup, updateUserGroup, deleteUserGroup } = useUserGroups();
@@ -136,16 +138,16 @@ export default function UserGroups() {
                     <tr key={module.id} className="hover:bg-table-row-hover transition-colors border-b border-gray-100 dark:border-border">
                       <td className="p-3 font-bold text-gray-900 dark:text-white border-x border-gray-100 dark:border-border text-sm">{module.label}</td>
                       <td className="p-3 border-x border-gray-100 dark:border-border text-center">
-                        <input type="checkbox" checked={selectedGroup.permissions[module.id]?.view || false} onChange={() => togglePermission(module.id, "view")} className="w-4 h-4 accent-primary" />
+                        <Input type="checkbox" checked={selectedGroup.permissions[module.id]?.view || false} onChange={() => togglePermission(module.id, "view")} className="w-4 h-4 accent-primary" />
                       </td>
                       <td className="p-3 border-x border-gray-100 dark:border-border text-center">
-                        <input type="checkbox" checked={selectedGroup.permissions[module.id]?.add || false} onChange={() => togglePermission(module.id, "add")} className="w-4 h-4 accent-primary" />
+                        <Input type="checkbox" checked={selectedGroup.permissions[module.id]?.add || false} onChange={() => togglePermission(module.id, "add")} className="w-4 h-4 accent-primary" />
                       </td>
                       <td className="p-3 border-x border-gray-100 dark:border-border text-center">
-                        <input type="checkbox" checked={selectedGroup.permissions[module.id]?.edit || false} onChange={() => togglePermission(module.id, "edit")} className="w-4 h-4 accent-primary" />
+                        <Input type="checkbox" checked={selectedGroup.permissions[module.id]?.edit || false} onChange={() => togglePermission(module.id, "edit")} className="w-4 h-4 accent-primary" />
                       </td>
                       <td className="p-3 border-x border-gray-100 dark:border-border text-center">
-                        <input type="checkbox" checked={selectedGroup.permissions[module.id]?.delete || false} onChange={() => togglePermission(module.id, "delete")} className="w-4 h-4 accent-primary" />
+                        <Input type="checkbox" checked={selectedGroup.permissions[module.id]?.delete || false} onChange={() => togglePermission(module.id, "delete")} className="w-4 h-4 accent-primary" />
                       </td>
                       <td className="p-3 border-x border-gray-100 dark:border-border text-center">
                         <span className="text-xs text-gray-400">-</span>
@@ -189,7 +191,7 @@ export default function UserGroups() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Search */}
             <div className="relative w-full md:w-64 order-2 md:order-1">
-              <input type="text" placeholder={t("search_placeholder") || "اكتب ما تريد ان تبحث عنه"} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn("w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-primary text-sm", direction === "rtl" ? "pr-10" : "pl-10")} />
+              <Input type="text" placeholder={t("search_placeholder") || "اكتب ما تريد ان تبحث عنه"} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn("w-full border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 bg-white dark:bg-gray-900 outline-none focus:border-primary text-sm", direction === "rtl" ? "pr-10" : "pl-10")} />
               <Search className={cn("absolute top-1/2 -translate-y-1/2 text-gray-400", direction === "rtl" ? "right-3" : "left-3")} size={18} />
             </div>
           </div>
@@ -237,7 +239,7 @@ export default function UserGroups() {
                         </div>
                       </td>
                       <td className="p-3 text-center">
-                        <input type="checkbox" className="w-4 h-4 accent-primary" />
+                        <Input type="checkbox" className="w-4 h-4 accent-primary" />
                       </td>
                     </tr>
                   ))
@@ -317,12 +319,12 @@ export default function UserGroups() {
 
           <div className="space-y-1 text-right">
             <label className="block text-sm font-bold text-emerald-800">{t("group_name")} *</label>
-            <input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full p-2 border border-gray-300 rounded-lg outline-none focus:border-emerald-500 bg-white text-right" />
+            <Input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full p-2 border border-gray-300 rounded-lg outline-none focus:border-emerald-500 bg-white text-right" />
           </div>
 
           <div className="space-y-1 text-right">
             <label className="block text-sm font-bold text-emerald-800">{t("description")} *</label>
-            <input type="text" required value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full p-2 border border-gray-300 rounded-lg outline-none focus:border-emerald-500 bg-white text-right" />
+            <Input type="text" required value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} className="w-full p-2 border border-gray-300 rounded-lg outline-none focus:border-emerald-500 bg-white text-right" />
           </div>
         </form>
       </ResponsiveModal>

@@ -12,6 +12,8 @@ import { useGetTreasuryStatement } from "@/features/treasury-statement/hooks/use
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+import { Input } from "@/components/ui/input";
+
 type FilterState = {
   treasuryId?: number;
   from: string;
@@ -172,13 +174,31 @@ export default function ExternalTransfersList() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-[var(--text-main)]">{t("from_date")}</Label>
-                <Input type="date" value={filters.from} onChange={(e) => setFilters((prev) => ({ ...prev, from: e.target.value }))} />
+                <label className="text-sm font-medium text-[var(--text-main)]">
+                  {t("from_date")}
+                </label>
+                <Input
+                  type="date"
+                  value={filters.from}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, from: e.target.value }))
+                  }
+                  
+                />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-sm font-medium text-[var(--text-main)]">{t("to_date")}</Label>
-                <Input type="date" value={filters.to} onChange={(e) => setFilters((prev) => ({ ...prev, to: e.target.value }))} />
+                <label className="text-sm font-medium text-[var(--text-main)]">
+                  {t("to_date")}
+                </label>
+                <Input
+                  type="date"
+                  value={filters.to}
+                  onChange={(e) =>
+                    setFilters((prev) => ({ ...prev, to: e.target.value }))
+                  }
+                  
+                />
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 py-3">

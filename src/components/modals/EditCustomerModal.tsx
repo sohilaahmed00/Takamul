@@ -6,6 +6,8 @@ import { useLanguage } from "@/context/LanguageContext";
 import ResponsiveModal from "@/components/modals/ResponsiveModal";
 import Toast from "../Toast";
 
+import { Input } from "@/components/ui/input";
+
 interface EditCustomerModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -190,7 +192,7 @@ export default function EditCustomerModal({
 
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-4 sm:gap-8">
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input
+                        <Input
                           type="radio"
                           name="isTaxable"
                           checked={!formData.isTaxable}
@@ -209,7 +211,7 @@ export default function EditCustomerModal({
                       </label>
 
                       <label className="flex items-center gap-2 cursor-pointer">
-                        <input
+                        <Input
                           type="radio"
                           name="isTaxable"
                           checked={formData.isTaxable}
@@ -256,7 +258,7 @@ export default function EditCustomerModal({
                       </Field>
 
                       <Field label={`${t("customer_name")} *`}>
-                        <input
+                        <Input
                           type="text"
                           required
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
@@ -266,7 +268,7 @@ export default function EditCustomerModal({
                       </Field>
 
                       <Field label={t("phone")}>
-                        <input
+                        <Input
                           type="text"
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
                           value={formData.phone}
@@ -275,7 +277,7 @@ export default function EditCustomerModal({
                       </Field>
 
                       <Field label={t("email_address")}>
-                        <input
+                        <Input
                           type="email"
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
                           value={formData.email}
@@ -284,7 +286,7 @@ export default function EditCustomerModal({
                       </Field>
 
                       <Field label={t("commercial_register")}>
-                        <input
+                        <Input
                           type="text"
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
                           value={formData.commercialRegister}
@@ -298,7 +300,7 @@ export default function EditCustomerModal({
                       </Field>
 
                       <Field label={t("opening_balance_with_negative_note")}>
-                        <input
+                        <Input
                           type="number"
                           required
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71] text-center"
@@ -313,7 +315,7 @@ export default function EditCustomerModal({
                       </Field>
 
                       <Field label={t("credit_limit")}>
-                        <input
+                        <Input
                           type="number"
                           required
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71] text-center"
@@ -331,7 +333,7 @@ export default function EditCustomerModal({
                         <span className="text-sm font-bold text-[#2ecc71] text-right leading-5">
                           {t("stop_selling_if_overdue")}
                         </span>
-                        <input
+                        <Input
                           type="checkbox"
                           checked={formData.stopSellingOverdue}
                           onChange={(e) =>
@@ -348,7 +350,7 @@ export default function EditCustomerModal({
                         <span className="text-sm font-bold text-[#2ecc71]">
                           {t("active")}
                         </span>
-                        <input
+                        <Input
                           type="checkbox"
                           checked={formData.isActive}
                           onChange={(e) =>
@@ -364,7 +366,7 @@ export default function EditCustomerModal({
 
                     <div className="space-y-4 border border-gray-100 p-4 rounded-xl bg-white">
                       <Field label={`${t("address")} *`}>
-                        <input
+                        <Input
                           type="text"
                           required
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
@@ -379,7 +381,7 @@ export default function EditCustomerModal({
                       </Field>
 
                       <Field label={`${t("city")} *`}>
-                        <input
+                        <Input
                           type="text"
                           required
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
@@ -389,7 +391,7 @@ export default function EditCustomerModal({
                       </Field>
 
                       <Field label={`${t("state")} *`}>
-                        <input
+                        <Input
                           type="text"
                           required
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
@@ -399,7 +401,7 @@ export default function EditCustomerModal({
                       </Field>
 
                       <Field label={t("postal_code")}>
-                        <input
+                        <Input
                           type="text"
                           className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"
                           value={formData.postalCode}
@@ -414,7 +416,7 @@ export default function EditCustomerModal({
 
                       {formData.isTaxable && (
                         <Field label={`${t("tax_number")} *`}>
-                          <input
+                          <Input
                             type="text"
                             required
                             className="w-full border border-gray-200 rounded-lg px-3 py-2.5 outline-none focus:border-[#2ecc71]"

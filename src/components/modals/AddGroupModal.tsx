@@ -6,6 +6,8 @@ import { useGroups } from "@/context/GroupsContext";
 import ResponsiveModal from "./ResponsiveModal";
 import Toast from "../Toast";
 
+import { Input } from "@/components/ui/input";
+
 interface AddGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -114,15 +116,15 @@ const AddGroupModal: React.FC<AddGroupModalProps> = ({ isOpen, onClose }) => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                     <Field label={`${t("group_name")} *`}>
-                      <input type="text" value={groupName} onChange={(e) => setGroupName(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] focus:ring-1 focus:ring-[#2ecc71]/20" required />
+                      <Input type="text" value={groupName} onChange={(e) => setGroupName(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] focus:ring-1 focus:ring-[#2ecc71]/20" required />
                     </Field>
 
                     <Field label={t("group_name_secondary_lang")}>
-                      <input type="text" value={groupNameSecondary} onChange={(e) => setGroupNameSecondary(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] focus:ring-1 focus:ring-[#2ecc71]/20" placeholder="English name" />
+                      <Input type="text" value={groupNameSecondary} onChange={(e) => setGroupNameSecondary(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] focus:ring-1 focus:ring-[#2ecc71]/20" placeholder="English name" />
                     </Field>
 
                     <Field label={t("product_name_third_lang")}>
-                      <input type="text" value={groupNameUr} onChange={(e) => setGroupNameUr(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] focus:ring-1 focus:ring-[#2ecc71]/20" placeholder="Urdu name" />
+                      <Input type="text" value={groupNameUr} onChange={(e) => setGroupNameUr(e.target.value)} className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] focus:ring-1 focus:ring-[#2ecc71]/20" placeholder="Urdu name" />
                     </Field>
 
                     <div className="md:col-span-2">
@@ -134,14 +136,14 @@ const AddGroupModal: React.FC<AddGroupModalProps> = ({ isOpen, onClose }) => {
                     <div className="md:col-span-2">
                       <Field label={t("group_image")}>
                         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                          <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                          <Input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
 
                           <button type="button" onClick={() => fileInputRef.current?.click()} className="bg-[#00a65a] text-white px-4 py-2.5 rounded-lg text-sm hover:bg-[#008d4c] transition-colors flex items-center justify-center gap-2">
                             <Upload size={16} />
                             {t("browse")}
                           </button>
 
-                          <input type="text" value={fileName} className="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none bg-gray-50" readOnly placeholder={t("no_file_chosen")} />
+                          <Input type="text" value={fileName} className="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm outline-none bg-gray-50" readOnly placeholder={t("no_file_chosen")} />
                         </div>
                       </Field>
                     </div>

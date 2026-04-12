@@ -7,6 +7,8 @@ import type { Item } from "@/features/items/types/items.types";
 import useCreateItem from "@/features/items/hooks/useCreateItem";
 import useUpdateItem from "@/features/items/hooks/useUpdateItem";
 
+import { Input } from "@/components/ui/input";
+
 interface ItemModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -97,7 +99,7 @@ export default function ItemModal({
             <label className="mb-2 block text-sm font-medium">
               {t("item_name")}
             </label>
-            <input
+            <Input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -108,7 +110,7 @@ export default function ItemModal({
 
           {isEdit && (
             <div className="flex items-center gap-3">
-              <input
+              <Input
                 id="item-active"
                 type="checkbox"
                 checked={isActive}

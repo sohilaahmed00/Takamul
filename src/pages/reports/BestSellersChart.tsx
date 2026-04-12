@@ -22,6 +22,8 @@ import {
 import { useLanguage } from "@/context/LanguageContext";
 import { useGetTopSellingProducts } from "@/features/reports/hooks/useGetTopSellingProducts";
 
+import { Input } from "@/components/ui/input";
+
 type FilterState = {
   from: string;
   to: string;
@@ -107,13 +109,13 @@ export default function BestSellersChart() {
                 <label className="text-sm font-medium text-[var(--text-main)]">
                   {t("from_date", "تاريخ البداية")}
                 </label>
-                <input
+                <Input
                   type="date"
                   value={filters.from}
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, from: e.target.value }))
                   }
-                  className="takamol-input"
+                  
                 />
               </div>
 
@@ -121,13 +123,13 @@ export default function BestSellersChart() {
                 <label className="text-sm font-medium text-[var(--text-main)]">
                   {t("to_date", "تاريخ النهاية")}
                 </label>
-                <input
+                <Input
                   type="date"
                   value={filters.to}
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, to: e.target.value }))
                   }
-                  className="takamol-input"
+                  
                 />
               </div>
 

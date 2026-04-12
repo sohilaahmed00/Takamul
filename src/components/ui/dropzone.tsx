@@ -4,6 +4,8 @@ import { useDropzone as rootUseDropzone } from "react-dropzone";
 import type { Accept, FileRejection } from "react-dropzone";
 import { Button } from "@/components/ui/button";
 
+import { Input } from "@/components/ui/input";
+
 type ButtonProps = React.ComponentProps<typeof Button>;
 type DropzoneResult<TUploadRes, TUploadError> =
   | {
@@ -552,7 +554,7 @@ const DropzoneTrigger = forwardRef<HTMLLabelElement, DropzoneTriggerProps>(({ cl
   return (
     <label ref={ref} {...props} className={cn("cursor-pointer rounded-sm bg-secondary px-4 py-2 font-medium ring-offset-background transition-colors focus-within:outline-none hover:bg-secondary/80 has-[input:focus-visible]:ring-2 has-[input:focus-visible]:ring-ring has-[input:focus-visible]:ring-offset-2", className)}>
       {children}
-      <input
+      <Input
         {...context.getInputProps({
           style: {
             display: undefined,

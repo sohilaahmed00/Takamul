@@ -13,6 +13,8 @@ import { cn } from '@/lib/utils';
 import AddGroupModal from '@/components/modals/AddGroupModal';
 import Toast from '@/components/Toast';
 
+import { Input } from "@/components/ui/input";
+
 export default function UserGroups() {
 
     const { direction, t } = useLanguage();
@@ -134,12 +136,12 @@ export default function UserGroups() {
 
             <div className="relative w-72">
 
-                <input
+                <Input
                     type="text"
                     placeholder={t('search_placeholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="takamol-input !py-2"
+                    
                 />
 
                 <Search
@@ -165,7 +167,7 @@ export default function UserGroups() {
 
                             <th className="p-3">
 
-                                <input
+                                <Input
                                     type="checkbox"
                                     checked={
                                         selectedItems.length === filteredGroups.length &&
@@ -192,7 +194,7 @@ export default function UserGroups() {
 
                                 <td>
 
-                                    <input
+                                    <Input
                                         type="checkbox"
                                         checked={selectedItems.includes(String(group.id))}
                                         onChange={() => handleSelectItem(String(group.id))}

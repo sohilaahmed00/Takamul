@@ -10,6 +10,8 @@ import type { Purchase } from "@/features/purchases/types/purchase.types";
 import { useLanguage } from "@/context/LanguageContext";
 import formatDate from "@/lib/formatDate";
 
+import { Input } from "@/components/ui/input";
+
 export default function PurchasesList() {
   const { t, direction } = useLanguage();
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -35,7 +37,7 @@ export default function PurchasesList() {
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
-          <input
+          <Input
             type="text"
             value={globalFilterValue}
             onChange={onGlobalFilterChange}

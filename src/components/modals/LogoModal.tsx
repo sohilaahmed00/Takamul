@@ -5,6 +5,8 @@ import { useLogo } from '@/context/LogoContext';
 import { cn } from '@/lib/utils';
 import ResponsiveModal from './ResponsiveModal';
 
+import { Input } from "@/components/ui/input";
+
 interface LogoModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -69,7 +71,7 @@ export default function LogoModal({ isOpen, onClose }: LogoModalProps) {
               <div className="flex-1 takamol-input !py-2 !bg-[var(--bg-main)] truncate">
                 {selectedFile ? selectedFile.name : ''}
               </div>
-              <input
+              <Input
                 type="file"
                 ref={fileInputRef}
                 onChange={handleFileChange}

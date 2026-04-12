@@ -7,6 +7,8 @@ import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSupplier
 import { Button } from "@/components/ui/button";
 import { useGetSupplierById } from "@/features/suppliers/hooks/useGetSupplierById";
 import AddParnterModal from "@/components/modals/AddParnterModal";
+import { Input } from "@/components/ui/input";
+
 import {
   Card,
   CardAction,
@@ -56,7 +58,7 @@ export default function SuppliersList() {
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
-          <input
+          <Input
             type="text"
             value={globalFilterValue}
             onChange={onGlobalFilterChange}

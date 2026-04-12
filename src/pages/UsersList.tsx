@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import AddUserModal from "@/components/modals/AddUserModal";
 import ComboboxField from "@/components/ui/ComboboxField";
 
+import { Input } from "@/components/ui/input";
+
 export default function UsersList() {
   const { t, direction } = useLanguage();
   const { users, deleteUser } = useUsers();
@@ -61,7 +63,7 @@ export default function UsersList() {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             {/* Search */}
             <div className="relative w-full md:w-80 order-2 md:order-1">
-              <input type="text" placeholder={t("search_placeholder") || "اكتب ما تريد ان تبحث عنه"} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn("w-full border border-[var(--border)] bg-[var(--input-bg)] rounded-xl px-4 py-2 text-sm outline-none focus:border-[var(--primary)] transition-all text-[var(--text-main)]", direction === "rtl" ? "pr-10" : "pl-10")} />
+              <Input type="text" placeholder={t("search_placeholder") || "اكتب ما تريد ان تبحث عنه"} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className={cn("w-full border border-[var(--border)] bg-[var(--input-bg)] rounded-xl px-4 py-2 text-sm outline-none focus:border-[var(--primary)] transition-all text-[var(--text-main)]", direction === "rtl" ? "pr-10" : "pl-10")} />
               <Search className={cn("absolute top-1/2 -translate-y-1/2 text-[var(--text-muted)]", direction === "rtl" ? "right-3" : "left-3")} size={18} />
             </div>
 
@@ -91,7 +93,7 @@ export default function UsersList() {
                   <th>{t("status")}</th>
                   <th className="text-center">{t("actions")}</th>
                   <th className="w-10 text-center">
-                    <input type="checkbox" />
+                    <Input type="checkbox" />
                   </th>
                 </tr>
               </thead>
@@ -144,7 +146,7 @@ export default function UsersList() {
                         </div>
                       </td>
                       <td className="text-center">
-                        <input type="checkbox" />
+                        <Input type="checkbox" />
                       </td>
                     </tr>
                   ))

@@ -279,7 +279,7 @@ export default function AddBranch() {
                           </button>
                         </div>
                       )}
-                      <input
+                      <Input
                         ref={fileInputRef}
                         type="file"
                         accept="image/*"

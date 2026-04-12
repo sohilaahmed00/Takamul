@@ -20,6 +20,8 @@ import ItemModal from "@/components/modals/ItemModal";
 import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { Item } from "@/features/items/types/items.types";
 
+import { Input } from "@/components/ui/input";
+
 export default function ItemsList() {
   const { direction, t } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
@@ -112,7 +114,7 @@ export default function ItemsList() {
         <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
           <Search size={18} className="text-gray-400" />
         </div>
-        <input
+        <Input
           type="text"
           value={searchTerm}
           onChange={(e) => {
@@ -120,7 +122,7 @@ export default function ItemsList() {
             setCurrentPage(1);
           }}
           placeholder={t("search_item")}
-          className="takamol-input h-10 pr-11"
+          
         />
       </div>
     </div>

@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MobileDataCard from '../components/MobileDataCard';
 import ComboboxField from '@/components/ui/ComboboxField';
 
+import { Input } from "@/components/ui/input";
+
 const Tables: React.FC = () => {
   const { t, direction } = useLanguage();
   const { tables, addTable, updateTable, deleteTable } = useTables();
@@ -85,7 +87,7 @@ const Tables: React.FC = () => {
             <div className="relative flex items-center gap-2">
               <span className="text-sm text-[var(--text-muted)]">بحث</span>
               <div className="relative">
-                <input
+                <Input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -223,7 +225,7 @@ const Tables: React.FC = () => {
                 <div className="space-y-4 text-right">
                   <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('name')} *</label>
-                    <input
+                    <Input
                       type="text"
                       required
                       value={form.name}
@@ -233,7 +235,7 @@ const Tables: React.FC = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-bold text-emerald-800 mb-1.5">{t('code')} *</label>
-                    <input
+                    <Input
                       type="text"
                       required
                       value={form.code}

@@ -5,6 +5,8 @@ import { Plus, Search, Trash2, Edit2, LayoutGrid } from 'lucide-react';
 import { cn } from '../lib/utils';
 import MobileDataCard from '@/components/MobileDataCard';
 
+import { Input } from "@/components/ui/input";
+
 const Promotions: React.FC = () => {
   const { t, language, direction } = useLanguage();
   const {
@@ -141,7 +143,7 @@ const Promotions: React.FC = () => {
                   <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     {/* Search */}
                     <div className="relative w-full md:w-64 order-2 md:order-1">
-                      <input
+                      <Input
                         type="text"
                         placeholder={t('search_placeholder') || "اكتب ما تريد ان تبحث عنه"}
                         value={searchTerm}
@@ -222,7 +224,7 @@ const Promotions: React.FC = () => {
                                 </div>
                               </td>
                               <td className="p-3 text-center">
-                                <input type="checkbox" className="w-4 h-4 accent-primary" />
+                                <Input type="checkbox" className="w-4 h-4 accent-primary" />
                               </td>
                             </tr>
                           ))
@@ -308,7 +310,7 @@ const Promotions: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="md:col-span-2">
                         <label className="block text-sm font-bold text-primary mb-1">{t('promotion_name')} *</label>
-                        <input
+                        <Input
                           type="text"
                           required
                           value={specialForm.name}
@@ -319,7 +321,7 @@ const Promotions: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-bold text-primary mb-1">{t('promotion_start_date')}</label>
-                        <input
+                        <Input
                           type="date"
                           value={specialForm.startDate}
                           onChange={(e) => setSpecialForm({ ...specialForm, startDate: e.target.value })}
@@ -329,7 +331,7 @@ const Promotions: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-bold text-primary mb-1">{t('promotion_end_date')}</label>
-                        <input
+                        <Input
                           type="date"
                           value={specialForm.endDate}
                           onChange={(e) => setSpecialForm({ ...specialForm, endDate: e.target.value })}
@@ -339,7 +341,7 @@ const Promotions: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-bold text-primary mb-1">{t('basic_item')} *</label>
-                        <input
+                        <Input
                           type="text"
                           required
                           value={specialForm.basicItem}
@@ -350,7 +352,7 @@ const Promotions: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-bold text-primary mb-1">{t('basic_item_qty')}</label>
-                        <input
+                        <Input
                           type="number"
                           value={specialForm.basicItemQty}
                           onChange={(e) => setSpecialForm({ ...specialForm, basicItemQty: Number(e.target.value) })}
@@ -360,7 +362,7 @@ const Promotions: React.FC = () => {
 
                       <div>
                         <label className="block text-sm font-bold text-primary mb-1">{t('free_item')} *</label>
-                        <input
+                        <Input
                           type="text"
                           required
                           value={specialForm.freeItem}
@@ -372,7 +374,7 @@ const Promotions: React.FC = () => {
                       <div className="grid grid-cols-2 gap-4">
                         <div>
                           <label className="block text-sm font-bold text-primary mb-1">{t('free_item_qty')}</label>
-                          <input
+                          <Input
                             type="number"
                             value={specialForm.freeItemQty}
                             onChange={(e) => setSpecialForm({ ...specialForm, freeItemQty: Number(e.target.value) })}
@@ -381,7 +383,7 @@ const Promotions: React.FC = () => {
                         </div>
                         <div>
                           <label className="block text-sm font-bold text-primary mb-1">{t('promotion_discount')}</label>
-                          <input
+                          <Input
                             type="number"
                             value={specialForm.discount}
                             onChange={(e) => setSpecialForm({ ...specialForm, discount: Number(e.target.value) })}
@@ -437,7 +439,7 @@ const Promotions: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-bold text-primary mb-1">{t('promotion_start_date')}</label>
-                    <input
+                    <Input
                       type="date"
                       value={generalForm.startDate}
                       onChange={(e) => setGeneralForm({ ...generalForm, startDate: e.target.value })}
@@ -447,7 +449,7 @@ const Promotions: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-bold text-primary mb-1">{t('promotion_end_date')}</label>
-                    <input
+                    <Input
                       type="date"
                       value={generalForm.endDate}
                       onChange={(e) => setGeneralForm({ ...generalForm, endDate: e.target.value })}
@@ -457,7 +459,7 @@ const Promotions: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-bold text-primary mb-1">{t('promotion_discount')}</label>
-                    <input
+                    <Input
                       type="number"
                       value={generalForm.discount}
                       onChange={(e) => setGeneralForm({ ...generalForm, discount: Number(e.target.value) })}

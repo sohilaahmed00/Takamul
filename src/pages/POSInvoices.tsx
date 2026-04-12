@@ -10,6 +10,8 @@ import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
 
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 
+import { Input } from "@/components/ui/input";
+
 interface SaleRecord {
   id: string;
   invoiceNo: string;
@@ -213,7 +215,7 @@ export default function POSSales() {
 
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6 pb-4 border-b border-gray-100">
           <div className="relative w-full md:w-72">
-            <input type="text" placeholder={t("search_placeholder")} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="takamol-input !py-2" />
+            <Input type="text" placeholder={t("search_placeholder")} value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}  />
             <Search className={cn("absolute top-1/2 -translate-y-1/2 text-gray-400", direction === "rtl" ? "left-3" : "right-3")} size={18} />
           </div>
           <div className="flex items-center gap-2 text-sm font-bold text-gray-700 w-full md:w-auto justify-end">
@@ -232,30 +234,30 @@ export default function POSSales() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">{t("ref_no")}</label>
-                <input type="text" value={filters.refNo} onChange={(e) => setFilters({ ...filters, refNo: e.target.value })} className="takamol-input" />
+                <Input type="text" value={filters.refNo} onChange={(e) => setFilters({ ...filters, refNo: e.target.value })}  />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">{t("invoice_no")}</label>
-                <input type="text" value={filters.invoiceNo} onChange={(e) => setFilters({ ...filters, invoiceNo: e.target.value })} className="takamol-input" />
+                <Input type="text" value={filters.invoiceNo} onChange={(e) => setFilters({ ...filters, invoiceNo: e.target.value })}  />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">{t("customer")}</label>
-                <select value={filters.customer} onChange={(e) => setFilters({ ...filters, customer: e.target.value })} className="takamol-input">
+                <select value={filters.customer} onChange={(e) => setFilters({ ...filters, customer: e.target.value })} >
                   <option value="">اختر عميل</option>
                   <option value="شخص عام">شخص عام</option>
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">{t("branch")}</label>
-                <input type="text" value={filters.branch} onChange={(e) => setFilters({ ...filters, branch: e.target.value })} className="takamol-input" />
+                <Input type="text" value={filters.branch} onChange={(e) => setFilters({ ...filters, branch: e.target.value })}  />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">{t("from_date")}</label>
-                <input type="date" value={filters.fromDate} onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })} className="takamol-input" />
+                <Input type="date" value={filters.fromDate} onChange={(e) => setFilters({ ...filters, fromDate: e.target.value })}  />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-1">{t("to_date")}</label>
-                <input type="date" value={filters.toDate} onChange={(e) => setFilters({ ...filters, toDate: e.target.value })} className="takamol-input" />
+                <Input type="date" value={filters.toDate} onChange={(e) => setFilters({ ...filters, toDate: e.target.value })}  />
               </div>
             </div>
             <div className="flex justify-end mt-6 gap-3 pt-4 border-t border-gray-200">
@@ -275,7 +277,7 @@ export default function POSSales() {
               <thead className="bg-[#00a651] text-white">
                 <tr>
                   <th className="w-10 text-center p-3 align-middle">
-                    <input type="checkbox" className="accent-white w-4 h-4 rounded" checked={selectedItems.length === filteredSales.length && filteredSales.length > 0} onChange={handleSelectAll} />
+                    <Input type="checkbox" className="accent-white w-4 h-4 rounded" checked={selectedItems.length === filteredSales.length && filteredSales.length > 0} onChange={handleSelectAll} />
                   </th>
                   <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">{t("invoice_no")}</th>
                   <th className="p-3 border-l border-white/20 whitespace-nowrap text-center align-middle">{t("date")}</th>
@@ -295,7 +297,7 @@ export default function POSSales() {
                 {paginatedSales.map((sale) => (
                   <tr key={`desktop-${sale.id}`} className="hover:bg-gray-50 transition-colors border-b border-gray-100 cursor-pointer" onClick={() => setShowInvoiceDetails(sale)}>
                     <td className="p-3 text-center border-l border-gray-100 align-middle" onClick={(e) => e.stopPropagation()}>
-                      <input type="checkbox" className="accent-[#00a651] w-4 h-4 rounded" checked={selectedItems.includes(sale.id)} onChange={() => handleSelectItem(sale.id)} />
+                      <Input type="checkbox" className="accent-[#00a651] w-4 h-4 rounded" checked={selectedItems.includes(sale.id)} onChange={() => handleSelectItem(sale.id)} />
                     </td>
                     <td className="p-3 border-l border-gray-100 font-bold text-gray-800 align-middle">{sale.invoiceNo}</td>
                     <td className="p-3 border-l border-gray-100 text-gray-600 font-medium whitespace-nowrap align-middle" dir="ltr">
@@ -691,19 +693,19 @@ export default function POSSales() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-bold">{t("date")} *</label>
-                  <input type="text" defaultValue={showEditPayment.date} className="takamol-input" />
+                  <Input type="text" defaultValue={showEditPayment.date}  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold">{t("payment_ref")} *</label>
-                  <input type="text" defaultValue={showEditPayment.refNo} className="takamol-input" />
+                  <Input type="text" defaultValue={showEditPayment.refNo}  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold">{t("paid")}</label>
-                  <input type="number" defaultValue={showEditPayment.amount} className="takamol-input" />
+                  <Input type="number" defaultValue={showEditPayment.amount}  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold">{t("paid_by")}</label>
-                  <select className="takamol-input">
+                  <select >
                     <option value="mada">{t("mada")}</option>
                     <option value="cash">{t("cash")}</option>
                     <option value="bank_transfer">{t("bank_transfer")}</option>
@@ -834,22 +836,22 @@ export default function POSSales() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-sm font-bold">{t("date")} *</label>
-                  <input type="text" defaultValue="07:44:00 23/02/2026" className="takamol-input" />
+                  <Input type="text" defaultValue="07:44:00 23/02/2026"  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold">{t("delivery_status")} *</label>
-                  <select className="takamol-input">
+                  <select >
                     <option>جاري العمل عليه</option>
                     <option>تم التوصيل</option>
                   </select>
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold">{t("sale_ref")} *</label>
-                  <input type="text" defaultValue={showAddDelivery.refNo} className="takamol-input font-bold text-[#00a651]" />
+                  <Input type="text" defaultValue={showAddDelivery.refNo}  />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold">{t("customer")} *</label>
-                  <input type="text" defaultValue={showAddDelivery.customer} className="takamol-input" />
+                  <Input type="text" defaultValue={showAddDelivery.customer}  />
                 </div>
               </div>
               <div className="flex justify-end pt-4">
