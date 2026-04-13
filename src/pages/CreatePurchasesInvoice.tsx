@@ -263,7 +263,7 @@ const CreatePurchaseInvoice: React.FC = () => {
           })}
           className="space-y-6"
         >
-          <div className="bg-white p-6 rounded-sm border border-gray-100">
+          <div className=" p-6 rounded-sm border border-gray-100">
             <h2 className="text-lg font-bold text-gray-800 mb-6">{t("basic_data")}</h2>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -399,13 +399,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 name={`items.${index}.unitId`}
                                 render={({ field, fieldState }) => (
                                   <Field>
-                                    <ComboboxField
-                                      field={field}
-                                      items={units?.items}
-                                      valueKey="id"
-                                      labelKey="name"
-                                      placeholder={t("unit")}
-                                    />
+                                    <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder={t("unit")} />
                                     {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                                   </Field>
                                 )}
@@ -444,13 +438,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 name={`items.${index}.taxId`}
                                 render={({ field, fieldState }) => (
                                   <Field>
-                                    <ComboboxField
-                                      field={field}
-                                      items={taxes}
-                                      valueKey="id"
-                                      labelKey="name"
-                                      placeholder={t("tax")}
-                                    />
+                                    <ComboboxField field={field} items={taxes} valueKey="id" labelKey="name" placeholder={t("tax")} />
                                     {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                                   </Field>
                                 )}
@@ -543,14 +531,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                       name={`payments.${index}.treasuryId`}
                       render={({ field, fieldState }) => (
                         <Field>
-                          <ComboboxField
-                            field={field}
-                            items={treasurys}
-                            valueKey="id"
-                            labelKey="name"
-                            placeholder={t("choose")}
-                            className="bg-white"
-                          />
+                          <ComboboxField field={field} items={treasurys} valueKey="id" labelKey="name" placeholder={t("choose")} />
                           {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -607,7 +588,7 @@ const CreatePurchaseInvoice: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-5 sm:p-6 rounded-sm border border-gray-100 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+          <div className=" p-5 sm:p-6 rounded-sm border border-gray-100 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
             <Button type="button" variant="destructive" className="h-12 px-4" onClick={() => {}}>
               {t("cancel_and_return")}
             </Button>

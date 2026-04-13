@@ -130,7 +130,7 @@ export default function AddInternalTreasuryTransferModal({
             />
           </Field>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-4">
+          <div className="rounded-2xl border border-gray-200  p-4">
             <div className="flex items-center gap-2 mb-3">
               <Wallet size={16} className="text-[#2ecc71]" />
               <h3 className="text-sm font-semibold text-gray-800">
@@ -162,7 +162,7 @@ export default function AddInternalTreasuryTransferModal({
             </div>
           </div>
 
-          <div className="rounded-2xl border border-gray-200 bg-white p-4">
+          <div className="rounded-2xl border border-gray-200  p-4">
             <div className="flex items-center gap-2 mb-3">
               <Wallet size={16} className="text-[#2ecc71]" />
               <h3 className="text-sm font-semibold text-gray-800">

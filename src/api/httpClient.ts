@@ -1,5 +1,5 @@
 import axios from "axios";
-import { axiosClient } from "./client";
+import { apiClient } from "./client";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -13,7 +13,7 @@ type HttpClientOptions = {
 
 export async function httpClient<T>(url: string, options?: HttpClientOptions): Promise<T> {
   try {
-    const response = await axiosClient({
+    const response = await apiClient({
       url,
       method: options?.method ?? "GET",
       params: options?.params,

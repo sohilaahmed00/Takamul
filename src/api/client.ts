@@ -1,94 +1,122 @@
-import axios from "axios";
+// api/client.ts
+
+import axios, { AxiosRequestConfig } from "axios";
 import { useAuthStore } from "@/store/authStore";
 import { refreshToken } from "@/features/auth/services/auth";
 import { jwtDecode } from "jwt-decode";
 import { AppJwtPayload } from "@/types";
+import { Permission } from "@/lib/permissions";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+// ─── Client ───────────────────────────────────────────────────────────────────
 
-export const axiosClient = axios.create({
-  baseURL: API_BASE,
+export const apiClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
 });
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface QueueItem {
+interface PendingRequest {
   resolve: (token: string) => void;
-  reject: (err: unknown) => void;
+  reject: (error: unknown) => void;
 }
-// [{ reslove(token),reject(token)}]
-// ─── Refresh State ────────────────────────────────────────────────────────────
-let isRefreshing = false;
-let failedQueue: QueueItem[] = [];
 
-const processQueue = (error: unknown, token: string | null = null) => {
-  failedQueue.forEach((p) => {
-    if (error) p.reject(error);
-    else p.resolve(token!);
-  });
-  failedQueue = [];
+let isRefreshing = false;
+let pendingRequests: PendingRequest[] = [];
+let initRefreshPromise: Promise<string> | null = null;
+
+const resolvePendingRequests = (token: string) => {
+  pendingRequests.forEach((req) => req.resolve(token));
+  pendingRequests = [];
 };
 
-// ─── Request Interceptor ──────────────────────────────────────────────────────
+const rejectPendingRequests = (error: unknown) => {
+  pendingRequests.forEach((req) => req.reject(error));
+  pendingRequests = [];
+};
 
-axiosClient.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken;
-console.log(token)
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+const enqueueRequest = (requestConfig: AxiosRequestConfig): Promise<unknown> =>
+  new Promise((resolve, reject) => {
+    pendingRequests.push({
+      resolve: (token) => {
+        requestConfig.headers!.Authorization = `Bearer ${token}`;
+        resolve(apiClient(requestConfig));
+      },
+      reject,
+    });
+  });
+
+
+export const setInitRefreshPromise = (promise: Promise<string> | null): void => {
+  initRefreshPromise = promise;
+};
+
+
+const applyToken = (requestConfig: AxiosRequestConfig, token: string): void => {
+  requestConfig.headers!.Authorization = `Bearer ${token}`;
+};
+
+const handleRefreshSuccess = (token: string, expiration: string, permission: Permission[]): void => {
+  useAuthStore.getState().setAuth(token, new Date(expiration).getTime(), permission);
+};
+
+
+apiClient.interceptors.request.use((config) => {
+  const { accessToken } = useAuthStore.getState();
+
+  if (accessToken) {
+    config.headers.Authorization = `Bearer ${accessToken}`;
   }
 
   return config;
 });
 
-// ─── Response Interceptor ─────────────────────────────────────────────────────
 
-axiosClient.interceptors.response.use(
-  (res) => res,
+apiClient.interceptors.response.use(
+  (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    const originalRequest: AxiosRequestConfig & { _retry?: boolean } = error.config;
 
+    const isUnauthorized = error.response?.status === 401;
+    const isAlreadyRetried = originalRequest._retry;
     const isRefreshEndpoint = originalRequest.url?.includes("/Auth/refresh-token");
 
-    if (error.response?.status === 401 && !originalRequest._retry && !isRefreshEndpoint) {
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          failedQueue.push({
-            resolve: (token: string) => {
-              originalRequest._retry = true;
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-              resolve(axiosClient(originalRequest));
-            },
-            reject,
-          });
-        });
-      }
+    if (!isUnauthorized || isAlreadyRetried || isRefreshEndpoint) {
+      return Promise.reject(error);
+    }
 
-      originalRequest._retry = true;
-      isRefreshing = true;
-
+    if (initRefreshPromise) {
       try {
-        const data = await refreshToken();
-        
-        const newToken = data.accessToken;
-        const decoded = jwtDecode<AppJwtPayload>(newToken);
-
-        useAuthStore.getState().setAuth(newToken, new Date(data.accessTokenExpiration).getTime(), decoded?.Permission);
-
-        processQueue(null, newToken);
-
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return axiosClient(originalRequest);
-      } catch (err) {
-        processQueue(err, null);
-        useAuthStore.getState().clearAuth();
-        return Promise.reject(err);
-      } finally {
-        isRefreshing = false;
+        const token = await initRefreshPromise;
+        originalRequest._retry = true;
+        applyToken(originalRequest, token);
+        return apiClient(originalRequest);
+      } catch {
+        return Promise.reject(error);
       }
     }
 
-    return Promise.reject(error);
+    if (isRefreshing) {
+      return enqueueRequest(originalRequest);
+    }
+
+    originalRequest._retry = true;
+    isRefreshing = true;
+
+    try {
+      const data = await refreshToken();
+      const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
+
+      handleRefreshSuccess(data.accessToken, data.accessTokenExpiration, decoded.Permission);
+      resolvePendingRequests(data.accessToken);
+      applyToken(originalRequest, data.accessToken);
+
+      return apiClient(originalRequest);
+    } catch (refreshError) {
+      rejectPendingRequests(refreshError);
+      useAuthStore.getState().clearAuth();
+      return Promise.reject(refreshError);
+    } finally {
+      isRefreshing = false;
+    }
   },
 );
