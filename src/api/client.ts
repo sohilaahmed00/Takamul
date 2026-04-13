@@ -14,7 +14,6 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
-// ─── Token Refresh Queue ──────────────────────────────────────────────────────
 
 interface PendingRequest {
   resolve: (token: string) => void;
@@ -46,13 +45,11 @@ const enqueueRequest = (requestConfig: AxiosRequestConfig): Promise<unknown> =>
     });
   });
 
-// ─── Init Refresh Promise (set by AuthProvider) ───────────────────────────────
 
 export const setInitRefreshPromise = (promise: Promise<string> | null): void => {
   initRefreshPromise = promise;
 };
 
-// ─── Token Helpers ────────────────────────────────────────────────────────────
 
 const applyToken = (requestConfig: AxiosRequestConfig, token: string): void => {
   requestConfig.headers!.Authorization = `Bearer ${token}`;
@@ -62,7 +59,6 @@ const handleRefreshSuccess = (token: string, expiration: string, permission: Per
   useAuthStore.getState().setAuth(token, new Date(expiration).getTime(), permission);
 };
 
-// ─── Request Interceptor ──────────────────────────────────────────────────────
 
 apiClient.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState();
@@ -74,7 +70,6 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// ─── Response Interceptor ─────────────────────────────────────────────────────
 
 apiClient.interceptors.response.use(
   (response) => response,
@@ -89,7 +84,6 @@ apiClient.interceptors.response.use(
       return Promise.reject(error);
     }
 
-    // ── Case 1: AuthProvider init is in progress → wait for it ───────────────
     if (initRefreshPromise) {
       try {
         const token = await initRefreshPromise;
@@ -101,12 +95,10 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // ── Case 2: Another refresh is already in progress → queue the request ───
     if (isRefreshing) {
       return enqueueRequest(originalRequest);
     }
 
-    // ── Case 3: Initiate a new token refresh ──────────────────────────────────
     originalRequest._retry = true;
     isRefreshing = true;
 
