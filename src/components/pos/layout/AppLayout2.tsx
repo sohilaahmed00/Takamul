@@ -73,7 +73,7 @@ export default function AppLayout2() {
             {/* ← flex-col مش flex-row */}
             {/* Page — full width */}
             <div className="  min-w-0  ">
-              <PageContent />
+              {/* <PageContent /> */}
             </div>
             {/* Cart — full width من تحت */}
             <RightPanel2 />

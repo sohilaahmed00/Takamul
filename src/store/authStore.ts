@@ -12,8 +12,9 @@ type AuthState = {
   isExpired: () => boolean;
   isInitialized: boolean;
   setInitialized: (v: boolean) => void;
-
+  hasAnyPermission: (permissions: (Permission | undefined)[]) => boolean;
   hasPermission: (permission: Permission) => boolean;
+  hasAllPermissions: (permissions: (Permission | undefined)[]) => boolean;
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -44,9 +45,24 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!expiresAt) return true;
     return Date.now() >= expiresAt;
   },
+hasAnyPermission: (perms: (Permission | undefined | null)[]) => {
+  const { permissions } = get();
 
+  if (!Array.isArray(permissions) || !Array.isArray(perms)) return false;
+
+  return perms.some((p) => {
+    if (!p) return false;
+    return permissions.includes(p);
+  });
+},
   hasPermission: (permission) => {
     const { permissions } = get();
+    
     return Array.isArray(permissions) && permissions.includes(permission);
+  },
+  hasAllPermissions: (perms) => {
+    const { permissions } = get();
+    if (!Array.isArray(permissions)) return false;
+    return perms.every((p) => p && permissions.includes(p));
   },
 }));
