@@ -99,14 +99,14 @@ export default function Dashboard() {
           title={t('total_sales')}
           value={`${formatCurrency(totalSalesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}`}
           icon={SaudiRiyal}
-          bgClass="bg-[#38BDF8]"
+          bgClass="bg-[#000052]"
           delay={0.1}
         />
         <StatCard
           title={t('total_expenses')}
           value={formatCurrency(totalExpensesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}
           icon={Banknote}
-          bgClass="bg-[#D97706]"
+          bgClass="bg-[#6B7280]"
           delay={0.2}
         />
         <StatCard

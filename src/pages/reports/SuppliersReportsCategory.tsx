@@ -7,7 +7,6 @@ const SuppliersReportsCategory: React.FC = () => {
   const { t } = useLanguage();
 
   const reports = [
-    { title: t('suppliers_list', 'قائمة الموردين'), icon: <List />, path: '/reports/vendors' },
     { title: t('supplier_statement', 'كشف حساب مورد'), icon: <History />, path: '/reports/supplier-statement' },
   ];
 

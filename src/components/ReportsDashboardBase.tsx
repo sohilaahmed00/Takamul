@@ -18,14 +18,14 @@ const ReportsDashboardBase: React.FC<ReportsDashboardBaseProps> = ({ title, repo
   const { t, direction } = useLanguage();
 
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900" dir={direction}>
+    <div className="flex flex-col h-full bg-[var(--bg-main)]" dir={direction}>
       {/* Top Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center justify-between">
+      <div className="bg-[var(--bg-card)] border-b border-[var(--border)] p-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="p-1.5 bg-[var(--primary)] text-white rounded">
             <BarChart3 size={18} />
           </div>
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white">{title}</h1>
+          <h1 className="text-xl font-bold text-[var(--text-main)]">{title}</h1>
         </div>
       </div>
 
@@ -34,11 +34,11 @@ const ReportsDashboardBase: React.FC<ReportsDashboardBaseProps> = ({ title, repo
           {reports.map((report, index) => (
             <div 
               key={index}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col items-center p-6 transition-all hover:shadow-md hover:border-[var(--primary)] dark:hover:border-[var(--primary)] group"
+              className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden flex flex-col items-center p-6 transition-all hover:shadow-md hover:border-[var(--primary)] dark:hover:border-[var(--primary)] group"
             >
               <div className="flex items-center justify-between w-full mb-4">
                 <div className="w-1 h-4 bg-[var(--primary)] rounded-full"></div>
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 group-hover:text-[var(--primary)] transition-colors">
+                <span className="text-sm font-semibold text-[var(--text-main)] group-hover:text-[var(--primary)] transition-colors">
                   {report.title}
                 </span>
               </div>

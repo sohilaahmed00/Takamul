@@ -8,5 +8,6 @@ export const useGetTopSellingProducts = (params: TopSellingParams) => {
     queryKey: reportsKeys.topSelling(params),
     queryFn: () => getTopSellingProducts(params),
     enabled: !!(params.from && params.to),
+    select: (data) => data.items ?? [],
   });
 };

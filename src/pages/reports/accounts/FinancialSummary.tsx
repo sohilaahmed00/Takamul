@@ -19,7 +19,7 @@ export default function FinancialSummary() {
           <div className="p-1.5 bg-[var(--primary)] text-white rounded">
             <DollarSign size={18} />
           </div>
-          <h1 className="text-xl font-bold text-gray-800 dark:text-white">التقارير المالية</h1>
+          <h1 className="text-xl font-bold text-gray-800 dark:text-white">تقرير الأرباح</h1>
         </div>
         <div className="flex items-center gap-2">
           <button className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg dark:text-gray-400 dark:hover:bg-gray-700">

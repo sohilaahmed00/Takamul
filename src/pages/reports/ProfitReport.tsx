@@ -73,7 +73,7 @@ export default function ProfitReport() {
             <CardDescription>{t("customize_report_below", "استخدم الفلاتر لتخصيص التقرير")}</CardDescription>
           </div>
           <div className="flex items-center gap-2 self-start md:self-auto">
-            <Button variant="outline" size="sm" className="h-9 gap-1.5"><Printer size={16} /><span className="hidden sm:inline">Print</span></Button>
+            <Button variant="outline" size="sm" className="h-9 gap-1.5"><Printer size={16} /><span className="hidden sm:inline">{t("print", "طباعة")}</span></Button>
             <Button variant="outline" size="sm" className="h-9 gap-1.5"><FileText size={16} /><span className="hidden sm:inline">PDF</span></Button>
             <Button variant="outline" size="sm" className="h-9 gap-1.5"><FileSpreadsheet size={16} /><span className="hidden sm:inline">XML</span></Button>
           </div>
@@ -99,7 +99,7 @@ export default function ProfitReport() {
                 <Input type="date" value={filters.to} onChange={e => setFilters(p => ({ ...p, to: e.target.value }))}  />
               </div>
               <div className="flex flex-row items-end gap-2 lg:col-span-4 justify-end">
-                <Button onClick={handleSearch} variant="default" className="h-10 px-6 gap-2"><Search size={16} />{t("execute_operation", "اتمام العملية")}</Button>
+                <Button onClick={handleSearch} variant="default" className="h-10 px-6 gap-2"><Search size={16} />{t("search", "بحث")}</Button>
                 <Button onClick={handleClear} variant="outline" className="h-10 px-3 gap-1"><RotateCcw size={15} /></Button>
               </div>
             </div>

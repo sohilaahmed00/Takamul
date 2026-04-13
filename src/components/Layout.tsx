@@ -354,7 +354,7 @@ export default function Layout() {
                 <SubmenuItem label={t("purchase_reports")} icon={CornerUpLeft} path="/reports/category/purchases" />
                 <SubmenuItem label={t("customer_reports")} icon={User} path="/reports/category/customers" />
 
-                <SubmenuItem label={t("supplier_reports")} icon={Truck} path="/reports/category/suppliers" />
+                <SubmenuItem label={t("suppliers_reports", "تقارير الموردين")} icon={Truck} path="/reports/category/suppliers" />
                 <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />
                 <SubmenuItem label={t("profits_reports")} icon={Calculator} path="/reports/category/profits" />
                 <div className="h-px bg-gray-100 my-1 mx-2" />
@@ -436,7 +436,7 @@ export default function Layout() {
 
               <button
                 onClick={() => navigate("/pos")}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
               >
                 <ShoppingCart size={16} />
                 <span>{t("pos_quick")}</span>

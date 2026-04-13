@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import {
   AlertTriangle,
   Filter,
@@ -102,7 +102,7 @@ export default function LowStockReport() {
           <div className="flex items-center gap-2 self-start md:self-auto">
             <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
               <Printer size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">Print</span>
+              <span className="hidden sm:inline">{t("print", "طباعة")}</span>
             </Button>
             <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
               <FileText size={16} className="text-gray-600 dark:text-gray-300" />
