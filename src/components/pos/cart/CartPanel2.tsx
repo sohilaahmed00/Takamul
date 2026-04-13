@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { calcItemTax, calcTotals, itemBasePrice } from "@/constants/data";
@@ -84,6 +84,39 @@ export default function CartPanel() {
 
   const GRID_COLUMNS_FULL = "30px 80px 1fr 100px 120px 100px 100px 130px 120px 130px 90px 60px";
   const GRID_COLUMNS_SM = "30px 1fr 100px 80px 60px";
+
+  const handleBarcodeScanned = useCallback(
+    (barcode: string) => {
+      const product = products?.items?.find((p) => p.barcode === barcode || p.barcode === barcode);
+      if (!product) {
+        console.warn("المنتج مش موجود:", barcode);
+        return;
+      }
+      setCart((prev) => {
+        const exists = prev.findIndex((i) => i.productId === product.id);
+        if (exists !== -1) {
+          return prev.map((i, idx) => (idx === exists ? { ...i, qty: i.qty + 1 } : i));
+        }
+        return [
+          ...prev,
+          {
+            name: product.productNameAr,
+            productNameEn: product.productNameEn,
+            productNameUr: product.productNameUr,
+            price: product.sellingPrice,
+            qty: 1,
+            note: "",
+            op: null,
+            taxamount: product.taxAmount,
+            productId: product.id,
+            taxCalculation: product.taxCalculation,
+          },
+        ];
+      });
+    },
+    [products],
+  );
+
   useEffect(() => {
     let buffer = "";
     let timer: ReturnType<typeof setTimeout>;
@@ -91,61 +124,25 @@ export default function CartPanel() {
     const handleKeyDown = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
+
       if (e.key === "Enter") {
-        if (buffer.length > 2) {
-          handleBarcodeScanned(buffer);
-        }
+        if (buffer.length > 2) handleBarcodeScanned(buffer);
         buffer = "";
         clearTimeout(timer);
         return;
       }
 
-     
       buffer += e.key;
-
       clearTimeout(timer);
       timer = setTimeout(() => {
-        if (buffer.length > 2) {
-          handleBarcodeScanned(buffer);
-        }
+        if (buffer.length > 2) handleBarcodeScanned(buffer);
         buffer = "";
       }, 300);
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [products]);
-
-  const handleBarcodeScanned = (barcode: string) => {
-    const product = products?.items?.find((p) => p.barcode === barcode || p.barcode === barcode);
-
-    if (!product) {
-      console.warn("المنتج مش موجود:", barcode);
-      return;
-    }
-
-    setCart((prev) => {
-      const exists = prev.findIndex((i) => i.productId === product.id);
-      if (exists !== -1) {
-        return prev.map((i, idx) => (idx === exists ? { ...i, qty: i.qty + 1 } : i));
-      }
-      return [
-        ...prev,
-        {
-          name: product.productNameAr,
-          productNameEn: product.productNameEn,
-          productNameUr: product.productNameUr,
-          price: product.sellingPrice,
-          qty: 1,
-          note: "",
-          op: null,
-          taxamount: product.taxAmount,
-          productId: product.id,
-          taxCalculation: product.taxCalculation,
-        },
-      ];
-    });
-  };
+  }, [handleBarcodeScanned]);
 
   return (
     <>
