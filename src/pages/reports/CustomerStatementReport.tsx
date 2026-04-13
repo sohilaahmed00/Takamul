@@ -9,6 +9,7 @@ import ComboboxField from "@/components/ui/ComboboxField";
 import { Input } from "@/components/ui/input";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 import { useGetCustomerStatement } from "@/features/reports/hooks/Usegetcustomerstatement";
+import formatDate from "@/lib/formatDate";
 
 // ✅ الـ Type options بالقيم الإنجليزية اللي بتقبلها الـ API
 const operationTypes = [
@@ -68,14 +69,7 @@ export default function CustomerStatementReport() {
   const formatNumber = (value?: number) =>
     Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleString("en-GB", {
-      year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit",
-    });
-  };
-
+ 
   // ✅ Summary من الداتا الحقيقية
   const totalDebit  = useMemo(() => statementData?.reduce((s, r) => s + (r.debit ?? 0), 0) ?? 0, [statementData]);
   const totalCredit = useMemo(() => statementData?.reduce((s, r) => s + (r.credit ?? 0), 0) ?? 0, [statementData]);
@@ -125,7 +119,6 @@ export default function CustomerStatementReport() {
           {/* Filters */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-              {/* ✅ اختيار العميل الحقيقي - labelKey="customerName" */}
               <div className="space-y-2 lg:col-span-1">
                 <label className="text-xs font-medium text-[var(--text-main)]">{t("customer_name", "اسم العميل")}</label>
                 <ComboboxField

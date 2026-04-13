@@ -22,6 +22,13 @@ export default function Topbar2() {
   const { selectedCustomer, setSelectedCustomer } = usePos();
   const { t } = useLanguage();
 
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  };
   const now = new Date();
   const invoiceDate = now.toLocaleString("ar-EG", {
     hour: "2-digit",
@@ -32,80 +39,39 @@ export default function Topbar2() {
   return (
     <div className="w-full border border-gray-200 rounded-sm bg-white text-sm" dir="rtl">
       <div className="px-4 pt-3 pb-3 flex flex-col gap-3">
-
-        {/* ══ الصف العلوي: الأزرار + معلومات الفاتورة ══ */}
         <div className="flex items-center justify-between gap-4">
-
-          {/* يمين: أزرار الأيقونات + أزرار الإجراءات */}
           <div className="flex items-center gap-2 flex-wrap">
-            {/* أيقونات */}
             <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200"
-                title="الصفحة الرئيسية"
-              >
+              <Button variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="الصفحة الرئيسية">
                 <Home size={13} />
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200"
-                title="لوحة المفاتيح"
-              >
+              <Button variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="لوحة المفاتيح">
                 <Keyboard size={13} />
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200"
-                title="ملء الشاشة"
-              >
+              <Button variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="ملء الشاشة">
                 <Maximize size={13} />
               </Button>
             </div>
 
             <div className="w-px h-5 bg-gray-200" />
 
-            {/* أزرار الإجراءات */}
             <div className="flex items-center gap-1.5 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-full h-7 text-[11px] border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200"
-              >
+              <Button variant="outline" size="sm" className="rounded-full h-7 text-[11px] border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200">
                 شاشة المبيعات
               </Button>
 
-              <Button
-                variant="destructive"
-                size="sm"
-                className="rounded-full h-7 text-[11px] "
-              >
-                <Bug className="w-3 h-3" />
-                إلغاء عن مشكلة
-              </Button>
-
-              <Button
-                size="sm"
-                className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200"
-              >
+              <Button size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
                 <Pause className="w-3 h-3" />
                 غلق الوردية
               </Button>
 
-              <Button
-                size="sm"
-                className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200"
-              >
+              <Button size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
                 تسجيل الخروج
                 <LogOut className="w-3 h-3" />
               </Button>
             </div>
           </div>
 
-          {/* يسار: معلومات الفاتورة */}
           <div className="flex items-center gap-6 shrink-0">
             <div className="flex flex-col items-center gap-0.5">
               <span className="text-[10px] text-blue-400">كود الفاتورة</span>
@@ -127,7 +93,6 @@ export default function Topbar2() {
 
         {/* ══ الصف السفلي: الحقول ══ */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 items-end">
-
           {/* اختر العميل */}
           <div className="flex flex-col gap-1">
             <Label className="text-[10px] text-[#000052]">اختر العميل</Label>
@@ -148,12 +113,7 @@ export default function Topbar2() {
           {/* وقت وتاريخ الاستلام */}
           <div className="flex flex-col gap-1">
             <Label className="text-[10px] text-[#000052]">وقت وتاريخ الاستلام</Label>
-            <Input
-              type="datetime-local"
-              value={deliveryDate}
-              onChange={(e) => setDeliveryDate(e.target.value)}
-              className=" text-[11px] bg-white border-[#000052] text-[#000052]"
-            />
+            <Input type="datetime-local" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className=" text-[11px] bg-white border-[#000052] text-[#000052]" />
           </div>
 
           {/* المخزن */}
@@ -190,16 +150,9 @@ export default function Topbar2() {
           {/* ملاحظات */}
           <div className="flex flex-col gap-1">
             <Label className="text-[10px] text-[#000052]">ملاحظات</Label>
-            <Textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              className="min-h-10  text-[11px] bg-white border-[#000052] text-[#000052] rounded-sm resize-none py-1"
-              rows={1}
-              placeholder="أضف ملاحظة..."
-            />
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="min-h-10  text-[11px] bg-white border-[#000052] text-[#000052] rounded-sm resize-none py-1" rows={1} placeholder="أضف ملاحظة..." />
           </div>
         </div>
-
       </div>
     </div>
   );
