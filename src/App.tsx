@@ -138,7 +138,7 @@ import IncomeStatement from "@/pages/reports/accounts/IncomeStatement";
 import LedgerStatement from "@/pages/reports/accounts/LedgerStatement";
 import TrialBalance from "@/pages/reports/accounts/TrialBalance";
 import SubsidiaryLedger from "@/pages/reports/accounts/SubsidiaryLedger";
-import FinancialSummary from "@/pages/reports/accounts/FinancialSummary";
+
 
 import ItemsReportsCategory from "@/pages/reports/ItemsReportsCategory";
 import SalesReportsCategory from "@/pages/reports/SalesReportsCategory";
@@ -359,7 +359,7 @@ function AppRoutes() {
           <Route path="/reports/ledger-statement" element={<LedgerStatement />} />
           <Route path="/reports/trial-balance" element={<TrialBalance />} />
           <Route path="/reports/subsidiary-ledger" element={<SubsidiaryLedger />} />
-          <Route path="/reports/financial-summary" element={<FinancialSummary />} />
+        
 
           <Route path="/revenues" element={<Revenues />} />
           <Route path="/expenses" element={<Expenses />} />
