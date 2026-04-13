@@ -121,10 +121,19 @@ export default function CartPanel() {
   useEffect(() => {
     let buffer = "";
     let timer: ReturnType<typeof setTimeout>;
+    let lastKeyTime = 0;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      const now = Date.now();
+      const timeDiff = now - lastKeyTime;
+      lastKeyTime = now;
+
+      const isScanner = timeDiff < 50 || buffer.length > 0;
+
+      if (!isScanner) {
+        buffer = "";
+        return;
+      }
 
       if (e.key === "Enter") {
         if (buffer.length > 2) handleBarcodeScanned(buffer);

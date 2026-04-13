@@ -9,6 +9,9 @@ import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomer
 import { Customer } from "@/features/customers/types/customers.types";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { Treasury } from "@/features/treasurys/types/treasurys.types";
+import ComboboxField from "@/components/ui/ComboboxField";
+import { usePos } from "@/context/PosContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function Topbar2() {
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -18,8 +21,10 @@ export default function Topbar2() {
   const [notes, setNotes] = useState("");
   const { data: customers } = useGetAllCustomers({ page: 1, limit: 10000 });
   const { data: treasurys } = useGetAllTreasurys();
-
+  const { selectedCustomer, setSelectedCustomer } = usePos();
   const now = new Date();
+  const { t } = useLanguage();
+
   const invoiceDate = now.toLocaleString("ar-EG", {
     hour: "2-digit",
     minute: "2-digit",
@@ -32,16 +37,19 @@ export default function Topbar2() {
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1">
           <div className="flex flex-col gap-1">
             <Label className="text-[11px] text-[#000052] text-right">اختر العميل</Label>
-            <Select value={customer} onValueChange={setCustomer}>
-              <SelectTrigger className="w-full text-xs bg-white border-[#000052] text-[#000052] rounded-sm">
-                <SelectValue placeholder="عميل نقدي" />
-              </SelectTrigger>
-              <SelectContent>
-                {customers?.items.map((customer: Customer) => (
-                  <SelectItem value={String(customer?.id)}>{customer?.customerName}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ComboboxField
+            className="border-[#000052] text-[#000052]"
+              value={selectedCustomer ? String(selectedCustomer.id) : ""}
+              onChange={(val) => {
+                const customer = customers?.items?.find((c) => String(c.id) === String(val));
+                if (customer) setSelectedCustomer(customer);
+              }}
+              items={customers?.items}
+              valueKey="id"
+              labelKey="customerName"
+              placeholder={t("choose_customer")}
+            />
+  
           </div>
 
           <div className="flex flex-col gap-1">
