@@ -275,7 +275,6 @@ export default function CartPanel() {
             <span></span>
           </div>
 
-          {/* صفوف الكارت */}
           {cart.map((item, idx) => {
             const base = itemBasePrice(item);
             const tax = calcItemTax(item);
@@ -353,9 +352,7 @@ export default function CartPanel() {
             <Button size="sm" className="w-full bg-teal-500 hover:bg-teal-600 text-white text-[11px] rounded-md transition-all duration-200 hover:shadow-[0_0_0_3px_rgba(20,184,166,0.2)]">
               تعليق الفاتورة
             </Button>
-            <Button size="sm" className="w-full bg-blue-500 hover:bg-blue-600 text-white text-[11px] rounded-md transition-all duration-200 hover:shadow-[0_0_0_3px_rgba(59,130,246,0.2)]">
-              فتح الفاتورة
-            </Button>
+
             <Button size="sm" className="w-full bg-red-500 hover:bg-red-600 text-white text-[11px] rounded-md transition-all duration-200 hover:shadow-[0_0_0_3px_rgba(239,68,68,0.2)]">
               حذف
             </Button>
