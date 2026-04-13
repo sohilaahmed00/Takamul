@@ -268,7 +268,7 @@ body {
   color: var(--text-main) !important;
 }
 
-::-webkit-calendar-picker-indicator {
+.dark ::-webkit-calendar-picker-indicator {
   filter: invert(1);
 }
 

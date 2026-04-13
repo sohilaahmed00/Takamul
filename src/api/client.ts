@@ -14,7 +14,6 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
-
 interface PendingRequest {
   resolve: (token: string) => void;
   reject: (error: unknown) => void;
@@ -45,20 +44,18 @@ const enqueueRequest = (requestConfig: AxiosRequestConfig): Promise<unknown> =>
     });
   });
 
-
 export const setInitRefreshPromise = (promise: Promise<string> | null): void => {
   initRefreshPromise = promise;
 };
 
-
 const applyToken = (requestConfig: AxiosRequestConfig, token: string): void => {
+  
   requestConfig.headers!.Authorization = `Bearer ${token}`;
 };
 
 const handleRefreshSuccess = (token: string, expiration: string, permission: Permission[]): void => {
   useAuthStore.getState().setAuth(token, new Date(expiration).getTime(), permission);
 };
-
 
 apiClient.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState();
@@ -69,7 +66,6 @@ apiClient.interceptors.request.use((config) => {
 
   return config;
 });
-
 
 apiClient.interceptors.response.use(
   (response) => response,
@@ -87,6 +83,7 @@ apiClient.interceptors.response.use(
     if (initRefreshPromise) {
       try {
         const token = await initRefreshPromise;
+        console.log(token)
         originalRequest._retry = true;
         applyToken(originalRequest, token);
         return apiClient(originalRequest);
@@ -109,7 +106,6 @@ apiClient.interceptors.response.use(
       handleRefreshSuccess(data.accessToken, data.accessTokenExpiration, decoded.Permission);
       resolvePendingRequests(data.accessToken);
       applyToken(originalRequest, data.accessToken);
-
       return apiClient(originalRequest);
     } catch (refreshError) {
       rejectPendingRequests(refreshError);

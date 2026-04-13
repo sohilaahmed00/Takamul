@@ -213,6 +213,7 @@ export default function ProductsList() {
             <Column header={t("name")} sortable field="productNameAr" />
             <Column field="description" sortable header={t("description")} />
             <Column field="balance" sortable header={"الكمية"} />
+            <Column field="barcode" sortable header={"الباركود"} />
             <Column field="costPrice" sortable header={"سعر الشراء"} />
             <Column
               header="قيمة الضريبة"

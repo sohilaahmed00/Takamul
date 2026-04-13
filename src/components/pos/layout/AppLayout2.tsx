@@ -62,7 +62,6 @@ export default function AppLayout2() {
 
       {showHoldModal && <HoldModal onClose={() => setShowHoldModal(false)} onConfirm={confirmHold} />}
 
-      <Sidebar />
 
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         <Topbar2 />
@@ -75,7 +74,6 @@ export default function AppLayout2() {
             <div className="  min-w-0  ">
               {/* <PageContent /> */}
             </div>
-            {/* Cart — full width من تحت */}
             <RightPanel2 />
           </div>
         </TooltipProvider>

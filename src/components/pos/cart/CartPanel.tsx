@@ -284,7 +284,6 @@ export default function CartPanel() {
 
   // ── order-level discount ───────────────────────────────────────────────────
   const applyDiscount = () => {
-    // ✅ لو في خصم على أي صنف، امنع
     if (hasItemDiscount) {
       notifyError(t("cannot_mix_discounts") || "لا يمكن الجمع بين خصم الأصناف وخصم الفاتورة");
       return;
