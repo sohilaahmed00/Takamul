@@ -53,29 +53,29 @@ export default function CustomerAgingReport() {
   return (
     <div className="space-y-4 pb-12" dir={direction}>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <SummaryCard title={t('total_receivables')} value={`${fmt(totalReceivables)} SAR`} color="bg-[#d97706]" icon={CreditCard} />
-        <SummaryCard title={t('active_customers')} value={`${agingData.length}`} color="bg-teal-500" icon={Users} />
-        <SummaryCard title={t('overdue_balance')} value={`${fmt(totalReceivables * 0.3)} SAR`} color="bg-red-500" icon={DollarSign} />
+        <SummaryCard title={t('total_receivables', 'إجمالي المستحقات')} value={`${fmt(totalReceivables)} SAR`} color="bg-[#d97706]" icon={CreditCard} />
+        <SummaryCard title={t('active_customers', 'العملاء النشطين')} value={`${agingData.length}`} color="bg-teal-500" icon={Users} />
+        <SummaryCard title={t('overdue_balance', 'المبالغ المتأخرة')} value={`${fmt(totalReceivables * 0.3)} SAR`} color="bg-red-500" icon={DollarSign} />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>{t('customer_aging_report')}</CardTitle>
-          <CardDescription>{t('check_customer_debts_below')}</CardDescription>
+          <CardTitle>{t('customer_aging_report', 'تقرير أعمار ديون العملاء')}</CardTitle>
+          <CardDescription>{t('check_customer_debts_below', 'استعراض ديون العملاء مصنفة حسب الفترة الزمنية')}</CardDescription>
         </CardHeader>
         <CardContent>
           <DataTable
             value={agingData} paginator rows={10} header={header}
             className="custom-green-table custom-compact-table" dataKey="id"
-            emptyMessage={t('no_data')} globalFilter={globalFilterValue}
+            emptyMessage={t('no_data', 'لا توجد بيانات')} globalFilter={globalFilterValue}
           >
-            <Column header={t('customer_name')} field="name" sortable body={(r) => <b className="text-[var(--primary)]">{r.name}</b>} />
-            <Column header={t('less_30_days')} field="less30" sortable body={(r) => fmt(r.less30)} />
-            <Column header={t('range_30_60')} field="range30_60" sortable body={(r) => fmt(r.range30_60)} />
-            <Column header={t('range_60_90')} field="range60_90" sortable body={(r) => fmt(r.range60_90)} />
-            <Column header={t('range_90_120')} field="range90_120" sortable body={(r) => fmt(r.range90_120)} />
-            <Column header={t('more_150_days')} field="more150" sortable body={(r) => fmt(r.more150)} />
-            <Column header={t('total')} body={(r) => <span className="font-bold">{fmt(r.less30 + r.range30_60 + r.range60_90 + r.range90_120 + r.range120_150 + r.more150)}</span>} />
+            <Column header={t('customer_name', 'اسم العميل')} field="name" sortable body={(r) => <b className="text-[var(--primary)]">{r.name}</b>} />
+            <Column header={t('less_30_days', 'أقل من 30 يوم')} field="less30" sortable body={(r) => fmt(r.less30)} />
+            <Column header={t('range_30_60', 'من 30 إلى 60 يوم')} field="range30_60" sortable body={(r) => fmt(r.range30_60)} />
+            <Column header={t('range_60_90', 'من 60 إلى 90 يوم')} field="range60_90" sortable body={(r) => fmt(r.range60_90)} />
+            <Column header={t('range_90_120', 'من 90 إلى 120 يوم')} field="range90_120" sortable body={(r) => fmt(r.range90_120)} />
+            <Column header={t('more_150_days', 'أكبر من 150 يوم')} field="more150" sortable body={(r) => fmt(r.more150)} />
+            <Column header={t('total', 'الإجمالي')} body={(r) => <span className="font-bold">{fmt(r.less30 + r.range30_60 + r.range60_90 + r.range90_120 + r.range120_150 + r.more150)}</span>} />
           </DataTable>
         </CardContent>
       </Card>

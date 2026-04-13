@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+﻿import React, { useState, useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -50,7 +50,7 @@ export default function ItemPurchasesReport() {
             <CardDescription>{t("customize_report_below", "استخدم الفلاتر لتخصيص التقرير")}</CardDescription>
           </div>
           <div className="flex items-center gap-2 self-start md:self-auto">
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]"><Printer size={16} /><span className="hidden sm:inline">Print</span></Button>
+            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]"><Printer size={16} /><span className="hidden sm:inline">{t("print", "طباعة")}</span></Button>
             <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]"><FileText size={16} /><span className="hidden sm:inline">PDF</span></Button>
             <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]"><FileSpreadsheet size={16} /><span className="hidden sm:inline">XML</span></Button>
           </div>

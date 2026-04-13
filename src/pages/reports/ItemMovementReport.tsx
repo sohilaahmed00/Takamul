@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+﻿import React, { useState, useMemo } from "react";
 import {
   RefreshCw,
   RotateCcw,
@@ -6,7 +6,6 @@ import {
   Printer,
   FileText,
   FileSpreadsheet,
-  Package,
 } from "lucide-react";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -20,9 +19,8 @@ import {
 } from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
 import ComboboxField from "@/components/ui/ComboboxField";
-import { useGetItems } from "@/features/items/hooks/useGetItems";
+import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
 import { useGetProductMovement } from "@/features/reports/hooks/useGetProductMovement";
-
 import { Input } from "@/components/ui/input";
 
 type FilterState = {
@@ -36,22 +34,25 @@ export default function ItemMovementReport() {
 
   const [filters, setFilters] = useState<FilterState>({
     productId: "",
-    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
-    to: new Date().toISOString().split('T')[0],
+    from: new Date(new Date().setDate(new Date().getDate() - 30))
+      .toISOString()
+      .split("T")[0],
+    to: new Date().toISOString().split("T")[0],
   });
 
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
 
-  // ✅ Fix: Extract items correctly whether they are in .items or the whole array
-  const { data: itemsResponse, isLoading: itemsLoading } = useGetItems({ pageSize: 500 });
-  const itemsList = useMemo(() => {
-    if (!itemsResponse) return [];
-    if (Array.isArray(itemsResponse)) return itemsResponse;
-    if (Array.isArray((itemsResponse as any).items)) return (itemsResponse as any).items;
-    return [];
-  }, [itemsResponse]);
+  // ✅ جيب كل المنتجات (الأصناف) مش البنود
+  const { data: productsResponse, isLoading: productsLoading } =
+    useGetAllProducts({ page: 1, limit: 500 });
 
-  // ✅ Fix: Ensure productId is a number for the API
+  // ✅ الـ products بترجع { items: Product[] } — نسحب الـ items
+  const productsList = useMemo(
+    () => productsResponse?.items ?? [],
+    [productsResponse]
+  );
+
+  // ✅ الـ productId يكون number للـ API
   const movementParams = useMemo(
     () => ({
       ...searchParams,
@@ -60,7 +61,8 @@ export default function ItemMovementReport() {
     [searchParams]
   );
 
-  const { data: movementData, isLoading, isFetching } = useGetProductMovement(movementParams);
+  const { data: movementData, isLoading, isFetching } =
+    useGetProductMovement(movementParams);
 
   const handleSearch = () => {
     setSearchParams(filters);
@@ -69,19 +71,20 @@ export default function ItemMovementReport() {
   const handleClear = () => {
     const defaultFilters: FilterState = {
       productId: "",
-      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
-      to: new Date().toISOString().split('T')[0],
+      from: new Date(new Date().setDate(new Date().getDate() - 30))
+        .toISOString()
+        .split("T")[0],
+      to: new Date().toISOString().split("T")[0],
     };
     setFilters(defaultFilters);
     setSearchParams(defaultFilters);
   };
 
-  const formatNumber = (value?: number) => {
-    return Number(value ?? 0).toLocaleString("en-US", {
+  const formatNumber = (value?: number) =>
+    Number(value ?? 0).toLocaleString("en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
-  };
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "-";
@@ -94,9 +97,18 @@ export default function ItemMovementReport() {
     });
   };
 
-  const totalIn = useMemo(() => movementData?.reduce((s, r) => s + (r.qtyIn ?? 0), 0) || 0, [movementData]);
-  const totalOut = useMemo(() => movementData?.reduce((s, r) => s + (r.qtyOut ?? 0), 0) || 0, [movementData]);
-  const currentBalance = useMemo(() => movementData?.[movementData.length - 1]?.runningBalance || 0, [movementData]);
+  const totalIn = useMemo(
+    () => movementData?.reduce((s, r) => s + (r.qtyIn ?? 0), 0) || 0,
+    [movementData]
+  );
+  const totalOut = useMemo(
+    () => movementData?.reduce((s, r) => s + (r.qtyOut ?? 0), 0) || 0,
+    [movementData]
+  );
+  const currentBalance = useMemo(
+    () => movementData?.[movementData.length - 1]?.runningBalance || 0,
+    [movementData]
+  );
 
   return (
     <div dir={direction}>
@@ -107,13 +119,18 @@ export default function ItemMovementReport() {
               <RefreshCw size={20} className="text-[var(--primary)]" />
               {t("item_movement_report", "تقرير حركة الصنف")}
             </CardTitle>
-            <CardDescription>{t("movement_description", "عرض تفصيلي لعمليات الدخول والخروج لصنف محدد")}</CardDescription>
+            <CardDescription>
+              {t(
+                "movement_description",
+                "عرض تفصيلي لعمليات الدخول والخروج لصنف محدد"
+              )}
+            </CardDescription>
           </div>
 
           <div className="flex items-center gap-2 self-start md:self-auto">
             <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
               <Printer size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">Print</span>
+              <span className="hidden sm:inline">{t("print", "طباعة")}</span>
             </Button>
             <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
               <FileText size={16} className="text-gray-600 dark:text-gray-300" />
@@ -127,24 +144,32 @@ export default function ItemMovementReport() {
         </CardHeader>
 
         <CardContent className="space-y-5">
-           {/* Summary Boxes */}
-           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {/* Summary Boxes */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-orange-500 text-white rounded-xl p-4 shadow-sm flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("total_qty_in", "إجمالي الداخل")}</p>
+              <p className="opacity-90 text-xs font-medium mb-1">
+                {t("total_qty_in", "إجمالي الداخل")}
+              </p>
               <h2 className="text-2xl font-bold">{totalIn}</h2>
             </div>
             <div className="bg-teal-500 text-white rounded-xl p-4 shadow-sm flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("total_qty_out", "إجمالي الخارج")}</p>
+              <p className="opacity-90 text-xs font-medium mb-1">
+                {t("total_qty_out", "إجمالي الخارج")}
+              </p>
               <h2 className="text-2xl font-bold">{totalOut}</h2>
             </div>
             <div className="bg-blue-500 text-white rounded-xl p-4 shadow-sm flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("current_balance", "الرصيد الحالي")}</p>
+              <p className="opacity-90 text-xs font-medium mb-1">
+                {t("current_balance", "الرصيد الحالي")}
+              </p>
               <h2 className="text-2xl font-bold">{currentBalance}</h2>
             </div>
           </div>
 
+          {/* Filters */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+              {/* ✅ اختيار الصنف من المنتجات */}
               <div className="space-y-2 lg:col-span-1">
                 <label className="text-sm font-medium text-[var(--text-main)] mb-1 block">
                   {t("select_product", "اختر الصنف")}
@@ -154,15 +179,15 @@ export default function ItemMovementReport() {
                   onChange={(val) =>
                     setFilters((prev) => ({ ...prev, productId: String(val) }))
                   }
-                  items={itemsList}
+                  items={productsList}
                   valueKey="id"
-                  labelKey="name"
+                  labelKey="productNameAr"
                   placeholder={
-                    itemsLoading
+                    productsLoading
                       ? t("loading", "جاري التحميل...")
                       : t("select_product", "اختر الصنف")
                   }
-                  disabled={itemsLoading}
+                  disabled={productsLoading}
                 />
               </div>
 
@@ -176,7 +201,6 @@ export default function ItemMovementReport() {
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, from: e.target.value }))
                   }
-                  
                 />
               </div>
 
@@ -190,14 +214,13 @@ export default function ItemMovementReport() {
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, to: e.target.value }))
                   }
-                  
                 />
               </div>
 
               <div className="flex items-center gap-2 lg:col-span-2">
-                <Button 
-                  onClick={handleSearch} 
-                  variant="default" 
+                <Button
+                  onClick={handleSearch}
+                  variant="default"
                   className="h-10 px-6 gap-2 flex-1"
                   disabled={isLoading || isFetching || !filters.productId}
                 >
@@ -205,13 +228,18 @@ export default function ItemMovementReport() {
                   {t("execute_operation", "اتمام العملية")}
                 </Button>
 
-                <Button onClick={handleClear} variant="outline" className="h-10 px-3 gap-1">
+                <Button
+                  onClick={handleClear}
+                  variant="outline"
+                  className="h-10 px-3 gap-1"
+                >
                   <RotateCcw size={16} />
                 </Button>
               </div>
             </div>
           </div>
 
+          {/* Table */}
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
             <DataTable
               value={movementData || []}
@@ -236,39 +264,36 @@ export default function ItemMovementReport() {
                   </span>
                 )}
               />
-
               <Column
                 field="barcode"
                 header={t("item_code", "كود الصنف")}
                 sortable
-                body={(r) => <span className="text-sm font-medium">{r.barcode}</span>}
+                body={(r) => (
+                  <span className="text-sm font-medium">{r.barcode}</span>
+                )}
               />
-
               <Column
-                field="productName"
+                field="productNameAr"
                 header={t("item_name", "اسم الصنف")}
                 sortable
                 body={(r) => (
                   <span className="text-sm font-bold text-[var(--text-main)]">
-                    {r.productNameAr || r.productName}
+                    {r.productNameAr}
                   </span>
                 )}
               />
-
               <Column
                 field="transType"
                 header={t("movement_type", "نوع الحركة")}
                 sortable
                 body={(r) => <span className="text-sm">{r.transType}</span>}
               />
-
               <Column
                 field="invoiceNo"
                 header={t("reference", "المرجع")}
                 sortable
                 body={(r) => <span className="text-sm">{r.invoiceNo}</span>}
               />
-
               <Column
                 field="qtyIn"
                 header={t("qty_in", "الداخل")}
@@ -289,7 +314,6 @@ export default function ItemMovementReport() {
                   </span>
                 )}
               />
-
               <Column
                 field="runningBalance"
                 header={t("quantity_after", "الكمية بعد")}
@@ -306,5 +330,4 @@ export default function ItemMovementReport() {
       </Card>
     </div>
   );
-
 }

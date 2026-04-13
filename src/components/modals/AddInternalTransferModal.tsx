@@ -6,6 +6,7 @@ import type { InternalTransfer } from "@/types";
 import ComboboxField from "@/components/ui/ComboboxField";
 
 import { Input } from "@/components/ui/input";
+import ResponsiveModal from "./ResponsiveModal";
 
 interface AddInternalTransferModalProps {
   isOpen: boolean;

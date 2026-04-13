@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+﻿import React, { useState, useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -70,12 +70,12 @@ export default function ExpensesDetailReport() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Wallet size={20} className="text-[var(--primary)]" />
-              {t("expenses_detail_report", "تقرير تفصيلي للمصروفات")}
+              {t("expenses_report", "تقرير المصروفات")}
             </CardTitle>
             <CardDescription>{t("customize_report_below", "استخدم الفلاتر لتخصيص التقرير")}</CardDescription>
           </div>
           <div className="flex items-center gap-2 self-start md:self-auto">
-            <Button variant="outline" size="sm" className="h-9 gap-1.5"><Printer size={16} /><span className="hidden sm:inline">Print</span></Button>
+            <Button variant="outline" size="sm" className="h-9 gap-1.5"><Printer size={16} /><span className="hidden sm:inline">{t("print", "طباعة")}</span></Button>
             <Button variant="outline" size="sm" className="h-9 gap-1.5"><FileText size={16} /><span className="hidden sm:inline">PDF</span></Button>
             <Button variant="outline" size="sm" className="h-9 gap-1.5"><FileSpreadsheet size={16} /><span className="hidden sm:inline">XML</span></Button>
           </div>

@@ -7,8 +7,7 @@ const ProfitsReportsCategory: React.FC = () => {
   const { t } = useLanguage();
 
   const reports = [
-    { title: t('profit_report', 'تقرير الأرباح'), icon: <TrendingUp />, path: '/reports/profit' },
-    { title: t('financial_summary', 'الملخص المالي'), icon: <BarChart3 />, path: '/reports/financial-summary' },
+    { title: t('profit_report', 'تقرير الأرباح'), icon: <TrendingUp />, path: '/reports/financial-summary' },
   ];
 
   return <ReportsDashboardBase title={t('profits_reports', 'تقارير الأرباح')} reports={reports} />;

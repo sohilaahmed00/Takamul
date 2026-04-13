@@ -172,8 +172,6 @@ export default function AddRevenueModal({
     >
       <DialogContent
         dir={direction}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        onCloseAutoFocus={(e) => e.preventDefault()}
         className="w-full sm:max-w-[750px] p-0 rounded-2xl overflow-hidden max-h-[100vh]"
       >
         <DialogHeader className="px-5 py-3 border-b border-gray-100">

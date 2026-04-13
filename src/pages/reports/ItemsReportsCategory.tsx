@@ -11,7 +11,7 @@ const ItemsReportsCategory: React.FC = () => {
     { title: t('top_selling_product_report', 'تقرير المنتج الأكثر مبيعاً'), icon: <TrendingUp />, path: '/reports/best-sellers' },
     { title: t('item_movement_report', 'تقرير كشف حركة صنف'), icon: <FileText />, path: '/reports/item-movement' },
     { title: t('stock_alerts_report', 'تقرير تنبيهات المخزون'), icon: <AlertTriangle />, path: '/reports/low-stock' },
-    { title: t('stock_balance_report', 'تقرير أرصدة الأصناف'), icon: <BarChart3 />, path: '/reports/stock-balance' },
+    { title: t('stock_balance_report', 'تقرير جرد الأصناف'), icon: <BarChart3 />, path: '/reports/stock-balance' },
   ];
 
   return <ReportsDashboardBase title={t('item_reports', 'تقارير الأصناف')} reports={reports} />;
