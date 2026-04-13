@@ -36,7 +36,6 @@ export default function Login() {
 
     try {
       const res = await login({ email: username, password });
-      notifySuccess("تم تسجيل الدخول بنجاح");
       navigate("/dashboard");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {

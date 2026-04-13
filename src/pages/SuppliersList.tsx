@@ -9,14 +9,7 @@ import { useGetSupplierById } from "@/features/suppliers/hooks/useGetSupplierByI
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { Input } from "@/components/ui/input";
 
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function SuppliersList() {
   const { t, direction } = useLanguage();
@@ -37,11 +30,7 @@ export default function SuppliersList() {
     if (!term) return items;
 
     return items.filter((supplier: any) => {
-      return (
-        supplier.supplierName?.toLowerCase().includes(term) ||
-        supplier.phone?.toLowerCase().includes(term) ||
-        supplier.taxNumber?.toLowerCase().includes(term)
-      );
+      return supplier.supplierName?.toLowerCase().includes(term) || supplier.phone?.toLowerCase().includes(term) || supplier.taxNumber?.toLowerCase().includes(term);
     });
   }, [suppliers, globalFilterValue]);
 
@@ -58,13 +47,7 @@ export default function SuppliersList() {
           <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
             <Search size={18} className="text-gray-400" />
           </div>
-          <Input
-            type="text"
-            value={globalFilterValue}
-            onChange={onGlobalFilterChange}
-            placeholder={t("search_placeholder")}
-            className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none"
-          />
+          <Input type="text" value={globalFilterValue} onChange={onGlobalFilterChange} placeholder={t("search_placeholder")} className="placeholder:font-normal w-full border border-gray-200 hover:border-gray-200 focus:border-[var(--primary)] focus:bg-white text-gray-700 text-sm rounded-lg py-2 pr-11 pl-4 transition-all outline-none" />
         </div>
       </div>
     );
@@ -88,7 +71,7 @@ export default function SuppliersList() {
           </CardTitle>
           <CardDescription>{t("suppliers_desc")}</CardDescription>
           <CardAction>
-            <Button variant={"default"} onClick={() => setIsModalOpen(true)}>
+            <Button size="xl" variant={"default"} onClick={() => setIsModalOpen(true)}>
               <Plus size={18} />
               {t("add_supplier")}
             </Button>
@@ -132,9 +115,7 @@ export default function SuppliersList() {
                   >
                     <Edit2 size={16} />
                   </button>
-                  <button
-                    className="btn-minimal-action btn-compact-action"
-                  >
+                  <button className="btn-minimal-action btn-compact-action">
                     <Trash2 size={16} />
                   </button>
                 </div>

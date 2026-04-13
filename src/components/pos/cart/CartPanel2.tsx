@@ -1,550 +1,223 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CircleArrowRight, Pause, Plus, X, ChevronsUpDown, Check, Trash2, Percent, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import AddParnterModal from "@/components/modals/AddParnterModal";
-import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
-import { calcItemTax, calcTotals, CartItem, itemBasePrice, itemTotal } from "@/constants/data";
+import { calcItemTax, calcTotals, itemBasePrice } from "@/constants/data";
 import { usePos } from "@/context/PosContext";
-import { useGetAllAdditions } from "@/features/Additions/hooks/useGetAllAdditions";
-import type { Addition } from "@/features/Additions/types/additions.types";
-import { useGetGiftCards } from "@/features/gift-cards/hooks/useGetGiftCards";
-import { GiftCard } from "@/features/gift-cards/types/giftCard.types";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import useToast from "@/hooks/useToast";
-import { useGetAllTables } from "@/features/pos/hooks/useGetAllTables";
-import ComboboxField from "@/components/ui/ComboboxField";
 import { useLanguage } from "@/context/LanguageContext";
+import { Trash2 } from "lucide-react";
 
-const TABS = ["add", "discount", "coupon", "note"] as const;
-
-// ── Extras combobox for a single cart item ────────────────────────────────────
-function ExtrasCombobox({ selectedIds, onToggle, additions }: { selectedIds: number[]; onToggle: (id: number, name: string) => void; additions: Addition[] }) {
-  const [open, setOpen] = useState(false);
-  const { t } = useLanguage();
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button className="w-full flex items-center justify-between px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-500 hover:border-primary/40 bg-white focus:outline-none">
-          <span>{selectedIds.length > 0 ? `${selectedIds.length} ${t("selected_additions")}` : t("choose_additions")}</span>
-          <ChevronsUpDown size={12} className="text-gray-400" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-52 p-3" align="end" side="top">
-        <Command>
-          <CommandInput placeholder={t("search") || "ابحث..."} className="text-xs h-8" />
-          <CommandList>
-            <CommandEmpty className="text-xs text-center py-3 text-gray-400">{t("no_results") || "لا توجد نتائج"}</CommandEmpty>
-            <CommandGroup>
-              {additions.map((a) => {
-                const isSelected = selectedIds.includes(a.id);
-                return (
-                  <CommandItem key={a.id} value={a.additionNameAr} onSelect={() => onToggle(a.id, a.additionNameAr)} className="text-xs flex items-center gap-2 cursor-pointer">
-                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-primary border-primary" : "border-gray-300"}`}>{isSelected && <Check size={10} className="text-white" />}</div>
-                    {a.additionNameAr}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-function CouponTab() {
-  const { cart, discount, setDiscount, setSelectedGiftCardId } = usePos();
-  const { sub, tax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
-  const { t } = useLanguage();
-
-  const { data: giftCards } = useGetGiftCards();
-  const [code, setCode] = useState("");
-  const [status, setStatus] = useState<"idle" | "valid" | "invalid" | "used">("idle");
-  const [appliedCard, setAppliedCard] = useState<GiftCard | null>(null);
-
-  const handleApply = () => {
-    const card = giftCards?.items?.find((c) => c.code.toLowerCase() === code.trim().toLowerCase());
-
-    if (!card) return setStatus("invalid");
-    if (!card.isActive || card.isDeleted) return setStatus("used");
-
-    const total = sub + tax;
-    const deduct = Math.min(card.remainingAmount, total);
-
-    setDiscount(deduct);
-    setAppliedCard(card);
-    setSelectedGiftCardId(card.id);
-    setStatus("valid");
-  };
-
-  const handleClear = () => {
-    setCode("");
-    setStatus("idle");
-    setAppliedCard(null);
-    setDiscount(0);
-    setSelectedGiftCardId(null);
-  };
-
-  return (
-    <>
-      <Input
-        value={code}
-        onChange={(e) => {
-          setCode(e.target.value);
-          setStatus("idle");
-        }}
-        placeholder={t("enter_coupon_code")}
-        className={`w-full mb-2 ${status === "invalid" || status === "used" ? "border-red-300" : status === "valid" ? "border-green-400" : ""}`}
-      />
-
-      {status === "invalid" && <div className="text-xs text-red-500 font-semibold mb-2">{t("invalid_code")}</div>}
-      {status === "used" && <div className="text-xs text-red-500 font-semibold mb-2">{t("inactive_or_deleted_card")}</div>}
-      {status === "valid" && appliedCard && (
-        <div className="rounded-xl border border-green-200 bg-green-50 px-3 py-2.5 mb-2 flex items-center justify-between">
-          <div>
-            <div className="text-xs font-black text-green-700">{appliedCard.code}</div>
-            <div className="text-[10px] text-green-600 mt-0.5">{appliedCard.customerName}</div>
-            {appliedCard.expiryDate && (
-              <div className="text-[10px] text-gray-400">
-                {t("expires_on")} {new Date(appliedCard.expiryDate).toLocaleDateString()}
-              </div>
-            )}
-          </div>
-          <div className="text-right">
-            <div className="text-xs text-gray-400">{t("remaining_balance")}</div>
-            <div className="text-sm font-black text-green-700">${appliedCard.remainingAmount.toFixed(2)}</div>
-            <button onClick={handleClear} className="text-[10px] text-red-400 hover:text-red-600 mt-1">
-              {t("remove")}
-            </button>
-          </div>
-        </div>
-      )}
-
-      <div className="flex gap-2">
-        <Button size="2xl" className="flex-1" variant="destructive" onClick={handleClear}>
-          {t("clear")}
-        </Button>
-        <Button size="2xl" className="flex-1" onClick={handleApply} disabled={!code.trim()}>
-          {t("apply")}
-        </Button>
-      </div>
-    </>
-  );
-}
-// ── Discount Popover ─────────────────────────────────────────────────────────
-function DiscountPopover({ item, disabled, idx, onDiscChange, onDiscTypeToggle, onDiscClear }: { item: CartItem; disabled: boolean; idx: number; onDiscChange: (idx: number, type: "pct" | "flat", raw: string) => void; onDiscTypeToggle: (idx: number) => void; onDiscClear: (idx: number) => void }) {
-  const [raw, setRaw] = useState(String(item.itemDiscount?.value ?? ""));
-  const { t } = useLanguage();
-
-  useEffect(() => {
-    setRaw(String(item.itemDiscount?.value ?? ""));
-  }, [item.itemDiscount?.value]);
-
-  const hasDisc = !!item.itemDiscount && item.itemDiscount.value > 0;
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button
-          disabled={disabled}
-          className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-colors
-            ${hasDisc ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400 hover:border-primary/40"}
-            ${disabled ? "opacity-40 cursor-not-allowed" : ""}`}
-        >
-          <Percent size={12} />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-52 p-3" align="end" onOpenAutoFocus={(e) => e.preventDefault()}>
-        <div className="text-xs text-gray-400 font-semibold mb-2">{t("item_discount")}</div>
-        <div className="flex items-center gap-1">
-          <button onClick={() => onDiscTypeToggle(idx)} className="w-8 h-8 rounded-lg border border-gray-200 text-xs font-bold text-gray-500 hover:border-primary/40 shrink-0">
-            {(item.itemDiscount?.type ?? "pct") === "pct" ? "%" : "$"}
-          </button>
-          <Input
-            className="flex-1 px-2 py-1.5 border border-gray-200 rounded-lg text-xs outline-none text-right font-semibold focus:border-primary/40 bg-white"
-            value={raw}
-            placeholder="0"
-            type="number"
-            min="0"
-            onChange={(e) => {
-              setRaw(e.target.value);
-              onDiscChange(idx, item.itemDiscount?.type ?? "pct", e.target.value);
-            }}
-          />
-          {hasDisc && (
-            <button
-              onClick={() => {
-                onDiscClear(idx);
-                setRaw("");
-              }}
-              className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center hover:bg-red-100 shrink-0"
-            >
-              <X size={10} className="text-gray-500" />
-            </button>
-          )}
-        </div>
-        {hasDisc && <div className="text-[10px] text-primary font-semibold mt-1.5">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% ${t("off")}` : `-$${item.itemDiscount!.value.toFixed(2)}`}</div>}
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-// ── Extras Popover ───────────────────────────────────────────────────────────
-function ExtrasPopover({ item, idx, additions, onToggleExtra }: { item: CartItem; idx: number; additions: Addition[]; onToggleExtra: (idx: number, id: number, name: string) => void }) {
-  const { t } = useLanguage();
-  const hasExtras = (item.extras ?? []).length > 0;
-  const selectedExtraIds = (item.extras ?? []).map((e) => e.id!).filter(Boolean);
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button
-          className={`w-7 h-7 rounded-lg border flex items-center justify-center transition-colors
-          ${hasExtras ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400 hover:border-primary/40"}`}
-        >
-          <Plus size={12} />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-3" align="end">
-        <div className="text-xs text-gray-400 font-semibold mb-2">{t("additions_panel")}</div>
-        <ExtrasCombobox selectedIds={selectedExtraIds} onToggle={(id, name) => onToggleExtra(idx, id, name)} additions={additions} />
-        {hasExtras && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {item.extras!.map((ex) => (
-              <div key={ex.id} className="px-2 py-0.5 bg-primary/5 border border-primary/20 rounded-full text-[10px] text-primary font-semibold">
-                {ex.name}
-              </div>
-            ))}
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
-  );
-}
-
-// ── Main CartPanel ────────────────────────────────────────────────────────────
-export default function CartPanel2() {
+export default function CartFooter() {
   const { t } = useLanguage();
   const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
-  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
-  const [discType, setDiscType] = useState<"pct" | "flat">("pct");
-  const [discInput, setDiscInput] = useState("");
-  const { data: customers, isLoading: loadingCustomers } = useGetAllCustomers({ page: 1, limit: 100 });
-  const { data: additions } = useGetAllAdditions();
-  const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax, itemDiscountsTotal } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
-  const { notifyError, notifySuccess } = useToast();
 
+  const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
+
+  // حالة الخصم الإضافي
+  const [discPct, setDiscPct] = useState("");
+  const [discFlat, setDiscFlat] = useState("");
+
+  const handleApplyDiscount = () => {
+    const base = sub + taxAfterDiscount;
+    if (discPct) setDiscount((base * parseFloat(discPct)) / 100);
+    if (discFlat) setDiscount(parseFloat(discFlat));
+  };
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
 
   const changeQty = (idx: number, d: number) => setCart((p) => p.map((item, i) => (i === idx ? { ...item, qty: Math.max(1, item.qty + d) } : item)));
 
-  // ── per-item discount ──────────────────────────────────────────────────────
-  const setItemDisc = (idx: number, type: "pct" | "flat", raw: string) => {
-    if (hasOrderDiscount) {
-      notifyError(t("cannot_mix_discounts") || "لا يمكن الجمع بين خصم الأصناف وخصم الفاتورة");
-      return;
-    }
-
-    const value = parseFloat(raw);
-    const capped = type === "pct" ? Math.min(value, 100) : value;
-    setCart((p) =>
-      p.map((item, i) =>
-        i === idx
-          ? {
-              ...item,
-              itemDiscount: raw === "" || isNaN(value) ? null : { type, value: capped },
-            }
-          : item,
-      ),
-    );
-  };
-
-  // ── per-item extras (toggle by id) ────────────────────────────────────────
-  const toggleExtra = (itemIdx: number, additionId: number, additionName: string) => {
-    setCart((p) =>
-      p.map((item, i) => {
-        if (i !== itemIdx) return item;
-        const extras = item.extras ?? [];
-        const exists = extras.find((e) => e.id === additionId);
-        return {
-          ...item,
-          extras: exists ? extras.filter((e) => e.id !== additionId) : [...extras, { id: additionId, name: additionName, price: 0 }],
-        };
-      }),
-    );
-  };
-
-  const removeExtra = (itemIdx: number, additionId: number) => {
-    setCart((p) => p.map((item, i) => (i === itemIdx ? { ...item, extras: (item.extras ?? []).filter((e) => e.id !== additionId) } : item)));
-  };
-
-  // ── order-level discount ───────────────────────────────────────────────────
-  const applyDiscount = () => {
-    // ✅ لو في خصم على أي صنف، امنع
-    if (hasItemDiscount) {
-      notifyError(t("cannot_mix_discounts") || "لا يمكن الجمع بين خصم الأصناف وخصم الفاتورة");
-      return;
-    }
-
-    const val = parseFloat(discInput) || 0;
-    const base = sub + taxAfterDiscount;
-    setDiscount(discType === "pct" ? (base * val) / 100 : val);
-    setActiveTab("add");
-  };
-
-  const hasItemDiscount = useMemo(() => cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0), [cart]);
-  const hasOrderDiscount = discount > 0;
-
-  const GRID = "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_45px_50px_85px] gap-2 px-2";
   return (
     <>
-      <div className=" flex flex-col w-full flex-1  space-y-5">
-        {/* Head – Customer selector */}
-
-        {/* Items */}
-        <div className="bg-white  rounded-lg flex-1 overflow-y-auto px-2 py-1.5 space-y-1">
-          {cart?.length === 0 ? (
-            <div className="p-5 text-center text-gray-400 text-xs">{t("cart_is_empty")}</div>
-          ) : (
-            <>
-              {/* Table header */}
-              <div className={`${GRID} py-1.5 border-b border-gray-100 text-[10px] font-semibold text-gray-400 uppercase`}>
-                <span>#</span>
-                <span>{t("item")}</span>
-                <span className="text-center">{t("quantity_label")}</span>
-                <span className="px-2 border-r border-gray-100 text-right flex items-center justify-end gap-1">
-                  {t("price")}
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info size={10} className="text-gray-300 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="text-xs">
-                      {t("price_before_tax")}
-                    </TooltipContent>
-                  </Tooltip>
-                </span>{" "}
-                <span className="text-right">{t("tax_column")}</span>
-                <span className="text-right">{t("total_amount")}</span>
-                <span className="text-center">{t("actions")}</span>
-              </div>
-
-              {cart?.map((item, idx) => {
-                const total = itemTotal(item);
-                const hasDisc = !!item.itemDiscount && item.itemDiscount.value > 0;
-                const itemWithoutDisc = { ...item, itemDiscount: null };
-                const origBasePrice = itemBasePrice(itemWithoutDisc);
-                return (
-                  <div key={idx} className={`${GRID} py-2 items-center border-b border-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-[#f6f6f6]"}`}>
-                    {/* # */}
-                    <span className="text-xs text-gray-400 font-medium">{idx + 1}</span>
-                    {/* الاسم */}
-                    <div className="min-w-0 overflow-hidden">
-                      <div className="text-xs font-bold text-gray-800 ">{item?.name}</div>
-                      {(item.extras ?? []).length > 0 && <div className="text-[10px] text-gray-400">+ {item.extras!.map((e) => e.name).join("، ")}</div>}
-                      {hasDisc && <div className="text-[10px] text-primary font-semibold">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% ${t("off")}` : `-$${item.itemDiscount!.value.toFixed(2)}`}</div>}
-                    </div>
-                    {/* الكمية */}
-                    <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
-                      <button onClick={() => changeQty(idx, -1)} className="px-1.5 py-1 text-gray-500 hover:bg-gray-50 text-sm font-bold">
-                        −
-                      </button>
-                      <span className="flex-1 py-1 text-xs font-semibold text-center border-x border-gray-200">{item.qty}</span>
-                      <button onClick={() => changeQty(idx, 1)} className="px-1.5 py-1 text-gray-500 hover:bg-gray-50 text-sm font-bold">
-                        +
-                      </button>
-                    </div>
-                    {/* السعر قبل الضريبة */}
-                    <div className="text-right">
-                      {hasDisc && <div className="text-[10px] text-gray-300 line-through">${origBasePrice.toFixed(2)}</div>}
-                      <div className="text-xs font-semibold text-gray-700">${itemBasePrice(item).toFixed(2)}</div>
-                    </div>
-                    {/* ض.ق.م */}
-                    <div className="text-right">
-                      <div className="text-xs text-gray-500">${calcItemTax(item).toFixed(2)}</div>{" "}
-                    </div>
-                    {/* الإجمالي */}
-                    <div className="text-right">
-                      <div className="text-xs font-bold text-gray-800">${(itemBasePrice(item) + calcItemTax(item)).toFixed(2)}</div>{" "}
-                    </div>
-                    {/* عمليات */}
-                    <div className="flex items-center justify-center gap-1">
-                      <DiscountPopover
-                        item={item}
-                        idx={idx}
-                        disabled={hasOrderDiscount}
-                        onDiscChange={setItemDisc}
-                        onDiscTypeToggle={(i) => {
-                          const nextType = (item.itemDiscount?.type ?? "pct") === "pct" ? "flat" : "pct";
-                          setItemDisc(i, nextType, String(item.itemDiscount?.value ?? ""));
-                        }}
-                        onDiscClear={(i) => setCart((p) => p.map((it, j) => (j === i ? { ...it, itemDiscount: null } : it)))}
-                      />
-                      <ExtrasPopover item={item} idx={idx} additions={additions ?? []} onToggleExtra={toggleExtra} />
-                      <div role="button" onClick={() => removeItem(idx)} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-red-100 flex items-center justify-center transition-colors cursor-pointer">
-                        <Trash2 size={13} className="text-gray-400 hover:text-red-500" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </>
-          )}
+      {/* Table header */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div
+          className="grid text-white text-[10px] font-bold px-2 py-2"
+          style={{
+            backgroundColor: "#000052",
+            gridTemplateColumns: "30px 80px 1fr 1fr 90px 100px 100px 150px 150px 150px 100px",
+          }}
+        >
+          <span className="flex items-center justify-start">#</span>
+          <span className="flex items-center justify-start">كود الصنف</span>
+          <span className="flex items-center justify-start">اسم الصنف</span>
+          <span className="flex items-center justify-start">السعر بدون ضريبة</span>
+          <span className="flex items-center justify-start">الكمية</span>
+          <span className="flex items-center justify-start">نسبة الخصم%</span>
+          <span className="flex items-center justify-start">قيمة الخصم</span>
+          <span className="flex items-center justify-start">الإجمالي قبل الضريبة</span>
+          <span className="flex items-center justify-start">ضريبة القيمة المضافة</span>
+          <span className="flex items-center justify-start">الإجمالي النهائي</span>
+          <span className="flex items-center justify-start">موظف الخدمة</span>
         </div>
-
-        <div className="bg-white  rounded-lg flex-shrink-0">
-          {/* Tabs */}
-          <div className="flex px-3 border-b border-gray-100">
-            {TABS.map((tab) => {
-              const label = tab === "add" ? t("add_permission") || "Add" : tab === "discount" ? t("discount") || "Discount" : tab === "coupon" ? t("coupon_code") || "Coupon Code" : t("note") || "Note";
-
-              const isDisabled = tab === "discount" && hasItemDiscount;
+        <div className="flex-1 overflow-y-auto bg-white">
+          {cart.length === 0 ? (
+            // صف فارغ افتراضي زي الصورة
+            <div
+              className="grid items-center px-2 py-2 border-b border-gray-100 text-[11px] text-gray-400"
+              style={{
+                gridTemplateColumns: "30px 80px 1fr 1fr 90px 100px 100px 150px 150px 150px 100px",
+              }}
+            >
+              <span className="">1</span>
+              <span className="">--</span>
+              <div className="flex items-cente gap-1 text-gray-300">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                اسم الصنف
+              </div>
+              <span className="">--</span>
+              <span className="">--</span>
+              <span className="">--</span>
+              <span className="">--</span>
+              <span className="">--</span>
+              <span className="">--</span>
+              <span className="">--</span>
+              <span className="">-</span>
+            </div>
+          ) : (
+            cart.map((item, idx) => {
+              const base = itemBasePrice(item);
+              const tax = calcItemTax(item);
+              const rowTotal = base + tax;
+              const discVal = item.itemDiscount ? (item.itemDiscount.type === "pct" ? (itemBasePrice({ ...item, itemDiscount: null }) * item.itemDiscount.value) / 100 : item.itemDiscount.value) : 0;
+              const discPct = item.itemDiscount?.type === "pct" ? item.itemDiscount.value : 0;
 
               return (
-                <button
-                  key={tab}
-                  onClick={() => !isDisabled && setActiveTab(tab)}
-                  disabled={isDisabled}
-                  className={`text-xs py-2 px-1.5 border-b-2 whitespace-nowrap transition-colors duration-150
-            ${activeTab === tab ? "border-primary text-primary font-bold" : "border-transparent text-gray-400 hover:text-gray-600"}
-            ${isDisabled ? "opacity-40 cursor-not-allowed" : ""}`}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* ── TAB: الإجمالي ── */}
-          {activeTab === "add" && (
-            <div className="p-3 flex flex-col gap-3">
-              {/* 4 بطاقات */}
-              <div className="grid grid-cols-4 gap-2">
-                {/* المجموع الأساسي */}
-                <div className="bg-blue-50 rounded-lg p-2.5 flex flex-col gap-1">
-                  <span className="text-[10px] text-blue-600">{t("subtotal")} :</span>
-                  <div className="flex items-center gap-1 flex-wrap">
-                    {discount > 0 && <span className="text-[10px] text-blue-300 line-through">${sub.toFixed(2)}</span>}
-                    <span className="text-base font-black text-blue-900">${subAfterDiscount.toFixed(2)}</span>
-                  </div>
-                </div>
-
-                {/* الخصم */}
-                <div className="bg-emerald-50 rounded-lg p-2.5 flex flex-col gap-1">
-                  <span className="text-[10px] text-emerald-600">{t("discount_label")} :</span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-base font-black text-emerald-800">{discount > 0 ? `$${discount.toFixed(2)}` : `$${itemDiscountsTotal.toFixed(2)}`}</span>
-                    {discount > 0 && (
-                      <button onClick={() => setDiscount(0)} className="w-4 h-4 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center hover:bg-emerald-200 text-[10px] leading-none">
-                        ×
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* الضريبة */}
-                <div className="bg-amber-50 rounded-lg p-2.5 flex flex-col gap-1">
-                  <span className="text-[10px] text-amber-700">{t("tax_label")} (15%) :</span>
-                  <div className="flex items-center gap-1 flex-wrap">
-                    {discount > 0 && <span className="text-[10px] text-amber-300 line-through">${originalTax.toFixed(2)}</span>}
-                    <span className="text-base font-black text-amber-900">${taxAfterDiscount.toFixed(2)}</span>
-                  </div>
-                </div>
-
-                {/* المطلوب سداده */}
-                <div className="bg-primary/20 border border-primary/30 rounded-lg p-2.5 flex flex-col gap-1">
-                  <span className="text-[10px] text-primary">{t("payable_amount")} :</span>
-                  <div className="flex items-baseline gap-1.5">
-                    {discount > 0 && <span className="text-[10px] text-violet-300 line-through">${(sub + originalTax).toFixed(2)}</span>}
-                    <span className="text-base font-black text-primary">${total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* الزرارين */}
-              <div className="flex items-center justify-between">
-                <button onClick={handleHold} className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 transition-colors">
-                  <Pause size={13} />
-                  {t("hold_cart")}
-                </button>
-                <Button
-                  size="2xl"
-                  className="px-8"
-                  onClick={async () => {
-                    if (cart.length === 0) {
-                      notifyError(t("add_items_to_invoice"));
-                      return;
-                    }
-                    if (orderType === "dine-in") {
-                      if (dineInMode === "add-items") await handleAddItemsToExistingOrder();
-                      else if (dineInMode === "checkout") setScreen("cashier");
-                      else await handleCreateDineInOrder();
-                    } else {
-                      setScreen("cashier");
-                    }
+                <div
+                  key={idx}
+                  className={`grid items-center px-2 py-2 border-b border-gray-100 text-[11px] ${idx % 2 === 0 ? "bg-white" : "bg-[#f6f9fc]"}`}
+                  style={{
+                    gridTemplateColumns: "30px 1fr 1.5fr 1fr 80px 80px 80px 100px 100px 100px 60px",
                   }}
                 >
-                  {t("proceed")} <CircleArrowRight />
-                </Button>
-              </div>
-            </div>
-          )}
+                  {/* # */}
+                  <span className="text-center text-gray-400">{idx + 1}</span>
 
-          {/* ── TAB: الخصم ── */}
-          {activeTab === "discount" && (
-            <div className="p-3">
-              <div className="text-sm font-bold text-gray-800 mb-3">{t("order_discount")}</div>
-              <div className="flex gap-2 mb-3 items-center">
-                <button
-                  onClick={() => setDiscType("flat")}
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0
-            ${discType === "flat" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}
-                >
-                  $
-                </button>
-                <button
-                  onClick={() => setDiscType("pct")}
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0
-            ${discType === "pct" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}
-                >
-                  %
-                </button>
-                <Input value={discInput} onChange={(e) => setDiscInput(e.target.value)} className="flex-1 h-12 px-3 border border-gray-200 rounded-xl text-sm outline-none text-right font-semibold focus:border-primary/40 bg-white" placeholder="0" type="number" min="0" />
-              </div>
-              <div className="flex gap-2">
-                <Button size="2xl" className="flex-1" onClick={() => setActiveTab("add")} variant="destructive">
-                  {t("cancel")}
-                </Button>
-                <Button size="2xl" className="flex-1" onClick={applyDiscount}>
-                  {t("add_permission") || "Add"}
-                </Button>
-              </div>
-            </div>
-          )}
+                  {/* كود الصنف */}
+                  <span className="text-gray-500 truncate">{item.productId ?? "--"}</span>
 
-          {/* ── TAB: الكوبون ── */}
-          {activeTab === "coupon" && (
-            <div className="p-3">
-              <CouponTab />
-            </div>
-          )}
+                  {/* اسم الصنف */}
+                  <div className="min-w-0">
+                    <div className="font-bold text-gray-800 truncate">{item.name}</div>
+                    {(item.extras ?? []).length > 0 && <div className="text-[10px] text-gray-400 truncate">+ {item.extras!.map((e) => e.name).join("، ")}</div>}
+                  </div>
 
-          {/* ── TAB: الملاحظة ── */}
-          {activeTab === "note" && (
-            <div className="p-3">
-              <textarea className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 resize-none focus:border-primary/40" rows={2} placeholder={t("add_order_note")} />
-              <div className="flex gap-2">
-                <Button size="2xl" className="flex-1" variant="destructive">
-                  {t("clear")}
-                </Button>
-                <Button size="2xl" className="flex-1">
-                  {t("save")}
-                </Button>
-              </div>
-            </div>
+                  {/* الأسعار متعدد */}
+                  <span className="text-center text-gray-500">--</span>
+
+                  {/* الكمية */}
+                  <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white mx-1">
+                    <button onClick={() => changeQty(idx, -1)} className="px-1.5 py-0.5 text-gray-500 hover:bg-gray-50 text-sm font-bold">
+                      −
+                    </button>
+                    <span className="flex-1 text-xs font-semibold text-center border-x border-gray-200 py-0.5">{item.qty}</span>
+                    <button onClick={() => changeQty(idx, 1)} className="px-1.5 py-0.5 text-gray-500 hover:bg-gray-50 text-sm font-bold">
+                      +
+                    </button>
+                  </div>
+
+                  {/* نسبة الخصم% */}
+                  <span className="text-center text-gray-500">{discPct > 0 ? `${discPct}%` : "--"}</span>
+
+                  {/* قيمة الخصم */}
+                  <span className="text-center text-gray-500">{discVal > 0 ? discVal.toFixed(2) : "--"}</span>
+
+                  {/* الإجمالي قبل الضريبة */}
+                  <span className="text-center font-semibold text-gray-700">{base.toFixed(2)}</span>
+
+                  {/* ضريبة القيمة المضافة */}
+                  <span className="text-center text-gray-500">{tax.toFixed(2)}</span>
+
+                  {/* الإجمالي النهائي */}
+                  <span className="text-center font-bold text-gray-800">{rowTotal.toFixed(2)}</span>
+
+                  {/* موظف الخدمة + حذف */}
+                  <div className="flex items-center justify-center gap-1">
+                    <button onClick={() => removeItem(idx)} className="w-5 h-5 rounded bg-gray-100 hover:bg-red-100 flex items-center justify-center">
+                      <Trash2 size={11} className="text-gray-400 hover:text-red-500" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
           )}
+        </div>
+      </div>
+      <div className="w-full border-t border-gray-200 bg-white text-[11px]" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+        {/* ══ القسم الأيمن: الإجماليات الأساسية ══ */}
+        <div className="border-l border-gray-200 flex flex-col">
+          {/* صف 1: الإجمالي قبل النهائي */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
+            <span className="text-gray-500 text-[11px]">الإجمالي قبل النهائي</span>
+            <span className="font-bold text-gray-800">0</span>
+          </div>
+
+          {/* صف 2: خصم على الأصناف */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
+            <span className="text-gray-500 text-[11px]">خصم على الأصناف</span>
+            <div className="flex items-center gap-18">
+              <span className="text-gray-400 text-[11px]">0%</span>
+              <span className="font-bold text-gray-800">0</span>
+            </div>
+          </div>
+
+          {/* صف 3: خصم إضافي */}
+          <div className="flex items-center justify-between px-3 py-2 gap-2">
+            {/* يمين: النص */}
+            <div className="text-right shrink-0">
+              <div className="text-gray-500 text-[11px]">خصم إضافي</div>
+              <div className="text-gray-400 text-[10px]">بند أقصى %10</div>
+            </div>
+
+            {/* وسط: حقل نسبة + حقل قيمة */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-1 justify-center">
+                <div className="flex flex-col items-start gap-0.5">
+                  <span className="text-[10px] text-gray-400">نسبة</span>
+                  <Input value={discPct} onChange={(e) => setDiscPct(e.target.value)} placeholder="" type="number" min="0" max="100" className="w-20 h-7 text-[11px] text-center px-1 border-gray-200" />
+                </div>
+                <div className="flex flex-col items-start gap-0.5">
+                  <span className="text-[10px] text-gray-400">قيمة</span>
+                  <Input value={discFlat} onChange={(e) => setDiscFlat(e.target.value)} placeholder="0" type="number" min="0" className="w-20 h-7 text-[11px] text-center px-1 border-gray-200" />
+                </div>
+              </div>
+              {/* يسار: زر تطبيق الخصم */}
+              <Button size="sm" className="bg-[#1a6fb5] hover:bg-[#1560a0] text-white text-[11px] font-bold h-10 px-5 rounded-md whitespace-nowrap shrink-0" onClick={handleApplyDiscount}>
+                تطبيق الخصم
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* ══ القسم الأوسط: الإجمالي بعد الخصم ══ */}
+        <div className="border-l  border-gray-200  flex-1 h-full">
+          <div className="border-b border-gray-200 flex items-center justify-between px-3 py-2">
+            <span className="text-gray-500 text-[11px]">الإجمالي بعد الخصم</span>
+            <span className="font-bold text-gray-800">0</span>
+          </div>
+        </div>
+
+        {/* ══ القسم الأيسر: الأزرار + حقول الخصم ══ */}
+        <div className="border-l border-gray-200 flex flex-col">
+          {/* صف 1: الإجمالي قبل النهائي */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
+            <span className="text-gray-500 text-[11px]">الإجمالي قبل النهائي</span>
+            <span className="font-bold text-gray-800">0</span>
+          </div>
+
+          {/* صف 2: خصم على الأصناف */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
+            <span className="text-gray-500 text-[11px]">إجمالي الضريبة</span>
+            <div className="flex items-center gap-18">
+              <span className="text-gray-400 text-[11px]">0%</span>
+              <span className="font-bold text-gray-800">0.00</span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
+            <span className="text-gray-500 text-[11px]">الإجمالي النهائي</span>
+            <span className="font-bold text-gray-800">0</span>
+          </div>
         </div>
       </div>
     </>
