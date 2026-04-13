@@ -8,7 +8,8 @@ import {
   ChevronUp,
   ArrowRight,
   ArrowLeft,
-  Layout
+  Layout,
+  Printer
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
@@ -42,23 +43,20 @@ const ShiftsReport = () => {
           <Layout className="w-5 h-5" />
           <h1 className="text-xl font-bold">تقرير الورديات</h1>
         </div>
-        <div className="flex gap-2">
-          <button className="p-2 hover:bg-gray-100 rounded text-[var(--primary)] border border-[var(--primary)]">
-            <Download className="w-5 h-5" />
-          </button>
-          <button className="p-2 hover:bg-gray-100 rounded text-[var(--primary)] border border-[var(--primary)]">
-            <FileText className="w-5 h-5" />
-          </button>
-          <button className="p-2 hover:bg-gray-100 rounded text-[var(--primary)] border border-[var(--primary)]">
-            <FileSpreadsheet className="w-5 h-5" />
-          </button>
-          <button className="p-2 hover:bg-gray-100 rounded text-[var(--primary)] border border-[var(--primary)]">
-            <ChevronUp className="w-5 h-5" />
-          </button>
-          <button className="p-2 hover:bg-gray-100 rounded text-[var(--primary)] border border-[var(--primary)]">
-            <ChevronDown className="w-5 h-5" />
-          </button>
-        </div>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">Excel</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <Download size={16} /> <span className="hidden sm:inline">XML</span>
+            </button>
+          </div>
       </div>
 
       <div className="bg-white p-4 border-x border-gray-200">
@@ -69,11 +67,11 @@ const ShiftsReport = () => {
             <Input
               type="text"
               placeholder={t("search_label")}
-              className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-[var(--primary)] text-right"
+              className="w-full h-9 pr-10 pl-4 py-2 border border-blue-200 focus:border-[var(--primary)] text-gray-700 text-sm rounded-lg outline-none transition-all"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           </div>
 
           <div className="flex items-center gap-2">

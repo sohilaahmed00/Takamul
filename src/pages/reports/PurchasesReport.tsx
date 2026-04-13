@@ -57,15 +57,25 @@ export default function PurchasesReport() {
 
   const header = useMemo(() => (
     <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-      <div className="flex gap-2">
-        <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50" title={t('download_pdf')}><FileText size={16} className="text-gray-500" /></button>
-        <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50" title={t('download_excel')}><FileSpreadsheet size={16} className="text-gray-500" /></button>
+      <div className="flex items-center gap-4 text-sm font-medium">
+        <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+          <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+        </button>
+        <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+          <FileSpreadsheet size={16} /> <span className="hidden sm:inline">Excel</span>
+        </button>
       </div>
       <div className="relative w-full sm:w-64">
-        <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none"><Search size={16} className="text-gray-400" /></div>
-        <Input type="text" value={globalFilterValue} onChange={e => { setGlobalFilterValue(e.target.value); setCurrentPage(1); }}
-          placeholder={t('search_placeholder')}
-          className="w-full border border-gray-200 focus:border-[var(--primary)] text-gray-700 text-sm rounded-lg py-2 pr-10 pl-4 outline-none transition-all" />
+        <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+          <Search size={16} className="text-gray-400" />
+        </div>
+        <Input 
+          type="text" 
+          value={globalFilterValue} 
+          onChange={e => { setGlobalFilterValue(e.target.value); setCurrentPage(1); }} 
+          placeholder={t('search_placeholder')} 
+          className="w-full h-9 border border-gray-200 focus:border-[var(--primary)] text-gray-700 text-sm rounded-lg py-2 pr-10 pl-4 outline-none transition-all" 
+        />
       </div>
     </div>
   ), [globalFilterValue, t]);

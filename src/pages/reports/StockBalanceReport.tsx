@@ -85,64 +85,65 @@ export default function StockBalanceReport() {
               <PackageSearch size={20} className="text-[var(--primary)]" />
               {t("inventory_report", "تقرير جرد الأصناف")}
             </CardTitle>
-            <CardDescription>{t("customize_report_below", "استخدم الفلاتر لتخصيص التقرير")}</CardDescription>
+
           </div>
-          <div className="flex items-center gap-2 self-start md:self-auto">
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <Printer size={16} className="text-gray-600 dark:text-gray-300" /><span className="hidden sm:inline">{t("print", "طباعة")}</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <FileText size={16} className="text-gray-600 dark:text-gray-300" /><span className="hidden sm:inline">PDF</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <FileSpreadsheet size={16} className="text-gray-600 dark:text-gray-300" /><span className="hidden sm:inline">XML</span>
-            </Button>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">XML</span>
+            </button>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-5">
           {/* Filters + Summary */}
-          <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
-              {/* ✅ Summary boxes بالداتا الحقيقية */}
-              <div className="bg-emerald-500 text-white rounded-xl p-3 shadow flex flex-col justify-center h-[68px] lg:col-span-1">
+          <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5 space-y-4">
+
+            {/* Summary Boxes */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-emerald-500 text-white rounded-xl p-3 shadow flex flex-col justify-center h-[68px]">
                 <p className="opacity-90 text-[11px] lg:text-xs font-medium mb-0.5 truncate">
                   {t("total_cost", "إجمالي التكلفة")}
                 </p>
                 <h2 className="text-lg lg:text-xl font-bold truncate">{formatNumber(totalCostValue)}</h2>
               </div>
-              <div className="bg-teal-500 text-white rounded-xl p-3 shadow flex flex-col justify-center h-[68px] lg:col-span-1">
+              <div className="bg-teal-500 text-white rounded-xl p-3 shadow flex flex-col justify-center h-[68px]">
                 <p className="opacity-90 text-[11px] lg:text-xs font-medium mb-0.5 truncate">
                   {t("total_selling_price", "إجمالي سعر البيع")}
                 </p>
                 <h2 className="text-lg lg:text-xl font-bold truncate">{formatNumber(totalSaleValue)}</h2>
               </div>
-
-              <div className="space-y-2 lg:col-span-1">
+            </div>
+            {/* Filters Row */}
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="space-y-2">
                 <label className="text-xs font-medium text-[var(--text-main)]">
                   {t("from_date", "تاريخ البداية")}
                 </label>
                 <Input type="date" value={filters.from}
                   onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))} />
               </div>
-              <div className="space-y-2 lg:col-span-1">
+              <div className="space-y-2">
                 <label className="text-xs font-medium text-[var(--text-main)]">
                   {t("to_date", "تاريخ النهاية")}
                 </label>
                 <Input type="date" value={filters.to}
                   onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))} />
               </div>
-
-              <Button onClick={handleSearch} variant="default"
-                className="h-10 gap-2 lg:col-span-1" disabled={isLoading || isFetching}>
-                <Search size={16} />{t("execute_operation", "اتمام العملية")}
+              <Button onClick={handleSearch} size="sm" className="h-9 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold" disabled={isLoading || isFetching}>
+                <Search size={14} /> {t("execute_operation", "اتمام العملية")}
               </Button>
-              <Button onClick={handleClear} variant="outline" className="h-10 lg:col-span-1">
-                <RotateCcw size={16} />
+              <Button onClick={handleClear} size="sm" variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                <RotateCcw size={15} /> {t("clear", "مسح")}
               </Button>
             </div>
-          </div>
 
+          </div>
           {/* Desktop Table */}
           <div className="hidden xl:block rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
             <DataTable

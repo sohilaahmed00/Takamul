@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -29,7 +29,7 @@ export default function ItemPurchasesReport() {
   const { t, direction } = useLanguage();
   const [filters, setFilters] = useState<FilterState>({ productId: "", from: "", to: "" });
 
-  const handleSearch = () => {};
+  const handleSearch = () => { };
   const handleClear = () => setFilters({ productId: "", from: "", to: "" });
 
   const formatNumber = (value?: number) =>
@@ -49,34 +49,20 @@ export default function ItemPurchasesReport() {
             </CardTitle>
             <CardDescription>{t("customize_report_below", "استخدم الفلاتر لتخصيص التقرير")}</CardDescription>
           </div>
-          <div className="flex items-center gap-2 self-start md:self-auto">
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]"><Printer size={16} /><span className="hidden sm:inline">{t("print", "طباعة")}</span></Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]"><FileText size={16} /><span className="hidden sm:inline">PDF</span></Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]"><FileSpreadsheet size={16} /><span className="hidden sm:inline">XML</span></Button>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">XML</span>
+            </button>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-              <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("product_name", "اسم الصنف")}</label>
-                <ComboboxField value={filters.productId} onChange={(val) => setFilters((p) => ({ ...p, productId: val }))} items={mockProducts.map((p) => ({ id: p.value, name: p.label }))} valueKey="id" labelKey="name" placeholder={t("select_product", "اختر الصنف")} />
-              </div>
-              <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("from_date", "تاريخ البداية")}</label>
-                <Input type="date" value={filters.from} onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))}  />
-              </div>
-              <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("to_date", "تاريخ النهاية")}</label>
-                <Input type="date" value={filters.to} onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))}  />
-              </div>
-              <div className="flex flex-col sm:flex-row items-end gap-2 lg:col-span-2">
-                <Button onClick={handleSearch} variant="default" className="w-full sm:w-auto h-10 px-6 gap-2"><Search size={16} />{t("execute_operation", "اتمام العملية")}</Button>
-                <Button onClick={handleClear} variant="outline" className="w-full sm:w-auto h-10 px-4 gap-2"><RotateCcw size={16} />{t("clear", "مسح")}</Button>
-              </div>
-            </div>
-          </div>
 
           {/* 2 Summary Boxes matching reference image colors */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -89,6 +75,30 @@ export default function ItemPurchasesReport() {
               <h2 className="text-2xl font-bold">{totalQuantity.toLocaleString()}</h2>
             </div>
           </div>
+
+
+          <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+              <div className="space-y-2 lg:col-span-1">
+                <label className="text-xs font-medium text-[var(--text-main)]">{t("product_name", "اسم الصنف")}</label>
+                <ComboboxField value={filters.productId} onChange={(val) => setFilters((p) => ({ ...p, productId: val }))} items={mockProducts.map((p) => ({ id: p.value, name: p.label }))} valueKey="id" labelKey="name" placeholder={t("select_product", "اختر الصنف")} />
+              </div>
+              <div className="space-y-2 lg:col-span-1">
+                <label className="text-xs font-medium text-[var(--text-main)]">{t("from_date", "تاريخ البداية")}</label>
+                <Input type="date" value={filters.from} onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))} className="mb-2" />
+              </div>
+              <div className="space-y-2 lg:col-span-1">
+                <label className="text-xs font-medium text-[var(--text-main)]">{t("to_date", "تاريخ النهاية")}</label>
+                <Input type="date" value={filters.to} onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))} className="mb-2" />
+              </div>
+              <div className="flex flex-row items-end gap-2 mb-2">
+                <Button onClick={handleSearch} className="h-9 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold flex-1"><Search size={16} />{t("execute_operation", "اتمام العملية")}</Button>
+                <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"><RotateCcw size={15} />{t("clear", "مسح")}</Button>
+              </div>
+            </div>
+          </div>
+
+
 
           {/* Table: م، التاريخ، رقم الفاتورة، الكمية المشتراه، اجمالي البيع */}
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">

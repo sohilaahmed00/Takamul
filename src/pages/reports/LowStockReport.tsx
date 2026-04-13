@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import {
   AlertTriangle,
   Filter,
@@ -99,19 +99,16 @@ export default function LowStockReport() {
             <CardDescription>{t("customize_report_below")}</CardDescription>
           </div>
 
-          <div className="flex items-center gap-2 self-start md:self-auto">
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <Printer size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">{t("print", "طباعة")}</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <FileText size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">PDF</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <FileSpreadsheet size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">XML</span>
-            </Button>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">XML</span>
+            </button>
           </div>
         </CardHeader>
 

@@ -42,17 +42,15 @@ export default function ItemMovementReport() {
 
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
 
-  // ✅ جيب كل المنتجات (الأصناف) مش البنود
   const { data: productsResponse, isLoading: productsLoading } =
     useGetAllProducts({ page: 1, limit: 500 });
 
-  // ✅ الـ products بترجع { items: Product[] } — نسحب الـ items
+ 
   const productsList = useMemo(
     () => productsResponse?.items ?? [],
     [productsResponse]
   );
 
-  // ✅ الـ productId يكون number للـ API
   const movementParams = useMemo(
     () => ({
       ...searchParams,
@@ -127,50 +125,26 @@ export default function ItemMovementReport() {
             </CardDescription>
           </div>
 
-          <div className="flex items-center gap-2 self-start md:self-auto">
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <Printer size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">{t("print", "طباعة")}</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <FileText size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">PDF</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <FileSpreadsheet size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">XML</span>
-            </Button>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">XML</span>
+            </button>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-5">
-          {/* Summary Boxes */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-orange-500 text-white rounded-xl p-4 shadow-sm flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">
-                {t("total_qty_in", "إجمالي الداخل")}
-              </p>
-              <h2 className="text-2xl font-bold">{totalIn}</h2>
-            </div>
-            <div className="bg-teal-500 text-white rounded-xl p-4 shadow-sm flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">
-                {t("total_qty_out", "إجمالي الخارج")}
-              </p>
-              <h2 className="text-2xl font-bold">{totalOut}</h2>
-            </div>
-            <div className="bg-blue-500 text-white rounded-xl p-4 shadow-sm flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">
-                {t("current_balance", "الرصيد الحالي")}
-              </p>
-              <h2 className="text-2xl font-bold">{currentBalance}</h2>
-            </div>
-          </div>
-
+       
           {/* Filters */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
               {/* ✅ اختيار الصنف من المنتجات */}
-              <div className="space-y-2 lg:col-span-1">
+              <div className="space-y-2 lg:col-span-1 ">
                 <label className="text-sm font-medium text-[var(--text-main)] mb-1 block">
                   {t("select_product", "اختر الصنف")}
                 </label>
@@ -188,6 +162,7 @@ export default function ItemMovementReport() {
                       : t("select_product", "اختر الصنف")
                   }
                   disabled={productsLoading}
+                  
                 />
               </div>
 
@@ -201,6 +176,7 @@ export default function ItemMovementReport() {
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, from: e.target.value }))
                   }
+                  className="mb-2"
                 />
               </div>
 
@@ -214,26 +190,17 @@ export default function ItemMovementReport() {
                   onChange={(e) =>
                     setFilters((prev) => ({ ...prev, to: e.target.value }))
                   }
+                   className="mb-2"
                 />
               </div>
 
-              <div className="flex items-center gap-2 lg:col-span-2">
-                <Button
-                  onClick={handleSearch}
-                  variant="default"
-                  className="h-10 px-6 gap-2 flex-1"
-                  disabled={isLoading || isFetching || !filters.productId}
-                >
+              <div className="flex items-center gap-2  mb-2">
+                <Button onClick={handleSearch} className="h-9 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold flex-1" disabled={isLoading || isFetching || !filters.productId}>
                   <Search size={16} />
                   {t("execute_operation", "اتمام العملية")}
                 </Button>
-
-                <Button
-                  onClick={handleClear}
-                  variant="outline"
-                  className="h-10 px-3 gap-1"
-                >
-                  <RotateCcw size={16} />
+                <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                  <RotateCcw size={15} />
                 </Button>
               </div>
             </div>
@@ -254,7 +221,7 @@ export default function ItemMovementReport() {
               paginator
               rows={10}
             >
-              <Column
+              {/* <Column
                 field="transDate"
                 header={t("trans_date", "التاريخ")}
                 sortable
@@ -263,7 +230,7 @@ export default function ItemMovementReport() {
                     {formatDate(r.transDate)}
                   </span>
                 )}
-              />
+              /> */}
               <Column
                 field="barcode"
                 header={t("item_code", "كود الصنف")}
@@ -294,7 +261,7 @@ export default function ItemMovementReport() {
                 sortable
                 body={(r) => <span className="text-sm">{r.invoiceNo}</span>}
               />
-              <Column
+              {/* <Column
                 field="qtyIn"
                 header={t("qty_in", "الداخل")}
                 sortable
@@ -303,8 +270,8 @@ export default function ItemMovementReport() {
                     {r.qtyIn > 0 ? `+${r.qtyIn}` : "-"}
                   </span>
                 )}
-              />
-              <Column
+              /> */}
+              {/* <Column
                 field="qtyOut"
                 header={t("qty_out", "الخارج")}
                 sortable
@@ -313,7 +280,7 @@ export default function ItemMovementReport() {
                     {r.qtyOut > 0 ? `-${r.qtyOut}` : "-"}
                   </span>
                 )}
-              />
+              /> */}
               <Column
                 field="runningBalance"
                 header={t("quantity_after", "الكمية بعد")}
