@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
 import { Product } from "@/features/products/types/products.types";
+import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 
 function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   const [open, setOpen] = useState(false);

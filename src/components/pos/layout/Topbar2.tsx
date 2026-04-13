@@ -5,6 +5,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Home, LogOut, Pause, Bug, Keyboard, Maximize } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
+import { Customer } from "@/features/customers/types/customers.types";
+import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
+import { Treasury } from "@/features/treasurys/types/treasurys.types";
 
 export default function Topbar2() {
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -12,6 +16,8 @@ export default function Topbar2() {
   const [warehouse, setWarehouse] = useState("main");
   const [employee, setEmployee] = useState("");
   const [notes, setNotes] = useState("");
+  const { data: customers } = useGetAllCustomers({ page: 1, limit: 10000 });
+  const { data: treasurys } = useGetAllTreasurys();
 
   const now = new Date();
   const invoiceDate = now.toLocaleString("ar-EG", {
@@ -23,7 +29,6 @@ export default function Topbar2() {
   return (
     <div className="w-full border rounded-sm overflow-hidden text-sm" dir="rtl">
       <div className="px-3 py-2 flex flex-col gap-3 lg:flex-row lg:items-start">
-        {/* ══ الحقول ══ */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1">
           <div className="flex flex-col gap-1">
             <Label className="text-[11px] text-[#000052] text-right">اختر العميل</Label>
@@ -32,9 +37,9 @@ export default function Topbar2() {
                 <SelectValue placeholder="عميل نقدي" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="cash">عميل نقدي</SelectItem>
-                <SelectItem value="c1">أحمد محمد</SelectItem>
-                <SelectItem value="c2">شركة النور</SelectItem>
+                {customers?.items.map((customer: Customer) => (
+                  <SelectItem value={String(customer?.id)}>{customer?.customerName}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -51,9 +56,9 @@ export default function Topbar2() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="main">مخزن رئيسي</SelectItem>
-                <SelectItem value="branch1">مخزن الفرع الأول</SelectItem>
-                <SelectItem value="branch2">مخزن الفرع الثاني</SelectItem>
+                {treasurys?.map((treasury: Treasury) => (
+                  <SelectItem value={String(treasury?.id)}>{treasury?.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
