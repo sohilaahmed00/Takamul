@@ -70,37 +70,24 @@ export default function BestSellersChart() {
               <BarChart2 size={20} className="text-[var(--primary)]" />
               {t("top_selling_product_report", "تقرير المنتج الأكثر مبيعا")}
             </CardTitle>
-            <CardDescription>{t("customize_report_below", "استخدم الفلاتر لتخصيص التقرير")}</CardDescription>
+           
           </div>
           
-          <div className="flex items-center gap-2 self-start md:self-auto">
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <Printer size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">{t("print", "طباعة")}</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <FileText size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">PDF</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <FileSpreadsheet size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">XML</span>
-            </Button>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">XML</span>
+            </button>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-5">
-          {/* Summary Boxes */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-orange-500 text-white rounded-xl p-4 shadow-sm flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("total_quantity_sold", "إجمالي الكمية المباعة")}</p>
-              <h2 className="text-2xl font-bold">{totalQty}</h2>
-            </div>
-            <div className="bg-teal-500 text-white rounded-xl p-4 shadow-sm flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("total_sales_value", "إجمالي قيمة المبيعات")}</p>
-              <h2 className="text-2xl font-bold">{formatNumber(totalSales)}</h2>
-            </div>
-          </div>
+         
 
           {/* Filters */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
@@ -134,22 +121,17 @@ export default function BestSellersChart() {
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 py-3 xl:col-span-2">
-                <Button 
-                  onClick={handleSearch} 
-                  variant="default" 
-                  size="xl" 
-                   className="w-full sm:w-auto min-w-[120px] h-10 gap-2"
-                   disabled={isLoading || isFetching}
-                >
-                  <Search size={18} />
+              <div className="flex flex-row items-end gap-2 xl:col-span-2">
+                <Button onClick={handleSearch} className="h-9 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold flex-1 mt-2" disabled={isLoading || isFetching}>
+                  <Search size={16} />
                   {t("execute_operation", "اتمام العملية")}
                 </Button>
-
-                <Button onClick={handleClear} variant="outline" size="xl" className="w-full sm:w-auto h-10">
-                  <RotateCcw size={16} />
+                <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                  <RotateCcw size={15} />
                 </Button>
               </div>
             </div>
+          </div>
           </div>
 
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">

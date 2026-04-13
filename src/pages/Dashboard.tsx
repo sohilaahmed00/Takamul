@@ -115,6 +115,7 @@ export default function Dashboard() {
           icon={TrendingUp}
           bgClass="bg-[var(--dashboard-purple)]"
           delay={0.3}
+          onClick={() => navigate("/reports/profit")}
         />
         <StatCard
           title={t('total_purchases')}

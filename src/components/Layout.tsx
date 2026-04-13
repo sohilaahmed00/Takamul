@@ -307,11 +307,11 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          <SidebarItem icon={Banknote} label={t("revenues_and_expenses")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "revenues_and_expenses"} onClick={() => toggleSubmenu("revenues_and_expenses")} />
+          <SidebarItem icon={Banknote} label={t("expenses")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "revenues_and_expenses"} onClick={() => toggleSubmenu("revenues_and_expenses")} />
           <AnimatePresence>
             {openSubmenu === "revenues_and_expenses" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                <SubmenuItem label={t("revenues")} icon={ArrowUpRight} path="/revenues" />
+                {/* <SubmenuItem label={t("revenues")} icon={ArrowUpRight} path="/revenues" /> */}
                 <SubmenuItem label={t("expenses")} icon={DollarSign} path="/expenses" />
                 <SubmenuItem label={t("items")} icon={List} path="/items" />
               </motion.div>
@@ -328,7 +328,7 @@ export default function Layout() {
 
                 <SubmenuItem label={t("suppliers_reports", "تقارير الموردين")} icon={Truck} path="/reports/category/suppliers" />
                 <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />
-                <SubmenuItem label={t("profits_reports")} icon={Calculator} path="/reports/category/profits" />
+                <SubmenuItem label={t("profits_reports")} icon={Calculator} path="/reports/profit" />
                 <div className="h-px bg-gray-100 my-1 mx-2" />
 
                 {/* <SubmenuItem label={t("sales_report_by_category")} icon={List} path="/reports/sales-by-category" /> */}

@@ -39,7 +39,7 @@ export default function CustomerStatementReport() {
   const { data: customersResponse, isLoading: customersLoading } = useGetAllCustomers({ limit: 500 });
   const customersList = useMemo(() => customersResponse?.items ?? [], [customersResponse]);
 
-  // ✅ params للـ API
+  
   const statementParams = useMemo(
     () => ({
       customerId: searchParams.customerId ? Number(searchParams.customerId) : "",
@@ -90,12 +90,18 @@ export default function CustomerStatementReport() {
               <Users size={20} className="text-[var(--primary)]" />
               {t("customer_account_statement", "كشف حساب عميل")}
             </CardTitle>
-            <CardDescription>{t("customize_report_below", "استخدم الفلاتر لتخصيص التقرير")}</CardDescription>
+           
           </div>
-          <div className="flex items-center gap-2 self-start md:self-auto">
-            <Button variant="outline" size="sm" className="h-9 gap-1.5"><Printer size={16} /><span className="hidden sm:inline">{t("print", "طباعة")}</span></Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5"><FileText size={16} /><span className="hidden sm:inline">PDF</span></Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5"><FileSpreadsheet size={16} /><span className="hidden sm:inline">XML</span></Button>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">XML</span>
+            </button>
           </div>
         </CardHeader>
 
@@ -103,15 +109,15 @@ export default function CustomerStatementReport() {
           {/* Summary Boxes */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-orange-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("total_debit", "إجمالي المدين")}</p>
+              <p className="opacity-90 text-xs font-medium mb-1">{t("total_sales", "إجمالي المبيعات")}</p>
               <h2 className="text-2xl font-bold">{formatNumber(totalDebit)}</h2>
             </div>
             <div className="bg-teal-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("total_credit", "إجمالي الدائن")}</p>
+              <p className="opacity-90 text-xs font-medium mb-1">{t("total_collections", "إجمالي التحصيلات")}</p>
               <h2 className="text-2xl font-bold">{formatNumber(totalCredit)}</h2>
             </div>
             <div className="bg-blue-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("current_balance", "الرصيد الحالي")}</p>
+              <p className="opacity-90 text-xs font-medium mb-1">{t("total_debit", "إجمالي المديونية")}</p>
               <h2 className="text-2xl font-bold">{formatNumber(totalBalance)}</h2>
             </div>
           </div>
@@ -134,13 +140,13 @@ export default function CustomerStatementReport() {
               </div>
               <div className="space-y-2 lg:col-span-1">
                 <label className="text-xs font-medium text-[var(--text-main)]">{t("from_date", "تاريخ البداية")}</label>
-                <Input type="date" value={filters.from} onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))} />
+                <Input type="date" value={filters.from} onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))} className="mb-2" />
               </div>
               <div className="space-y-2 lg:col-span-1">
                 <label className="text-xs font-medium text-[var(--text-main)]">{t("to_date", "تاريخ النهاية")}</label>
-                <Input type="date" value={filters.to} onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))} />
+                <Input type="date" value={filters.to} onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))} className="mb-2" />
               </div>
-              {/* ✅ نوع العملية بالقيم الإنجليزية */}
+              
               <div className="space-y-2 lg:col-span-1">
                 <label className="text-xs font-medium text-[var(--text-main)]">{t("operation_type", "نوع العملية")}</label>
                 <ComboboxField
@@ -152,13 +158,13 @@ export default function CustomerStatementReport() {
                   placeholder={t("select_type", "اختر النوع")}
                 />
               </div>
-              <div className="flex flex-row items-end gap-2 lg:col-span-1">
-                <Button onClick={handleSearch} variant="default"
-                  className="flex-1 h-10 px-4 gap-2"
-                  disabled={isLoading || isFetching || !filters.customerId}>
+              <div className="flex flex-row items-end gap-2 mb-2">
+                <Button onClick={handleSearch} className="flex-1 h-9 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold" disabled={isLoading || isFetching || !filters.customerId}>
                   <Search size={16} />{t("search", "بحث")}
                 </Button>
-                <Button onClick={handleClear} variant="outline" className="h-10 px-3"><RotateCcw size={15} /></Button>
+                <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                  <RotateCcw size={15} /> {t("clear", "مسح")}
+                </Button>
               </div>
             </div>
           </div>
@@ -181,14 +187,14 @@ export default function CustomerStatementReport() {
                 body={(r) => <span className="text-sm whitespace-nowrap">{formatDate(r.date)}</span>} />
               <Column field="type" header={t("type", "النوع")} sortable
                 body={(r) => <span className="text-sm font-medium text-[var(--text-main)]">{r.type}</span>} />
-              <Column field="reference" header={t("reference", "المرجع")} sortable
-                body={(r) => <span className="text-sm">{r.reference}</span>} />
-              <Column field="debit" header={t("debit", "المدين")} sortable
+              {/* <Column field="reference" header={t("reference", "المرجع")} sortable
+                body={(r) => <span className="text-sm">{r.reference}</span>} /> */}
+              <Column field="debit" header={t("due_customer", "المستحق على العميل")} sortable
                 body={(r) => <span className="text-sm text-red-500">{r.debit > 0 ? formatNumber(r.debit) : "-"}</span>} />
-              <Column field="credit" header={t("credit", "الدائن")} sortable
+              <Column field="credit" header={t("paid_customer", "المسدد من العميل")} sortable
                 body={(r) => <span className="text-sm text-green-600">{r.credit > 0 ? formatNumber(r.credit) : "-"}</span>} />
-              <Column field="balance" header={t("balance", "الرصيد")} sortable
-                body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.balance)}</span>} />
+              {/* <Column field="balance" header={t("balance", "الرصيد")} sortable
+                body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.balance)}</span>} /> */}
             </DataTable>
           </div>
         </CardContent>

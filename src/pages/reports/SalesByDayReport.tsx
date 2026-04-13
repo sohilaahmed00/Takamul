@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
@@ -6,6 +6,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Search, RotateCcw, FileText, Printer, FileSpreadsheet, Calendar } from "lucide-react";
 import ComboboxField from "@/components/ui/ComboboxField";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import { Input } from "@/components/ui/input";
 
@@ -63,7 +70,7 @@ export default function SalesByDayReport() {
     }));
   };
 
-  const handleSearch = () => {};
+  const handleSearch = () => { };
   const handleClear = () => {
     setFilters({ fiscalYear: new Date().getFullYear().toString(), fiscalQuarter: "", from: "", to: "" });
   };
@@ -84,48 +91,74 @@ export default function SalesByDayReport() {
               <Calendar size={20} className="text-[var(--primary)]" />
               {t("sales_by_day", "تقرير إجمالي المبيعات على مستوى الأيام")}
             </CardTitle>
-            <CardDescription>{t("customize_report_below", "استخدم الفلاتر لتخصيص التقرير")}</CardDescription>
+         
           </div>
-          <div className="flex items-center gap-2 self-start md:self-auto">
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <Printer size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">{t("print", "طباعة")}</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <FileText size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">PDF</span>
-            </Button>
-            <Button variant="outline" size="sm" className="h-9 gap-1.5 min-w-[70px]">
-              <FileSpreadsheet size={16} className="text-gray-600 dark:text-gray-300" />
-              <span className="hidden sm:inline">XML</span>
-            </Button>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            </button>
+            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">XML</span>
+            </button>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
+
+          {/* Summary Boxes */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-orange-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
+              <p className="opacity-90 text-xs font-medium mb-1">{t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة")}</p>
+              <h2 className="text-2xl font-bold">{formatNumber(totalSales)}</h2>
+            </div>
+            <div className="bg-blue-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
+              <p className="opacity-90 text-xs font-medium mb-1">{t("total_tax", "إجمالي الضريبة")}</p>
+              <h2 className="text-2xl font-bold">{formatNumber(totalTax)}</h2>
+            </div>
+            <div className="bg-teal-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
+              <p className="opacity-90 text-xs font-medium mb-1">{t("grand_total_with_tax", "الإجمالي النهائي")}</p>
+              <h2 className="text-2xl font-bold">{formatNumber(totalFinal)}</h2>
+            </div>
+          </div>
           {/* Filters */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
-              <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("fiscal_year", "السنة المالية")}</label>
-                <ComboboxField
-                  value={filters.fiscalYear}
-                  onChange={handleYearChange}
-                  items={FISCAL_YEARS.map((y) => ({ id: y, name: y }))} valueKey="id" labelKey="name"
-                  placeholder={t("select_year", "اختر السنة")}
-                />
-              </div>
+        
 
-              <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("fiscal_quarter", "الربع المالي")}</label>
-                <ComboboxField
-                  value={filters.fiscalQuarter}
-                  onChange={handleQuarterChange}
-                  items={FISCAL_QUARTERS.map((q) => ({ id: q.value, name: q.label }))} valueKey="id" labelKey="name"
-                  placeholder={t("select_quarter", "اختر الربع")}
-                />
-              </div>
+<div className="space-y-2 lg:col-span-1">
+  <label className="text-xs font-medium text-[var(--text-main)]">
+    {t("fiscal_year", "السنة المالية")}
+  </label>
+  <Select value={filters.fiscalYear} onValueChange={handleYearChange}>
+    <SelectTrigger className="w-full">
+      <SelectValue placeholder={t("select_year", "اختر السنة")} />
+    </SelectTrigger>
+    <SelectContent>
+      {FISCAL_YEARS.map((y) => (
+        <SelectItem key={y} value={y}>{y}</SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</div>
 
+<div className="space-y-2 lg:col-span-1">
+  <label className="text-xs font-medium text-[var(--text-main)]">
+    {t("fiscal_quarter", "الربع المالي")}
+  </label>
+  <Select value={filters.fiscalQuarter} onValueChange={handleQuarterChange}>
+    <SelectTrigger className="w-full">
+      <SelectValue placeholder={t("select_quarter", "اختر الربع")} />
+    </SelectTrigger>
+    <SelectContent>
+      {FISCAL_QUARTERS.map((q) => (
+        <SelectItem key={q.value} value={q.value}>{q.label}</SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</div>
               <div className="space-y-2 lg:col-span-1">
                 <label className="text-xs font-medium text-[var(--text-main)]">{t("from_date", "تاريخ البداية")}</label>
                 <Input
@@ -144,34 +177,20 @@ export default function SalesByDayReport() {
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row items-end gap-2 lg:col-span-2">
-                <Button onClick={handleSearch} variant="default" className="w-full sm:w-auto h-10 px-6 gap-2">
+              <div className="flex flex-row items-end gap-2 lg:col-span-2 ">
+                <Button onClick={handleSearch} className="h-9 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold">
                   <Search size={16} />
                   {t("execute_operation", "اتمام العملية")}
                 </Button>
-                <Button onClick={handleClear} variant="outline" className="w-full sm:w-auto h-10 px-4 gap-2">
-                  <RotateCcw size={16} />
+                <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                  <RotateCcw size={15} />
                   {t("clear", "مسح")}
                 </Button>
               </div>
             </div>
           </div>
 
-          {/* Summary Boxes */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-orange-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة")}</p>
-              <h2 className="text-2xl font-bold">{formatNumber(totalSales)}</h2>
-            </div>
-            <div className="bg-blue-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("total_tax", "إجمالي الضريبة")}</p>
-              <h2 className="text-2xl font-bold">{formatNumber(totalTax)}</h2>
-            </div>
-            <div className="bg-teal-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("grand_total_with_tax", "الإجمالي النهائي")}</p>
-              <h2 className="text-2xl font-bold">{formatNumber(totalFinal)}</h2>
-            </div>
-          </div>
+
 
           {/* Table - no serial, no invoicesCount */}
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">

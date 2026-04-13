@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, FileSpreadsheet, Search, DollarSign, TrendingUp, BarChart2, Edit2 } from 'lucide-react';
+import { FileText, FileSpreadsheet, Search, DollarSign, TrendingUp, BarChart2, Edit2, Printer } from 'lucide-react';
 import { DataTable, type DataTablePageEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,7 +40,7 @@ export default function SalesReport() {
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState('');
 
-  const { data: salesOrders } = useGetAllSales(currentPage, entriesPerPage);
+  const { data: salesOrders } = useGetAllSales({ page: currentPage, limit: entriesPerPage });
   const orders = salesOrders?.items ?? [];
   const totalCount = salesOrders?.totalCount ?? 0;
 
@@ -53,7 +53,7 @@ export default function SalesReport() {
     const totalSales = sales.reduce((sum, s) => sum + (s.grandTotal || 0), 0);
     const totalPurchases = purchases.reduce((sum, p) => sum + (p.total || 0), 0);
     const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-    
+
     return {
       totalSales,
       totalNoTax: sales.reduce((sum, s) => sum + ((s as any).subTotal || 0), 0),
@@ -67,9 +67,16 @@ export default function SalesReport() {
 
   const header = useMemo(() => (
     <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-      <div className="flex gap-2">
-        <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50" title={t('download_pdf')}><FileText size={16} className="text-gray-500" /></button>
-        <button className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50" title={t('download_excel')}><FileSpreadsheet size={16} className="text-gray-500" /></button>
+      <div className="flex items-center gap-4 text-sm font-medium">
+        <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+          <Printer size={16} /> <span className="hidden sm:inline">{t("print", "Print")}</span>
+        </button>
+        <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+          <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+        </button>
+        <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+          <FileSpreadsheet size={16} /> <span className="hidden sm:inline">Excel</span>
+        </button>
       </div>
       <div className="relative w-full sm:w-64">
         <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none"><Search size={16} className="text-gray-400" /></div>
@@ -99,7 +106,11 @@ export default function SalesReport() {
             value={orders} totalRecords={totalCount} loading={!salesOrders}
             lazy paginator rows={entriesPerPage} rowsPerPageOptions={[5, 10, 20, 50]}
             first={(currentPage - 1) * entriesPerPage}
-            onPage={(e: DataTablePageEvent) => { if (e.page === undefined) return; setCurrentPage(e.page + 1); setEntriesPerPage(e.rows); }}
+            onPage={(e: DataTablePageEvent) => {
+              if (e.page === undefined) return;
+              setCurrentPage(e.page + 1);
+              setEntriesPerPage(e.rows ?? entriesPerPage);
+            }}
             header={header} className="custom-green-table custom-compact-table" dataKey="id"
             emptyMessage={t('no_data')} globalFilter={globalFilterValue}
             globalFilterFields={['orderNumber', 'customerName', 'warehouseName']}
