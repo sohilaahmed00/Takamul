@@ -4,12 +4,15 @@ import { Input } from "@/components/ui/input";
 import { calcItemTax, calcTotals, itemBasePrice } from "@/constants/data";
 import { usePos } from "@/context/PosContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { Trash2 } from "lucide-react";
+import { FileText, Mail, MessageCircle, Printer, Save, Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
 import { Product } from "@/features/products/types/products.types";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Numpad } from "../cashier/CashierPanel";
 
 function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   const [open, setOpen] = useState(false);
@@ -64,6 +67,163 @@ function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
     </Popover>
   );
 }
+interface PaymentDialogProps {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  total: number;
+  onSave: (opts: { vault: string; method: string; action: SaveAction }) => void;
+}
+
+export type SaveAction = "pdf" | "whatsapp" | "email" | "save_only" | "save_print";
+
+const VAULTS = ["الخزنة الرئيسية", "خزنة الفرع", "خزنة المدير"];
+const METHODS = ["نقدي", "بطاقة", "تحويل بنكي"];
+interface Split {
+  id: string;
+  vaultId: number;
+  raw: string;
+}
+
+export function PaymentDialog({ open, onOpenChange, total, onSave }: PaymentDialogProps) {
+  const [vault, setVault] = useState(VAULTS[0]);
+  const [method, setMethod] = useState(METHODS[0]);
+  const [input, setInput] = useState("");
+  const [npRaw, setNpRaw] = useState(() => String(Math.round(total * 100)));
+  const [isSplit, setIsSplit] = useState(false);
+  const [splits, setSplits] = useState<Split[]>([]);
+  const rawToFloat = (r: string) => parseInt(r || "0") / 100;
+  const fmtFloat = (n: number) => "$" + n.toFixed(2);
+  const fmtRaw = (r: string) => fmtFloat(rawToFloat(r));
+  const [activeId, _setActiveId] = useState("s1");
+  const [justActivated, setJustActivated] = useState(false);
+  const { setPaidAmount } = usePos();
+  const { t } = useLanguage();
+
+  const pushKey = (k: string) => {
+    if (k === "cancel") {
+      // onCancel?.();
+      return;
+    }
+
+    const transform = (prev: string) => {
+      if (k === "del") return prev.length > 1 ? prev.slice(0, -1) : "0";
+      if (k === "00") return prev === "0" ? "0" : prev + "00";
+      if (k === ".") return prev.includes(".") ? prev : prev + ".";
+      return prev === "0" ? k : prev + k;
+    };
+
+    if (!isSplit) {
+      setNpRaw((p) => transform(p));
+    } else {
+      setSplits((prev) => {
+        const shouldClear = justActivated && k !== "del" && k !== ".";
+        const updated = prev.map((s) => {
+          if (s.id !== activeId) return s;
+          const base = shouldClear ? "0" : s.raw;
+          return { ...s, raw: transform(base) };
+        });
+
+        const otherIds = prev.map((s) => s.id).filter((id) => id !== activeId);
+        if (otherIds.length === 1) {
+          const activePaid = updated.find((s) => s.id === activeId)!;
+          const activeAmt = rawToFloat(activePaid.raw);
+          const remaining = total - activeAmt;
+          const remainRaw = remaining > 0 ? String(Math.round(remaining * 100)) : "0";
+          return updated.map((s) => (s.id === otherIds[0] ? { ...s, raw: remainRaw } : s));
+        }
+
+        return updated;
+      });
+
+      if (justActivated) setJustActivated(false);
+    }
+  };
+
+  const handleAction = (action: SaveAction) => {
+    onSave({ vault, method, action });
+    onOpenChange(false);
+  };
+  const singlePaid = rawToFloat(npRaw);
+  const splitPaid = splits.reduce((sum, s) => sum + rawToFloat(s.raw), 0);
+  const paid = isSplit ? splitPaid : singlePaid;
+  const change = parseFloat((paid - total).toFixed(2));
+  useEffect(() => {
+    setPaidAmount(paid);
+  }, [paid]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md p-0 overflow-hidden gap-0" dir="rtl">
+        <div className="flex items-center justify-between px-4 py-3 text-white" style={{ background: "#000052" }}>
+          <DialogTitle className="text-[14px] font-medium text-white">إتمام عملية الدفع</DialogTitle>
+          <span className="bg-white/15 rounded px-2.5 py-1 text-[13px]">الإجمالي: {total.toFixed(2)} ر.س</span>
+        </div>
+
+        <div className="flex flex-col gap-4 p-4">
+          <div className="flex flex-col gap-1">
+            <label className="text-[11px] text-gray-500">الخزنة</label>
+            <Select value={vault} onValueChange={setVault}>
+              <SelectTrigger className="w-full  text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {VAULTS.map((v) => (
+                  <SelectItem key={v} value={v} className="text-xs">
+                    {v}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Numpad onKey={pushKey} />
+          <div className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2.5 text-[12px]">
+            <div className="flex gap-1">
+              <span className="text-gray-500">المدفوع:</span>
+              <span className="font-semibold text-gray-800">{fmtFloat(singlePaid)} ر.س</span>
+            </div>
+            <div className="flex gap-1">
+              {/* <span className="text-gray-500">الباقي:</span> */}
+              <span className={` font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
+              <span className={`font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>{fmtFloat(Math.abs(change))}</span>
+              {/* <span className="font-semibold text-green-700">{change.toFixed(2)} ر.س</span> */}
+            </div>
+            {/* <div
+              className={`rounded-xl px-3 py-2.5 flex flex-col border
+                    ${change >= 0 ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"}`}
+            >
+              <span className={`text-[10px] font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
+              <span className={`text-base font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>{fmtFloat(Math.abs(change))}</span>
+            </div> */}
+          </div>
+
+          <hr className="border-gray-100" />
+
+          <div className="flex flex-col gap-2">
+            <span className="text-[11px] text-gray-400">بعد الحفظ:</span>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { action: "pdf", label: "طباعة PDF", Icon: FileText },
+                { action: "whatsapp", label: "إرسال واتساب", Icon: MessageCircle },
+                { action: "email", label: "إرسال إيميل", Icon: Mail },
+                { action: "save_only", label: "حفظ فقط", Icon: Save },
+              ].map(({ action, label, Icon }) => (
+                <Button key={action} variant="outline" size="sm" onClick={() => handleAction(action as SaveAction)} className="h-10 text-[12px] gap-1.5">
+                  <Icon size={13} />
+                  {label}
+                </Button>
+              ))}
+              <Button onClick={() => handleAction("save_print")} size="sm" className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white">
+                <Printer size={13} />
+                حفظ وطباعة فاتورة
+              </Button>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 export default function CartPanel() {
   const { t } = useLanguage();
   const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
@@ -72,6 +232,7 @@ export default function CartPanel() {
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000 });
   const [discPct, setDiscPct] = useState("");
   const [discFlat, setDiscFlat] = useState("");
+  const [paymentOpen, setPaymentOpen] = useState(false);
 
   const handleApplyDiscount = () => {
     const base = sub + taxAfterDiscount;
@@ -154,6 +315,21 @@ export default function CartPanel() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleBarcodeScanned]);
 
+  const handlePayment = ({ vault, method, action }: { vault: string; method: string; action: SaveAction }) => {
+    switch (action) {
+      case "pdf":
+        break;
+      case "whatsapp":
+        break;
+      case "email":
+        break;
+      case "save_only":
+        break;
+      case "save_print":
+        break;
+    }
+  };
+
   return (
     <>
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -224,7 +400,6 @@ export default function CartPanel() {
             <span></span>
           </div>
 
-          {/* صف البحث - شاشات صغيرة */}
           <div className="grid lg:hidden items-center py-2 border-b border-gray-100 text-[11px] text-gray-400" style={{ gridTemplateColumns: GRID_COLUMNS_SM }}>
             <span>{cart.length + 1}</span>
             <div className="col-span-1">
@@ -340,7 +515,6 @@ export default function CartPanel() {
         </div>
       </div>
 
-      {/* ══ الفوتر ══ */}
       <div className="w-full border-t border-gray-200 bg-white text-[11px]">
         {/* شاشات كبيرة: grid أفقي */}
         <div className="hidden lg:grid" style={{ gridTemplateColumns: "auto 1fr 1fr 1fr" }}>
@@ -355,6 +529,9 @@ export default function CartPanel() {
 
             <Button size="sm" className="w-full bg-red-500 hover:bg-red-600 text-white text-[11px] rounded-md transition-all duration-200 hover:shadow-[0_0_0_3px_rgba(239,68,68,0.2)]">
               حذف
+            </Button>
+            <Button size="sm" onClick={() => setPaymentOpen(true)} className="w-full bg-green-700 hover:bg-green-800 text-white text-[11px] rounded-md">
+              الدفع
             </Button>
           </div>
 
@@ -473,6 +650,8 @@ export default function CartPanel() {
           </div>
         </div>
       </div>
+
+      <PaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} total={total} onSave={handlePayment} />
     </>
   );
 }

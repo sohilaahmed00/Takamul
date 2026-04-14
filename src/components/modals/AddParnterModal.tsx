@@ -356,20 +356,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
               )}
             />
 
-            <div className="col-span-2">
-              <Controller
-                name="commercialRegister"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>{t("commercial_register")} *</FieldLabel>
-                    <Input {...field} type="number" placeholder={t("enter_commercial_register")} />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-            </div>
-
             <div className="col-span-1 md:col-span-2  border border-gray-200 rounded-2xl p-5 my-2">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
@@ -381,7 +367,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
               </div>
 
               {isTaxable && (
-                <div className="mt-5 pt-5 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300">
+                <div className="mt-5 pt-5 border-t border-gray-100 animate-in fade-in slide-in-from-top-2 duration-300 grid gap-4 grid-cols-2">
                   <Controller
                     name="taxNumber"
                     control={form.control}
@@ -389,6 +375,17 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel>{t("tax_number")} *</FieldLabel>
                         <Input {...field} placeholder={t("enter_tax_number")} />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+                  <Controller
+                    name="commercialRegister"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>{t("commercial_register")} *</FieldLabel>
+                        <Input {...field} type="number" placeholder={t("enter_commercial_register")} />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
@@ -547,17 +544,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                   )}
                 />
 
-                <Controller
-                  name="address"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid} className="md:col-span-2">
-                      <FieldLabel>{t("address")} *</FieldLabel>
-                      <Input {...field} placeholder={t("enter_address")} />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
+               
               </>
             )}
           </div>

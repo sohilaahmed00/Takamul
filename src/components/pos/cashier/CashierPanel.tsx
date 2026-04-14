@@ -20,6 +20,7 @@ const fmtRaw = (r: string) => fmtFloat(rawToFloat(r));
 
 // ── Vault Chips (horizontal scroll) ─────────────────────────────────────────
 function VaultChips({ value, onChange, treasurys }: { value: number; onChange: (id: number) => void; treasurys: Treasury[] }) {
+  
   return (
     <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" } as React.CSSProperties} onClick={(e) => e.stopPropagation()}>
       {treasurys.map((v) => {
@@ -49,7 +50,7 @@ const ROWS = [
   [".", "cancel"],
 ];
 
-function Numpad({ onKey }: { onKey: (k: string) => void }) {
+export function Numpad({ onKey }: { onKey: (k: string) => void }) {
   const { t } = useLanguage();
   return (
     <div className="flex flex-col gap-1.5">
@@ -95,25 +96,9 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
     }
   }, [treasurys]);
 
-  // 👇 When active split changes, mark pending clear if target has a value
-  const setActiveSplit = (id: string) => {
-    const target = splits.find((s) => s.id === id);
-    const hasValue = target && rawToFloat(target.raw) > 0;
-    setPendingClear(!!hasValue);
-    setActiveId(id);
-  };
 
-  // 👇 Auto-fill the other split with the remaining amount
-  const autoFillOther = (updatedSplits: Split[], changedId: string) => {
-    const otherIds = updatedSplits.filter((s) => s.id !== changedId).map((s) => s.id);
-    if (otherIds.length !== 1) return updatedSplits;
 
-    const changedAmount = rawToFloat(updatedSplits.find((s) => s.id === changedId)!.raw);
-    const remaining = total - changedAmount;
-    const remainingRaw = remaining > 0 ? String(Math.round(remaining * 100)) : "0";
-
-    return updatedSplits.map((s) => (s.id === otherIds[0] ? { ...s, raw: remainingRaw } : s));
-  };
+ 
 
   const pushKey = (k: string) => {
     if (k === "cancel") {
@@ -132,7 +117,6 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
       setNpRaw((p) => transform(p));
     } else {
       setSplits((prev) => {
-        // لو أول ضغطة بعد ما الكارت اتفعّل، امسح القيمة القديمة
         const shouldClear = justActivated && k !== "del" && k !== ".";
 
         const updated = prev.map((s) => {
@@ -141,7 +125,6 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
           return { ...s, raw: transform(base) };
         });
 
-        // ── Auto-fill الكارت التاني بالباقي ──
         const otherIds = prev.map((s) => s.id).filter((id) => id !== activeId);
         if (otherIds.length === 1) {
           const activePaid = updated.find((s) => s.id === activeId)!;
@@ -167,7 +150,7 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
           { id: "s2", vaultId: treasurys?.[0]?.id ?? 0, raw: "0" },
         ]);
         setActiveId("s1");
-        setPendingClear(false); // 👈 reset
+        setPendingClear(false); 
       }
       return !v;
     });
@@ -230,7 +213,6 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
           </CardHeader>
 
           <CardContent className="space-y-3">
-            {/* ── Single mode ── */}
             {!isSplit && (
               <>
                 <VaultChips
@@ -254,7 +236,6 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
               </>
             )}
 
-            {/* ── Split mode: 2 cards side by side ── */}
             {isSplit && (
               <div className="flex flex-col gap-3">
                 {/* Two split cards in a row */}

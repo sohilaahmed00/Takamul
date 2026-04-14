@@ -48,7 +48,7 @@ export default function Topbar2() {
               <Button variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="لوحة المفاتيح">
                 <Keyboard size={13} />
               </Button>
-              <Button variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="ملء الشاشة">
+              <Button onClick={toggleFullScreen} variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="ملء الشاشة">
                 <Maximize size={13} />
               </Button>
             </div>
@@ -58,16 +58,6 @@ export default function Topbar2() {
             <div className="flex items-center gap-1.5 flex-wrap">
               <Button variant="outline" size="sm" className="rounded-full h-7 text-[11px] border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200">
                 شاشة المبيعات
-              </Button>
-
-              <Button size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
-                <Pause className="w-3 h-3" />
-                غلق الوردية
-              </Button>
-
-              <Button size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
-                تسجيل الخروج
-                <LogOut className="w-3 h-3" />
               </Button>
             </div>
           </div>
@@ -85,6 +75,17 @@ export default function Topbar2() {
               <span className="text-[10px] text-blue-400">تاريخ الفاتورة</span>
               <span className="text-[11px] font-semibold text-[#000052]">اليوم، {invoiceDate}</span>
             </div>
+          </div>
+          <div className="flex items-center gap-1">
+            <Button size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
+              <Pause className="w-3 h-3" />
+              غلق الوردية
+            </Button>
+
+            <Button size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
+              تسجيل الخروج
+              <LogOut className="w-3 h-3" />
+            </Button>
           </div>
         </div>
 
