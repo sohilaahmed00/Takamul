@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import {
   AlertTriangle,
-  Filter,
   RotateCcw,
   Search,
   Printer,
@@ -19,50 +18,39 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
-import { InputText } from "primereact/inputtext";
-
-type FilterState = {
-  searchQuery: string;
-};
-
-type LowStockRow = {
-  id: string;
-  code: string;
-  name: string;
-  quantity: number;
-  alertQuantity: number;
-};
+import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
+import { useGetStockAlertsReport } from "@/features/reports/hooks/useGetStockAlertsReport";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function LowStockReport() {
   const { t, direction } = useLanguage();
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
-  const [entriesPerPage] = useState(5);
+  const [entriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const [filters, setFilters] = useState<FilterState>({
-    searchQuery: "",
+  const [filters, setFilters] = useState({
+    branchId: " ",
   });
 
-  const [submittedFilters, setSubmittedFilters] = useState<FilterState>({
-    searchQuery: "",
+  const [submittedFilters, setSubmittedFilters] = useState({
+    branchId: " ",
   });
 
-  const rows: LowStockRow[] = [
-    {
-      id: "1",
-      code: "21212121212121",
-      name: "مياه",
-      quantity: -6.0,
-      alertQuantity: 50.0,
-    },
-    {
-      id: "2",
-      code: "6291100277919",
-      name: "غسول نايتشرز باونتي 150 مل",
-      quantity: 0.0,
-      alertQuantity: 10.0,
-    },
-  ];
+  const { data: rows = [], isLoading, isFetching } = useGetStockAlertsReport({
+    branchId: submittedFilters.branchId.trim() || undefined,
+  });
+
+  const { data: branches = [] } = useGetAllBranches();
 
   const handleSearch = () => {
     setSubmittedFilters(filters);
@@ -70,8 +58,8 @@ export default function LowStockReport() {
   };
 
   const handleClear = () => {
-    const resetState: FilterState = {
-      searchQuery: "",
+    const resetState = {
+      branchId: " ",
     };
     setFilters(resetState);
     setSubmittedFilters(resetState);
@@ -87,8 +75,6 @@ export default function LowStockReport() {
 
   return (
     <div dir={direction}>
-
-
       <Card>
         <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -113,11 +99,41 @@ export default function LowStockReport() {
         </CardHeader>
 
         <CardContent className="space-y-5">
-
+          {/* Filters Row */}
+          <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+              {hasAnyPermission([Permissions?.branches?.all, Permissions?.branches?.view]) && (
+                <div className="space-y-2 lg:col-span-1">
+                  <Label className="text-xs font-medium text-text-main">{t("branch", "الفرع")}</Label>
+                  <Select value={filters.branchId} onValueChange={(val) => setFilters((p) => ({ ...p, branchId: val }))}>
+                    <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
+                      <SelectValue placeholder={t("select_branch", "اختر الفرع")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
+                      {branches.map((b) => (
+                        <SelectItem key={b.id} value={String(b.id)}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              <Button onClick={handleSearch} size="sm" className="h-10 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold transition-all duration-300 hover:scale-[1.02] transform" disabled={isLoading || isFetching}>
+                <Search size={16} /> {t("execute_operation", "اتمام العملية")}
+              </Button>
+              <Button onClick={handleClear} size="sm" variant="outline" className="h-10 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all duration-300">
+                <RotateCcw size={15} /> {t("clear", "مسح")}
+              </Button>
+            </div>
+          </div>
 
           <div className="hidden md:block rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
             <DataTable
               value={rows}
+              loading={isLoading || isFetching}
               paginator
               rows={entriesPerPage}
               first={(currentPage - 1) * entriesPerPage}
@@ -125,49 +141,49 @@ export default function LowStockReport() {
                 if (e.page === undefined) return;
                 setCurrentPage(e.page + 1);
               }}
-              dataKey="id"
+              dataKey="productId"
               className="custom-green-table custom-compact-table low-stock-table"
               emptyMessage={t("no_data")}
               responsiveLayout="stack"
             >
               <Column
-                field="code"
-                header={t("item_code", "كود الصنف")}
+                field="barcode"
+                header={t("barcode", "باركود")}
                 sortable
                 body={(rowData) => (
-                  <span className="text-sm font-medium">{rowData.code}</span>
+                  <span className="text-sm font-medium">{rowData.barcode}</span>
                 )}
               />
 
               <Column
-                field="name"
+                field="productName"
                 header={t("item_name", "اسم الصنف")}
                 sortable
                 body={(rowData) => (
                   <span className="text-sm font-bold text-[var(--text-main)]">
-                    {rowData.name}
+                    {rowData.productName}
                   </span>
                 )}
               />
 
               <Column
-                field="quantity"
-                header={t("quantity", "كمية")}
+                field="currentQty"
+                header={t("current_quantity", "الكمية الحالية")}
                 sortable
                 body={(rowData) => (
                   <span className="text-sm border border-red-200 bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-bold inline-block">
-                    {formatNumber(rowData.quantity)}
+                    {formatNumber(rowData.currentQty)}
                   </span>
                 )}
               />
 
               <Column
-                field="alertQuantity"
-                header={t("alert_low_stock_quantity", "تنبيه بكميات الأصناف منخفضة العدد")}
+                field="minStockLevel"
+                header={t("min_stock_level", "حد الطلب")}
                 sortable
                 body={(rowData) => (
                   <span className="text-sm font-semibold whitespace-nowrap">
-                    {formatNumber(rowData.alertQuantity)}
+                    {formatNumber(rowData.minStockLevel)}
                   </span>
                 )}
               />
@@ -175,7 +191,9 @@ export default function LowStockReport() {
           </div>
 
           <div className="grid grid-cols-1 gap-5 md:hidden">
-            {rows.length === 0 ? (
+            {isLoading || isFetching ? (
+              <div className="p-8 text-center text-sm text-[var(--text-muted)]">{t("loading", "جاري التحميل...")}</div>
+            ) : rows.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/20 p-8 text-center text-sm text-[var(--text-muted)]">
                 {t("no_data")}
               </div>
@@ -187,7 +205,7 @@ export default function LowStockReport() {
                 )
                 .map((row) => (
                   <div
-                    key={row.id}
+                    key={row.productId}
                     className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 shadow-sm overflow-hidden"
                   >
                     <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] dark:bg-slate-900/60 border-b border-gray-100 dark:border-slate-800">
@@ -197,10 +215,10 @@ export default function LowStockReport() {
                         </div>
                         <div className="min-w-0">
                           <p className="text-xs text-[var(--text-muted)] mb-0.5">
-                            {row.code}
+                            {row.barcode}
                           </p>
                           <p className="text-sm font-bold text-[var(--text-main)] truncate">
-                            {row.name}
+                            {row.productName}
                           </p>
                         </div>
                       </div>
@@ -210,18 +228,18 @@ export default function LowStockReport() {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3 text-center border border-gray-100 dark:border-slate-800">
                           <p className="text-xs text-[var(--text-muted)] mb-2">
-                            {t("alert_low_stock_quantity", "حد التنبيه")}
+                            {t("min_stock_level", "حد الطلب")}
                           </p>
                           <p className="text-sm font-bold">
-                            {formatNumber(row.alertQuantity)}
+                            {formatNumber(row.minStockLevel)}
                           </p>
                         </div>
                         <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-3 text-center border border-red-100 dark:border-red-900/30">
                           <p className="text-xs text-red-600 dark:text-red-400 mb-2">
-                            {t("quantity", "الكمية الحالية")}
+                            {t("current_quantity", "الكمية الحالية")}
                           </p>
                           <p className="text-sm font-bold text-red-700 dark:text-red-300">
-                            {formatNumber(row.quantity)}
+                            {formatNumber(row.currentQty)}
                           </p>
                         </div>
                       </div>
@@ -230,7 +248,7 @@ export default function LowStockReport() {
                 ))
             )}
 
-            {rows.length > 0 && (
+            {rows.length > entriesPerPage && (
               <div className="flex items-center justify-center gap-2 pt-2">
                 <button
                   type="button"
