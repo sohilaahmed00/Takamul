@@ -28,7 +28,10 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/context/LanguageContext";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
-
+import { format } from "date-fns";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { Calendar as CalendarIcon } from "lucide-react";
 interface FilterState {
   branchId: string;
   from: string;
@@ -88,7 +91,7 @@ export default function ProfitReport() {
     { id: "4", label: t("total_expenses", "إجمالي المصروفات"), value: profitData?.totalExpenses ?? 0 },
   ];
 
-    const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
   return (
     <div dir={direction}>
       <Card>
@@ -98,7 +101,7 @@ export default function ProfitReport() {
               <DollarSign size={20} className="text-[var(--primary)]" />
               {t("profit_report")}
             </CardTitle>
-           
+
           </div>
 
           <div className="flex items-center gap-4 text-sm font-medium">
@@ -124,34 +127,82 @@ export default function ProfitReport() {
           {/* Filters */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-            {hasAnyPermission([Permissions?.branches?.all,Permissions?.branches?.view])&&(
-               <div className="space-y-2 lg:col-span-1 ">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</label>
-                <Select
-                  value={filters.branchId}
-                  onValueChange={val => setFilters(p => ({ ...p, branchId: val }))}
-                >
-                  <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
-                    <SelectValue placeholder={t("select_branch", "اختر الفرع")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
-                    {branches.map(b => (
-                      <SelectItem key={b.id} value={String(b.id)}>
-                        {b.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+              {hasAnyPermission([Permissions?.branches?.all, Permissions?.branches?.view]) && (
+                <div className="space-y-2 lg:col-span-1 ">
+                  <label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</label>
+                  <Select
+                    value={filters.branchId}
+                    onValueChange={val => setFilters(p => ({ ...p, branchId: val }))}
+                  >
+                    <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
+                      <SelectValue placeholder={t("select_branch", "اختر الفرع")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
+                      {branches.map(b => (
+                        <SelectItem key={b.id} value={String(b.id)}>
+                          {b.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="space-y-2">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("from_date", "تاريخ البداية")}</label>
-                <Input type="date" value={filters.from} onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))} className="h-10" />
+                <label className="text-xs font-medium text-[var(--text-main)]">
+                  {t("from_date", "تاريخ البداية")}
+                </label>
+                <div className="relative flex items-center border border-input rounded-md bg-background">
+                  <DatePicker
+                    selected={filters.from ? new Date(filters.from) : null}
+                    onChange={(date) =>
+                      setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))
+                    }
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText={t("select_date", "يوم/شهر/سنة")}
+                    popperPlacement="bottom-start"
+                    portalId="root-portal" // لحل مشكلة الطبقات (z-index)
+                    customInput={
+                      <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-sm">
+                          {filters.from
+                            ? format(new Date(filters.from), "dd/MM/yyyy")
+                            : t("select_date", "يوم/شهر/سنة")}
+                        </span>
+                      </div>
+                    }
+                  />
+                </div>
               </div>
+
               <div className="space-y-2">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("to_date", "تاريخ النهاية")}</label>
-                <Input type="date" value={filters.to} onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))} className="h-10" />
+                <label className="text-xs font-medium text-[var(--text-main)]">
+                  {t("to_date", "تاريخ النهاية")}
+                </label>
+                <div className="relative flex items-center border border-input rounded-md bg-background">
+                  <DatePicker
+                    selected={filters.to ? new Date(filters.to) : null}
+                    onChange={(date) =>
+                      setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))
+                    }
+                    dateFormat="dd/MM/yyyy"
+                    placeholderText={t("select_date", "يوم/شهر/سنة")}
+                    popperPlacement="bottom-start"
+                    portalId="root-portal" // لحل مشكلة الطبقات (z-index)
+                    customInput={
+                      <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
+                        <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-sm">
+                          {/* هنا تم التعديل من filters.from إلى filters.to */}
+                          {filters.to
+                            ? format(new Date(filters.to), "dd/MM/yyyy")
+                            : t("select_date", "يوم/شهر/سنة")}
+                        </span>
+                      </div>
+                    }
+                  />
+                </div>
               </div>
               <div className="flex flex-row items-end gap-2">
                 <Button onClick={handleSearch} disabled={isLoading || isFetching} className="h-10 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold flex-1">
@@ -173,9 +224,8 @@ export default function ProfitReport() {
                 {rows.map((row) => (
                   <tr
                     key={row.id}
-                    className={`border-b border-gray-100 dark:border-slate-800 ${
-                      row.isGray ? "bg-gray-50 dark:bg-slate-900/60" : ""
-                    }`}
+                    className={`border-b border-gray-100 dark:border-slate-800 ${row.isGray ? "bg-gray-50 dark:bg-slate-900/60" : ""
+                      }`}
                   >
                     <td className="px-6 py-4 text-sm font-medium text-[var(--text-main)]">
                       {row.label}
