@@ -1,28 +1,9 @@
 import { PaginationMeta } from "@/types";
 
 export interface CreateEmployee {
-  employee: {
-    firstName: string;
-    lastName: string;
-    address: string;
-    mobile: string;
-    city: string;
-    state: string;
-    hireDate: string; // ISO date
-    salary: number;
-    department: string;
-    position: string;
-    branchId: number;
-  };
-
-  user: {
-    userName: string;
-    email: string;
-    phoneNumber: string;
-    password: string;
-  };
-
-  roleName: string;
+  firstName: string;
+  lastName: string;
+  mobile?: string;
 }
 
 export interface Employee {
@@ -33,7 +14,7 @@ export interface Employee {
   mobile: string;
   city: string;
   state: string;
-  hireDate: string; // ISO date
+  hireDate: string;
   salary: number;
   department: string;
   position: string;

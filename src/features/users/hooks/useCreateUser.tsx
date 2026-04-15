@@ -1,20 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import useToast from "@/hooks/useToast";
-import { additionsKeys } from "../keys/additions.keys";
-import { createAdditions } from "../services/additions";
-import type { createAddition } from "../types/additions.types";
-import axios from "axios";
 import { handleApiError } from "@/lib/handleApiError";
 import { handleApiSuccess } from "@/lib/handleApiSuccess";
+import { createUser } from "../services/users";
+import { CreateUser } from "../types/users.types";
+import { usersKeys } from "../keys/users.keys";
 
-export function useCreateAddition() {
+export function useCreateUser() {
   const queryClient = useQueryClient();
   const { notifyError, notifySuccess } = useToast();
   return useMutation({
-    mutationFn: (data: createAddition) => createAdditions(data),
+    mutationFn: (data: CreateUser) => createUser(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: additionsKeys.list(),
+        queryKey: usersKeys.list(),
       });
       handleApiSuccess(response, notifySuccess);
     },
