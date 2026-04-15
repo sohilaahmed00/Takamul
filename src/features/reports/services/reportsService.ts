@@ -10,6 +10,22 @@ import {
   StatementItem,
   CustomerStatementParams,
   SupplierStatementParams,
+  ExpensesReportParams,
+  ExpensesReportResponse,
+  ItemSalesReportParams,
+  ItemSalesReportResponse,
+  DailySalesReportItem,
+  DailySalesReportParams,
+  SalesInvoiceReportItem,
+  SalesInvoiceReportParams,
+  ProductPurchasesResponse,
+  ProductPurchasesParams,
+  DailyPurchasesReportItem,
+  DailyPurchasesReportParams,
+  PurchaseInvoiceReportItem,
+  PurchaseInvoiceReportParams,
+  ProfitReportResponse,
+  ProfitReportParams,
 } from "../types/reports.types";
 
 // ─── Top Selling ───────────────────────────────────────────────
@@ -56,6 +72,46 @@ export const getCustomerStatement = async (
   );
 };
 
+// ─── Expenses Report ───────────────────────────────────────────
+export const getExpensesReport = async (
+  params: ExpensesReportParams
+): Promise<ExpensesReportResponse> => {
+  return httpClient<ExpensesReportResponse>(
+    "/reports/products/ExpensesReport",
+    { params }
+  );
+};
+
+// ─── Item Sales Report (ProductSalesForBrunch) ──────────────────
+export const getItemSalesReport = async (
+  params: ItemSalesReportParams
+): Promise<ItemSalesReportResponse> => {
+  return httpClient<ItemSalesReportResponse>(
+    "/reports/products/ProductSalesForBrunch",
+    { params }
+  );
+};
+
+// ─── Daily Sales Report ────────────────────────────────────────
+export const getDailySalesReport = async (
+  params: DailySalesReportParams
+): Promise<DailySalesReportItem[]> => {
+  return httpClient<DailySalesReportItem[]>(
+    "/reports/products/DailySales",
+    { params }
+  );
+};
+
+// ─── Sales Invoices Report ─────────────────────────────────────
+export const getSalesInvoicesReport = async (
+  params: SalesInvoiceReportParams
+): Promise<SalesInvoiceReportItem[]> => {
+  return httpClient<SalesInvoiceReportItem[]>(
+    "/reports/products/SalesInvoices",
+    { params }
+  );
+};
+
 // ─── Supplier Statement ────────────────────────────────────────
 // بترجع paginated response
 export const getSupplierStatement = async (
@@ -66,5 +122,45 @@ export const getSupplierStatement = async (
   return httpClient<PaginatedResponse<StatementItem>>(
     "/reports/products/SupplierStatement",
     { params: { SupplierId: supplierId, ...rest } }
+  );
+};
+
+// ─── Product Purchases Report ──────────────────────────────────
+export const getProductPurchases = async (
+  params: ProductPurchasesParams
+): Promise<ProductPurchasesResponse> => {
+  return httpClient<ProductPurchasesResponse>(
+    "/reports/products/ProductPurchases",
+    { params }
+  );
+};
+
+// ─── Daily Purchases Report ────────────────────────────────────
+export const getDailyPurchasesReport = async (
+  params: DailyPurchasesReportParams
+): Promise<DailyPurchasesReportItem[]> => {
+  return httpClient<DailyPurchasesReportItem[]>(
+    "/reports/products/DailyPurchases",
+    { params }
+  );
+};
+
+// ─── Purchase Invoices Report ──────────────────────────────────
+export const getPurchaseInvoicesReport = async (
+  params: PurchaseInvoiceReportParams
+): Promise<PurchaseInvoiceReportItem[]> => {
+  return httpClient<PurchaseInvoiceReportItem[]>(
+    "/reports/products/PurchaseInvoices",
+    { params }
+  );
+};
+
+// ─── Profit Report ─────────────────────────────────────────────
+export const getProfitReport = async (
+  params: ProfitReportParams
+): Promise<ProfitReportResponse> => {
+  return httpClient<ProfitReportResponse>(
+    "/reports/products/Profit",
+    { params }
   );
 };

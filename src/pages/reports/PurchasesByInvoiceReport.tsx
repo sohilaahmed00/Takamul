@@ -16,7 +16,18 @@ import {
 
 import { Input } from "@/components/ui/input";
 
-interface FilterState { fiscalYear: string; fiscalQuarter: string; from: string; to: string; }
+import { useGetPurchaseInvoicesReport } from "@/features/reports/hooks/Usegetpurchaseinvoicesreport";
+import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
+
+interface FilterState {
+  branchId: string;
+  fiscalYear: string;
+  fiscalQuarter: string;
+  from: string;
+  to: string;
+}
 
 const FISCAL_YEARS = ["2022", "2023", "2024", "2025", "2026"];
 const FISCAL_QUARTERS = [
@@ -36,29 +47,67 @@ const mockRows = [
 
 export default function PurchasesByInvoiceReport() {
   const { t, direction } = useLanguage();
-  const [filters, setFilters] = useState<FilterState>({ fiscalYear: new Date().getFullYear().toString(), fiscalQuarter: "", from: "", to: "" });
+
+  const [filters, setFilters] = useState<FilterState>({
+    branchId: " ",
+    fiscalYear: new Date().getFullYear().toString(),
+    fiscalQuarter: "",
+    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
+    to: new Date().toISOString().split("T")[0],
+  });
+
+  const [searchParams, setSearchParams] = useState<FilterState>(filters);
+
+  // Data Fetching
+  const { data: purchasesData = [], isLoading: purchasesLoading, isFetching: purchasesFetching } = useGetPurchaseInvoicesReport({
+    branchid: searchParams.branchId.trim() || undefined,
+    From: searchParams.from,
+    To: searchParams.to,
+  });
+
+  const { data: branches = [] } = useGetAllBranches();
 
   const handleQuarterChange = (quarter: string) => {
     const q = FISCAL_QUARTERS.find((q) => q.value === quarter);
     const year = filters.fiscalYear || new Date().getFullYear().toString();
-    setFilters((prev) => ({ ...prev, fiscalQuarter: quarter, from: q ? `${year}${q.from}` : prev.from, to: q ? `${year}${q.to}` : prev.to }));
+    setFilters((prev) => ({
+      ...prev,
+      fiscalQuarter: quarter,
+      from: q ? `${year}${q.from}` : prev.from,
+      to: q ? `${year}${q.to}` : prev.to,
+    }));
   };
 
   const handleYearChange = (year: string) => {
     const q = FISCAL_QUARTERS.find((q) => q.value === filters.fiscalQuarter);
-    setFilters((prev) => ({ ...prev, fiscalYear: year, from: q && year ? `${year}${q.from}` : prev.from, to: q && year ? `${year}${q.to}` : prev.to }));
+    setFilters((prev) => ({
+      ...prev,
+      fiscalYear: year,
+      from: q && year ? `${year}${q.from}` : prev.from,
+      to: q && year ? `${year}${q.to}` : prev.to,
+    }));
   };
 
-  const handleSearch = () => { };
-  const handleClear = () => setFilters({ fiscalYear: new Date().getFullYear().toString(), fiscalQuarter: "", from: "", to: "" });
+  const handleSearch = () => setSearchParams(filters);
+  const handleClear = () => {
+    const reset = {
+      branchId: " ",
+      fiscalYear: new Date().getFullYear().toString(),
+      fiscalQuarter: "",
+      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
+      to: new Date().toISOString().split("T")[0]
+    };
+    setFilters(reset);
+    setSearchParams(reset);
+  };
 
   const formatNumber = (value?: number) =>
     Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const totalPurchases = useMemo(() => mockRows.reduce((s, r) => s + r.purchases, 0), []);
-  const totalTax = useMemo(() => mockRows.reduce((s, r) => s + r.tax, 0), []);
-  const totalFinal = useMemo(() => mockRows.reduce((s, r) => s + r.total, 0), []);
-
+  const totalPurchases = useMemo(() => purchasesData.reduce((s, r) => s + r.subTotal, 0), [purchasesData]);
+  const totalTax = useMemo(() => purchasesData.reduce((s, r) => s + (r.grandTotal - r.subTotal), 0), [purchasesData]);
+  const totalFinal = useMemo(() => purchasesData.reduce((s, r) => s + r.grandTotal, 0), [purchasesData]);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
   return (
     <div dir={direction}>
       <Card>
@@ -103,21 +152,42 @@ export default function PurchasesByInvoiceReport() {
 
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
-            <div className="space-y-2 lg:col-span-1">
-  <label className="text-xs font-medium text-[var(--text-main)]">
-    {t("fiscal_year", "السنة المالية")}
-  </label>
-  <Select value={filters.fiscalYear} onValueChange={handleYearChange}>
-    <SelectTrigger className="w-full">
-      <SelectValue placeholder={t("select_year", "اختر السنة")} />
-    </SelectTrigger>
-    <SelectContent>
-      {FISCAL_YEARS.map((y) => (
-        <SelectItem key={y} value={y}>{y}</SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-</div>
+                {hasAnyPermission([Permissions?.branches?.all,Permissions?.branches?.view])&&(
+               <div className="space-y-2 lg:col-span-1 ">
+                <label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</label>
+                <Select
+                  value={filters.branchId}
+                  onValueChange={val => setFilters(p => ({ ...p, branchId: val }))}
+                >
+                  <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
+                    <SelectValue placeholder={t("select_branch", "اختر الفرع")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
+                    {branches.map(b => (
+                      <SelectItem key={b.id} value={String(b.id)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+              <div className="space-y-2 lg:col-span-1">
+                <label className="text-xs font-medium text-[var(--text-main)]">
+                  {t("fiscal_year", "السنة المالية")}
+                </label>
+                <Select value={filters.fiscalYear} onValueChange={handleYearChange}>
+                  <SelectTrigger className="w-full h-10">
+                    <SelectValue placeholder={t("select_year", "اختر السنة")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FISCAL_YEARS.map((y) => (
+                      <SelectItem key={y} value={y}>{y}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
 <div className="space-y-2 lg:col-span-1">
   <label className="text-xs font-medium text-[var(--text-main)]">
@@ -143,9 +213,15 @@ export default function PurchasesByInvoiceReport() {
                 <label className="text-xs font-medium text-[var(--text-main)]">{t("to_date", "تاريخ النهاية")}</label>
                 <Input type="date" value={filters.to} onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value, fiscalQuarter: "" }))}  />
               </div>
-              <div className="flex flex-row items-end gap-2 ">
-                <Button onClick={handleSearch} className="h-9 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold"><Search size={16} />{t("execute_operation", "اتمام العملية")}</Button>
-                <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"><RotateCcw size={15} />{t("clear", "مسح")}</Button>
+              <div className="flex flex-row items-end gap-2 lg:col-span-2">
+                <Button onClick={handleSearch} disabled={purchasesLoading || purchasesFetching} className="h-9 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold flex-1">
+                  <Search size={16} />
+                  {t("execute_operation", "اتمام العملية")}
+                </Button>
+                <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                  <RotateCcw size={15} />
+                  {t("clear", "مسح")}
+                </Button>
               </div>
             </div>
           </div>
@@ -153,12 +229,19 @@ export default function PurchasesByInvoiceReport() {
 
 
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
-            <DataTable value={mockRows} paginator rows={5} className="custom-green-table custom-compact-table" emptyMessage={t("no_data", "لا توجد بيانات")} responsiveLayout="stack">
-              <Column field="date" header={t("date", "التاريخ")} sortable body={(r) => <span className="text-sm">{r.date}</span>} />
-              <Column field="invoiceNumber" header={t("invoice_number", "رقم الفاتورة")} sortable body={(r) => <span className="text-sm font-bold text-[var(--text-main)]">{r.invoiceNumber}</span>} />
-              <Column field="purchases" header={t("purchases_excl_tax", "المشتريات")} sortable body={(r) => <span className="text-sm font-medium">{formatNumber(r.purchases)}</span>} />
-              <Column field="tax" header={t("tax", "الضريبة")} sortable body={(r) => <span className="text-sm">{formatNumber(r.tax)}</span>} />
-              <Column field="total" header={t("document_total", "إجمالي المستند")} sortable body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.total)}</span>} />
+            <DataTable
+              value={purchasesData}
+              paginator rows={10}
+              loading={purchasesLoading || purchasesFetching}
+              className="custom-green-table custom-compact-table"
+              emptyMessage={t("no_data", "لا توجد بيانات")}
+              responsiveLayout="stack"
+            >
+              <Column field="date" header={t("date", "التاريخ")} sortable body={(r) => <span className="text-sm">{new Date(r.date).toLocaleDateString("en-GB")}</span>} />
+              <Column field="orderNumber" header={t("invoice_number", "رقم الفاتورة")} sortable body={(r) => <span className="text-sm font-bold text-[var(--text-main)]">{r.orderNumber}</span>} />
+              <Column field="subTotal" header={t("purchases_excl_tax", "المشتريات")} sortable body={(r) => <span className="text-sm font-medium">{formatNumber(r.subTotal)}</span>} />
+              <Column header={t("tax", "الضريبة")} sortable body={(r) => <span className="text-sm">{formatNumber(r.grandTotal - r.subTotal)}</span>} />
+              <Column field="grandTotal" header={t("document_total", "إجمالي المستند")} sortable body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.grandTotal)}</span>} />
             </DataTable>
           </div>
         </CardContent>

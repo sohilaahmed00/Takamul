@@ -20,11 +20,22 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
+import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useGetTopSellingProducts } from "@/features/reports/hooks/useGetTopSellingProducts";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 type FilterState = {
+  branchId: string;
   from: string;
   to: string;
 };
@@ -33,13 +44,20 @@ export default function BestSellersChart() {
   const { t, direction } = useLanguage();
 
   const [filters, setFilters] = useState<FilterState>({
+    branchId: " ",
     from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
     to: new Date().toISOString().split('T')[0],
   });
 
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
 
-  const { data: reportData, isLoading, isFetching } = useGetTopSellingProducts(searchParams);
+  const { data: reportData, isLoading, isFetching } = useGetTopSellingProducts({
+    branchid: searchParams.branchId.trim() || undefined,
+    from: searchParams.from,
+    to: searchParams.to,
+  });
+
+  const { data: branches = [] } = useGetAllBranches();
 
   const handleSearch = () => {
     setSearchParams(filters);
@@ -47,6 +65,7 @@ export default function BestSellersChart() {
 
   const handleClear = () => {
     const resetState: FilterState = {
+      branchId: " ",
       from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split('T')[0],
       to: new Date().toISOString().split('T')[0],
     };
@@ -60,7 +79,7 @@ export default function BestSellersChart() {
 
   const totalQty = useMemo(() => reportData?.reduce((s, r) => s + r.totalQuantitySold, 0) || 0, [reportData]);
   const totalSales = useMemo(() => reportData?.reduce((s, r) => s + r.totalSales, 0) || 0, [reportData]);
-
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
   return (
     <div dir={direction}>
       <Card>
@@ -91,47 +110,50 @@ export default function BestSellersChart() {
 
           {/* Filters */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                 {hasAnyPermission([Permissions?.branches?.all,Permissions?.branches?.view])&&(
+                            <div className="space-y-2 lg:col-span-1 ">
+                             <label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</label>
+                             <Select
+                               value={filters.branchId}
+                               onValueChange={val => setFilters(p => ({ ...p, branchId: val }))}
+                             >
+                               <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
+                                 <SelectValue placeholder={t("select_branch", "اختر الفرع")} />
+                               </SelectTrigger>
+                               <SelectContent>
+                                 <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
+                                 {branches.map(b => (
+                                   <SelectItem key={b.id} value={String(b.id)}>
+                                     {b.name}
+                                   </SelectItem>
+                                 ))}
+                               </SelectContent>
+                             </Select>
+                           </div>
+                         )}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[var(--text-main)]">
                   {t("from_date", "تاريخ البداية")}
                 </label>
-                <Input
-                  type="date"
-                  value={filters.from}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, from: e.target.value }))
-                  }
-                  
-                />
+                <Input type="date" value={filters.from} onChange={(e) => setFilters((prev) => ({ ...prev, from: e.target.value }))} className="h-10" />
               </div>
-
               <div className="space-y-2">
                 <label className="text-sm font-medium text-[var(--text-main)]">
                   {t("to_date", "تاريخ النهاية")}
                 </label>
-                <Input
-                  type="date"
-                  value={filters.to}
-                  onChange={(e) =>
-                    setFilters((prev) => ({ ...prev, to: e.target.value }))
-                  }
-                  
-                />
+                <Input type="date" value={filters.to} onChange={(e) => setFilters((prev) => ({ ...prev, to: e.target.value }))} className="h-10" />
               </div>
-
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 py-3 xl:col-span-2">
-              <div className="flex flex-row items-end gap-2 xl:col-span-2">
-                <Button onClick={handleSearch} className="h-9 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold flex-1 mt-2" disabled={isLoading || isFetching}>
+              <div className="flex flex-row items-end gap-2">
+                <Button onClick={handleSearch} className="h-10 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold flex-1 transition-all duration-300 hover:scale-[1.02] transform" disabled={isLoading || isFetching}>
                   <Search size={16} />
                   {t("execute_operation", "اتمام العملية")}
                 </Button>
-                <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                <Button onClick={handleClear} variant="outline" className="h-10 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all duration-300">
                   <RotateCcw size={15} />
                 </Button>
               </div>
             </div>
-          </div>
           </div>
 
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">

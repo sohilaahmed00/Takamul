@@ -19,6 +19,7 @@ export interface TopSellingProduct {
 export interface TopSellingParams {
   from?: string;
   to?: string;
+  branchid?: number | string;
   page?: number;
   pageSize?: number;
   searchTerm?: string;
@@ -41,6 +42,7 @@ export interface ProductMovementParams {
   productId: number | string;
   from?: string;
   to?: string;
+  branchid?: number | string;
 }
 
 // ─── Inventory Stock ───────────────────────────────────────────
@@ -55,7 +57,10 @@ export interface InventoryStockItem {
   totalSaleValue: number;
 }
 
+
+
 export interface InventoryStockParams {
+  branchid?: number | string;
   from?: string;
   to?: string;
   page?: number;
@@ -90,4 +95,175 @@ export interface SupplierStatementParams {
   type?: string; // "Purchases" | "Payments"
   page?: number;
   pageSize?: number;
+}
+
+// ─── Expenses Report ───────────────────────────────────────────
+export interface ExpensesReportItem {
+  date: string;
+  treasuryName: string;
+  itemName: string | null;
+  amount: number;
+  notes: string;
+}
+
+export interface ExpensesReportParams {
+  branchid?: number | string;
+  TreasuryId?: number | string;
+  FromDate?: string;
+  ToDate?: string;
+  ItemId?: number | string;
+  Page?: number;
+  PageSize?: number;
+  SearchTerm?: string;
+}
+
+export interface ExpensesReportResponse {
+  data: ExpensesReportItem[];
+  totalCount: number;
+  totalAmount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+// ─── Item Sales Report (ProductSalesForBrunch) ──────────────────
+export interface ItemSalesReportItem {
+  date: string;
+  orderNumber: string;
+  quantitySold: number;
+  totalSales: number;
+  totalPurchases: number;
+}
+
+export interface ItemSalesReportResponse {
+  details: ItemSalesReportItem[];
+  summary: {
+    totalOperations: number;
+    totalQuantitySold: number;
+    totalSales: number;
+    totalPurchases: number;
+  };
+}
+
+export interface ItemSalesReportParams {
+  productCode: number | string;
+  from?: string;
+  to?: string;
+  branchid?: number | string;
+}
+
+// ─── Daily Sales Report ────────────────────────────────────────
+export interface DailySalesReportItem {
+  date: string;
+  totalInvoices: number;
+  totalSales: number;
+  totalDiscount: number;
+  totalTax: number;
+  netSales: number;
+}
+
+export interface DailySalesReportParams {
+  branchid?: number | string;
+  From?: string;
+  To?: string;
+  Page?: number;
+  PageSize?: number;
+}
+
+// ─── Sales Invoices Report ─────────────────────────────────────
+export interface SalesInvoiceReportItem {
+  date: string;
+  orderNumber: string;
+  customerName: string;
+  subTotal: number;
+  discountAmount: number;
+  grandTotal: number;
+  paidAmount: number;
+  remainingAmount: number;
+  paymentStatus: string;
+}
+
+export interface SalesInvoiceReportParams {
+  branchid?: number | string;
+  From?: string;
+  To?: string;
+  Page?: number;
+  PageSize?: number;
+}
+
+// ─── Product Purchases Report ──────────────────────────────────
+export interface ProductPurchasesItem {
+  date: string;
+  orderNumber: string;
+  quantityPurchased: number;
+  totalPurchases: number;
+}
+
+export interface ProductPurchasesResponse {
+  details: ProductPurchasesItem[];
+  summary: {
+    totalOperations: number;
+    totalQuantityPurchased: number;
+    totalPurchases: number;
+  };
+}
+
+export interface ProductPurchasesParams {
+  productID: number | string;
+  from?: string;
+  to?: string;
+  branchid?: number | string;
+}
+
+// ─── Daily Purchases Report ────────────────────────────────────
+export interface DailyPurchasesReportItem {
+  date: string;
+  totalInvoices: number;
+  totalPurchases: number;
+  totalDiscount: number;
+  netPurchases: number;
+}
+
+export interface DailyPurchasesReportParams {
+  branchid?: number | string;
+  From?: string;
+  To?: string;
+  Page?: number;
+  PageSize?: number;
+}
+
+// ─── Purchase Invoices Report ──────────────────────────────────
+export interface PurchaseInvoiceReportItem {
+  date: string;
+  orderNumber: string;
+  supplierName: string;
+  subTotal: number;
+  discountAmount: number;
+  grandTotal: number;
+  paidAmount: number;
+  remainingAmount: number;
+  paymentStatus: string;
+}
+
+export interface PurchaseInvoiceReportParams {
+  branchid?: number | string;
+  From?: string;
+  To?: string;
+  Page?: number;
+  PageSize?: number;
+}
+
+// ─── Profit Report ─────────────────────────────────────────────
+export interface ProfitReportResponse {
+  totalSales: number;
+  totalCostOfSales: number;
+  grossProfit: number;
+  totalExpenses: number;
+  netProfit: number;
+}
+
+export interface ProfitReportParams {
+  from?: string;
+  to?: string;
+  branchid?: number | string;
 }
