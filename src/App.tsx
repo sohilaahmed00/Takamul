@@ -179,6 +179,7 @@ import AppLayout2 from "./components/pos/layout/AppLayout2";
 import CreateReturnSalesInvoice from "./pages/CreateReturnSalesInvoice";
 import CreateReturnPurchasesInvoice from "./pages/CreateReturnPurchasesInvoice";
 import PosSales from "./pages/PosSales";
+import TableLayout from "./pages/AddRoles";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
@@ -264,6 +265,7 @@ function AppRoutes() {
           <Route path="/users/create" element={<AddUser />} />
           <Route path="/users/edit/:id" element={<EditUser />} />
           <Route path="/users/pos-devices" element={<InvoiceDevices />} />
+          <Route path="/add-roles" element={<TableLayout />} />
 
           {/* الإعدادات */}
           <Route path="/settings/groups" element={<Groups />} />
