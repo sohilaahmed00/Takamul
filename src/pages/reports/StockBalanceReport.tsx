@@ -19,9 +19,20 @@ import {
 } from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
 import { Input } from "@/components/ui/input";
+import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useGetInventoryStock } from "@/features/reports/hooks/Usegetinventorystock";
 
-type FilterState = { from: string; to: string };
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
+
+type FilterState = { branchId: string; from: string; to: string };
 
 export default function StockBalanceReport() {
   const { t, direction } = useLanguage();
@@ -30,13 +41,20 @@ export default function StockBalanceReport() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const [filters, setFilters] = useState<FilterState>({
+    branchId: " ",
     from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
     to: new Date().toISOString().split("T")[0],
   });
 
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
 
-  const { data: reportData, isLoading, isFetching } = useGetInventoryStock(searchParams);
+  const { data: reportData, isLoading, isFetching } = useGetInventoryStock({
+    branchid: searchParams.branchId.trim() || undefined,
+    from: searchParams.from,
+    to: searchParams.to,
+  });
+
+  const { data: branches = [] } = useGetAllBranches();
 
   const handleSearch = () => {
     setSearchParams(filters);
@@ -45,6 +63,7 @@ export default function StockBalanceReport() {
 
   const handleClear = () => {
     const reset: FilterState = {
+      branchId: " ",
       from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
       to: new Date().toISOString().split("T")[0],
     };
@@ -65,6 +84,7 @@ export default function StockBalanceReport() {
     () => reportData?.reduce((s, r) => s + r.totalSaleValue, 0) ?? 0,
     [reportData]
   );
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   return (
     <div dir={direction}>
@@ -120,25 +140,46 @@ export default function StockBalanceReport() {
               </div>
             </div>
             {/* Filters Row */}
-            <div className="flex flex-wrap items-end gap-4">
+            <div className="flex flex-wrap items-end gap-4 shadow-sm p-4 rounded-xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900/60 transition-all duration-300">
+                 {hasAnyPermission([Permissions?.branches?.all,Permissions?.branches?.view])&&(
+               <div className="space-y-2 lg:col-span-1">
+                <label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</label>
+                <Select
+                  value={filters.branchId}
+                  onValueChange={val => setFilters(p => ({ ...p, branchId: val }))}
+                >
+                  <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
+                    <SelectValue placeholder={t("select_branch", "اختر الفرع")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
+                    {branches.map(b => (
+                      <SelectItem key={b.id} value={String(b.id)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
               <div className="space-y-2">
                 <label className="text-xs font-medium text-[var(--text-main)]">
                   {t("from_date", "تاريخ البداية")}
                 </label>
                 <Input type="date" value={filters.from}
-                  onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))} />
+                  onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))} className="h-10" />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-medium text-[var(--text-main)]">
                   {t("to_date", "تاريخ النهاية")}
                 </label>
                 <Input type="date" value={filters.to}
-                  onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))} />
+                  onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))} className="h-10" />
               </div>
-              <Button onClick={handleSearch} size="sm" className="h-9 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold" disabled={isLoading || isFetching}>
-                <Search size={14} /> {t("execute_operation", "اتمام العملية")}
+              <Button onClick={handleSearch} size="sm" className="h-10 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold transition-all duration-300 hover:scale-[1.02] transform" disabled={isLoading || isFetching}>
+                <Search size={16} /> {t("execute_operation", "اتمام العملية")}
               </Button>
-              <Button onClick={handleClear} size="sm" variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+              <Button onClick={handleClear} size="sm" variant="outline" className="h-10 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all duration-300">
                 <RotateCcw size={15} /> {t("clear", "مسح")}
               </Button>
             </div>

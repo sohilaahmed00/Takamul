@@ -4,6 +4,14 @@ import {
   InventoryStockParams,
   CustomerStatementParams,
   SupplierStatementParams,
+  ExpensesReportParams,
+  ItemSalesReportParams,
+  DailySalesReportParams,
+  SalesInvoiceReportParams,
+  ProductPurchasesParams,
+  DailyPurchasesReportParams,
+  PurchaseInvoiceReportParams,
+  ProfitReportParams,
 } from "../types/reports.types";
 
 export const reportsKeys = {
@@ -23,4 +31,28 @@ export const reportsKeys = {
 
   supplierStatement: (params: SupplierStatementParams) =>
     [...reportsKeys.all, "supplierStatement", params] as const,
+
+  expenses: (params: ExpensesReportParams) =>
+    [...reportsKeys.all, "expenses", params] as const,
+
+  itemSales: (params: ItemSalesReportParams) =>
+    [...reportsKeys.all, "itemSales", params] as const,
+
+  dailySales: (params: DailySalesReportParams) =>
+    [...reportsKeys.all, "dailySales", params] as const,
+
+  salesInvoices: (params: SalesInvoiceReportParams) =>
+    [...reportsKeys.all, "salesInvoices", params] as const,
+
+  itemPurchases: (params: ProductPurchasesParams) =>
+    [...reportsKeys.all, "itemPurchases", params] as const,
+
+  dailyPurchases: (params: DailyPurchasesReportParams) =>
+    [...reportsKeys.all, "dailyPurchases", params] as const,
+
+  purchaseInvoices: (params: PurchaseInvoiceReportParams) =>
+    [...reportsKeys.all, "purchaseInvoices", params] as const,
+
+  profit: (params: ProfitReportParams) =>
+    [...reportsKeys.all, "profit", params] as const,
 };

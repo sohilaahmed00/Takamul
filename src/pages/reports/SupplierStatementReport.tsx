@@ -30,7 +30,7 @@ export default function SupplierStatementReport() {
     supplierId: "",
     from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
     to: new Date().toISOString().split("T")[0],
-    type: "Purchases",
+    type: "",
   });
 
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
@@ -59,7 +59,7 @@ export default function SupplierStatementReport() {
       supplierId: "",
       from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
       to: new Date().toISOString().split("T")[0],
-      type: "Purchases",
+      type: "",
     };
     setFilters(reset);
     setSearchParams(reset);

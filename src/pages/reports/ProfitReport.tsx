@@ -4,6 +4,8 @@ import {
   Printer,
   FileText,
   FileSpreadsheet,
+  Search,
+  RotateCcw,
 } from "lucide-react";
 import {
   Card,
@@ -12,9 +14,26 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { useLanguage } from "@/context/LanguageContext";
+import { useGetProfitReport } from "@/features/reports/hooks/Usegetprofitreport";
+import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useLanguage } from "@/context/LanguageContext";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
+
+interface FilterState {
+  branchId: string;
+  from: string;
+  to: string;
+}
 
 type ProfitRow = {
   id: string;
@@ -27,8 +46,33 @@ type ProfitRow = {
 export default function ProfitReport() {
   const { t, direction } = useLanguage();
 
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [filters, setFilters] = useState<FilterState>({
+    branchId: " ",
+    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
+    to: new Date().toISOString().split("T")[0],
+  });
+
+  const [searchParams, setSearchParams] = useState<FilterState>(filters);
+
+  // Data Fetching
+  const { data: profitData, isLoading, isFetching } = useGetProfitReport({
+    branchid: searchParams.branchId.trim() || undefined,
+    from: searchParams.from,
+    to: searchParams.to,
+  });
+
+  const { data: branches = [] } = useGetAllBranches();
+
+  const handleSearch = () => setSearchParams(filters);
+  const handleClear = () => {
+    const reset = {
+      branchId: " ",
+      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
+      to: new Date().toISOString().split("T")[0]
+    };
+    setFilters(reset);
+    setSearchParams(reset);
+  };
 
   const formatNumber = (value?: number) => {
     return Number(value ?? 0).toLocaleString("en-US", {
@@ -38,12 +82,13 @@ export default function ProfitReport() {
   };
 
   const rows: ProfitRow[] = [
-    { id: "1", label: t("total_sales"), value: 1000 },
-    { id: "2", label: t("cost_of_total_sales"), value: 600 },
-    { id: "3", label: t("profit"), value: 400, isGray: true },
-    { id: "4", label: t("total_expenses"), value: 250 },
+    { id: "1", label: t("total_sales", "إجمالي المبيعات"), value: profitData?.totalSales ?? 0 },
+    { id: "2", label: t("cost_of_total_sales", "تكلفة المبيعات"), value: profitData?.totalCostOfSales ?? 0 },
+    { id: "3", label: t("gross_profit", "مجمل الربح"), value: profitData?.grossProfit ?? 0, isGray: true },
+    { id: "4", label: t("total_expenses", "إجمالي المصروفات"), value: profitData?.totalExpenses ?? 0 },
   ];
 
+    const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
   return (
     <div dir={direction}>
       <Card>
@@ -76,27 +121,49 @@ export default function ProfitReport() {
         </CardHeader>
 
         <CardContent className="space-y-5">
-          {/* Date Filter */}
-          <div className="flex flex-wrap items-center gap-4 p-4 rounded-xl border border-gray-100 dark:border-slate-800 bg-[#f8fafc] dark:bg-slate-900/40">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-[var(--text-muted)]">{t("start_date")}</span>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-40"
-              />
+          {/* Filters */}
+          <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            {hasAnyPermission([Permissions?.branches?.all,Permissions?.branches?.view])&&(
+               <div className="space-y-2 lg:col-span-1 ">
+                <label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</label>
+                <Select
+                  value={filters.branchId}
+                  onValueChange={val => setFilters(p => ({ ...p, branchId: val }))}
+                >
+                  <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
+                    <SelectValue placeholder={t("select_branch", "اختر الفرع")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
+                    {branches.map(b => (
+                      <SelectItem key={b.id} value={String(b.id)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-[var(--text-main)]">{t("from_date", "تاريخ البداية")}</label>
+                <Input type="date" value={filters.from} onChange={(e) => setFilters((p) => ({ ...p, from: e.target.value }))} className="h-10" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-[var(--text-main)]">{t("to_date", "تاريخ النهاية")}</label>
+                <Input type="date" value={filters.to} onChange={(e) => setFilters((p) => ({ ...p, to: e.target.value }))} className="h-10" />
+              </div>
+              <div className="flex flex-row items-end gap-2">
+                <Button onClick={handleSearch} disabled={isLoading || isFetching} className="h-10 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold flex-1">
+                  <Search size={16} />
+                  {t("execute_operation", "اتمام العملية")}
+                </Button>
+                <Button onClick={handleClear} variant="outline" className="h-10 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                  <RotateCcw size={15} />
+                  {t("clear", "مسح")}
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-[var(--text-muted)]">{t("end_date")}</span>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-40"
-              />
-            </div>
-            <Button className="bg-primary text-white">{t("complete")}</Button>
           </div>
 
           {/* Table - Desktop */}
@@ -123,11 +190,11 @@ export default function ProfitReport() {
                 {/* Net Profit */}
                 <tr className="border-t-2 border-gray-200 dark:border-slate-700">
                   <td className="px-6 py-5 text-base font-bold text-[var(--text-main)]">
-                    {t("net_profit")}
+                    {t("net_profit", "صافي الربح")}
                   </td>
                   <td className="px-6 py-5 text-end">
                     <span className="text-base font-bold text-[var(--primary)]">
-                      {formatNumber(150)}
+                      {formatNumber(profitData?.netProfit)}
                     </span>
                   </td>
                 </tr>
@@ -162,10 +229,10 @@ export default function ProfitReport() {
             <div className="rounded-2xl border-2 border-[var(--primary)] bg-white dark:bg-slate-900/40 shadow-sm overflow-hidden">
               <div className="flex items-center justify-between gap-3 px-4 py-4">
                 <p className="text-base font-bold text-[var(--text-main)]">
-                  {t("net_profit")}
+                  {t("net_profit", "صافي الربح")}
                 </p>
                 <span className="text-base font-bold text-[var(--primary)]">
-                  {formatNumber(150)}
+                  {formatNumber(profitData?.netProfit)}
                 </span>
               </div>
             </div>

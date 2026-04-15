@@ -31,7 +31,7 @@ export default function CustomerStatementReport() {
     customerId: "",
     from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
     to: new Date().toISOString().split("T")[0],
-    type: "Sales",
+    type: "",
   });
 
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
@@ -60,7 +60,7 @@ export default function CustomerStatementReport() {
       customerId: "",
       from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
       to: new Date().toISOString().split("T")[0],
-      type: "Sales",
+      type: "",
     };
     setFilters(reset);
     setSearchParams(reset);

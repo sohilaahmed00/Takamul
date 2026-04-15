@@ -20,10 +20,22 @@ import {
 import { useLanguage } from "@/context/LanguageContext";
 import ComboboxField from "@/components/ui/ComboboxField";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
+import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useGetProductMovement } from "@/features/reports/hooks/useGetProductMovement";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 type FilterState = {
+  branchId: string;
   productId: string;
   from: string;
   to: string;
@@ -33,6 +45,7 @@ export default function ItemMovementReport() {
   const { t, direction } = useLanguage();
 
   const [filters, setFilters] = useState<FilterState>({
+    branchId: " ",
     productId: "",
     from: new Date(new Date().setDate(new Date().getDate() - 30))
       .toISOString()
@@ -41,6 +54,7 @@ export default function ItemMovementReport() {
   });
 
   const [searchParams, setSearchParams] = useState<FilterState>(filters);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   const { data: productsResponse, isLoading: productsLoading } =
     useGetAllProducts({ page: 1, limit: 500 });
@@ -51,16 +65,15 @@ export default function ItemMovementReport() {
     [productsResponse]
   );
 
-  const movementParams = useMemo(
-    () => ({
-      ...searchParams,
-      productId: searchParams.productId ? Number(searchParams.productId) : "",
-    }),
-    [searchParams]
-  );
-
   const { data: movementData, isLoading, isFetching } =
-    useGetProductMovement(movementParams);
+    useGetProductMovement({
+      productId: searchParams.productId ? Number(searchParams.productId) : "",
+      from: searchParams.from,
+      to: searchParams.to,
+      branchid: searchParams.branchId.trim() || undefined,
+    });
+
+  const { data: branches = [] } = useGetAllBranches();
 
   const handleSearch = () => {
     setSearchParams(filters);
@@ -68,6 +81,7 @@ export default function ItemMovementReport() {
 
   const handleClear = () => {
     const defaultFilters: FilterState = {
+      branchId: " ",
       productId: "",
       from: new Date(new Date().setDate(new Date().getDate() - 30))
         .toISOString()
@@ -77,6 +91,7 @@ export default function ItemMovementReport() {
     setFilters(defaultFilters);
     setSearchParams(defaultFilters);
   };
+
 
   const formatNumber = (value?: number) =>
     Number(value ?? 0).toLocaleString("en-US", {
@@ -143,6 +158,28 @@ export default function ItemMovementReport() {
           {/* Filters */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+             
+              {hasAnyPermission([Permissions?.branches?.all,Permissions?.branches?.view])&&(
+               <div className="space-y-2 lg:col-span-1 mb-2">
+                <label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</label>
+                <Select
+                  value={filters.branchId}
+                  onValueChange={val => setFilters(p => ({ ...p, branchId: val }))}
+                >
+                  <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
+                    <SelectValue placeholder={t("select_branch", "اختر الفرع")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
+                    {branches.map(b => (
+                      <SelectItem key={b.id} value={String(b.id)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
               {/* ✅ اختيار الصنف من المنتجات */}
               <div className="space-y-2 lg:col-span-1 ">
                 <label className="text-sm font-medium text-[var(--text-main)] mb-1 block">
@@ -162,7 +199,6 @@ export default function ItemMovementReport() {
                       : t("select_product", "اختر الصنف")
                   }
                   disabled={productsLoading}
-                  
                 />
               </div>
 
@@ -221,7 +257,7 @@ export default function ItemMovementReport() {
               paginator
               rows={10}
             >
-              {/* <Column
+              <Column
                 field="transDate"
                 header={t("trans_date", "التاريخ")}
                 sortable
@@ -230,7 +266,7 @@ export default function ItemMovementReport() {
                     {formatDate(r.transDate)}
                   </span>
                 )}
-              /> */}
+              />
               <Column
                 field="barcode"
                 header={t("item_code", "كود الصنف")}
