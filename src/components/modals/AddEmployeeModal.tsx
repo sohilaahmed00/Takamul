@@ -52,7 +52,7 @@ export default function AddEmployeeModal({ isOpen, onClose }: AddEmployeeModalPr
         roleName: data.roleName,
       };
 
-      await createEmployee(payload);
+      // await createEmployee(payload);
       notifySuccess("Employee added successfully");
 
       reset();
