@@ -25,6 +25,7 @@ import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar as CalendarIcon } from "lucide-react";
+import { Label } from "@/components/ui/label";
 
 
 interface FilterState {
@@ -158,10 +159,10 @@ export default function SalesByInvoiceReport() {
 
           {/* Filters */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-4 items-end">
               {hasAnyPermission([Permissions?.branches?.all, Permissions?.branches?.view]) && (
                 <div className="space-y-2 lg:col-span-1">
-                  <label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</label>
+                  <Label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</Label>
                   <Select
                     value={filters.branchId}
                     onValueChange={val => setFilters(p => ({ ...p, branchId: val }))}
@@ -181,9 +182,9 @@ export default function SalesByInvoiceReport() {
                 </div>
               )}
               <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">
+                <Label className="text-xs font-medium text-[var(--text-main)]">
                   {t("fiscal_year", "السنة المالية")}
-                </label>
+                </Label>
                 <Select value={filters.fiscalYear} onValueChange={handleYearChange}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder={t("select_year", "اختر السنة")} />
@@ -197,9 +198,9 @@ export default function SalesByInvoiceReport() {
               </div>
 
               <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">
+                <Label className="text-xs font-medium text-[var(--text-main)]">
                   {t("fiscal_quarter", "الربع المالي")}
-                </label>
+                </Label>
                 <Select value={filters.fiscalQuarter} onValueChange={handleQuarterChange}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder={t("select_quarter", "اختر الربع")} />
@@ -213,9 +214,9 @@ export default function SalesByInvoiceReport() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium text-[var(--text-main)]">
+                <Label className="text-xs font-medium text-[var(--text-main)]">
                   {t("from_date", "تاريخ البداية")}
-                </label>
+                </Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
                     selected={filters.from ? new Date(filters.from) : null}
@@ -241,9 +242,9 @@ export default function SalesByInvoiceReport() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium text-[var(--text-main)]">
+                <Label className="text-xs font-medium text-[var(--text-main)]">
                   {t("to_date", "تاريخ النهاية")}
-                </label>
+                </Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
                     selected={filters.to ? new Date(filters.to) : null}
@@ -268,12 +269,12 @@ export default function SalesByInvoiceReport() {
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-end gap-2 lg:col-span-2">
-                <Button onClick={handleSearch} disabled={salesLoading || salesFetching} className="h-9 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold flex-1">
+              <div className="flex flex-row items-center gap-2 lg:col-span-2">
+                <Button size="xl" onClick={handleSearch} disabled={salesLoading || salesFetching} className="py-5   flex-1">
                   <Search size={16} />
                   {t("execute_operation", "اتمام العملية")}
                 </Button>
-                <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                <Button size="xl" onClick={handleClear} variant="outline" className="py-5">
                   <RotateCcw size={15} />
                   {t("clear", "مسح")}
                 </Button>

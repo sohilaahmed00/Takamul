@@ -2,7 +2,7 @@ import { httpClient } from "@/api/httpClient";
 import { CreateEmployee, Employee, GetAllEmployeesResponse } from "../types/employees.types";
 
 export const createEmployee = (data: CreateEmployee) =>
-  httpClient<{ message: string }>("/employees/createuser", {
+  httpClient<{ message: string }>("/employees/CreateEmployee", {
     method: "POST",
     data,
   });

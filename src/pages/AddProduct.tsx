@@ -42,8 +42,8 @@ import useToast from "@/hooks/useToast";
 export const createProductSchema = z.object({
   Barcode: z.string().min(1, "الباركود مطلوب"),
   ProductNameAr: z.string().min(1, "اسم المنتج بالعربي مطلوب"),
-  ProductNameEn: z.string().optional().or(z.literal("")),
-  ProductNameUr: z.string().optional().or(z.literal("")),
+  ProductNameEn: z.string().nullable().optional(),
+  ProductNameUr: z.string().nullable().optional(),
   Description: z.string().optional().or(z.literal("")),
   CategoryId: z.number().min(1, "التصنيف مطلوب"),
   CostPrice: z.number({ required_error: "سعر التكلفة مطلوب" }).min(0, "سعر التكلفة يجب أن يكون أكبر من أو يساوي صفر"),
@@ -280,6 +280,7 @@ export default function AddProduct() {
           SellingPrice: productDataDirect.priceBeforeTax,
           CostPrice: productDataDirect.costPrice,
           MinStockLevel: productDataDirect.minStockLevel,
+          TaxId: productDataDirect?.taxId,
           // TaxCalculation:productDataDirect
         });
         break;

@@ -91,6 +91,7 @@ export interface SupplierStatementParams {
   from?: string;
   to?: string;
   type?: string; // "Purchases" | "Payments"
+  reference?: string;
   page?: number;
   pageSize?: number;
 }

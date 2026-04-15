@@ -13,6 +13,8 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ✅ الـ Type options بالقيم الإنجليزية اللي بتقبلها الـ API
 const operationTypes = [
@@ -51,7 +53,7 @@ export default function SupplierStatementReport() {
       to: searchParams.to,
       type: searchParams.type || undefined,
     }),
-    [searchParams]
+    [searchParams],
   );
 
   const { data: statementData, isLoading, isFetching } = useGetSupplierStatement(statementParams);
@@ -69,17 +71,18 @@ export default function SupplierStatementReport() {
     setSearchParams(reset);
   };
 
-  const formatNumber = (value?: number) =>
-    Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formatNumber = (value?: number) => Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleString("en-GB", {
-      year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
-
 
   const totalDebit = useMemo(() => statementData?.reduce((s, r) => s + (r.debit ?? 0), 0) ?? 0, [statementData]);
   const totalCredit = useMemo(() => statementData?.reduce((s, r) => s + (r.credit ?? 0), 0) ?? 0, [statementData]);
@@ -94,7 +97,6 @@ export default function SupplierStatementReport() {
               <UserPlus size={20} className="text-[var(--primary)]" />
               {t("supplier_account_statement", "كشف حساب مورد")}
             </CardTitle>
-
           </div>
           <div className="flex items-center gap-4 text-sm font-medium">
             <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
@@ -130,28 +132,16 @@ export default function SupplierStatementReport() {
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
               {/* ✅ اختيار المورد الحقيقي - labelKey="supplierName" */}
-              <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("supplier_name", "اسم المورد")}</label>
-                <ComboboxField
-                  value={filters.supplierId}
-                  onChange={(val) => setFilters((p) => ({ ...p, supplierId: String(val) }))}
-                  items={suppliersList}
-                  valueKey="id"
-                  labelKey="supplierName"
-                  placeholder={suppliersLoading ? t("loading", "جاري التحميل...") : t("select_supplier", "اختر المورد")}
-                  disabled={suppliersLoading}
-                />
+              <div className=" lg:col-span-1">
+                <Label className="mb-2 text-xs font-medium text-[var(--text-main)]">{t("supplier_name", "اسم المورد")}</Label>
+                <ComboboxField value={filters.supplierId} onChange={(val) => setFilters((p) => ({ ...p, supplierId: String(val) }))} items={suppliersList} valueKey="id" labelKey="supplierName" placeholder={suppliersLoading ? t("loading", "جاري التحميل...") : t("select_supplier", "اختر المورد")} disabled={suppliersLoading} />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-medium text-[var(--text-main)]">
-                  {t("from_date", "تاريخ البداية")}
-                </label>
+                <Label className="text-xs font-medium text-[var(--text-main)]">{t("from_date", "تاريخ البداية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
                     selected={filters.from ? new Date(filters.from) : null}
-                    onChange={(date) =>
-                      setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))
-                    }
+                    onChange={(date) => setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
@@ -159,11 +149,7 @@ export default function SupplierStatementReport() {
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">
-                          {filters.from
-                            ? format(new Date(filters.from), "dd/MM/yyyy")
-                            : t("select_date", "يوم/شهر/سنة")}
-                        </span>
+                        <span className="text-sm">{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />
@@ -171,15 +157,11 @@ export default function SupplierStatementReport() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium text-[var(--text-main)]">
-                  {t("to_date", "تاريخ النهاية")}
-                </label>
+                <Label className="text-xs font-medium text-[var(--text-main)]">{t("to_date", "تاريخ النهاية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
                     selected={filters.to ? new Date(filters.to) : null}
-                    onChange={(date) =>
-                      setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))
-                    }
+                    onChange={(date) => setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
@@ -189,30 +171,33 @@ export default function SupplierStatementReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {/* هنا تم التعديل من filters.from إلى filters.to */}
-                          {filters.to
-                            ? format(new Date(filters.to), "dd/MM/yyyy")
-                            : t("select_date", "يوم/شهر/سنة")}
+                          {filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
                     }
                   />
                 </div>
               </div>
-              {/* ✅ نوع العملية بالقيم الإنجليزية */}
               <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("operation_type", "نوع العملية")}</label>
-                <ComboboxField
-                  value={filters.type}
-                  onChange={(val) => setFilters((p) => ({ ...p, type: String(val) }))}
-                  items={operationTypes}
-                  valueKey="id"
-                  labelKey="name"
-                  placeholder={t("select_type", "اختر النوع")}
-                />
+                <Label className="text-xs font-medium text-[var(--text-main)]">{t("operation_type", "نوع العملية")}</Label>
+                <Select value={filters.type} onValueChange={(val) => setFilters((p) => ({ ...p, type: val }))}>
+                  <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
+                    <SelectValue placeholder={t("select_type", "اختر النوع")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>{t("all", "الكل")}</SelectItem>
+                    {operationTypes.map((b) => (
+                      <SelectItem key={String(b.id)} value={String(b.name)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex flex-row items-end gap-2 mb-2">
                 <Button onClick={handleSearch} className="flex-1 h-9 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold" disabled={isLoading || isFetching || !filters.supplierId}>
-                  <Search size={16} />{t("search", "بحث")}
+                  <Search size={16} />
+                  {t("search", "بحث")}
                 </Button>
                 <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
                   <RotateCcw size={15} /> {t("clear", "مسح")}
@@ -223,28 +208,12 @@ export default function SupplierStatementReport() {
 
           {/* Table */}
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
-            <DataTable
-              value={statementData || []}
-              loading={isLoading || isFetching}
-              paginator rows={10}
-              className="custom-green-table custom-compact-table"
-              emptyMessage={
-                !searchParams.supplierId
-                  ? t("select_supplier_first", "اختر مورداً أولاً لعرض الكشف")
-                  : t("no_data", "لا توجد بيانات")
-              }
-              responsiveLayout="stack"
-            >
-              <Column field="date" header={t("date", "التاريخ")} sortable
-                body={(r) => <span className="text-sm whitespace-nowrap">{formatDate(r.date)}</span>} />
-              <Column field="type" header={t("type", "النوع")} sortable
-                body={(r) => <span className="text-sm font-medium text-[var(--text-main)]">{r.type}</span>} />
-              {/* <Column field="reference" header={t("reference", "المرجع")} sortable
-                body={(r) => <span className="text-sm">{r.reference}</span>} /> */}
-              <Column field="debit" header={t("supplier_due", "المستحق للمورد")} sortable
-                body={(r) => <span className="text-sm text-red-500">{r.debit > 0 ? formatNumber(r.debit) : "-"}</span>} />
-              <Column field="credit" header={t("supplier_paid", "المسدد للمورد")} sortable
-                body={(r) => <span className="text-sm text-green-600">{r.credit > 0 ? formatNumber(r.credit) : "-"}</span>} />
+            <DataTable value={statementData || []} loading={isLoading || isFetching} paginator rows={10} className="custom-green-table custom-compact-table" emptyMessage={!searchParams.supplierId ? t("select_supplier_first", "اختر مورداً أولاً لعرض الكشف") : t("no_data", "لا توجد بيانات")} responsiveLayout="stack">
+              <Column field="date" header={t("date", "التاريخ")} sortable body={(r) => <span className="text-sm whitespace-nowrap">{formatDate(r.date)}</span>} />
+              <Column field="type" header={t("type", "النوع")} sortable body={(r) => <span className="text-sm font-medium text-[var(--text-main)]">{r.type}</span>} />
+              <Column field="reference" header={t("reference", "المرجع")} sortable body={(r) => <span className="text-sm font-medium text-[var(--text-main)]">{r.reference}</span>} />
+              <Column field="debit" header={t("supplier_due", "المستحق للمورد")} sortable body={(r) => <span className="text-sm text-red-500">{r.debit > 0 ? formatNumber(r.debit) : "-"}</span>} />
+              <Column field="credit" header={t("supplier_paid", "المسدد للمورد")} sortable body={(r) => <span className="text-sm text-green-600">{r.credit > 0 ? formatNumber(r.credit) : "-"}</span>} />
               {/* <Column field="balance" header={t("balance", "الرصيد")} sortable
                 body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.balance)}</span>} /> */}
             </DataTable>

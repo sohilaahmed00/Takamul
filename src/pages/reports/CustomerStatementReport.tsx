@@ -14,7 +14,8 @@ import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar as CalendarIcon } from "lucide-react";
-
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ✅ الـ Type options بالقيم الإنجليزية اللي بتقبلها الـ API
 const operationTypes = [
@@ -45,7 +46,6 @@ export default function CustomerStatementReport() {
   const { data: customersResponse, isLoading: customersLoading } = useGetAllCustomers({ limit: 500 });
   const customersList = useMemo(() => customersResponse?.items ?? [], [customersResponse]);
 
-
   const statementParams = useMemo(
     () => ({
       customerId: searchParams.customerId ? Number(searchParams.customerId) : "",
@@ -53,7 +53,7 @@ export default function CustomerStatementReport() {
       to: searchParams.to,
       type: searchParams.type || undefined,
     }),
-    [searchParams]
+    [searchParams],
   );
 
   const { data: statementData, isLoading, isFetching } = useGetCustomerStatement(statementParams);
@@ -71,9 +71,7 @@ export default function CustomerStatementReport() {
     setSearchParams(reset);
   };
 
-  const formatNumber = (value?: number) =>
-    Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
+  const formatNumber = (value?: number) => Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   // ✅ Summary من الداتا الحقيقية
   const totalDebit = useMemo(() => statementData?.reduce((s, r) => s + (r.debit ?? 0), 0) ?? 0, [statementData]);
@@ -89,7 +87,6 @@ export default function CustomerStatementReport() {
               <Users size={20} className="text-[var(--primary)]" />
               {t("customer_account_statement", "كشف حساب عميل")}
             </CardTitle>
-
           </div>
           <div className="flex items-center gap-4 text-sm font-medium">
             <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
@@ -124,28 +121,16 @@ export default function CustomerStatementReport() {
           {/* Filters */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-              <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("customer_name", "اسم العميل")}</label>
-                <ComboboxField
-                  value={filters.customerId}
-                  onChange={(val) => setFilters((p) => ({ ...p, customerId: String(val) }))}
-                  items={customersList}
-                  valueKey="id"
-                  labelKey="customerName"
-                  placeholder={customersLoading ? t("loading", "جاري التحميل...") : t("select_customer", "اختر العميل")}
-                  disabled={customersLoading}
-                />
+              <div className="lg:col-span-1">
+                <Label className="mb-2 text-xs font-medium text-text-main">{t("customer_name", "اسم العميل")}</Label>
+                <ComboboxField value={filters.customerId} onChange={(val) => setFilters((p) => ({ ...p, customerId: String(val) }))} items={customersList} valueKey="id" labelKey="customerName" placeholder={customersLoading ? t("loading", "جاري التحميل...") : t("select_customer", "اختر العميل")} disabled={customersLoading} />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-medium text-[var(--text-main)]">
-                  {t("from_date", "تاريخ البداية")}
-                </label>
+                <Label className="text-xs font-medium text-[var(--text-main)]">{t("from_date", "تاريخ البداية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
                     selected={filters.from ? new Date(filters.from) : null}
-                    onChange={(date) =>
-                      setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))
-                    }
+                    onChange={(date) => setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
@@ -153,11 +138,7 @@ export default function CustomerStatementReport() {
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">
-                          {filters.from
-                            ? format(new Date(filters.from), "dd/MM/yyyy")
-                            : t("select_date", "يوم/شهر/سنة")}
-                        </span>
+                        <span className="text-sm">{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />
@@ -165,15 +146,11 @@ export default function CustomerStatementReport() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium text-[var(--text-main)]">
-                  {t("to_date", "تاريخ النهاية")}
-                </label>
+                <Label className="text-xs font-medium text-[var(--text-main)]">{t("to_date", "تاريخ النهاية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
                     selected={filters.to ? new Date(filters.to) : null}
-                    onChange={(date) =>
-                      setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))
-                    }
+                    onChange={(date) => setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
@@ -183,9 +160,7 @@ export default function CustomerStatementReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {/* هنا تم التعديل من filters.from إلى filters.to */}
-                          {filters.to
-                            ? format(new Date(filters.to), "dd/MM/yyyy")
-                            : t("select_date", "يوم/شهر/سنة")}
+                          {filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
                     }
@@ -193,19 +168,25 @@ export default function CustomerStatementReport() {
                 </div>
               </div>
               <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("operation_type", "نوع العملية")}</label>
-                <ComboboxField
-                  value={filters.type}
-                  onChange={(val) => setFilters((p) => ({ ...p, type: String(val) }))}
-                  items={operationTypes}
-                  valueKey="id"
-                  labelKey="name"
-                  placeholder={t("select_type", "اختر النوع")}
-                />
+                <Label className="text-xs font-medium text-[var(--text-main)]">{t("operation_type", "نوع العملية")}</Label>
+                <Select value={filters.type} onValueChange={(val) => setFilters((p) => ({ ...p, type: val }))}>
+                  <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
+                    <SelectValue placeholder={t("select_type", "اختر النوع")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>{t("all", "الكل")}</SelectItem>
+                    {operationTypes.map((b) => (
+                      <SelectItem key={String(b.id)} value={String(b.name)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="flex flex-row items-end gap-2 mb-2">
                 <Button onClick={handleSearch} className="flex-1 h-9 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold" disabled={isLoading || isFetching || !filters.customerId}>
-                  <Search size={16} />{t("search", "بحث")}
+                  <Search size={16} />
+                  {t("search", "بحث")}
                 </Button>
                 <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
                   <RotateCcw size={15} /> {t("clear", "مسح")}
@@ -216,28 +197,12 @@ export default function CustomerStatementReport() {
 
           {/* Table */}
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
-            <DataTable
-              value={statementData || []}
-              loading={isLoading || isFetching}
-              paginator rows={10}
-              className="custom-green-table custom-compact-table"
-              emptyMessage={
-                !searchParams.customerId
-                  ? t("select_customer_first", "اختر عميلاً أولاً لعرض الكشف")
-                  : t("no_data", "لا توجد بيانات")
-              }
-              responsiveLayout="stack"
-            >
-              <Column field="date" header={t("date", "التاريخ")} sortable
-                body={(r) => <span className="text-sm whitespace-nowrap">{formatDate(r.date)}</span>} />
-              <Column field="type" header={t("type", "النوع")} sortable
-                body={(r) => <span className="text-sm font-medium text-[var(--text-main)]">{r.type}</span>} />
-              {/* <Column field="reference" header={t("reference", "المرجع")} sortable
-                body={(r) => <span className="text-sm">{r.reference}</span>} /> */}
-              <Column field="debit" header={t("due_customer", "المستحق على العميل")} sortable
-                body={(r) => <span className="text-sm text-red-500">{r.debit > 0 ? formatNumber(r.debit) : "-"}</span>} />
-              <Column field="credit" header={t("paid_customer", "المسدد من العميل")} sortable
-                body={(r) => <span className="text-sm text-green-600">{r.credit > 0 ? formatNumber(r.credit) : "-"}</span>} />
+            <DataTable value={statementData || []} loading={isLoading || isFetching} paginator rows={10} className="custom-green-table custom-compact-table" emptyMessage={!searchParams.customerId ? t("select_customer_first", "اختر عميلاً أولاً لعرض الكشف") : t("no_data", "لا توجد بيانات")} responsiveLayout="stack">
+              <Column field="date" header={t("date", "التاريخ")} sortable body={(r) => <span className="text-sm whitespace-nowrap">{formatDate(r.date)}</span>} />
+              <Column field="type" header={t("type", "النوع")} sortable body={(r) => <span className="text-sm font-medium text-[var(--text-main)]">{r.type}</span>} />
+              <Column field="reference" header={t("reference", "المرجع")} sortable body={(r) => <span className="text-sm font-medium text-[var(--text-main)]">{r.reference}</span>} />
+              <Column field="debit" header={t("due_customer", "المستحق على العميل")} sortable body={(r) => <span className="text-sm text-red-500">{r.debit > 0 ? formatNumber(r.debit) : "-"}</span>} />
+              <Column field="credit" header={t("paid_customer", "المسدد من العميل")} sortable body={(r) => <span className="text-sm text-green-600">{r.credit > 0 ? formatNumber(r.credit) : "-"}</span>} />
               {/* <Column field="balance" header={t("balance", "الرصيد")} sortable
                 body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.balance)}</span>} /> */}
             </DataTable>

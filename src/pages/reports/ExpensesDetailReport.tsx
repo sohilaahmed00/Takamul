@@ -153,12 +153,36 @@ export default function ExpensesDetailReport() {
 
               <div className="lg:col-span-1">
                 <Label className="mb-2 text-xs font-medium text-text-main">{t("item", "البند")}</Label>
-                <ComboboxField items={itemsList} value={filters.itemId} onChange={(val) => setFilters((p) => ({ ...p, itemId: String(val) }))} valueKey="value" labelKey="label" placeholder={t("select_item", "اختر البند")} />
+                <Select value={filters.itemId} onValueChange={(val) => setFilters((p) => ({ ...p, itemId: val }))}>
+                  <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
+                    <SelectValue placeholder={t("select_item", "اختر البند")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>{t("all", "الكل")}</SelectItem>
+                    {itemsList.map((b) => (
+                      <SelectItem key={String(b.value)} value={String(b.value)}>
+                        {b.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className=" lg:col-span-1">
                 <Label className="mb-2 text-xs font-medium text-text-main">{t("treasury", "الخزينة")}</Label>
-                <ComboboxField items={treasuries.map((t) => ({ label: t.name, value: String(t.id) }))} value={filters.treasuryId} onChange={(val) => setFilters((p) => ({ ...p, treasuryId: String(val) }))} valueKey="value" labelKey="label" placeholder={t("select_treasury", "اختر الخزينة")} />
+                <Select value={filters.treasuryId} onValueChange={(val) => setFilters((p) => ({ ...p, treasuryId: val }))}>
+                  <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
+                    <SelectValue placeholder={t("select_treasury", "اختر الخزينة")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>{t("all", "الكل")}</SelectItem>
+                    {treasuries.map((b) => (
+                      <SelectItem key={String(b.id)} value={String(b.name)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -190,14 +214,11 @@ export default function ExpensesDetailReport() {
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
-                    portalId="root-portal" // لحل مشكلة الطبقات (z-index)
+                    portalId="root-portal"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">
-                          {/* هنا تم التعديل من filters.from إلى filters.to */}
-                          {filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}
-                        </span>
+                        <span className="text-sm">{filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />

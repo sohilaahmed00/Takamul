@@ -8,18 +8,26 @@ import { Input } from "../ui/input";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import useToast from "@/hooks/useToast";
 import { useCreateEmployee } from "@/features/employees/hooks/useCreateEmployee";
+import z from "zod/v3";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+const CreateEmployeeSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  mobile: z.string().optional().or(z.literal("")),
+});
 
 export default function AddEmployeeModal({ isOpen, onClose }: AddEmployeeModalProps) {
   const { direction } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
   const { mutateAsync: createEmployee, isPending } = useCreateEmployee();
 
-  const { control, handleSubmit, reset } = useForm({
+  const { control, handleSubmit, reset } = useForm<z.infer<typeof CreateEmployeeSchema>>({
+    resolver: zodResolver(CreateEmployeeSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -27,32 +35,15 @@ export default function AddEmployeeModal({ isOpen, onClose }: AddEmployeeModalPr
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: z.infer<typeof CreateEmployeeSchema>) => {
     try {
       const payload = {
-        employee: {
-          firstName: data.firstName,
-          lastName: data.lastName,
-          address: data.address,
-          mobile: data.mobile,
-          city: data.city,
-          state: data.state,
-          hireDate: new Date(data.hireDate).toISOString(),
-          salary: Number(data.salary),
-          department: data.department,
-          position: data.position,
-          branchId: Number(data.branchId),
-        },
-        user: {
-          userName: data.userName,
-          email: data.email,
-          phoneNumber: data.phoneNumber,
-          password: data.password,
-        },
-        roleName: data.roleName,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        mobile: data.mobile,
       };
 
-      // await createEmployee(payload);
+      await createEmployee(payload);
       notifySuccess("Employee added successfully");
 
       reset();

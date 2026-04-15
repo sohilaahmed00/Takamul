@@ -41,6 +41,7 @@ export type ProductDirect = {
   imageUrl: string;
   taxName: string;
   taxAmount: number;
+  taxId: number;
   taxCalculation: "Excludestax" | "Includestax" | string;
   isActive: boolean;
 };

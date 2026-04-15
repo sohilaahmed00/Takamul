@@ -19,6 +19,10 @@ import ComboboxField from "@/components/ui/ComboboxField";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useGetSalesOrderById } from "@/features/sales/hooks/useGetSalesOrderById";
 import AddParnterModal from "@/components/modals/AddParnterModal";
+import formatDate from "@/lib/formatDate";
+import { CreateSalesReturns } from "@/features/salesReturns/types/salesReturns.types";
+import { useCreateSalesReturns } from "@/features/salesReturns/hooks/useCreateSalesReturns";
+import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 
 const ReturnInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -38,16 +42,7 @@ const ReturnInvoiceSchema = (t: (key: string) => string) =>
         }),
       )
       .min(1, t("must_add_at_least_one_item")),
-    payments: z
-      .array(
-        z.object({
-          amount: z.number().min(1, t("amount_must_be_greater_than_zero")),
-          paymentMethod: z.enum(["Cash", "CreditCard", "DebitCard", "BankTransfer", "Check", "MobilePayment", "OnlinePayment", "Other"], {
-            message: t("choose_payment_method"),
-          }),
-        }),
-      )
-      .min(1, t("must_add_at_least_one_payment")),
+
     invoiceDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
     invoiceDiscountValue: z.number().min(0).default(0),
   });
@@ -57,7 +52,8 @@ type SalesInvoiceType = z.input<ReturnType<typeof ReturnInvoiceSchema>>;
 const CreateReturnSalesInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
-
+  const { id } = useParams();
+  const { data: detailsSalesOrder } = useGetSalesOrderById(Number(id) ?? undefined);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [discountOpen, setDiscountOpen] = useState<Record<number, boolean>>({});
 
@@ -95,12 +91,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
           discountValue: 0,
         },
       ],
-      payments: [
-        {
-          amount: 0,
-          paymentMethod: "Cash",
-        },
-      ],
+
       invoiceDiscountType: "fixed",
       invoiceDiscountValue: 0,
     },
@@ -113,8 +104,9 @@ const CreateReturnSalesInvoice: React.FC = () => {
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
+  const { data: treasurys } = useGetAllTreasurys();
   // const { data: salesOrder } = useGetSalesOrderById(isEditMode ? Number(id) : undefined);
-  const { mutateAsync: createSalesOrders } = useCreateSalesOrders();
+  const { mutateAsync: CreateSalesReturns } = useCreateSalesReturns();
 
   const customers = customersResponse?.items ?? [];
 
@@ -127,15 +119,6 @@ const CreateReturnSalesInvoice: React.FC = () => {
     name: "items",
   });
 
-  const {
-    fields: paymentFields,
-    append: appendPayment,
-    remove: removePayment,
-  } = useFieldArray({
-    control: form.control,
-    name: "payments",
-  });
-
   const invoiceDiscountType = useWatch({
     control: form.control,
     name: "invoiceDiscountType",
@@ -144,10 +127,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
     control: form.control,
     name: "invoiceDiscountValue",
   });
-  const payments = useWatch({
-    control: form.control,
-    name: "payments",
-  });
+
   const items = useWatch({
     control: form.control,
     name: "items",
@@ -199,10 +179,6 @@ const CreateReturnSalesInvoice: React.FC = () => {
     );
   }, [items, products]);
 
-  const totalPaid = useMemo(() => {
-    return payments?.reduce((total, p) => total + (p.amount || 0), 0) || 0;
-  }, [payments]);
-
   const finalTotal = useMemo(() => {
     let total = invoiceTotal + totalVat;
 
@@ -215,8 +191,6 @@ const CreateReturnSalesInvoice: React.FC = () => {
     return Math.max(0, total);
   }, [invoiceTotal, totalVat, invoiceDiscountType, invoiceDiscountValue]);
 
-  const remaining = finalTotal - totalPaid;
-
   const handleAddItem = () => {
     appendItem({
       productId: 0,
@@ -228,41 +202,46 @@ const CreateReturnSalesInvoice: React.FC = () => {
     });
   };
 
-  const handleAddPayment = () => {
-    appendPayment({
-      amount: 0,
-      paymentMethod: "Cash",
-    });
-  };
-
   const handleSubmit = async (data: SalesInvoiceType) => {
-    const payload: CreateSalesOrder = {
-      customerId: data.customerId,
-      orderDate: data.orderDate,
+    const payload: CreateSalesReturns = {
+      salesOrderId: detailsSalesOrder?.id,
+      returnDate: data.orderDate,
       warehouseId: data.warehouseId,
-      notes: data.notes || "",
-      description: "",
-      globalDiscountPercentage: data.invoiceDiscountType === "percentage" ? (data.invoiceDiscountValue ?? 0) : 0,
-      globalDiscountValue: data.invoiceDiscountType === "fixed" ? (data.invoiceDiscountValue ?? 0) : 0,
+      reason: data.notes || "",
+      refundMethod: "CashFromTreasury",
+      treasuryId: 1,
       items: data.items.map((item) => ({
+        originalItemId: item.productId,
         productId: item.productId,
         unitId: item.unitId,
         quantity: item.quantity,
-        unitPrice: item.price,
-        discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
-        discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
-      })),
-      payments: data.payments.map((p) => ({
-        amount: p.amount,
-        paymentMethod: p.paymentMethod,
-        notes: "",
       })),
     };
 
-    await createSalesOrders(payload);
+    await CreateSalesReturns(payload);
     form.reset();
     navigate("/sales/all");
   };
+
+  useEffect(() => {
+    form.reset({
+      customerId: detailsSalesOrder?.customerId,
+      notes: detailsSalesOrder?.notes,
+      orderDate: detailsSalesOrder?.orderDate ? new Date(detailsSalesOrder.orderDate).toISOString().split("T")[0] : "",
+      items: detailsSalesOrder?.items.map((item) => ({
+        price: item?.priceBeforeTax,
+        productId: item?.productId,
+        unitId: item?.unitId,
+        discountType: item?.discountValue ? "fixed" : "percentage",
+        discountValue: item?.discountValue ? item?.discountValue : item?.discountPercentage,
+        quantity: item?.quantity,
+      })),
+      // payments: detailsSalesOrder?.payments.map((payment) => ({
+      //   amount: payment?.amount,
+      //   paymentMethod: payment?.paymentMethod,
+      // })),
+    });
+  }, [detailsSalesOrder, form]);
 
   return (
     <>
@@ -503,10 +482,10 @@ const CreateReturnSalesInvoice: React.FC = () => {
                     </div>
                   </div>
 
-                  <button type="button" onClick={handleAddItem} className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors">
+                  {/* <button type="button" onClick={handleAddItem} className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors">
                     <Plus size={16} strokeWidth={2} />
                     {t("add_new_item")}
-                  </button>
+                  </button> */}
                 </section>
               </div>
             </div>
@@ -515,71 +494,8 @@ const CreateReturnSalesInvoice: React.FC = () => {
               <h2 className="text-xl font-bold text-gray-800 dark:text-white mb-6">{t("payments")}</h2>
 
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                <div className="lg:col-span-2 space-y-4">
-                  {paymentFields.map((payment, index) => (
-                    <div key={payment.id} className="flex flex-col sm:flex-row gap-3 items-center bg-gray-50/50 dark:bg-gray-800/30 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
-                      <div className="w-full flex-1">
-                        <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">{t("amount")}</label>
-
-                        <Controller
-                          control={form.control}
-                          name={`payments.${index}.amount`}
-                          render={({ field, fieldState }) => (
-                            <Field className="relative" data-invalid={fieldState.invalid}>
-                              <Input type="number" placeholder="0.00" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="bg-white dark:bg-[var(--input-bg)]" />
-                              {fieldState.invalid && (
-                                <div className="absolute top-full mt-1 right-0 z-10 w-full">
-                                  <FieldError errors={[fieldState.error]} />
-                                </div>
-                              )}
-                            </Field>
-                          )}
-                        />
-                      </div>
-
-                      <div className="w-full flex-1">
-                        <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">{t("payment_method")}</label>
-
-                        <Controller
-                          control={form.control}
-                          name={`payments.${index}.paymentMethod`}
-                          render={({ field, fieldState }) => (
-                            <Field data-invalid={fieldState.invalid}>
-                              <ComboboxField
-                                field={field}
-                                items={[
-                                  { value: "Cash", label: t("cash") },
-                                  { value: "CreditCard", label: t("visa") },
-                                  { value: "DebitCard", label: t("debit_card") },
-                                  { value: "BankTransfer", label: t("bank_transfer") },
-                                  { value: "Check", label: t("check") },
-                                  { value: "MobilePayment", label: t("mobile_payment") },
-                                  { value: "OnlinePayment", label: t("online_payment") },
-                                  { value: "Other", label: t("other") },
-                                ]}
-                                valueKey="value"
-                                labelKey="label"
-                                placeholder={t("choose")}
-                              />
-                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                            </Field>
-                          )}
-                        />
-                      </div>
-
-                      <div className="pt-5 shrink-0">
-                        <button type="button" onClick={() => removePayment(index)} disabled={paymentFields.length === 1} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-md disabled:opacity-30 transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-900" title={t("delete_payment")}>
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-
-                  <Button type="button" size="lg" variant="secondary" onClick={handleAddPayment} className="text-sm font-medium px-4 rounded-lg transition-colors w-max">
-                    <Plus size={16} strokeWidth={2} />
-                    {t("add_another_payment")}
-                  </Button>
-                </div>
+                <div></div>
+                <div></div>
 
                 <div className="bg-zinc-50 dark:bg-zinc-900/40 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800">
                   <h3 className="text-base font-semibold text-gray-800 dark:text-white mb-5">{t("invoice_summary")}</h3>
@@ -640,23 +556,24 @@ const CreateReturnSalesInvoice: React.FC = () => {
                       </span>
                     </div>
 
-                    <div className="flex justify-between items-center text-zinc-500 pt-2">
-                      <span className="text-sm">{t("total_paid")}</span>
+                    {/* <div className="flex justify-between items-center text-zinc-500 pt-2">
+                      <span className="text-sm">المبلغ المسترد</span>
                       <span className="font-semibold text-emerald-600">
-                        {totalPaid.toLocaleString("en-EG", {
+                        {finalTotal.toLocaleString("en-EG", {
                           minimumFractionDigits: 2,
                         })}
                       </span>
-                    </div>
+                    </div> */}
 
-                    <div className="flex justify-between items-center bg-white dark:bg-gray-800/40 p-3 rounded-lg border border-zinc-100 dark:border-zinc-700 mt-2">
-                      <span className="text-sm font-bold text-zinc-900 dark:text-white">{t("remaining_to_pay")}</span>
-                      <span className={`font-black text-lg ${remaining > 0 ? "text-red-500" : "text-zinc-400"}`}>
-                        {remaining.toLocaleString("en-EG", {
+                    {/* <div className="flex justify-between items-center bg-white dark:bg-gray-800/40 p-3 rounded-lg border border-zinc-100 dark:border-zinc-700 mt-2">
+                      <span className="text-sm font-bold text-zinc-900 dark:text-white">إجمالي المرتجع</span>
+
+                      <span className="font-black text-lg text-green-600">
+                        {finalTotal.toLocaleString("en-EG", {
                           minimumFractionDigits: 2,
                         })}
                       </span>
-                    </div>
+                    </div> */}
                   </div>
                 </div>
               </div>
