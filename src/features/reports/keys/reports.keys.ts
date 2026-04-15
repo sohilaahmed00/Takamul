@@ -12,6 +12,7 @@ import {
   DailyPurchasesReportParams,
   PurchaseInvoiceReportParams,
   ProfitReportParams,
+  StockAlertReportParams,
 } from "../types/reports.types";
 
 export const reportsKeys = {
@@ -55,4 +56,7 @@ export const reportsKeys = {
 
   profit: (params: ProfitReportParams) =>
     [...reportsKeys.all, "profit", params] as const,
+
+  stockAlerts: (params: StockAlertReportParams) =>
+    [...reportsKeys.all, "stockAlerts", params] as const,
 };
