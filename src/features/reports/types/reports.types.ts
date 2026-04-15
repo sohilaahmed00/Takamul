@@ -57,8 +57,6 @@ export interface InventoryStockItem {
   totalSaleValue: number;
 }
 
-
-
 export interface InventoryStockParams {
   branchid?: number | string;
   from?: string;
@@ -266,4 +264,9 @@ export interface ProfitReportParams {
   from?: string;
   to?: string;
   branchid?: number | string;
+}
+
+// ─── StockAlert Report ─────────────────────────────────────────────
+export interface StockAlertReportParams {
+  branchid?: number;
 }

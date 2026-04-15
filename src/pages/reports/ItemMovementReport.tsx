@@ -37,6 +37,7 @@ import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar as CalendarIcon } from "lucide-react";
+import { Label } from "@/components/ui/label";
 
 
 type FilterState = {
@@ -166,7 +167,7 @@ export default function ItemMovementReport() {
 
               {hasAnyPermission([Permissions?.branches?.all, Permissions?.branches?.view]) && (
                 <div className="space-y-2 lg:col-span-1 ">
-                  <label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</label>
+                  <Label className="text-xs font-medium text-text-main">{t("branch", "الفرع")}</Label>
                   <Select
                     value={filters.branchId}
                     onValueChange={val => setFilters(p => ({ ...p, branchId: val }))}
@@ -185,11 +186,10 @@ export default function ItemMovementReport() {
                   </Select>
                 </div>
               )}
-              {/* ✅ اختيار الصنف من المنتجات */}
-              <div className="space-y-2 lg:col-span-1 ">
-                <label className="text-sm font-medium text-[var(--text-main)] mb-1 block">
+              <div className=" lg:col-span-1 ">
+                <Label className="text-xs font-medium text-text-main mb-2">
                   {t("select_product", "اختر الصنف")}
-                </label>
+                </Label>
                 <ComboboxField
                   value={filters.productId}
                   onChange={(val) =>
@@ -207,9 +207,9 @@ export default function ItemMovementReport() {
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-medium text-[var(--text-main)]">
+                <Label className="text-xs font-medium text-text-main">
                   {t("from_date", "تاريخ البداية")}
-                </label>
+                </Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
                     selected={filters.from ? new Date(filters.from) : null}
@@ -235,9 +235,9 @@ export default function ItemMovementReport() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium text-[var(--text-main)]">
+                <Label className="text-xs font-medium text-main">
                   {t("to_date", "تاريخ النهاية")}
-                </label>
+                </Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
                     selected={filters.to ? new Date(filters.to) : null}

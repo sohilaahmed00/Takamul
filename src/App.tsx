@@ -333,13 +333,13 @@ function AppRoutes() {
           <Route path="/reports/low-stock" element={<LowStockReport />} />
           <Route path="/reports/stock-balance" element={<StockBalanceReport />} />
           <Route path="/reports/item-movement" element={<ItemMovementReport />} />
-          <Route path="/reports/purchases" element={<PurchasesReport />} />
+          {/* <Route path="/reports/purchases" element={<PurchasesReport />} /> */}
           <Route path="/reports/best-sellers" element={<BestSellersChart />} />
           <Route path="/reports/shifts" element={<ShiftsReport />} />
-          <Route path="/reports/customers" element={<CustomersReport />} />
+          {/* <Route path="/reports/customers" element={<CustomersReport />} /> */}
           <Route path="/reports/customer-aging" element={<CustomerAgingReport />} />
 
-          <Route path="/reports/sales" element={<SalesReport />} />
+          {/* <Route path="/reports/sales" element={<SalesReport />} /> */}
           <Route path="/reports/item-sales" element={<ItemSalesReport />} />
           <Route path="/reports/sales-by-invoice" element={<SalesByInvoiceReport />} />
           <Route path="/reports/sales-by-day" element={<SalesByDayReport />} />

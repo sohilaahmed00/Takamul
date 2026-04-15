@@ -12,19 +12,14 @@ import { useGetExpensesReport } from "@/features/reports/hooks/Usegetexpensesrep
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useGetItems } from "@/features/items/hooks/useGetItems"; // التغيير هنا لجلب البنود
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
 import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar as CalendarIcon } from "lucide-react";
+import { Label } from "@/components/ui/label";
 
 interface FilterState {
   branchId: string;
@@ -61,7 +56,11 @@ export default function ExpensesDetailReport() {
     }));
   }, [itemsRes, direction]);
 
-  const { data: expensesResponse, isLoading: expensesLoading, isFetching: expensesFetching } = useGetExpensesReport({
+  const {
+    data: expensesResponse,
+    isLoading: expensesLoading,
+    isFetching: expensesFetching,
+  } = useGetExpensesReport({
     branchid: searchParams.branchId,
     TreasuryId: searchParams.treasuryId || undefined,
     ItemId: searchParams.itemId || undefined,
@@ -76,8 +75,7 @@ export default function ExpensesDetailReport() {
     setSearchParams(initialFilters);
   };
 
-  const formatNumber = (value?: number) =>
-    Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const formatNumber = (value?: number) => Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const formatDate = (dateStr?: string) => {
     if (!dateStr) return "-";
@@ -132,65 +130,43 @@ export default function ExpensesDetailReport() {
             </div>
           </div>
 
-          {/* Filters - الالتزام بالديزاين الثاني */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
               {hasAnyPermission([Permissions?.branches?.all, Permissions?.branches?.view]) && (
-                <div className="space-y-2 lg:col-span-1 mb-2">
-                  <label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</label>
-                  <Select
-                    value={filters.branchId}
-                    onValueChange={val => setFilters(p => ({ ...p, branchId: val }))}
-                  >
+                <div className="space-y-2 lg:col-span-1 ">
+                  <Label className=" text-xs font-medium text-text-main">{t("branch", "الفرع")}</Label>
+                  <Select value={filters.branchId} onValueChange={(val) => setFilters((p) => ({ ...p, branchId: val }))}>
                     <SelectTrigger className="w-full h-10 border-slate-200 dark:border-slate-800 text-sm">
                       <SelectValue placeholder={t("select_branch", "الكل")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
-                      {branches.map(b => (
-                        <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
+                      {branches.map((b) => (
+                        <SelectItem key={b.id} value={String(b.id)}>
+                          {b.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               )}
 
-              {/* استخدام ComboboxField للبنود كما في الديزاين */}
-              <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("item", "البند")}</label>
-                <ComboboxField
-                  items={itemsList}
-                  value={filters.itemId}
-                  onChange={val => setFilters(p => ({ ...p, itemId: String(val) }))}
-                  valueKey="value"
-                  labelKey="label"
-                  placeholder={t("select_item", "اختر البند")}
-                />
+              <div className="lg:col-span-1">
+                <Label className="mb-2 text-xs font-medium text-text-main">{t("item", "البند")}</Label>
+                <ComboboxField items={itemsList} value={filters.itemId} onChange={(val) => setFilters((p) => ({ ...p, itemId: String(val) }))} valueKey="value" labelKey="label" placeholder={t("select_item", "اختر البند")} />
               </div>
 
-              {/* استخدام ComboboxField للخزينة كما في الديزاين */}
-              <div className="space-y-2 lg:col-span-1">
-                <label className="text-xs font-medium text-[var(--text-main)]">{t("treasury", "الخزينة")}</label>
-                <ComboboxField
-                  items={treasuries.map(t => ({ label: t.name, value: String(t.id) }))}
-                  value={filters.treasuryId}
-                  onChange={val => setFilters(p => ({ ...p, treasuryId: String(val) }))}
-                  valueKey="value"
-                  labelKey="label"
-                  placeholder={t("select_treasury", "اختر الخزينة")}
-                />
+              <div className=" lg:col-span-1">
+                <Label className="mb-2 text-xs font-medium text-text-main">{t("treasury", "الخزينة")}</Label>
+                <ComboboxField items={treasuries.map((t) => ({ label: t.name, value: String(t.id) }))} value={filters.treasuryId} onChange={(val) => setFilters((p) => ({ ...p, treasuryId: String(val) }))} valueKey="value" labelKey="label" placeholder={t("select_treasury", "اختر الخزينة")} />
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium text-[var(--text-main)]">
-                  {t("from_date", "تاريخ البداية")}
-                </label>
+                <Label className="text-xs font-medium text-text-main">{t("from_date", "تاريخ البداية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
                     selected={filters.from ? new Date(filters.from) : null}
-                    onChange={(date) =>
-                      setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))
-                    }
+                    onChange={(date) => setFilters((p) => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
@@ -198,11 +174,7 @@ export default function ExpensesDetailReport() {
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <span className="text-sm">
-                          {filters.from
-                            ? format(new Date(filters.from), "dd/MM/yyyy")
-                            : t("select_date", "يوم/شهر/سنة")}
-                        </span>
+                        <span className="text-sm">{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}</span>
                       </div>
                     }
                   />
@@ -210,15 +182,11 @@ export default function ExpensesDetailReport() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-medium text-[var(--text-main)]">
-                  {t("to_date", "تاريخ النهاية")}
-                </label>
+                <Label className="text-xs font-medium text-text-main">{t("to_date", "تاريخ النهاية")}</Label>
                 <div className="relative flex items-center border border-input rounded-md bg-background">
                   <DatePicker
                     selected={filters.to ? new Date(filters.to) : null}
-                    onChange={(date) =>
-                      setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))
-                    }
+                    onChange={(date) => setFilters((p) => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
@@ -228,9 +196,7 @@ export default function ExpensesDetailReport() {
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
                           {/* هنا تم التعديل من filters.from إلى filters.to */}
-                          {filters.to
-                            ? format(new Date(filters.to), "dd/MM/yyyy")
-                            : t("select_date", "يوم/شهر/سنة")}
+                          {filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date", "يوم/شهر/سنة")}
                         </span>
                       </div>
                     }
@@ -239,7 +205,8 @@ export default function ExpensesDetailReport() {
               </div>
               <div className="flex flex-row items-end gap-2 mb-2 lg:col-span-1">
                 <Button onClick={handleSearch} disabled={expensesLoading || expensesFetching} className="flex-1 h-9 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold">
-                  <Search size={16} />{t("search", "بحث")}
+                  <Search size={16} />
+                  {t("search", "بحث")}
                 </Button>
                 <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800">
                   <RotateCcw size={15} />
@@ -250,20 +217,12 @@ export default function ExpensesDetailReport() {
 
           {/* Table */}
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm">
-            <DataTable
-              value={expensesResponse?.data ?? []}
-              paginator
-              rows={10}
-              loading={expensesLoading || expensesFetching}
-              className="custom-green-table custom-compact-table"
-              emptyMessage={t("no_data", "لا توجد بيانات")}
-              responsiveLayout="stack"
-            >
-              <Column header="م" body={(_, opt) => opt.rowIndex + 1} headerStyle={{ width: '50px' }} />
-              <Column header={t("operation_date", "تاريخ العملية")} body={r => <span className="text-sm">{formatDate(r.date)}</span>} sortable />
+            <DataTable value={expensesResponse?.data ?? []} paginator rows={10} loading={expensesLoading || expensesFetching} className="custom-green-table custom-compact-table" emptyMessage={t("no_data", "لا توجد بيانات")} responsiveLayout="stack">
+              <Column header="م" body={(_, opt) => opt.rowIndex + 1} headerStyle={{ width: "50px" }} />
+              <Column header={t("operation_date", "تاريخ العملية")} body={(r) => <span className="text-sm">{formatDate(r.date)}</span>} sortable />
               <Column field="treasuryName" header={t("treasury", "الخزينة")} sortable />
-              <Column field="amount" header={t("amount", "المبلغ")} sortable body={r => <span className="text-sm font-bold text-red-500">{formatNumber(r.amount)}</span>} />
-              <Column field="itemName" header={t("item", "البند")} sortable body={r => <span className="text-[var(--primary)] font-medium">{r.itemName || "-"}</span>} />
+              <Column field="amount" header={t("amount", "المبلغ")} sortable body={(r) => <span className="text-sm font-bold text-red-500">{formatNumber(r.amount)}</span>} />
+              <Column field="itemName" header={t("item", "البند")} sortable body={(r) => <span className="text-[var(--primary)] font-medium">{r.itemName || "-"}</span>} />
               <Column field="notes" header={t("statement", "البيان")} />
             </DataTable>
           </div>
