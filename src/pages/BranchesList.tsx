@@ -110,7 +110,7 @@ export default function Branches() {
             {t("branches_desc") || "إدارة وعرض فروع المنشأة"}
           </CardDescription> */}
           <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
-            <Button variant="default" asChild>
+            <Button size="xl" variant="default" asChild>
               <Link to="/branches/create">
                 <Plus size={18} />
                 {t("add_branch") || "إضافة فرع"}

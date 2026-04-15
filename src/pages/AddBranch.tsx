@@ -226,17 +226,15 @@ export default function AddBranch() {
                       <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="BR-001" className="h-10" readOnly={isViewMode} />
                     </Field>
 
-                   
                     <Field>
                       <FieldLabel>{t("tax_number") || "الرقم الضريبي"}</FieldLabel>
                       <Input value={taxNumber} onChange={(e) => setTaxNumber(e.target.value)} className="h-10" readOnly={isViewMode} />
                     </Field>
-                    
-                     <Field>
+
+                    <Field>
                       <FieldLabel>{t("commercial_register") || "السجل التجاري"}</FieldLabel>
                       <Input value={commercialRegister} onChange={(e) => setCommercialRegister(e.target.value)} className="h-10" readOnly={isViewMode} />
                     </Field>
-
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-700 mb-2">{t("company_logo") || "شعار الشركة"}</p>
@@ -313,15 +311,7 @@ export default function AddBranch() {
                         {t("country") || "البلد"}
                         <span className="text-red-500 ms-1">*</span>
                       </FieldLabel>
-                      <ComboboxField
-                        value={countryId ?? undefined}
-                        onChange={handleCountryChange}
-                        items={countries ?? []}
-                        valueKey="id"
-                        labelKey="countryName"
-                        placeholder={t("select_country")}
-                        disabled={isViewMode}
-                      />
+                      <ComboboxField value={countryId ?? undefined} onChange={handleCountryChange} items={countries ?? []} valueKey="id" labelKey="countryName" placeholder={t("select_country")} disabled={isViewMode} />
                     </Field>
 
                     <Field>
@@ -329,15 +319,7 @@ export default function AddBranch() {
                         {t("city") || "المدينة"}
                         <span className="text-red-500 ms-1">*</span>
                       </FieldLabel>
-                      <ComboboxField
-                        value={cityId ?? undefined}
-                        onChange={handleCityChange}
-                        items={cities ?? []}
-                        valueKey="id"
-                        labelKey="cityName"
-                        placeholder={!countryId ? t("select_country_first") : t("select_city")}
-                        disabled={!countryId || isViewMode}
-                      />
+                      <ComboboxField value={cityId ?? undefined} onChange={handleCityChange} items={cities ?? []} valueKey="id" labelKey="cityName" placeholder={!countryId ? t("select_country_first") : t("select_city")} disabled={!countryId || isViewMode} />
                     </Field>
 
                     <Field>
@@ -345,15 +327,7 @@ export default function AddBranch() {
                         {t("district") || "الحي"}
                         <span className="text-red-500 ms-1">*</span>
                       </FieldLabel>
-                      <ComboboxField
-                        value={stateId ?? undefined}
-                        onChange={(val) => setStateId(val ? Number(val) : null)}
-                        items={states ?? []}
-                        valueKey="id"
-                        labelKey="statesName"
-                        placeholder={!cityId ? t("select_city_first") : t("select_district")}
-                        disabled={!cityId || isViewMode}
-                      />
+                      <ComboboxField value={stateId ?? undefined} onChange={(val) => setStateId(val ? Number(val) : null)} items={states ?? []} valueKey="id" labelKey="statesName" placeholder={!cityId ? t("select_city_first") : t("select_district")} disabled={!cityId || isViewMode} />
                     </Field>
 
                     <Field>
@@ -389,7 +363,7 @@ export default function AddBranch() {
                   <Button type="button" variant="outline" asChild>
                     <Link to="/branches">{t("cancel") || "إلغاء"}</Link>
                   </Button>
-                  <Button type="submit" form="branchForm" disabled={isPending} className="min-w-[140px]">
+                  <Button size="2xl" type="submit" form="branchForm" disabled={isPending} className="min-w-[140px]">
                     {isPending && <Loader2 size={15} className="animate-spin me-1" />}
                     {isPending ? t("saving") || "جارٍ الحفظ..." : isEditMode ? t("save_changes") || "حفظ التعديلات" : t("add_branch") || "إضافة الفرع"}
                   </Button>
