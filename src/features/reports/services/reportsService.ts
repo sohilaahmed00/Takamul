@@ -76,9 +76,7 @@ export const getProfitReport = async (params: ProfitReportParams): Promise<Profi
   return httpClient<ProfitReportResponse>("/reports/products/Profit", { params });
 };
 
-// ─── Customer Statement ────────────────────────────────────────
-export const getStockAlertReport = async (params: StockAlertReportParams) => {
-  if (!params.customerId) return { items: [], totalCount: 0, pageNumber: 1, pageSize: 20 };
-  const { customerId, ...rest } = params;
-  return httpClient<PaginatedResponse<StatementItem>>("/reports/products/CustomarsStatement", { params: { CustomerId: customerId, ...rest } });
+// ─── Stock Alert Report ─────────────────────────────────────────
+export const getStockAlertReport = async (params: StockAlertReportParams): Promise<StockAlertItem[]> => {
+  return httpClient<StockAlertItem[]>("/reports/products/StockAlerts", { params });
 };

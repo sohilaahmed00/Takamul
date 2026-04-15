@@ -268,6 +268,14 @@ export interface ProfitReportParams {
 }
 
 // ─── StockAlert Report ─────────────────────────────────────────────
+export interface StockAlertItem {
+  productId: number;
+  productName: string;
+  barcode: string;
+  currentQty: number;
+  minStockLevel: number;
+}
+
 export interface StockAlertReportParams {
-  branchid?: number;
+  branchId?: number | string;
 }
