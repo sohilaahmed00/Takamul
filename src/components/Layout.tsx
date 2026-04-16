@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check, ArrowUpRight, ArrowLeftRight, HandCoins, Calculator } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check, ArrowUpRight, ArrowLeftRight, HandCoins, Calculator, Shield } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -252,6 +252,8 @@ export default function Layout() {
                 <SubmenuItem label={t("users_list")} icon={List} path="/users" />
                 <SubmenuItem label={t("user_groups")} icon={Users} path="/users/groups" />
                 <SubmenuItem label={t("pos_devices")} icon={Monitor} path="/users/pos-devices" />
+                <SubmenuItem label={"الصلاحيات"} icon={Shield} path="/roles" />
+                <SubmenuItem label={"الموظفين"} icon={Users} path="/employyes" />
               </motion.div>
             )}
           </AnimatePresence>

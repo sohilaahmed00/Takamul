@@ -1,11 +1,18 @@
 import { httpClient } from "@/api/httpClient";
-import { CreateUser } from "../types/users.types";
+import { CreateUser, GetAllUsersResponse, UpdateUser } from "../types/users.types";
 
 // ===================
 // GET
 // ===================
 
-// export const getAllAdditions = () => httpClient<GetAllAdditionsResponse>("/Additions");
+export const getAllUsers = (params: { page: number; limit: number; searchTerm?: string }) =>
+  httpClient<GetAllUsersResponse>("/employees/GetAllUsers", {
+    params: {
+      PageSize: params?.limit,
+      Page: params?.page,
+      SearchTerm: params?.searchTerm,
+    },
+  });
 
 // export const getCategoryClient = (idOrSlug: string | number) =>
 //   httpClient<Category>(`/categories/${idOrSlug}`);
@@ -20,13 +27,13 @@ export const createUser = (data: CreateUser) =>
     data,
   });
 
-// export const updateAddition = (id: number, data: createAddition) =>
-//   httpClient<{ message: string }>(`/Additions/${id}`, {
-//     method: "PUT",
-//     data,
-//   });
+export const updateUser = (id: number, data: UpdateUser) =>
+  httpClient<{ message: string }>(`/employees/${id}/user`, {
+    method: "PUT",
+    data,
+  });
 
-export const deleteAddition = (id: number) =>
+export const deleteUser = (id: number) =>
   httpClient<{ message: string }>(`/Additions/${id}`, {
     method: "DELETE",
   });

@@ -1,11 +1,11 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import type { GetAllQuotationsResponse } from "../types/quotations.types";
-import { getAllQuotations } from "../services/quotations";
-import { quotationsKeys } from "../keys/quotations.keys";
+import { rolesKeys } from "../keys/roles.keys";
+import { getAllRoles } from "../services/roles";
+import { GetAllRolesResponse } from "../types/roles.types";
 
-export const useGetAllQuotations = (page?: number, limit?: number) =>
-  useQuery<GetAllQuotationsResponse>({
-    queryKey: quotationsKeys.list({}),
-    queryFn: () => getAllQuotations(page, limit),
+export const useGetAllRoles = ({ page, limit }: { page: number; limit: number }) =>
+  useQuery<GetAllRolesResponse>({
+    queryKey: rolesKeys.list({ page, limit }),
+    queryFn: () => getAllRoles({ page, limit }),
     placeholderData: keepPreviousData,
   });

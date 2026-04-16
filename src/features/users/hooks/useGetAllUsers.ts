@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import type { GetAllAdditionsResponse } from "../types/additions.types";
-import { additionsKeys } from "../keys/additions.keys";
-import { getAllAdditions } from "../services/additions";
+import { GetAllUsersResponse } from "../types/users.types";
+import { usersKeys } from "../keys/users.keys";
+import { getAllUsers } from "../services/users";
 
-export const useGetAllAdditions = () =>
-  useQuery<GetAllAdditionsResponse>({
-    queryKey: additionsKeys.list(),
-    queryFn: () => getAllAdditions(),
+export const useGetAllUsers = ({ page, limit, searchTerm }: { page: number; limit: number; searchTerm?: string }) =>
+  useQuery<GetAllUsersResponse>({
+    queryKey: usersKeys.list({ page, limit, searchTerm }),
+    queryFn: () => getAllUsers({ page, limit, searchTerm }),
   });

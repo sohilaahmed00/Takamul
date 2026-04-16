@@ -1,181 +1,668 @@
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Permission, Permissions } from "@/lib/permissions";
+import { cn } from "@/lib/utils";
+import { ChevronLeft, Folder, FileText, ArrowLeft } from "lucide-react";
 import { useCreateRole } from "@/features/roles/hooks/useCreateRole";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useGetRoleById } from "@/features/roles/hooks/useGetRoleById";
 import { useUpdateRole } from "@/features/roles/hooks/useUpdateRole";
 
-// Parse group name & permission name from value like "العملاء.عرض"
-function parsePermission(value: string): { group: string; perm: string } {
-  const [group, perm] = value.split(".");
-  return { group, perm };
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+export interface SubPermission {
+  id: string;
+  label: string;
+  value: string;
 }
 
-// Build a structured map: { groupName: { permName: permValue } }
-type PermMap = Record<string, Record<string, string>>;
+export interface Permission {
+  id: string;
+  label: string;
+  value?: string;
+  subPermissions?: SubPermission[];
+}
 
-function buildPermMap(): PermMap {
-  const map: PermMap = {};
-  for (const groupKey of Object.keys(Permissions) as Permission[]) {
-    const groupPerms = Permissions[groupKey];
-    for (const [, value] of Object.entries(groupPerms)) {
-      const { group, perm } = parsePermission(value as string);
-      if (!map[group]) map[group] = {};
-      if (perm) map[group][perm] = value as string;
-    }
-  }
+export interface Page {
+  id: string;
+  label: string;
+  permissions: Permission[];
+}
+
+export interface Group {
+  id: string;
+  label: string;
+  pages: Page[];
+}
+
+// ─── Static Data ─────────────────────────────────────────────────────────────
+
+const GROUPS: Group[] = [
+  {
+    id: "products",
+    label: "الأصناف",
+    pages: [
+      {
+        id: "products_list",
+        label: "قائمة الاصناف",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض",
+            subPermissions: [
+              { id: "view_direct", label: " مباشرة", value: "المنتجات.عرض" },
+              { id: "view_raw", label: "  خام", value: "المنتجات.عرض" },
+              { id: "view_variant", label: " متفرع", value: "المنتجات.عرض" },
+              { id: "view_ready", label: "جاهز", value: "المنتجات.عرض" },
+            ],
+          },
+          {
+            id: "edit",
+            label: "تعديل",
+            subPermissions: [
+              { id: "edit_direct", label: " مباشر", value: "المنتجات.تعديل مباشر" },
+              { id: "edit_raw", label: " مواد خام", value: "المنتجات.تعديل مواد خام" },
+              { id: "edit_variant", label: " متفرع", value: "المنتجات.تعديل متفرعة" },
+              { id: "edit_ready", label: " جاهز", value: "المنتجات.تعديل جاهزة" },
+            ],
+          },
+          {
+            id: "delete",
+            label: "حذف",
+            subPermissions: [
+              { id: "delete_direct", label: " مباشر", value: "المنتجات.حذف" },
+              { id: "delete_raw", label: "  خام", value: "المنتجات.حذف" },
+              { id: "delete_variant", label: " متفرع", value: "المنتجات.حذف" },
+              { id: "delete_ready", label: " جاهز", value: "المنتجات.حذف" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "products_add",
+        label: "إضافة صنف",
+        permissions: [
+          {
+            id: "add",
+            label: "إضافة",
+            subPermissions: [
+              { id: "add_direct", label: " مباشر", value: "المنتجات.إضافة مباشرة" },
+              { id: "add_raw", label: "  خام", value: "المنتجات.إضافة مواد خام" },
+              { id: "add_variant", label: " متفرع", value: "المنتجات.إضافة متفرعة" },
+              { id: "add_ready", label: " جاهز", value: "المنتجات.إضافة جاهزة" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "stock_adjustments",
+        label: "تعديلات الكمية",
+        permissions: [
+          { id: "view", label: "عرض", value: "المخزون.عرض التسويات" },
+          { id: "add", label: "إضافة", value: "المخزون.تعديل جماعي" },
+          { id: "edit", label: "تعديل", value: "المخزون.تعديل تسوية" },
+          { id: "delete", label: "حذف", value: "المخزون.حذف تسوية" },
+        ],
+      },
+      {
+        id: "product_categories",
+        label: "تصنيفات الأصناف",
+        permissions: [
+          { id: "view", label: "عرض", value: "تصنيفات المنتجات.عرض" },
+          { id: "add", label: "إضافة", value: "تصنيفات المنتجات.إضافة" },
+          { id: "edit", label: "تعديل", value: "تصنيفات المنتجات.تعديل" },
+          { id: "delete", label: "حذف", value: "تصنيفات المنتجات.حذف" },
+        ],
+      },
+      {
+        id: "units",
+        label: "الوحدات",
+        permissions: [
+          { id: "view", label: "عرض", value: "وحدات القياس.عرض" },
+          { id: "add", label: "إضافة", value: "وحدات القياس.إضافة" },
+          { id: "edit", label: "تعديل", value: "وحدات القياس.تعديل" },
+          { id: "delete", label: "حذف", value: "وحدات القياس.حذف" },
+        ],
+      },
+      {
+        id: "additions",
+        label: "الإضافات",
+        permissions: [
+          { id: "view", label: "عرض", value: "الإضافات.عرض" },
+          { id: "add", label: "إضافة", value: "الإضافات.إضافة" },
+          { id: "edit", label: "تعديل", value: "الإضافات.تعديل" },
+          { id: "delete", label: "حذف", value: "الإضافات.حذف" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "sales",
+    label: "المبيعات",
+    pages: [
+      {
+        id: "all_sales",
+        label: "جميع المبيعات",
+        permissions: [{ id: "view", label: "عرض", value: "مبيعات.عرض" }],
+      },
+      {
+        id: "invoices_a4",
+        label: "فواتير ال a4",
+        permissions: [
+          { id: "view", label: "عرض", value: "مبيعات.عرض" },
+          { id: "add", label: "إضافة", value: "مبيعات.إضافة فاتورة ضريبية" },
+        ],
+      },
+      {
+        id: "invoices_pos",
+        label: "فواتير ال pos",
+        permissions: [
+          { id: "view", label: "عرض", value: "مبيعات.عرض" },
+          { id: "add", label: "إضافة", value: "مبيعات.ضريبية مبسطه" },
+        ],
+      },
+      {
+        id: "gift_cards",
+        label: "بطاقات الهدايا",
+        permissions: [
+          { id: "view", label: "عرض", value: "بطاقات الهدايا.عرض" },
+          { id: "add", label: "إضافة", value: "بطاقات الهدايا.إضافة" },
+          { id: "edit", label: "تعديل", value: "بطاقات الهدايا.تعديل" },
+          { id: "delete", label: "حذف", value: "بطاقات الهدايا.حذف" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "quotations",
+    label: "عروض الاسعار",
+    pages: [
+      {
+        id: "quotations_list",
+        label: "قائمة عروض الاسعار",
+        permissions: [
+          { id: "view", label: "عرض", value: "عروض الأسعار.عرض" },
+          { id: "edit", label: "تعديل", value: "عروض الأسعار.تعديل" },
+          { id: "delete", label: "حذف", value: "عروض الأسعار.حذف" },
+        ],
+      },
+      {
+        id: "quotations_add",
+        label: "إضافة عرض سعر",
+        permissions: [{ id: "add", label: "إضافة", value: "عروض الأسعار.إضافة" }],
+      },
+    ],
+  },
+  {
+    id: "purchases",
+    label: "المشتريات",
+    pages: [
+      {
+        id: "purchases_list",
+        label: "قائمة المشتريات",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض",
+            value: "أوامر الشراء.عرض",
+          },
+          { id: "edit", label: "تعديل", value: "أوامر الشراء.تعديل" },
+          { id: "delete", label: "حذف", value: "أوامر الشراء.إلغاء" },
+        ],
+      },
+      {
+        id: "purchases_add",
+        label: "إضافة مشتريات",
+        permissions: [
+          {
+            id: "add",
+            label: "إضافة",
+            value: "أوامر الشراء.إضافة",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "customers",
+    label: "العملاء",
+    pages: [
+      {
+        id: "customers_list",
+        label: "قائمة العملاء",
+        permissions: [
+          { id: "view", label: "عرض", value: "العملاء.عرض" },
+          { id: "add", label: "إضافة", value: "العملاء.إضافة" },
+          { id: "edit", label: "تعديل", value: "العملاء.تعديل" },
+          { id: "delete", label: "حذف", value: "العملاء.تعطيل" },
+        ],
+      },
+      {
+        id: "collections",
+        label: "سندات القبض",
+        permissions: [
+          { id: "view", label: "عرض", value: "معاملات العملاء.عرض" },
+          { id: "add", label: "إضافة", value: "معاملات العملاء.إضافة" },
+          { id: "edit", label: "تعديل", value: "معاملات العملاء.تعديل" },
+          { id: "delete", label: "حذف", value: "معاملات العملاء.حذف" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "suppliers",
+    label: "الموردين",
+    pages: [
+      {
+        id: "suppliers_list",
+        label: "قائمة الموردين",
+        permissions: [
+          { id: "view", label: "عرض", value: "الموردين.عرض" },
+          { id: "add", label: "إضافة", value: "الموردين.إضافة" },
+          { id: "edit", label: "تعديل", value: "الموردين.تعديل" },
+          { id: "delete", label: "حذف", value: "الموردين.حذف" },
+        ],
+      },
+      {
+        id: "supplier_transactions",
+        label: "سندات صرف",
+        permissions: [
+          { id: "view", label: "عرض", value: "معاملات الموردين.عرض" },
+          { id: "add", label: "إضافة", value: "معاملات الموردين.إضافة" },
+          { id: "edit", label: "تعديل", value: "معاملات الموردين.تعديل" },
+          { id: "delete", label: "حذف", value: "معاملات الموردين.حذف" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "treasury",
+    label: "الخزائن",
+    pages: [
+      {
+        id: "treasury_list",
+        label: "قائمة الخزائن",
+        permissions: [
+          { id: "view", label: "عرض", value: "الخزائن.عرض" },
+          { id: "add", label: "إضافة", value: "الخزائن.إضافة" },
+          { id: "edit", label: "تعديل", value: "الخزائن.تعديل" },
+          { id: "delete", label: "حذف", value: "الخزائن.حذف" },
+        ],
+      },
+      {
+        id: "treasury_statement",
+        label: "كشف حساب خزينة",
+        permissions: [{ id: "view", label: "عرض", value: "الخزائن.عرض الكشف" }],
+      },
+      {
+        id: "internal_transfers",
+        label: "تحويلات داخلية",
+        permissions: [
+          { id: "view", label: "عرض", value: "الخزائن.عرض التحويلات" },
+          { id: "add", label: "إضافة", value: "الخزائن.تحويل" },
+          { id: "edit", label: "تعديل", value: "الخزائن.تحويل" },
+          { id: "delete", label: "حذف", value: "الخزائن.سحب" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "branches",
+    label: "الفروع",
+    pages: [
+      {
+        id: "branches_list",
+        label: "قائمة الفروع",
+        permissions: [
+          { id: "view", label: "عرض", value: "الفروع.عرض" },
+          { id: "add", label: "إضافة", value: "الفروع.إضافة" },
+          { id: "edit", label: "تعديل", value: "الفروع.تعديل" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "warehouses",
+    label: "المخازن",
+    pages: [
+      {
+        id: "warehouses_list",
+        label: "المخازن",
+        permissions: [
+          { id: "view", label: "عرض", value: "المستودعات.عرض" },
+          { id: "add", label: "إضافة", value: "المستودعات.إضافة" },
+          { id: "edit", label: "تعديل", value: "المستودعات.تعديل" },
+          { id: "delete", label: "حذف", value: "المستودعات.حذف" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "reports",
+    label: "التقارير",
+    pages: [
+      {
+        id: "sales_reports",
+        label: "تقارير المبيعات",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض",
+            subPermissions: [
+              { id: "view_daily", label: "عرض اليومي", value: "التقارير.المبيعات" },
+              { id: "view_monthly", label: "عرض الشهري", value: "التقارير.المبيعات" },
+              { id: "view_yearly", label: "عرض السنوي", value: "التقارير.المبيعات" },
+            ],
+          },
+          {
+            id: "add",
+            label: "تصدير",
+            subPermissions: [
+              { id: "export_pdf", label: "تصدير PDF", value: "التقارير.عرض" },
+              { id: "export_excel", label: "تصدير Excel", value: "التقارير.عرض" },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
+
+// ─── State Helpers ────────────────────────────────────────────────────────────
+
+type CheckedMap = Record<string, boolean>;
+
+function leafKey(gIdx: number, pIdx: number, permIdx: number, subIdx?: number): string {
+  return subIdx !== undefined ? `${gIdx}_${pIdx}_${permIdx}_${subIdx}` : `${gIdx}_${pIdx}_${permIdx}`;
+}
+
+function buildInitialState(groups: Group[]): CheckedMap {
+  const map: CheckedMap = {};
+  groups.forEach((g, gi) => {
+    g.pages.forEach((page, pi) => {
+      page.permissions.forEach((perm, ri) => {
+        if ((perm.subPermissions ?? []).length > 0) {
+          perm.subPermissions!.forEach((_, si) => {
+            map[leafKey(gi, pi, ri, si)] = false;
+          });
+        } else {
+          map[leafKey(gi, pi, ri)] = false;
+        }
+      });
+    });
+  });
   return map;
 }
 
-const permMap = buildPermMap();
-const groupNames = Object.keys(permMap);
-const COMMON_COLS = ["عرض", "إضافة", "تعديل", "حذف"];
-
-type CheckedState = Record<string, Record<string, boolean>>;
-
-function initState(): CheckedState {
-  const s: CheckedState = {};
-  for (const g of groupNames) {
-    s[g] = {};
-    for (const p of Object.keys(permMap[g])) {
-      s[g][p] = false;
-    }
-  }
-  return s;
-}
-
-function getGroupStatus(state: CheckedState, group: string): "none" | "some" | "all" {
-  const vals = Object.values(state[group]);
-  const checked = vals.filter(Boolean).length;
+function getStatus(keys: string[], map: CheckedMap): "none" | "some" | "all" {
+  if (keys.length === 0) return "none";
+  const checked = keys.filter((k) => map[k]).length;
   if (checked === 0) return "none";
-  if (checked === vals.length) return "all";
+  if (checked === keys.length) return "all";
   return "some";
 }
 
-export default function TableLayout() {
+function keysForGroup(groups: Group[], gi: number): string[] {
+  const g = groups[gi];
+  return g.pages.flatMap((page, pi) => page.permissions.flatMap((perm, ri) => ((perm.subPermissions ?? []).length > 0 ? perm.subPermissions!.map((_, si) => leafKey(gi, pi, ri, si)) : [leafKey(gi, pi, ri)])));
+}
+
+function keysForPage(gi: number, pi: number, page: Page): string[] {
+  return page.permissions.flatMap((perm, ri) => ((perm.subPermissions ?? []).length > 0 ? perm.subPermissions!.map((_, si) => leafKey(gi, pi, ri, si)) : [leafKey(gi, pi, ri)]));
+}
+
+function keysForPerm(gi: number, pi: number, ri: number, perm: Permission): string[] {
+  return (perm.subPermissions ?? []).length > 0 ? perm.subPermissions!.map((_, si) => leafKey(gi, pi, ri, si)) : [leafKey(gi, pi, ri)];
+}
+
+function collectSelectedPermissions(groups: Group[], checked: CheckedMap): string[] {
+  const result = new Set<string>();
+  groups.forEach((g, gi) => {
+    g.pages.forEach((page, pi) => {
+      page.permissions.forEach((perm, ri) => {
+        if ((perm.subPermissions ?? []).length > 0) {
+          perm.subPermissions!.forEach((sub, si) => {
+            if (checked[leafKey(gi, pi, ri, si)]) {
+              result.add(sub.value);
+            }
+          });
+        } else {
+          if (checked[leafKey(gi, pi, ri)]) {
+            result.add(perm.value!);
+          }
+        }
+      });
+    });
+  });
+  return Array.from(result);
+}
+
+function TreeCheckbox({ status, onChange }: { status: "none" | "some" | "all"; onChange: () => void }) {
+  return <Checkbox checked={status === "all"} data-state={status === "some" ? "indeterminate" : status === "all" ? "checked" : "unchecked"} onCheckedChange={onChange} className="shrink-0" />;
+}
+
+export default function PermissionsTree() {
+  const [checked, setChecked] = useState<CheckedMap>(buildInitialState(GROUPS));
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+  const [openPages, setOpenPages] = useState<Set<string>>(new Set());
+  const [openPerms, setOpenPerms] = useState<Set<string>>(new Set());
   const [roleName, setRoleName] = useState("");
-  const [checked, setChecked] = useState<CheckedState>(initState);
+  const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = !!id;
   const { mutateAsync: createRole } = useCreateRole();
+  const { data: detailsRole } = useGetRoleById(Number(id));
   const { mutateAsync: updateRole } = useUpdateRole();
-
-  const toggle = (group: string, perm: string) => {
-    setChecked((prev) => ({
-      ...prev,
-      [group]: { ...prev[group], [perm]: !prev[group][perm] },
-    }));
-  };
-
-  const toggleAll = (group: string) => {
-    const status = getGroupStatus(checked, group);
-    const val = status !== "all";
-    setChecked((prev) => ({
-      ...prev,
-      [group]: Object.fromEntries(Object.keys(prev[group]).map((p) => [p, val])),
-    }));
-  };
-
-  const getSelectedValues = (): string[] => {
-    const values: string[] = [];
-    for (const g of groupNames) {
-      for (const [p, isChecked] of Object.entries(checked[g])) {
-        if (isChecked) values.push(permMap[g][p]);
-      }
+  useEffect(() => {
+    if (id && detailsRole) {
+      setRoleName(detailsRole?.roleName);
     }
-    return values;
+  }, [id, detailsRole]);
+  useEffect(() => {
+    if (!detailsRole?.permissions) return;
+
+    const permissionsSet = new Set(detailsRole.permissions);
+
+    const newChecked: CheckedMap = {};
+
+    GROUPS.forEach((g, gi) => {
+      g.pages.forEach((page, pi) => {
+        page.permissions.forEach((perm, ri) => {
+          if ((perm.subPermissions ?? []).length > 0) {
+            perm.subPermissions!.forEach((sub, si) => {
+              const key = leafKey(gi, pi, ri, si);
+
+              newChecked[key] = permissionsSet.has(sub.value);
+            });
+          } else {
+            const key = leafKey(gi, pi, ri);
+
+            newChecked[key] = permissionsSet.has(perm.value!);
+          }
+        });
+      });
+    });
+
+    setChecked(newChecked);
+  }, [detailsRole]);
+
+  
+  const toggle = (set: Set<string>, key: string) => {
+    const next = new Set(set);
+    next.has(key) ? next.delete(key) : next.add(key);
+    return next;
   };
 
+  const setKeys = (keys: string[], val: boolean) => {
+    setChecked((prev) => {
+      const next = { ...prev };
+      keys.forEach((k) => (next[k] = val));
+      return next;
+    });
+  };
+
+  const toggleSub = (key: string) => {
+    setChecked((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const selectedPermissions = collectSelectedPermissions(GROUPS, checked);
   const handleSubmit = async () => {
-    // await createRole({ roleName: roleName });
-    // await updateRole({roleId:})
-    console.log(checked);
-    console.log(getSelectedValues());
+    console.log(selectedPermissions);
+    console.log(roleName);
+    if (isEditMode) {
+      await updateRole({ roleId: id, permissions: selectedPermissions });
+    } else {
+      await createRole({ roleName: roleName, permissions: selectedPermissions });
+    }
+    navigate("/roles");
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto" dir="rtl">
-      <div className="mb-6">
-        <h1 className="text-xl font-medium text-foreground mb-1">إضافة صلاحية جديدة</h1>
-        <p className="text-sm text-muted-foreground">حدد اسم الصلاحية واختر الأذونات المناسبة</p>
-      </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>إضافة صلاحية جديدة</CardTitle>
+        <CardDescription>حدد الصفحات والأذونات المناسبة</CardDescription>
+        <CardAction>
+          <Button size="xl" variant="outline" asChild>
+            <Link to="/roles">
+              الرجوع لقائمة الصلاحيات
+              <ArrowLeft size={16} />
+            </Link>
+          </Button>
+        </CardAction>
+      </CardHeader>
 
-      <div className="rounded-xl border bg-card p-5 mb-4">
-        <Label htmlFor="role-name" className="mb-2 block">
-          اسم الصلاحية
-        </Label>
-        <Input id="role-name" value={roleName} onChange={(e) => setRoleName(e.target.value)} placeholder="مثال: مدير المبيعات" className="max-w-sm" />
-      </div>
-
-      <div className="rounded-xl border bg-card mb-6 overflow-hidden">
-        <div className="p-4 border-b">
-          <h2 className="text-sm font-medium text-foreground">الأذونات</h2>
+      <CardContent className="space-y-5">
+        <div className="rounded-lg border  p-5">
+          <Label htmlFor="role-name" className="mb-2 block">
+            اسم الصلاحية
+          </Label>
+          <Input id="role-name" value={roleName} onChange={(e) => setRoleName(e.target.value)} placeholder="مثال: مدير المبيعات" />
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-muted/50">
-                <th className="text-right px-4 py-3 font-medium text-muted-foreground min-w-[140px] border-b">المجموعة</th>
-                {COMMON_COLS.map((col) => (
-                  <th key={col} className="px-4 py-3 font-medium text-muted-foreground text-center border-b whitespace-nowrap">
-                    {col}
-                  </th>
+        <div className="rounded-lg border p-5 overflow-hidden">
+          <div className="mb-2 text-sm font-medium text-foreground">
+            الصفحات <span className="text-destructive">*</span>
+          </div>
+
+          <div className="rounded-xl border border-border overflow-hidden bg-card">
+            {GROUPS.map((group, gi) => {
+              const gKeys = keysForGroup(GROUPS, gi);
+              const gStatus = getStatus(gKeys, checked);
+              const gOpen = openGroups.has(`g_${gi}`);
+
+              return (
+                <div key={`g_${gi}`} className={cn(gi !== GROUPS.length - 1 && "border-b border-border")}>
+                  {/* Group Row */}
+                  <div className="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 cursor-pointer select-none" onClick={() => setOpenGroups(toggle(openGroups, `g_${gi}`))}>
+                    <TreeCheckbox status={gStatus} onChange={() => setKeys(gKeys, gStatus !== "all")} />
+                    <Folder className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span className="flex-1 text-sm font-medium text-foreground">{group.label}</span>
+                    <ChevronLeft className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", gOpen && "-rotate-90")} />
+                  </div>
+
+                  {/* Pages */}
+                  {gOpen && (
+                    <div>
+                      {group.pages.map((page, pi) => {
+                        const pKeys = keysForPage(gi, pi, page);
+                        const pStatus = getStatus(pKeys, checked);
+                        const pageKey = `p_${gi}_${pi}`;
+                        const pOpen = openPages.has(pageKey);
+
+                        return (
+                          <div key={pageKey} className={cn(pi !== group.pages.length - 1 && "border-b border-border")}>
+                            {/* Page Row */}
+                            <div className="flex items-center gap-2 px-3 py-2 pr-7 hover:bg-muted/40 cursor-pointer select-none bg-background" onClick={() => setOpenPages(toggle(openPages, pageKey))}>
+                              <TreeCheckbox status={pStatus} onChange={() => setKeys(pKeys, pStatus !== "all")} />
+                              <Folder className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                              <span className="flex-1 text-sm text-foreground">{page.label}</span>
+                              <ChevronLeft className={cn("w-3 h-3 text-muted-foreground transition-transform", pOpen && "-rotate-90")} />
+                            </div>
+
+                            {/* Permissions */}
+                            {pOpen && (
+                              <div>
+                                {page.permissions.map((perm, ri) => {
+                                  const permKeys = keysForPerm(gi, pi, ri, perm);
+                                  const hasSubs = (perm.subPermissions ?? []).length > 0;
+                                  const permStatus = hasSubs ? getStatus(permKeys, checked) : "none";
+                                  const permKey = `r_${gi}_${pi}_${ri}`;
+                                  const permOpen = openPerms.has(permKey);
+                                  const singleKey = leafKey(gi, pi, ri);
+
+                                  return (
+                                    <div key={permKey} className={cn(ri !== page.permissions.length - 1 && "border-b border-border")}>
+                                      {/* Permission Row */}
+                                      <div className="flex items-center gap-2 px-3 py-2 pr-12 bg-muted/10 select-none">
+                                        {hasSubs ? (
+                                          <div onClick={(e) => e.stopPropagation()}>
+                                            <TreeCheckbox status={permStatus} onChange={() => setKeys(permKeys, permStatus !== "all")} />
+                                          </div>
+                                        ) : (
+                                          <Checkbox checked={checked[singleKey] ?? false} onCheckedChange={() => toggleSub(singleKey)} />
+                                        )}
+                                        <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                                        <span className={cn("flex-1 text-sm text-muted-foreground", hasSubs && "cursor-pointer hover:text-foreground")} onClick={() => hasSubs && setOpenPerms(toggle(openPerms, permKey))}>
+                                          {perm.label}
+                                        </span>
+                                        {hasSubs && <ChevronLeft className={cn("w-3 h-3 text-muted-foreground transition-transform cursor-pointer", permOpen && "-rotate-90")} onClick={() => setOpenPerms(toggle(openPerms, permKey))} />}
+                                      </div>
+
+                                      {/* Sub-permissions */}
+                                      {permOpen && hasSubs && (
+                                        <div className="bg-background">
+                                          {perm.subPermissions!.map((sub, si) => {
+                                            const subKey = leafKey(gi, pi, ri, si);
+                                            const isChecked = checked[subKey] ?? false;
+                                            return (
+                                              <div key={subKey} className={cn("flex items-center gap-2 px-3 py-1.5 pr-16 cursor-pointer hover:bg-muted/20 select-none", si !== perm.subPermissions!.length - 1 && "border-b border-border/50")} onClick={() => toggleSub(subKey)}>
+                                                <Checkbox checked={isChecked} onCheckedChange={() => toggleSub(subKey)} onClick={(e) => e.stopPropagation()} className="shrink-0" />
+                                                <span className={cn("text-xs", isChecked ? "text-foreground font-medium" : "text-muted-foreground")}>{sub.label}</span>
+                                              </div>
+                                            );
+                                          })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* {selectedPermissions.length > 0 && (
+            <div className="mt-4 p-3 rounded-lg bg-muted/30 border border-border">
+              <p className="text-xs font-medium text-muted-foreground mb-2">الصلاحيات المختارة:</p>
+              <div className="flex flex-wrap gap-1">
+                {selectedPermissions.map((p) => (
+                  <span key={p} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                    {p}
+                  </span>
                 ))}
-                <th className="px-4 py-3 font-medium text-muted-foreground text-center border-b min-w-[180px]">أذونات أخرى</th>
-              </tr>
-            </thead>
-            <tbody>
-              {groupNames.map((group) => {
-                const status = getGroupStatus(checked, group);
-                const extraPerms = Object.keys(permMap[group]).filter((p) => !COMMON_COLS.includes(p));
-                return (
-                  <tr key={group} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 bg-muted/20">
-                      <div className="flex items-center gap-2">
-                        <Checkbox
-                          checked={status === "all"}
-                          // indeterminate via data attr trick
-                          data-state={status === "some" ? "indeterminate" : status === "all" ? "checked" : "unchecked"}
-                          onCheckedChange={() => toggleAll(group)}
-                        />
-                        <span className="font-medium text-sm">{group}</span>
-                      </div>
-                    </td>
-                    {COMMON_COLS.map((col) => (
-                      <td key={col} className="px-4 py-3 text-center">
-                        {permMap[group][col] !== undefined ? <Checkbox checked={checked[group][col] ?? false} onCheckedChange={() => toggle(group, col)} className="mx-auto" /> : <span className="text-muted-foreground/30">—</span>}
-                      </td>
-                    ))}
-                    <td className="px-4 py-3">
-                      {extraPerms.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5 justify-center">
-                          {extraPerms.map((p) => (
-                            <Badge key={p} variant={checked[group][p] ? "default" : "outline"} className="cursor-pointer text-xs font-normal" onClick={() => toggle(group, p)}>
-                              {p}
-                            </Badge>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground/30 text-center block">—</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+              </div>
+            </div>
+          )} */}
         </div>
-      </div>
-
-      <div className="flex gap-3">
-        <Button onClick={() => handleSubmit()} disabled={!roleName.trim()}>
-          حفظ الصلاحية
-        </Button>
-        <Button variant="outline" onClick={() => setChecked(initState())}>
-          إلغاء
-        </Button>
-      </div>
-    </div>
+        <div className="flex gap-3 justify-end">
+          <Button size="2xl" variant="outline">
+            إلغاء
+          </Button>
+          <Button size="2xl" onClick={() => handleSubmit()} disabled={!roleName.trim()}>
+            حفظ الصلاحية
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

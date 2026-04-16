@@ -10,17 +10,19 @@ import { Button } from "@/components/ui/button";
 import AddEmployeeModal from "@/components/modals/AddEmployeeModal";
 
 import { Input } from "@/components/ui/input";
+import { Employee } from "@/features/employees/types/employees.types";
+import { useDeleteEmployee } from "@/features/employees/hooks/useDeleteEmployee";
 
 export default function AllEmployees() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<number | undefined>();
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee>();
 
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
-
+  const { mutate: deleteUser } = useDeleteEmployee();
   const { data: employees } = useGetAllEmployees({ page: currentPage, limit: entriesPerPage, searchTerm: globalFilterValue });
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,23 +87,22 @@ export default function AllEmployees() {
             className="custom-green-table custom-compact-table"
             dataKey="id"
           >
-            <Column field="id" header="ID" sortable />
-
             <Column header="Name" body={(row) => `${row.firstName} ${row.lastName}`} />
-
             <Column field="mobile" header="Phone" />
-            <Column field="department" header="Department" />
-            <Column field="position" header="Position" />
-            <Column field="brunchName" header="العمليات" />
-
             <Column
-              header="Actions"
-              body={(row) => (
-                <div className="flex gap-2">
-                  <Link to={`/employees/edit/${row.id}`} className="btn-minimal-action btn-compact-action">
+              header="العمليات"
+              body={(raw: Employee) => (
+                <div className="space-x-2">
+                  <Button
+                    onClick={() => {
+                      setSelectedEmployee(raw);
+                      setIsAddModalOpen(true);
+                    }}
+                    className="btn-minimal-action btn-compact-action"
+                  >
                     <Edit2 size={16} />
-                  </Link>
-                  <button className="btn-minimal-action btn-compact-action text-red-500">
+                  </Button>
+                  <button onClick={() => deleteUser(raw?.id)} className="btn-minimal-action btn-compact-action text-red-500">
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -114,7 +115,9 @@ export default function AllEmployees() {
         isOpen={isAddModalOpen}
         onClose={() => {
           setIsAddModalOpen(false);
+          setSelectedEmployee(undefined);
         }}
+        employee={selectedEmployee}
       />
     </div>
   );
