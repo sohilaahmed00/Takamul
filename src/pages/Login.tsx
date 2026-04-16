@@ -35,7 +35,7 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await login({ email: username, password });
+      const res = await login({ identifier: username, password });
       navigate("/dashboard");
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
