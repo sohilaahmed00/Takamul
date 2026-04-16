@@ -270,6 +270,7 @@ function AppRoutes() {
             <Route path="/roles" element={<RolesPage />} />
             <Route path="/roles/:id" element={<PermissionsTree />} />
 
+
             {/* الإعدادات */}
             <Route path="/settings/groups" element={<Groups />} />
             <Route path="/settings/group-permissions/:id" element={<GroupPermissions />} />
@@ -355,6 +356,7 @@ function AppRoutes() {
             <Route path="/reports/profit" element={<ProfitReport />} />
             <Route path="/reports/item-movement" element={<ItemMovementReport />} />
 
+<<<<<<< HEAD
             {/* New Report Categories */}
             <Route path="/reports/category/items" element={<ItemsReportsCategory />} />
             <Route path="/reports/category/sales" element={<SalesReportsCategory />} />
@@ -367,11 +369,26 @@ function AppRoutes() {
 
             {/* التقارير المالية */}
             {/* <Route path="/reports/balance-sheet" element={<BalanceSheet />} />
+=======
+          {/* New Report Categories */}
+          <Route path="/reports/category/items" element={<ItemsReportsCategory />} />
+          <Route path="/reports/category/sales" element={<SalesReportsCategory />} />
+          <Route path="/reports/category/purchases" element={<PurchasesReportsCategory />} />
+          <Route path="/reports/category/customers" element={<CustomersReportsCategory />} />
+
+          <Route path="/reports/category/suppliers" element={<SuppliersReportsCategory />} />
+          <Route path="/reports/category/expenses" element={<ExpensesReportsCategory />} />
+          <Route path="/reports/category/profits" element={<ProfitsReportsCategory />} />
+
+          {/* التقارير المالية */}
+          {/* <Route path="/reports/balance-sheet" element={<BalanceSheet />} />
+>>>>>>> 92a6317 (done)
           <Route path="/reports/income-statement" element={<IncomeStatement />} />
           <Route path="/reports/ledger-statement" element={<LedgerStatement />} />
           <Route path="/reports/trial-balance" element={<TrialBalance />} />
           <Route path="/reports/subsidiary-ledger" element={<SubsidiaryLedger />} /> */}
 
+<<<<<<< HEAD
             <Route path="/revenues" element={<Revenues />} />
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/items" element={<Items />} />
@@ -381,6 +398,16 @@ function AppRoutes() {
             <Route path="/branches/:mode/:id" element={<AddBranch />} />
             <Route path="/warehouses" element={<WarehousesList />} />
           </Route>
+=======
+          <Route path="/revenues" element={<Revenues />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/items" element={<Items />} />
+          <Route path="/branches" element={<BranchesList />} />
+          <Route path="/branches/create" element={<AddBranch />} />
+          <Route path="/branches/edit/:id" element={<AddBranch />} />
+          <Route path="/branches/:mode/:id" element={<AddBranch />} />
+          <Route path="/warehouses" element={<WarehousesList />} />
+>>>>>>> 92a6317 (done)
         </Route>
       </Routes>
 
