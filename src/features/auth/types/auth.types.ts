@@ -5,6 +5,6 @@ export type LoginResponse = {
 };
 
 export type LoginPayload = {
-  email: string;
+  identifier: string;
   password: string;
 };
