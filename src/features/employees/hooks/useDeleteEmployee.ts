@@ -1,21 +1,20 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { deleteEmployee } from "../services/employees";
 import useToast from "@/hooks/useToast";
+import { employeesKeys } from "../keys/employees.keys";
 import { handleApiSuccess } from "@/lib/handleApiSuccess";
 import { handleApiError } from "@/lib/handleApiError";
-import { usersKeys } from "../keys/users.keys";
-import { deleteUser } from "../services/users";
 
-export function useDeleteUser() {
+export function useDeleteEmployee() {
   const queryClient = useQueryClient();
   const { notifyError, notifySuccess } = useToast();
   return useMutation({
-    mutationFn: (id: number) => deleteUser(id),
+    mutationFn: (id: number) => deleteEmployee(id),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: usersKeys.all,
+        queryKey: employeesKeys.list(),
       });
-      handleApiSuccess(response, notifySuccess);
+      handleApiSuccess(response?.message, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

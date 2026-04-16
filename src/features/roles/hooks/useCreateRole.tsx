@@ -10,6 +10,7 @@ import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 export function useCreateRole() {
   const queryClient = useQueryClient();
+  
   const { notifyError, notifySuccess } = useToast();
 
   return useMutation({
@@ -19,7 +20,7 @@ export function useCreateRole() {
       queryClient.invalidateQueries({
         queryKey: rolesKeys.all,
       });
-      handleApiSuccess(response,notifySuccess);
+      handleApiSuccess(response, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

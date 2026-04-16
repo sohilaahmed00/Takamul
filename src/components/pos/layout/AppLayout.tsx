@@ -76,7 +76,6 @@ export default function AppLayout() {
             <div className="flex-1 overflow-y-auto min-w-0 p-4 bg-white dark:bg-background">
               <PageContent />
 
-              <span className="bg-accent">121212</span>
             </div>
 
             {/* Right Panel */}

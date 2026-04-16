@@ -9,16 +9,21 @@ import { setInitRefreshPromise } from "@/api/client";
 const promise = refreshToken()
   .then((data) => {
     const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
+    console.log("first");
     useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission);
     return data.accessToken;
   })
   .catch(() => {
-    return null as unknown as string;
+    console.log("first");
+    useAuthStore.getState().clearAuth();
+    return "";
   })
   .finally(() => {
     setInitRefreshPromise(null);
     useAuthStore.getState().setInitialized(true);
+    console.log("first");
   });
+console.log("first");
 
 setInitRefreshPromise(promise);
 

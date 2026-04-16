@@ -154,8 +154,6 @@ import SuppliersReportsCategory from "@/pages/reports/SuppliersReportsCategory";
 import ExpensesReportsCategory from "@/pages/reports/ExpensesReportsCategory";
 import ProfitsReportsCategory from "@/pages/reports/ProfitsReportsCategory";
 
-
-
 import Revenues from "@/pages/revenues-and-expenses/Revenues";
 import Expenses from "@/pages/revenues-and-expenses/Expenses";
 import Items from "@/pages/revenues-and-expenses/ItemsList";
@@ -180,6 +178,8 @@ import CreateReturnSalesInvoice from "./pages/CreateReturnSalesInvoice";
 import CreateReturnPurchasesInvoice from "./pages/CreateReturnPurchasesInvoice";
 import PosSales from "./pages/PosSales";
 import TableLayout from "./pages/AddRoles";
+import PermissionsTree from "./pages/AddRoles";
+import RolesPage from "./pages/RolesPage";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
@@ -265,7 +265,9 @@ function AppRoutes() {
           <Route path="/users/create" element={<AddUser />} />
           <Route path="/users/edit/:id" element={<EditUser />} />
           <Route path="/users/pos-devices" element={<InvoiceDevices />} />
-          <Route path="/add-roles" element={<TableLayout />} />
+          <Route path="/add-roles" element={<PermissionsTree />} />
+          <Route path="/roles" element={<RolesPage />} />
+          <Route path="/roles/:id" element={<PermissionsTree />} />
 
           {/* الإعدادات */}
           <Route path="/settings/groups" element={<Groups />} />
@@ -352,7 +354,6 @@ function AppRoutes() {
           <Route path="/reports/profit" element={<ProfitReport />} />
           <Route path="/reports/item-movement" element={<ItemMovementReport />} />
 
-
           {/* New Report Categories */}
           <Route path="/reports/category/items" element={<ItemsReportsCategory />} />
           <Route path="/reports/category/sales" element={<SalesReportsCategory />} />
@@ -363,14 +364,12 @@ function AppRoutes() {
           <Route path="/reports/category/expenses" element={<ExpensesReportsCategory />} />
           <Route path="/reports/category/profits" element={<ProfitsReportsCategory />} />
 
-
           {/* التقارير المالية */}
           {/* <Route path="/reports/balance-sheet" element={<BalanceSheet />} />
           <Route path="/reports/income-statement" element={<IncomeStatement />} />
           <Route path="/reports/ledger-statement" element={<LedgerStatement />} />
           <Route path="/reports/trial-balance" element={<TrialBalance />} />
           <Route path="/reports/subsidiary-ledger" element={<SubsidiaryLedger />} /> */}
-
 
           <Route path="/revenues" element={<Revenues />} />
           <Route path="/expenses" element={<Expenses />} />

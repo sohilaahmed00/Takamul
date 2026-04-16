@@ -2,7 +2,6 @@ import { PaginationMeta } from "@/types";
 
 export interface CreateEmployee {
   firstName: string;
-  lastName: string;
   mobile?: string;
 }
 

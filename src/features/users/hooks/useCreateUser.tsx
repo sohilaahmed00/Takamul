@@ -13,7 +13,7 @@ export function useCreateUser() {
     mutationFn: (data: CreateUser) => createUser(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
-        queryKey: usersKeys.list(),
+        queryKey: usersKeys.all,
       });
       handleApiSuccess(response, notifySuccess);
     },
