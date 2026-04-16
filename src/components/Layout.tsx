@@ -250,7 +250,7 @@ export default function Layout() {
             {openSubmenu === "users" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 <SubmenuItem label={t("users_list")} icon={List} path="/users" />
-                <SubmenuItem label={t("user_groups")} icon={Users} path="/users/groups" />
+                {/* <SubmenuItem label={t("user_groups")} icon={Users} path="/users/groups" /> */}
                 <SubmenuItem label={t("pos_devices")} icon={Monitor} path="/users/pos-devices" />
                 <SubmenuItem label={"الصلاحيات"} icon={Shield} path="/roles" />
                 <SubmenuItem label={"الموظفين"} icon={Users} path="/employyes" />
