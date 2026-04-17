@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { HandCoins, Plus, Search, Edit2, Trash2 } from "lucide-react";
+import { HandCoins, Plus, Search, Edit2, Trash2, Printer, FileText } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 
@@ -20,6 +20,7 @@ import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { CustomerTransaction } from "@/features/customer-transactions/types/customerTransactions.types";
 
 import { Input } from "@/components/ui/input";
+import { exportCustomPDF, printCustomHTML, getVoucherHTML } from "@/utils/customExportUtils";
 
 export default function CustomerCollectionsList() {
   const { direction, t } = useLanguage();
@@ -98,6 +99,23 @@ export default function CustomerCollectionsList() {
     }
   };
 
+  const [printingRow, setPrintingRow] = useState<number | null>(null);
+
+  const handleExportPDF = async (row: CustomerTransaction) => {
+    setPrintingRow(row.id);
+    try {
+      const htmlString = getVoucherHTML("receipt", row, t);
+      await exportCustomPDF(t("receipt_bond", "سند قبض"), htmlString, "portrait", 794);
+    } finally {
+      setPrintingRow(null);
+    }
+  };
+
+  const handlePrint = (row: CustomerTransaction) => {
+    const htmlString = getVoucherHTML("receipt", row, t);
+    printCustomHTML(t("receipt_bond", "سند قبض"), htmlString);
+  };
+
   const actionBodyTemplate = (row: CustomerTransaction) => {
     return (
       <div className="flex items-center gap-2 justify-center">
@@ -111,10 +129,29 @@ export default function CustomerCollectionsList() {
 
         <button
           onClick={() => openDeleteModal(row)}
-          className="btn-minimal-action btn-compact-action"
+          className="btn-minimal-action btn-compact-action text-red-600"
           type="button"
         >
           <Trash2 size={16} />
+        </button>
+
+        <button
+          onClick={() => handlePrint(row)}
+          className="btn-minimal-action btn-compact-action text-blue-600"
+          type="button"
+          title={t("print", "طباعة")}
+        >
+          <Printer size={16} />
+        </button>
+
+        <button
+          onClick={() => handleExportPDF(row)}
+          className="btn-minimal-action btn-compact-action text-slate-600"
+          type="button"
+          disabled={printingRow === row.id}
+          title={"PDF"}
+        >
+          <FileText size={16} />
         </button>
       </div>
     );
@@ -151,7 +188,7 @@ export default function CustomerCollectionsList() {
           </CardTitle>
 
           <CardAction>
-            <Button onClick={openAddModal} variant="default">
+            <Button size={"xl"} onClick={openAddModal} variant="default">
               <Plus size={18} />
               {t("add_customer_collection")}
             </Button>
@@ -322,6 +359,25 @@ export default function CustomerCollectionsList() {
                         >
                           <Trash2 size={16} />
                           <span className="text-xs px-1">{t("delete")}</span>
+                        </button>
+
+                        <button
+                          onClick={() => handlePrint(row)}
+                          className="btn-minimal-action btn-compact-action text-blue-600"
+                          type="button"
+                        >
+                          <Printer size={16} />
+                          <span className="text-xs px-1">{t("print", "طباعة")}</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleExportPDF(row)}
+                          className="btn-minimal-action btn-compact-action text-slate-600"
+                          type="button"
+                          disabled={printingRow === row.id}
+                        >
+                          <FileText size={16} />
+                          <span className="text-xs px-1">PDF</span>
                         </button>
                       </div>
                     </div>

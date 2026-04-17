@@ -3,7 +3,7 @@ import { Column } from "primereact/column";
 import { DataTable, type DataTablePageEvent } from "primereact/datatable";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Search, Truck, Edit2, Trash2 } from "lucide-react";
+import { Plus, Search, Truck, Edit2, Trash2, Printer, FileText } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 
@@ -15,6 +15,7 @@ import type { SupplierTransaction } from "@/features/supplier-transactions/types
 import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, ComboboxList } from "@/components/ui/combobox";
 
 import { Input } from "@/components/ui/input";
+import { exportCustomPDF, printCustomHTML, getVoucherHTML } from "@/utils/customExportUtils";
 
 export default function SupplierPaymentsList() {
   const { direction, t } = useLanguage();
@@ -81,6 +82,23 @@ export default function SupplierPaymentsList() {
     }
   };
 
+  const [printingRow, setPrintingRow] = useState<number | null>(null);
+
+  const handleExportPDF = async (row: SupplierTransaction) => {
+    setPrintingRow(row.id);
+    try {
+      const htmlString = getVoucherHTML("payment", row, t);
+      await exportCustomPDF(t("payment_bond"), htmlString, "portrait", 794);
+    } finally {
+      setPrintingRow(null);
+    }
+  };
+
+  const handlePrint = (row: SupplierTransaction) => {
+    const htmlString = getVoucherHTML("payment", row, t);
+    printCustomHTML(t("payment_bond"), htmlString);
+  };
+
   const actionBodyTemplate = (row: SupplierTransaction) => {
     return (
       <div className="flex items-center gap-2 justify-center">
@@ -90,6 +108,14 @@ export default function SupplierPaymentsList() {
 
         <button onClick={() => openDeleteModal(row)} className="btn-minimal-action btn-compact-action" type="button">
           <Trash2 size={16} />
+        </button>
+
+        <button onClick={() => handlePrint(row)} className="btn-minimal-action btn-compact-action text-blue-600" type="button" title={t("print", "طباعة")}>
+          <Printer size={16} />
+        </button>
+
+        <button onClick={() => handleExportPDF(row)} className="btn-minimal-action btn-compact-action text-slate-600" type="button" disabled={printingRow === row.id} title={"PDF"}>
+          <FileText size={16} />
         </button>
       </div>
     );
@@ -215,6 +241,16 @@ export default function SupplierPaymentsList() {
                       <button onClick={() => openDeleteModal(row)} className="btn-minimal-action btn-compact-action text-red-600" type="button">
                         <Trash2 size={16} />
                         <span className="text-xs px-1">{t("delete")}</span>
+                      </button>
+
+                      <button onClick={() => handlePrint(row)} className="btn-minimal-action btn-compact-action text-blue-600" type="button">
+                        <Printer size={16} />
+                        <span className="text-xs px-1">{t("print", "طباعة")}</span>
+                      </button>
+
+                      <button onClick={() => handleExportPDF(row)} className="btn-minimal-action btn-compact-action text-slate-600" type="button" disabled={printingRow === row.id}>
+                        <FileText size={16} />
+                        <span className="text-xs px-1">PDF</span>
                       </button>
                     </div>
                   </div>

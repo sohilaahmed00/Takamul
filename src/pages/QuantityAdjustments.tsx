@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Search, Plus, FileText, ArrowRight, ArrowLeft, Edit2, Trash2, Eye } from "lucide-react";
+import { Search, Plus, FileText, ArrowRight, ArrowLeft, Edit2, Trash2, Eye, Printer } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
 import { useGetQuantityAdjustments } from "@/features/quantity-adjustments/hooks/useGetQuantityAdjustments";
@@ -12,6 +12,7 @@ import type { QuantityAdjustment } from "@/features/quantity-adjustments/types/a
 import { FilterMatchMode } from "primereact/api";
 import formatDate from "@/lib/formatDate";
 import { Input } from "@/components/ui/input";
+import { exportCustomPDF, printCustomHTML, getQuantityAdjustmentHTML } from "@/utils/customExportUtils";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function QuantityAdjustments() {
@@ -27,6 +28,23 @@ export default function QuantityAdjustments() {
     pageSize: entriesPerPage,
     searchTerm: globalFilterValue,
   });
+
+  const [printingRow, setPrintingRow] = useState<number | null>(null);
+
+  const handleExportPDF = async (row: QuantityAdjustment) => {
+    setPrintingRow(row.id);
+    try {
+      const htmlString = getQuantityAdjustmentHTML(row, row.items || [], t, direction);
+      await exportCustomPDF(t("quantity_adjustments", "تعديلات كمية"), htmlString, "portrait", 794);
+    } finally {
+      setPrintingRow(null);
+    }
+  };
+
+  const handlePrint = (row: QuantityAdjustment) => {
+    const htmlString = getQuantityAdjustmentHTML(row, row.items || [], t, direction);
+    printCustomHTML(t("quantity_adjustments", "تعديلات كمية"), htmlString);
+  };
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -86,13 +104,19 @@ export default function QuantityAdjustments() {
           <Column
             header={t("actions")}
             body={(product: QuantityAdjustment) => (
-              <div className="space-x-2">
+              <div className="space-x-2 flex items-center justify-center rtl:space-x-reverse">
                 <Link to={`/products/quantity-adjustments/edit/${product?.id}`} className="btn-minimal-action btn-edit">
                   <Edit2 size={16} />
                 </Link>
                 <Link to={`/products/quantity-adjustments/view/${product?.id}`} onClick={async () => {}} className="btn-minimal-action btn-view">
                   <Eye size={16} />
                 </Link>
+                <button onClick={() => handlePrint(product)} className="btn-minimal-action btn-compact-action text-blue-600" type="button" title={t("print", "طباعة")}>
+                  <Printer size={16} />
+                </button>
+                <button onClick={() => handleExportPDF(product)} className="btn-minimal-action btn-compact-action text-slate-600" type="button" disabled={printingRow === product.id} title={"PDF"}>
+                  <FileText size={16} />
+                </button>
               </div>
             )}
           />

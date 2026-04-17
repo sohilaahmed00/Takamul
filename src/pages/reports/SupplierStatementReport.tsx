@@ -15,6 +15,8 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { exportToExcel } from "@/utils/exportUtils";
+import { exportCustomPDF, printCustomHTML, getAccountStatementHTML } from "@/utils/customExportUtils";
 
 // ✅ الـ Type options بالقيم الإنجليزية اللي بتقبلها الـ API
 const operationTypes = [
@@ -88,6 +90,68 @@ export default function SupplierStatementReport() {
   const totalCredit = useMemo(() => statementData?.reduce((s, r) => s + (r.credit ?? 0), 0) ?? 0, [statementData]);
   const totalBalance = useMemo(() => statementData?.[statementData.length - 1]?.balance ?? 0, [statementData]);
 
+  const selectedSupplierName = suppliersList.find((c) => String(c.id) === searchParams.supplierId)?.supplierName || "";
+  const title = t("supplier_account_statement", "كشف حساب مورد");
+  
+  const getFiltersInfo = () => {
+    return `${t("from_date")}: ${searchParams.from || "-"} | ${t("to_date")}: ${searchParams.to || "-"} | ${t("operation_type")}: ${searchParams.type || t("all")}`;
+  };
+
+  const getSummaryData = () => ({
+    total1: totalDebit, label1: t("total_purchases", "إجمالي المشتريات"), tableCol1: direction === "ltr" ? "Due to Supplier" : "المستحق للمورد",
+    total2: totalCredit, label2: t("total_payments", "إجمالي المدفوعات"), tableCol2: direction === "ltr" ? "Paid by Supplier" : "المسدد للمورد",
+    total3: totalBalance, label3: t("total_debit", "إجمالي المديونية"),
+  });
+
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!statementData?.length) return;
+    setPdfLoading(true);
+    try {
+      const htmlString = getAccountStatementHTML(
+        title, 
+        { name: selectedSupplierName, label: t("supplier_name", "اسم المورد") },
+        getFiltersInfo(), 
+        getSummaryData(), 
+        statementData, 
+        t,
+        direction
+      );
+      await exportCustomPDF(title, htmlString);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handlePrint = () => {
+    if (!statementData?.length) return;
+    const htmlString = getAccountStatementHTML(
+       title, 
+        { name: selectedSupplierName, label: t("supplier_name", "اسم المورد") },
+        getFiltersInfo(), 
+        getSummaryData(), 
+        statementData, 
+        t,
+        direction
+    );
+    printCustomHTML(title, htmlString);
+  };
+
+  const handleExportExcel = () => {
+    if (!statementData?.length) return;
+    const excelData = statementData.map((r, i) => ({
+      [t("serial", "م")]: i + 1,
+      [t("date", "التاريخ")]: r.date ? new Date(r.date).toLocaleString("en-GB") : "-",
+      [t("operation_type", "نوع العملية")]: r.type,
+      [t("reference", "المرجع")]: r.reference || "-",
+      [t("total_purchases", "مشتريات")]: r.debit,
+      [t("total_payments", "مدفوعات")]: r.credit,
+      [t("balance", "الرصيد")]: r.balance,
+    }));
+    exportToExcel(excelData, title, t, direction);
+  };
+
   return (
     <div dir={direction}>
       <Card>
@@ -99,14 +163,14 @@ export default function SupplierStatementReport() {
             </CardTitle>
           </div>
           <div className="flex items-center gap-4 text-sm font-medium">
-            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+            <button onClick={handlePrint} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
               <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            <button onClick={handleExportPDF} disabled={pdfLoading} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileText size={16} /> <span className="hidden sm:inline">{pdfLoading ? "تحميل..." : "PDF"}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">XML</span>
+            <button onClick={handleExportExcel} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">Excel</span>
             </button>
           </div>
         </CardHeader>
@@ -187,7 +251,7 @@ export default function SupplierStatementReport() {
                   <SelectContent>
                     <SelectItem value={null}>{t("all", "الكل")}</SelectItem>
                     {operationTypes.map((b) => (
-                      <SelectItem key={String(b.id)} value={String(b.name)}>
+                      <SelectItem key={String(b.id)} value={String(b.id)}>
                         {b.name}
                       </SelectItem>
                     ))}
