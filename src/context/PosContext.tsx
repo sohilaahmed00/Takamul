@@ -72,6 +72,9 @@ interface PosContextValue {
   setDineInMode: (m: DineInMode) => void;
   search: string;
   setSearch: (m: string) => void;
+
+  selectedItemIdx: number | null;
+  setSelectedItemIdx: (idx: number | null) => void;
 }
 
 const PosContext = createContext<PosContextValue | null>(null);
@@ -103,6 +106,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const { mutateAsync: addItemsToOrder } = useUpdateDineInOrder();
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [dineInMode, setDineInMode] = useState<DineInMode>(null);
+  const [selectedItemIdx, setSelectedItemIdx] = useState<number | null>(null);
   const [search, setSearch] = useState("");
 
   const INSTITUTION_NAME = "اسم المؤسسة";
@@ -367,6 +371,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
   return (
     <PosContext.Provider
       value={{
+        selectedItemIdx,
+        setSelectedItemIdx,
         search,
         setSearch,
         setDineInMode,

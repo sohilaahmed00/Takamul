@@ -228,7 +228,7 @@ function ExtrasPopover({ item, idx, additions, onToggleExtra }: { item: CartItem
 // ── Main CartPanel ────────────────────────────────────────────────────────────
 export default function CartPanel() {
   const { t } = useLanguage();
-  const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
+  const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setSelectedItemIdx } = usePos();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [discInput, setDiscInput] = useState("");
@@ -364,7 +364,7 @@ export default function CartPanel() {
                 const itemWithoutDisc = { ...item, itemDiscount: null };
                 const origBasePrice = itemBasePrice(itemWithoutDisc);
                 return (
-                  <div key={idx} className={`${GRID} py-2 items-center border-b border-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-[#f6f6f6]"}`}>
+                  <div onClick={() => setSelectedItemIdx(idx)} key={idx} className={`${GRID} py-2 items-center border-b border-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-[#f6f6f6]"}`}>
                     {/* # */}
                     <span className="text-xs text-gray-400 font-medium">{idx + 1}</span>
                     {/* الاسم */}
