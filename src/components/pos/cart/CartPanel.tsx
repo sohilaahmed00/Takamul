@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CircleArrowRight, Pause, Plus, X, ChevronsUpDown, Check, Trash2, Percent, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,9 @@ import useToast from "@/hooks/useToast";
 import { useGetAllTables } from "@/features/pos/hooks/useGetAllTables";
 import ComboboxField from "@/components/ui/ComboboxField";
 import { useLanguage } from "@/context/LanguageContext";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { Numpad } from "../cashier/CashierPanel";
 
 const TABS = ["add", "discount", "coupon", "note"] as const;
 
@@ -224,20 +227,198 @@ function ExtrasPopover({ item, idx, additions, onToggleExtra }: { item: CartItem
     </Popover>
   );
 }
+function ClearButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="w-6 h-6 rounded-full border border-border/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors flex items-center justify-center text-base leading-none">
+      ×
+    </button>
+  );
+}
+
+interface ItemNumPadDialogProps {
+  item: CartItem | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onQtyChange: (qty: number) => void;
+  onDiscountChange: (discount: { type: "pct" | "flat"; value: number } | null) => void;
+}
+
+// ── Main Component ─────────────────────────────────────────────────────────────
+
+export function ItemNumPadDialog({ item, open, onOpenChange, onQtyChange, onDiscountChange }: ItemNumPadDialogProps) {
+  const [activeTab, setActiveTab] = useState<"qty" | "disc">("qty");
+  const [inputBuffer, setInputBuffer] = useState("0");
+  const [discType, setDiscType] = useState<"pct" | "flat">("pct");
+  const [isFirstInput, setIsFirstInput] = useState(true);
+
+  const currentValue = parseFloat(inputBuffer) || 0;
+
+  // Reset state when item changes or dialog opens
+  useEffect(() => {
+    if (item && open) {
+      setActiveTab("qty");
+      setInputBuffer(String(item.qty));
+      setDiscType(item.itemDiscount?.type ?? "pct");
+      setIsFirstInput(true);
+    }
+  }, [item, open]);
+
+  const handleKey = useCallback(
+    (key: string) => {
+      if (key === "cancel") {
+        onOpenChange(false);
+        return;
+      }
+
+      setInputBuffer((prev) => {
+        if (isFirstInput && key !== "⌫" && key !== "del") {
+          setIsFirstInput(false);
+          if (key === "00") return "0";
+          if (key === ".") return "0.";
+          return key;
+        }
+
+        if (key === "⌫" || key === "del") {
+          return prev.length > 1 ? prev.slice(0, -1) : "0";
+        }
+        if (key === "00") {
+          return prev === "0" ? "0" : prev + "00";
+        }
+        if (key === ".") {
+          return prev.includes(".") ? prev : prev + ".";
+        }
+        return prev === "0" ? key : prev + key;
+      });
+    },
+    [onOpenChange, isFirstInput],
+  );
+
+  const switchTab = (tab: "qty" | "disc") => {
+    setActiveTab(tab);
+    setInputBuffer(tab === "qty" ? String(item?.qty ?? 1) : String(item?.itemDiscount?.value ?? 0));
+    setIsFirstInput(true);
+  };
+
+  const clearInput = () => {
+    setInputBuffer("0");
+    setIsFirstInput(true);
+  };
+
+  const handleDone = () => {
+    if (activeTab === "qty") {
+      onQtyChange(Math.max(1, Math.floor(currentValue)));
+    } else {
+      onDiscountChange(currentValue === 0 ? null : { type: discType, value: currentValue });
+    }
+    onOpenChange(false);
+  };
+
+  const applyShortcut = (val: number) => {
+    setDiscType("pct");
+    setInputBuffer(String(val));
+    setIsFirstInput(false);
+  };
+
+  if (!item) return null;
+
+  return (
+    <Dialog modal={false} open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="p-0 overflow-hidden gap-0 max-w-sm w-full" >
+        {/* ── Header ── */}
+        <DialogHeader className="px-4 pt-4 pb-0">
+          <DialogTitle className="text-right text-sm font-semibold text-foreground/80 truncate">{item.name}</DialogTitle>
+        </DialogHeader>
+
+        {/* ── Tabs ── */}
+        <div className="flex mt-3 border-b border-border">
+          {(["qty", "disc"] as const).map((tab) => {
+            const isActive = activeTab === tab;
+            return (
+              <button key={tab} onClick={() => switchTab(tab)} className={cn("flex-1 py-3 text-[13px] font-semibold transition-all duration-150 border-b-2 -mb-px", isActive ? "border-primary text-foreground bg-muted/50" : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30")}>
+                {tab === "qty" ? "الكمية" : "الخصم"}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* ── Display Area ── */}
+        <div className="bg-muted/30 px-4 py-3 border-b border-border">
+          {activeTab === "qty" ? (
+            /* Qty Display */
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">الكمية</span>
+              <div className="flex items-center gap-2">
+                <span className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">{inputBuffer}</span>
+                <span className="text-xs text-muted-foreground">قطعة</span>
+                <ClearButton onClick={clearInput} />
+              </div>
+            </div>
+          ) : (
+            /* Disc Display */
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                {/* Toggle Switch */}
+                <button onClick={() => setDiscType((t) => (t === "pct" ? "flat" : "pct"))} className="flex items-center gap-2 bg-background border border-border rounded-full px-3 py-1.5 hover:bg-muted/50 transition-colors">
+                  <span className={cn("text-xs font-medium transition-colors", discType === "flat" ? "text-foreground" : "text-muted-foreground")}>ج.م</span>
+                  {/* pill track */}
+                  <div className="relative w-8 h-4 bg-muted rounded-full">
+                    <div className={cn("absolute top-0.5 w-3 h-3 bg-foreground rounded-full transition-all duration-200", discType === "pct" ? "right-0.5" : "left-0.5")} />
+                  </div>
+                  <span className={cn("text-xs font-medium transition-colors", discType === "pct" ? "text-foreground" : "text-muted-foreground")}>%</span>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">{inputBuffer}</span>
+                  <span className="text-xs text-muted-foreground">{discType === "pct" ? "%" : "ج.م"}</span>
+                  <ClearButton onClick={clearInput} />
+                </div>
+              </div>
+
+              {/* Shortcut Buttons */}
+              <div className="grid grid-cols-3 gap-2">
+                {[5, 10, 15].map((v) => (
+                  <button key={v} onClick={() => applyShortcut(v)} className={cn("h-9 rounded-lg text-sm font-semibold border transition-all active:scale-95", currentValue === v && discType === "pct" ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border text-foreground hover:bg-muted")}>
+                    {v}%
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Numpad ── */}
+        <div className="px-3 pt-3 pb-2 bg-background">
+          <Numpad onKey={handleKey} />
+        </div>
+
+        {/* ── Action Buttons ── */}
+        <div className="flex gap-2 px-3 pb-4">
+          <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
+            إلغاء
+          </Button>
+          <Button className="flex-2 flex-grow-[2]" onClick={handleDone}>
+            تم ✓
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 // ── Main CartPanel ────────────────────────────────────────────────────────────
 export default function CartPanel() {
   const { t } = useLanguage();
-  const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setSelectedItemIdx } = usePos();
+  const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [discInput, setDiscInput] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
+  const [itemNumPadDialog, setItemNumPadDialog] = useState(false);
   const { data: customers, isLoading: loadingCustomers } = useGetAllCustomers({ page: 1, limit: 100 });
   const { data: additions } = useGetAllAdditions();
   const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax, itemDiscountsTotal } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const { notifyError, notifySuccess } = useToast();
-
+  const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
 
   const changeQty = (idx: number, d: number) => setCart((p) => p.map((item, i) => (i === idx ? { ...item, qty: Math.max(1, item.qty + d) } : item)));
@@ -364,7 +545,14 @@ export default function CartPanel() {
                 const itemWithoutDisc = { ...item, itemDiscount: null };
                 const origBasePrice = itemBasePrice(itemWithoutDisc);
                 return (
-                  <div onClick={() => setSelectedItemIdx(idx)} key={idx} className={`${GRID} py-2 items-center border-b border-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-[#f6f6f6]"}`}>
+                  <div
+                    onClick={() => {
+                      setSelectedCartItem(item);
+                      setItemNumPadDialog(true);
+                    }}
+                    key={idx}
+                    className={`${GRID} py-2 items-center border-b border-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-[#f6f6f6]"}`}
+                  >
                     {/* # */}
                     <span className="text-xs text-gray-400 font-medium">{idx + 1}</span>
                     {/* الاسم */}
@@ -556,6 +744,19 @@ export default function CartPanel() {
       </div>
 
       <AddParnterModal isOpen={openDialog} onClose={() => setOpenDialog(false)} />
+      <ItemNumPadDialog
+        item={selectedCartItem}
+        open={itemNumPadDialog}
+        onOpenChange={setItemNumPadDialog}
+        onQtyChange={(qty) => {
+          const idx = cart.indexOf(selectedCartItem);
+          changeQty(idx, qty);
+        }}
+        onDiscountChange={(disc) => {
+          const idx = cart.indexOf(selectedCartItem!);
+          setItemDisc(idx, disc?.type ?? "pct", disc === null ? "" : String(disc.value));
+        }}
+      />
     </>
   );
 }

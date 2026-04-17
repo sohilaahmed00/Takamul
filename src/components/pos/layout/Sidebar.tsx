@@ -27,26 +27,7 @@ export default function Sidebar() {
 
       <div className="flex-1" />
 
-      {/* Avatar */}
-      <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-primary/20 mb-1">
-        <img
-          src="https://i.pravatar.cc/32"
-          alt="user"
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            (e.target as HTMLImageElement).style.display = "none";
-            (e.target as HTMLImageElement).parentElement!.innerHTML = '<div style="width:100%;height:100%;background:#f3f4f6;display:flex;align-items:center;justify-content:center;font-size:14px">👤</div>';
-          }}
-        />
-      </div>
-
-      {/* Logout */}
-      <button className="group cursor-pointer flex flex-col items-center gap-0.5 py-2 hover:bg-primary/5 rounded-xl border border-transparent transition-all duration-200" style={{ width: 52 }}>
-        <LogOut size={16} strokeWidth={1.8} className="text-white group-hover:text-primary" />
-        <span className="text-white group-hover:text-primary" style={{ fontSize: 9 }}>
-          Logout
-        </span>
-      </button>
+    
     </div>
   );
 }

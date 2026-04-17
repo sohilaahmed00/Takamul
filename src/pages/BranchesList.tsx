@@ -76,7 +76,7 @@ export default function Branches() {
   );
 
   const actionsBody = (row: BranchListItem) => (
-    <div className="flex items-center gap-2">
+    <div className="space-x-2">
       <Link
         to={`/branches/edit/${row.id}`}
         className="btn-minimal-action btn-edit"
@@ -143,32 +143,27 @@ export default function Branches() {
               field="code"
               header={t("branch_code")}
               sortable
-              style={{ minWidth: "8rem" }}
               bodyStyle={{ whiteSpace: "nowrap" }}
             />
             <Column
               field="name"
               header={t("branch_name") || "اسم الفرع"}
               sortable
-              style={{ minWidth: "14rem" }}
             />
             <Column
               field="phone"
               header={t("phone") || "الهاتف"}
               body={(r: BranchListItem) => r.phone || "-"}
-              style={{ minWidth: "10rem" }}
             />
             <Column
               field="isActive"
               header={t("status") || "الحالة"}
               body={statusBody}
-              style={{ minWidth: "8rem" }}
               bodyStyle={{ textAlign: "center" }}
             />
             <Column
               header={t("actions") || "الإجراءات"}
               body={actionsBody}
-              style={{ minWidth: "10rem" }}
               bodyStyle={{ whiteSpace: "nowrap" }}
             />
           </DataTable>

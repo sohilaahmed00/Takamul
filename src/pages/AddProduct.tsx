@@ -36,6 +36,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
 import z from "zod/v3";
 import useToast from "@/hooks/useToast";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ export const createProductSchema = z.object({
   MinStockLevel: z.number().min(1, "الحد الأدنى للمخزون غير صحيح").optional(),
   TaxId: z.number().min(1, "الضريبة مطلوبة"),
   TaxCalculation: z.number().min(1, "طريقة حساب الضريبة مطلوبة"),
-  // BaseUnit: z.coerce.number().min(1, "اختر الوحدة"),
+  BaseUnit: z.number().min(1, "اختر الوحدة"),
   Image: z.union([z.instanceof(File), z.string()]).optional(),
 });
 
@@ -93,7 +94,7 @@ export const createRawMaterialSchema = createProductSchema
     TaxCalculation: true,
     SellingPrice: true,
     MinStockLevel: true,
-    // BaseUnit: true,
+    BaseUnit: true,
   })
   .extend({
     BaseUnitId: z
@@ -129,7 +130,7 @@ export const baseDefaultValues: FormValues = {
   CostPrice: undefined,
   SellingPrice: undefined,
   MinStockLevel: undefined,
-  // BaseUnit: undefined,
+  BaseUnit: 0,
   TaxId: 0,
   TaxCalculation: 0,
   Image: undefined,
@@ -536,19 +537,21 @@ export default function AddProduct() {
 
                 {/* Sub-category */}
                 {productType !== "RawMatrial" && (
-                  <Controller
-                    name="CategoryId"
-                    control={control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel className="gap-x-0">
-                          التصنيف الفرعي <span className="text-red-500">*</span>
-                        </FieldLabel>
-                        <ComboboxField field={field} items={subCategories} valueKey="id" labelKey="categoryNameAr" placeholder="اختر التصنيف الفرعي" />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
+                  <>
+                    <Controller
+                      name="CategoryId"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel className="gap-x-0">
+                            التصنيف الفرعي <span className="text-red-500">*</span>
+                          </FieldLabel>
+                          <ComboboxField field={field} items={subCategories} valueKey="id" labelKey="categoryNameAr" placeholder="اختر التصنيف الفرعي" />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                  </>
                 )}
 
                 <Controller
@@ -594,6 +597,39 @@ export default function AddProduct() {
                   />
                 )}
 
+ <div className="col-span-2">
+                      <Controller
+                        name="BaseUnit"
+                        control={control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel className="gap-x-0">
+                              الوحدة <span className="text-red-500">*</span>
+                            </FieldLabel>
+                            <Select
+                              value={field.value ? String(field.value) : ""}
+                              onValueChange={(value) => {
+                                field.onChange(Number(value));
+                              }}
+                            >
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder={"اختر الوحدة"} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectGroup>
+                                  {units?.items?.map((c) => (
+                                    <SelectItem key={c.id} value={String(c.id)}>
+                                      {c.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectGroup>
+                              </SelectContent>
+                            </Select>{" "}
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
+                    </div>
                 {/* Cost price */}
                 {productType !== "Branched" && (
                   <Controller
@@ -611,7 +647,7 @@ export default function AddProduct() {
                   />
                 )}
 
-                {/* Selling price + tax fields */}
+
                 {productType !== "RawMatrial" && productType !== "Branched" && (
                   <>
                     <Controller
@@ -627,6 +663,7 @@ export default function AddProduct() {
                         </Field>
                       )}
                     />
+                   
 
                     <div className="lg:col-span-2">
                       <Controller
@@ -719,6 +756,8 @@ export default function AddProduct() {
                     )}
                   />
                 </div>
+
+                
 
                 {/* Raw material unit fields */}
                 {productType === "RawMatrial" && (
