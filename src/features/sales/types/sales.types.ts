@@ -34,17 +34,13 @@ export interface SalesOrder {
   createdBy: string;
   orderDate: string;
   warehouseName: string;
-
   subTotal: number;
   taxAmount: number;
   discountAmount: number;
   grandTotal: number;
-
-  orderStatus: "Confirmed" | "UnConfirmed";
+  orderStatus: "Confirmed" | "UnConfirmed" | "InProgress" | "Canceled";
   paymentStatus: string;
-
   notes: string;
-
   items: OrderItem[];
   payments: OrderPayment[];
 }

@@ -11,6 +11,7 @@ import { Treasury } from "@/features/treasurys/types/treasurys.types";
 import ComboboxField from "@/components/ui/ComboboxField";
 import { usePos } from "@/context/PosContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { Link } from "react-router-dom";
 
 export default function Topbar2() {
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -37,13 +38,15 @@ export default function Topbar2() {
   });
 
   return (
-    <div className="w-full border border-gray-200 rounded-sm bg-white text-sm" dir="rtl">
+    <div className="w-full border border-gray-200 rounded-sm  text-sm" >
       <div className="px-4 pt-3 pb-3 flex flex-col gap-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-1">
-              <Button variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="الصفحة الرئيسية">
-                <Home size={13} />
+              <Button asChild variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="الصفحة الرئيسية">
+                <Link to={"/dashboard"}>
+                  <Home size={13} />
+                </Link>
               </Button>
               <Button variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="لوحة المفاتيح">
                 <Keyboard size={13} />

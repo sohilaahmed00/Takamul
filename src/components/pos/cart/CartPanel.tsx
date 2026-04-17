@@ -282,7 +282,6 @@ export default function CartPanel() {
     setCart((p) => p.map((item, i) => (i === itemIdx ? { ...item, extras: (item.extras ?? []).filter((e) => e.id !== additionId) } : item)));
   };
 
-  // ── order-level discount ───────────────────────────────────────────────────
   const applyDiscount = () => {
     if (hasItemDiscount) {
       notifyError(t("cannot_mix_discounts") || "لا يمكن الجمع بين خصم الأصناف وخصم الفاتورة");
