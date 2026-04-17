@@ -84,7 +84,7 @@ export const printVoucher = (htmlString: string) => {
   const printCSS = `
     @page {
       size: A4 portrait;
-      margin: 10mm 12mm;
+      margin: 10mm 0;
     }
     @media print {
       html, body {
