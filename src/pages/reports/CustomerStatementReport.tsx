@@ -84,7 +84,9 @@ export default function CustomerStatementReport() {
   const title = t("customer_account_statement", "كشف حساب عميل");
   
   const getFiltersInfo = () => {
-    return `${t("from_date")}: ${searchParams.from || "-"} | ${t("to_date")}: ${searchParams.to || "-"} | ${t("operation_type")}: ${searchParams.type || t("all")}`;
+    const fromFmt = searchParams.from ? searchParams.from.split("-").reverse().join("/") : "-";
+    const toFmt = searchParams.to ? searchParams.to.split("-").reverse().join("/") : "-";
+    return `${t("from_date")}: ${fromFmt} | ${t("to_date")}: ${toFmt} | ${t("operation_type")}: ${searchParams.type || t("all")}`;
   };
 
   const getSummaryData = () => ({

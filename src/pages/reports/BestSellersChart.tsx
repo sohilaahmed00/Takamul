@@ -352,14 +352,17 @@ export default function BestSellersChart() {
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
   const title = t("top_selling_product_report", "تقرير المنتج الأكثر مبيعا");
 
- const getFiltersInfo = () => {
-  const trimmedId = searchParams.branchId.trim();
-  const branchName = trimmedId
-    ? branches.find((b) => String(b.id) === trimmedId)?.name ?? t("all", "الكل")
-    : t("all", "الكل");
+  const getFiltersInfo = () => {
+    const trimmedId = searchParams.branchId.trim();
+    const branchName = trimmedId
+      ? branches.find((b) => String(b.id) === trimmedId)?.name ?? t("all", "الكل")
+      : t("all", "الكل");
 
-  return `${t("branch", "الفرع")}: ${branchName} | ${t("from_date", "تاريخ البداية")}: ${searchParams.from} | ${t("to_date", "تاريخ النهاية")}: ${searchParams.to}`;
-};
+    const fromFmt = searchParams.from ? searchParams.from.split("-").reverse().join("/") : "-";
+    const toFmt = searchParams.to ? searchParams.to.split("-").reverse().join("/") : "-";
+
+    return `${t("branch", "الفرع")}: ${branchName} | ${t("from_date", "تاريخ البداية")}: ${fromFmt} | ${t("to_date", "تاريخ النهاية")}: ${toFmt}`;
+  };
 
   const handleExportExcel = () => {
     if (!reportData) return;
