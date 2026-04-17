@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { exportCustomPDF, printCustomHTML, getVoucherHTML } from "@/utils/customExportUtils";
 
 export default function SupplierPaymentsList() {
-  const { direction, t } = useLanguage();
+  const { direction, t, language } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -87,7 +87,7 @@ export default function SupplierPaymentsList() {
   const handleExportPDF = async (row: SupplierTransaction) => {
     setPrintingRow(row.id);
     try {
-      const htmlString = getVoucherHTML("payment", row, t);
+      const htmlString = getVoucherHTML("payment", row, t, language);
       await exportCustomPDF(t("payment_bond"), htmlString, "portrait", 794);
     } finally {
       setPrintingRow(null);
@@ -95,7 +95,7 @@ export default function SupplierPaymentsList() {
   };
 
   const handlePrint = (row: SupplierTransaction) => {
-    const htmlString = getVoucherHTML("payment", row, t);
+    const htmlString = getVoucherHTML("payment", row, t, language);
     printCustomHTML(t("payment_bond"), htmlString);
   };
 

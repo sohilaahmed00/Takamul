@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { tafqeet } from "./tafqeet";
 
 // =============================================
 // PDF Export - للتقارير (جداول وكشوفات)
@@ -84,14 +85,15 @@ export const printVoucher = (htmlString: string) => {
   const printCSS = `
     @page {
       size: A4 portrait;
-      margin: 10mm 0;
+      margin: 10mm 10mm;
     }
     @media print {
       html, body {
-        width: 210mm !important;
-        max-width: 210mm !important;
+        width: 100% !important;
+        max-width: 100% !important;
         margin: 0 !important;
-        padding: 0 !important;
+        padding: 0 5mm !important;
+        box-sizing: border-box !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
@@ -207,8 +209,15 @@ const gStyles = `
     box-sizing: border-box;
   }
   @media print {
-    body { padding: 15px; width: 100%; }
-    @page { margin: 10mm; }
+    body { 
+      padding: 10px 10px !important; 
+      width: 100% !important; 
+      box-sizing: border-box !important; 
+    }
+    @page { margin: 10mm 5mm; }
+    table { font-size: 10px !important; margin-bottom: 10px; }
+    th { padding: 6px 3px !important; }
+    td { padding: 5px 3px !important; }
   }
   .header {
     text-align: center;
@@ -221,22 +230,24 @@ const gStyles = `
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 12px;
     margin-bottom: 20px;
   }
   th {
     background: #f8fafc;
-    padding: 12px 10px;
+    padding: 8px 4px;
     border: 1px solid #e2e8f0;
     font-weight: 700;
     text-align: center;
     color: #334155;
+    white-space: nowrap;
   }
   td {
-    padding: 10px;
+    padding: 6px 4px;
     border: 1px solid #e2e8f0;
     text-align: center;
     color: #0f172a;
+    white-space: nowrap;
   }
   tr:nth-child(even) td { background: #fdfdfd; }
   .badge {
@@ -257,7 +268,7 @@ const gStyles = `
   }
 `;
 
-export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any) => {
+export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any, lang: any = "ar") => {
   const isReceipt = type === "receipt";
   const arTitle = isReceipt ? t("receipt_bond", "سند قبض") : t("payment_bond", "سند صرف");
   const enTitle = isReceipt ? "RECEIPT VOUCHER" : "PAYMENT VOUCHER";
@@ -278,7 +289,7 @@ export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any) =
   <style>
     @page {
       size: A4 portrait;
-      margin: 12mm 10mm;
+      margin: 12mm 15mm;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -303,10 +314,13 @@ export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any) =
       html, body {
         width: 100% !important;
         direction: rtl;
+        padding: 0 10mm !important;
+        box-sizing: border-box !important;
       }
       .voucher-border {
         width: 100% !important;
         border: 3px double #3b3b3b !important;
+        box-sizing: border-box !important;
       }
     }
 
@@ -478,7 +492,7 @@ export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any) =
       </div>
       <div class="c-row">
         <div class="c-label-ar">${t("the_sum_of", "مبلغ وقدره :")}</div>
-        <div class="c-value">${amountStr}</div>
+        <div class="c-value">${tafqeet(data.amount || 0, lang)}</div>
         <div class="c-label-en" dir="ltr">The sum of S.R.</div>
       </div>
       <div class="c-row">
@@ -511,7 +525,7 @@ export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any) =
 // =============================================
 // Treasury Statement
 // =============================================
-export const getTreasuryHTML = (title: string, filtersInfo: string, data: any[], columns: any[], t: any) => {
+export const getTreasuryHTML = (title: string, filtersInfo: string, data: any[], columns: any[], t: any, direction: "rtl" | "ltr" = "rtl") => {
   const tableRows = data.map((row, i) => {
     return `
       <tr>
@@ -531,7 +545,7 @@ export const getTreasuryHTML = (title: string, filtersInfo: string, data: any[],
 
   return `
     <!DOCTYPE html>
-    <html dir="rtl" lang="ar">
+    <html dir="${direction}" lang="${direction === "rtl" ? "ar" : "en"}">
     <head>
       <meta charset="UTF-8"/>
       <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -541,7 +555,7 @@ export const getTreasuryHTML = (title: string, filtersInfo: string, data: any[],
     <body>
       <div class="header">
         <h1>${title}</h1>
-        <p>${filtersInfo}</p>
+        <p>${filtersInfo.split(" | ").join("<br/>")}</p>
       </div>
       <table>
         <thead>
@@ -571,13 +585,14 @@ export const getAccountStatementHTML = (
   filtersInfo: string,
   summary: { total1: number; label1: string; total2: number; label2: string; total3: number; label3: string; tableCol1?: string; tableCol2?: string },
   data: any[],
-  t: any
+  t: any,
+  direction: "rtl" | "ltr" = "rtl"
 ) => {
   const tableRows = data.map((row, i) => `
     <tr>
       <td>${i + 1}</td>
-      <td>${row.date ? new Date(row.date).toLocaleString("en-GB") : "-"}</td>
-      <td>${row.type || "-"}<br/><small style="color:#666">${row.reference || ""}</small></td>
+      <td>${row.date ? new Date(row.date).toLocaleDateString("en-GB") : "-"}</td>
+      <td>${row.type || "-"} <span style="color:#666;font-size:11px;margin:0 5px;">${row.reference ? `(${row.reference})` : ""}</span></td>
       <td style="color:#dc2626;font-weight:600;">${row.debit > 0 ? Number(row.debit).toLocaleString() : "-"}</td>
       <td style="color:#059669;font-weight:600;">${row.credit > 0 ? Number(row.credit).toLocaleString() : "-"}</td>
     </tr>
@@ -585,7 +600,7 @@ export const getAccountStatementHTML = (
 
   return `
     <!DOCTYPE html>
-    <html dir="rtl" lang="ar">
+    <html dir="${direction}" lang="${direction === "rtl" ? "ar" : "en"}">
     <head>
       <meta charset="UTF-8"/>
       <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -604,8 +619,8 @@ export const getAccountStatementHTML = (
           <td style="width:33%;border:none;text-align:right;vertical-align:top;">
             <table style="width:auto;border:none;float:right;margin:0;">
               <tr>
-                <th style="padding:4px 10px;border:none;font-size:14px;background:transparent;text-align:right;color:#475569;">${partyInfo.label}:</th>
-                <td style="font-weight:bold;padding:4px 10px;border:none;font-size:14px;text-align:left;">${partyInfo.name}</td>
+                <th style="padding:4px 10px;border:none;font-size:14px;background:transparent;text-align:right;color:#475569;">${partyInfo.label} :</th>
+                <td style="font-weight:bold;padding:4px 10px;border:none;font-size:14px;text-align:right;">${partyInfo.name}</td>
               </tr>
             </table>
           </td>
@@ -614,8 +629,8 @@ export const getAccountStatementHTML = (
             <p style="font-size:14px;color:#475569;font-weight:600;margin:0;">${t("account_statement","Account Statement")}</p>
           </td>
           <td style="width:33%;border:none;text-align:left;vertical-align:top;">
-            <div style="background:#f8fafc !important;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;text-align:right;direction:rtl;display:inline-block;">
-              ${filtersInfo}
+            <div style="background:#f8fafc !important;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;text-align:right;direction:${direction};display:inline-block;">
+              ${filtersInfo.split(" | ").join("<br/>")}
             </div>
           </td>
         </tr>
@@ -661,7 +676,7 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
     return `
       <tr>
         <td>${i + 1}</td>
-        <td>${row.productName || "-"}<br/><small style="color:#666">${row.barcode || ""}</small></td>
+        <td>${row.productName || "-"} <span style="color:#666;font-size:11px;margin:0 5px;">${row.barcode ? `(${row.barcode})` : ""}</span></td>
         <td>${typeTranslated}</td>
         <td style="font-weight:700;">${Number(row.quantity || 0).toLocaleString()}</td>
       </tr>
@@ -672,7 +687,7 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
 
   return `
     <!DOCTYPE html>
-    <html dir="${t("dir","rtl")}" lang="${t("lang","ar")}">
+    <html dir="${direction}" lang="${direction === "rtl" ? "ar" : "en"}">
     <head>
       <meta charset="UTF-8"/>
       <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -717,7 +732,7 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
         </div>
         <div style="margin-top:20px;font-size:14px;color:#333;">
           <div>${t("data_entry","مدخل البيانات")} : ${data.performedBy || "-"}</div>
-          <div>${t("date","التاريخ")} : ${data.operationDate ? new Date(data.operationDate).toLocaleString("en-GB") : "-"}</div>
+          <div>${t("date","التاريخ")} : ${data.operationDate ? new Date(data.operationDate).toLocaleDateString("en-GB") : "-"}</div>
         </div>
       </div>
     </body>

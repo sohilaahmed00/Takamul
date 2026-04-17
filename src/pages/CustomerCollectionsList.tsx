@@ -23,7 +23,7 @@ import { Input } from "@/components/ui/input";
 import { exportCustomPDF, printCustomHTML, getVoucherHTML } from "@/utils/customExportUtils";
 
 export default function CustomerCollectionsList() {
-  const { direction, t } = useLanguage();
+  const { direction, t, language } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -104,7 +104,7 @@ export default function CustomerCollectionsList() {
   const handleExportPDF = async (row: CustomerTransaction) => {
     setPrintingRow(row.id);
     try {
-      const htmlString = getVoucherHTML("receipt", row, t);
+      const htmlString = getVoucherHTML("receipt", row, t, language);
       await exportCustomPDF(t("receipt_bond", "سند قبض"), htmlString, "portrait", 794);
     } finally {
       setPrintingRow(null);
@@ -112,7 +112,7 @@ export default function CustomerCollectionsList() {
   };
 
   const handlePrint = (row: CustomerTransaction) => {
-    const htmlString = getVoucherHTML("receipt", row, t);
+    const htmlString = getVoucherHTML("receipt", row, t, language);
     printCustomHTML(t("receipt_bond", "سند قبض"), htmlString);
   };
 

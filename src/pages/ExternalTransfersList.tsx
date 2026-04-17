@@ -114,7 +114,9 @@ export default function ExternalTransfersList() {
   const title = t("treasury_statement");
 
   const getFiltersInfo = () => {
-    return `${t("treasury")}: ${selectedTreasuryName || t("all")} | ${t("from_date")}: ${submittedFilters.from || "-"} | ${t("to_date")}: ${submittedFilters.to || "-"}`;
+    const fromFmt = submittedFilters.from ? submittedFilters.from.split("-").reverse().join("/") : "-";
+    const toFmt = submittedFilters.to ? submittedFilters.to.split("-").reverse().join("/") : "-";
+    return `${t("treasury")}: ${selectedTreasuryName || t("all")} | ${t("from_date")}: ${fromFmt} | ${t("to_date")}: ${toFmt}`;
   };
 
   const handleExportExcel = () => {
@@ -213,7 +215,7 @@ export default function ExternalTransfersList() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 ">
                 <Label className="text-sm font-medium text-[var(--text-main)]">{t("treasury")}</Label>
                 <ComboboxField
                   value={filters.treasuryId}
@@ -227,10 +229,11 @@ export default function ExternalTransfersList() {
                   valueKey="id"
                   labelKey="name"
                   placeholder={t("select_treasury")}
+              
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 mt-2">
                 <label className="text-sm font-medium text-[var(--text-main)]">
                   {t("from_date")}
                 </label>
@@ -244,7 +247,7 @@ export default function ExternalTransfersList() {
                 />
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 mt-2">
                 <label className="text-sm font-medium text-[var(--text-main)]">
                   {t("to_date")}
                 </label>
@@ -258,7 +261,7 @@ export default function ExternalTransfersList() {
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 py-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-end gap-2 py-3 mt-2">
                 <Button onClick={handleSearch} variant="default" size="xl" className="w-full sm:w-auto">
                   <Search size={18} />
                   {t("show")}
