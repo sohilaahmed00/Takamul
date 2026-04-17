@@ -275,6 +275,8 @@ export default function ExternalTransfersList() {
             </div>
           </div>
 
+
+
           {submittedFilters.treasuryId && (
             <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-[#f8fafc] dark:bg-slate-900/50 px-4 py-3 flex flex-wrap items-center gap-2">
               <span className="text-xs text-[var(--text-muted)]">{t("selected_treasury")}:</span>
