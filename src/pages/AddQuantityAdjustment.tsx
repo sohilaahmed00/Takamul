@@ -201,7 +201,7 @@ export default function AddQuantityAdjustment() {
               <div className="space-y-3 mt-3">
                 {itemFields.map((item, index) => {
                   const selectedId = form.watch(`items.${index}.stockInventoryId`);
-                  const selectedProduct = inventoryMap[selectedId];
+                  const selectedProduct = inventoryMap[selectedId] ;
 
                   return (
                     <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 md:p-2 bg-zinc-50 dark:bg-zinc-900/30 md:bg-transparent dark:md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 dark:border-zinc-800 items-center group mb-8">
@@ -211,7 +211,6 @@ export default function AddQuantityAdjustment() {
                         render={({ field, fieldState }) => (
                           <Field data-invalid={fieldState.invalid} className="relative">
                             <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product")}</FieldLabel>
-
                             <ComboboxField
                               field={field}
                               items={stockInventories?.items}
@@ -237,7 +236,7 @@ export default function AddQuantityAdjustment() {
 
                       <div>
                         <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
-                        <Input value={selectedProduct?.id ?? ""} readOnly className="text-center   cursor-not-allowed" />
+                        <Input value={selectedProduct?.barcode ?? ""} readOnly className="text-center   cursor-not-allowed" />
                       </div>
 
                       <div>
