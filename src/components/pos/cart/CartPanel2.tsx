@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { calcItemTax, calcTotals, CartItem, itemBasePrice, itemBasePriceRaw } from "@/constants/data";
 import { usePos } from "@/context/PosContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { CheckCircle2, Clock, FileText, Mail, MessageCircle, Plus, Printer, Save, Search, SlidersHorizontal, Tag, Trash2, User, X, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, FileText, Mail, MessageCircle, Plus, Printer, Save, Search, SlidersHorizontal, Tag, Trash2, User, Vault, X, XCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
@@ -18,6 +18,8 @@ import { useGetAllSales } from "@/features/sales/hooks/useGetAllSales";
 import { SalesOrder } from "@/features/sales/types/sales.types";
 import { useGetAllQuotations } from "@/features/quotation/hooks/useGetAllQuotations";
 import { Quotation } from "@/features/quotation/types/quotations.types";
+import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
+import { Treasury } from "@/features/treasurys/types/treasurys.types";
 
 function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   const [open, setOpen] = useState(false);
@@ -348,23 +350,31 @@ interface PaymentDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   total: number;
-  onSave: (opts: { vault: string; method: string; action: SaveAction }) => void;
+  onSave: (opts: { vault: Treasury; method: string; action: SaveAction }) => void;
 }
 
 export function PaymentDialog({ open, onOpenChange, total, onSave }: PaymentDialogProps) {
-  const [vault, setVault] = useState(VAULTS[0]);
+  const { data: treasurys } = useGetAllTreasurys();
+
+  const [vaultId, setVaultId] = useState<number>(0);
   const [method, setMethod] = useState(METHODS[0]);
-  const [input, setInput] = useState("");
   const [npRaw, setNpRaw] = useState(() => String(Math.round(total * 100)));
   const [isSplit, setIsSplit] = useState(false);
   const [splits, setSplits] = useState<Split[]>([]);
-  const rawToFloat = (r: string) => parseInt(r || "0") / 100;
-  const fmtFloat = (n: number) => "$" + n.toFixed(2);
-  const fmtRaw = (r: string) => fmtFloat(rawToFloat(r));
   const [activeId, _setActiveId] = useState("s1");
   const [justActivated, setJustActivated] = useState(false);
+
   const { setPaidAmount } = usePos();
   const { t } = useLanguage();
+
+  useEffect(() => {
+    if (treasurys?.length && !vaultId) {
+      setVaultId(treasurys[0].id);
+    }
+  }, [treasurys]);
+
+  const rawToFloat = (r: string) => parseInt(r || "0") / 100;
+  const fmtFloat = (n: number) => n.toFixed(2);
 
   const pushKey = (k: string) => {
     if (k === "cancel") return;
@@ -404,7 +414,8 @@ export function PaymentDialog({ open, onOpenChange, total, onSave }: PaymentDial
   };
 
   const handleAction = (action: SaveAction) => {
-    onSave({ vault, method, action });
+    const selectedVault = treasurys?.find((v) => v.id === vaultId);
+    onSave({ vault: selectedVault, method, action });
     onOpenChange(false);
   };
 
@@ -419,71 +430,93 @@ export function PaymentDialog({ open, onOpenChange, total, onSave }: PaymentDial
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 overflow-hidden gap-0" dir="rtl">
-        <div className="flex items-center justify-between px-4 py-3 text-white" style={{ background: "#000052" }}>
+      <DialogContent className="max-w-md p-0 gap-0 " >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-3 text-white rounded-t-lg" style={{ background: "#000052" }}>
           <DialogTitle className="text-[14px] font-medium text-white">إتمام عملية الدفع</DialogTitle>
           <span className="bg-white/15 rounded px-2.5 py-1 text-[13px]">الإجمالي: {total.toFixed(2)} ر.س</span>
         </div>
 
-        <div className="flex flex-col gap-4 p-4">
+        <div className=" flex flex-col gap-4 p-4 overflow-hidden">
+          {/* الخزنة */}
           <div className="flex flex-col gap-1">
             <label className="text-[11px] text-gray-500">الخزنة</label>
-
-            <Select value={vault} onValueChange={setVault}>
-              <SelectTrigger className="w-full text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {VAULTS.map((v) => (
-                  <SelectItem key={v} value={v} className="text-xs">
-                    {v}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-1.5 overflow-x-auto min-w-0">
+              {(treasurys ?? []).map((v) => {
+                const active = vaultId === v.id;
+                return (
+                  <button
+                    key={v.id}
+                    onClick={() => setVaultId(v.id)}
+                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border-2 transition-all flex-shrink-0
+                      ${active
+                        ? "border-[#000052] bg-[#000052] text-white"
+                        : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+                      }`}
+                  >
+                    <Vault size={10} className={active ? "text-white" : "text-gray-400"} />
+                    <span className="text-xs font-bold whitespace-nowrap">{v.name}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
+          {/* Numpad */}
           <Numpad onKey={pushKey} />
 
+          {/* المدفوع / الباقي */}
           <div className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2.5 text-[12px]">
             <div className="flex gap-1">
               <span className="text-gray-500">المدفوع:</span>
               <span className="font-semibold text-gray-800">{fmtFloat(singlePaid)} ر.س</span>
             </div>
             <div className="flex gap-1">
-              <span className={`font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
-              <span className={`font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>{fmtFloat(Math.abs(change))}</span>
+              <span className={`font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>
+                {change >= 0 ? t("change") : t("remaining")}
+              </span>
+              <span className={`font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>
+                {fmtFloat(Math.abs(change))}
+              </span>
             </div>
           </div>
 
           <hr className="border-gray-100" />
 
-          <div className="flex flex-col gap-2">
-            <span className="text-[11px] text-gray-400">بعد الحفظ:</span>
-            <div className="grid grid-cols-2 gap-2">
-              {[
-                { action: "pdf", label: "طباعة PDF", Icon: FileText },
-                { action: "whatsapp", label: "إرسال واتساب", Icon: MessageCircle },
-                { action: "email", label: "إرسال إيميل", Icon: Mail },
-                { action: "save_only", label: "حفظ فقط", Icon: Save },
-              ].map(({ action, label, Icon }) => (
-                <Button key={action} variant="outline" size="sm" onClick={() => handleAction(action as SaveAction)} className="h-10 text-[12px] gap-1.5">
-                  <Icon size={13} />
-                  {label}
-                </Button>
-              ))}
-              <Button onClick={() => handleAction("save_print")} size="sm" className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white">
-                <Printer size={13} />
-                حفظ وطباعة فاتورة
+          {/* Actions */}
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { action: "pdf",       label: "طباعة PDF",    Icon: FileText      },
+              { action: "whatsapp",  label: "إرسال واتساب", Icon: MessageCircle },
+              { action: "email",     label: "إرسال إيميل",  Icon: Mail          },
+              { action: "save_only", label: "حفظ فقط",      Icon: Save          },
+            ].map(({ action, label, Icon }) => (
+              <Button
+                key={action}
+                variant="outline"
+                size="sm"
+                onClick={() => handleAction(action as SaveAction)}
+                className="h-10 text-[12px] gap-1.5"
+              >
+                <Icon size={13} />
+                {label}
               </Button>
-            </div>
+            ))}
+
+            <Button
+              onClick={() => handleAction("save_print")}
+              size="sm"
+              className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white"
+            >
+              <Printer size={13} />
+              حفظ وطباعة فاتورة
+            </Button>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-
 interface QuotationDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -517,7 +550,7 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="max-w-md p-0 overflow-hidden gap-0" dir="rtl">
+      <DialogContent showCloseButton={false} className="max-w-md p-0  gap-0" dir="rtl">
         <div className="flex items-center justify-between px-4 py-3 text-white" style={{ background: "#000052" }}>
           <DialogTitle className="text-[14px] font-medium text-white">تحميل عرض سعر</DialogTitle>
           <div className="flex items-center gap-2">
@@ -721,7 +754,7 @@ export default function CartPanel() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleBarcodeScanned]);
 
-  const handlePayment = ({ vault, method, action }: { vault: string; method: string; action: SaveAction }) => {
+  const handlePayment = ({ vault, method, action }: { vault: Treasury; method: string; action: SaveAction }) => {
     switch (action) {
       case "pdf":
         break;
@@ -806,7 +839,6 @@ export default function CartPanel() {
               const base = itemBasePrice(item);
               const tax = calcItemTax(item);
               const rowTotal = base + tax;
-
               const discVal = item.itemDiscount ? (item.itemDiscount.type === "pct" ? (itemBasePrice({ ...item, itemDiscount: null }) * item.itemDiscount.value) / 100 : item.itemDiscount.value) : 0;
 
               const discPctVal = item.itemDiscount?.type === "pct" ? item.itemDiscount.value : 0;
@@ -921,11 +953,11 @@ export default function CartPanel() {
         <div className="hidden lg:grid" style={{ gridTemplateColumns: "1fr 1fr 260px 100px" }}>
           <div className="border-l border-gray-200 flex flex-col">
             <div className="flex items-center justify-between px-3 py-2 border-b border-gray-300">
-              <span className="text-gray-500">الإجمالي قبل الخصم</span>
+              <span className="text-gray-500 font-bold">الإجمالي قبل الخصم</span>
               <span className="font-medium text-gray-800">{subRaw.toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between px-3 py-2 border-b border-gray-300 gap-2 flex-wrap">
-              <span className="text-gray-500 shrink-0">خصم على الفاتورة</span>
+              <span className="text-gray-500 font-bold shrink-0">خصم على الفاتورة</span>
               <div className="flex items-end gap-1 mr-auto">
                 <div className="flex flex-col items-center gap-0.5">
                   <span className="text-[10px] text-gray-400">نسبة</span>
@@ -941,26 +973,25 @@ export default function CartPanel() {
               </div>
             </div>
             <div className="flex items-center justify-between px-3 py-2">
-              <span className="text-gray-500">الإجمالي بعد الخصم</span>
+              <span className="text-gray-500 font-bold">الإجمالي بعد الخصم</span>
               <span className="font-medium text-gray-800">{subAfterDiscount.toFixed(2)}</span>
             </div>
           </div>
 
-          {/* عمود 2: الإجماليات الضريبية */}
           <div className="border-l border-gray-200 flex flex-col">
             <div className="flex items-center justify-between px-3 py-2 border-b border-gray-300">
-              <span className="text-gray-500">الإجمالي قبل الضريبة</span>
+              <span className="text-gray-500 font-bold">الإجمالي قبل الضريبة</span>
               <span className="font-medium text-gray-800">{subAfterDiscount.toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between px-3 py-2 border-b border-gray-300">
-              <span className="text-gray-500">إجمالي الضريبة</span>
+              <span className="text-gray-500 font-bold">إجمالي الضريبة</span>
               <div className="flex items-center gap-2">
                 <span className="text-gray-400 text-[10px]">0%</span>
                 <span className="font-medium text-gray-800">{taxAfterDiscount.toFixed(2)}</span>
               </div>
             </div>
             <div className="flex items-center justify-between px-3 py-2">
-              <span className="text-gray-500">الإجمالي النهائي</span>
+              <span className="text-gray-500 font-bold">الإجمالي النهائي</span>
               <span className="font-medium text-blue-700">{total.toFixed(2)}</span>
             </div>
           </div>
@@ -996,7 +1027,6 @@ export default function CartPanel() {
             </div>
           </div>
 
-          {/* عمود 4: زر الدفع */}
           <div className="border-l border-gray-200 flex flex-col items-stretch justify-center p-2 gap-2">
             <button onClick={() => setPaymentOpen(true)} className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-md text-base font-semibold transition-colors">
               الدفع
@@ -1004,7 +1034,6 @@ export default function CartPanel() {
           </div>
         </div>
 
-        {/* شاشات صغيرة */}
         <div className="flex lg:hidden flex-col">
           <div className="grid grid-cols-4 gap-1 p-2 border-b border-gray-300">
             <button className="bg-violet-700 text-white text-[10px] rounded-md py-1.5">عرض أسعار</button>
