@@ -4,6 +4,7 @@ const formatDate = (dateString: string | Date, formatType: FormatType = "default
   if (!dateString) {
     return "";
   }
+  
 
   const date = typeof dateString === "string" ? new Date(dateString) : dateString;
 
