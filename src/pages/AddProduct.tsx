@@ -597,39 +597,41 @@ export default function AddProduct() {
                   />
                 )}
 
- <div className="col-span-2">
-                      <Controller
-                        name="BaseUnit"
-                        control={control}
-                        render={({ field, fieldState }) => (
-                          <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel className="gap-x-0">
-                              الوحدة <span className="text-red-500">*</span>
-                            </FieldLabel>
-                            <Select
-                              value={field.value ? String(field.value) : ""}
-                              onValueChange={(value) => {
-                                field.onChange(Number(value));
-                              }}
-                            >
-                              <SelectTrigger className="w-full">
-                                <SelectValue placeholder={"اختر الوحدة"} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectGroup>
-                                  {units?.items?.map((c) => (
-                                    <SelectItem key={c.id} value={String(c.id)}>
-                                      {c.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectGroup>
-                              </SelectContent>
-                            </Select>{" "}
-                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                          </Field>
-                        )}
-                      />
-                    </div>
+                {productType !== "RawMatrial" && (
+                  <div className="col-span-2">
+                    <Controller
+                      name="BaseUnit"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel className="gap-x-0">
+                            الوحدة <span className="text-red-500">*</span>
+                          </FieldLabel>
+                          <Select
+                            value={field.value ? String(field.value) : ""}
+                            onValueChange={(value) => {
+                              field.onChange(Number(value));
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder={"اختر الوحدة"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                {units?.items?.map((c) => (
+                                  <SelectItem key={c.id} value={String(c.id)}>
+                                    {c.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>{" "}
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                  </div>
+                )}
                 {/* Cost price */}
                 {productType !== "Branched" && (
                   <Controller
@@ -647,7 +649,6 @@ export default function AddProduct() {
                   />
                 )}
 
-
                 {productType !== "RawMatrial" && productType !== "Branched" && (
                   <>
                     <Controller
@@ -663,7 +664,6 @@ export default function AddProduct() {
                         </Field>
                       )}
                     />
-                   
 
                     <div className="lg:col-span-2">
                       <Controller
@@ -756,8 +756,6 @@ export default function AddProduct() {
                     )}
                   />
                 </div>
-
-                
 
                 {/* Raw material unit fields */}
                 {productType === "RawMatrial" && (
