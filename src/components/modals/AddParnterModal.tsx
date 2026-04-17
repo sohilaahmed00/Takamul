@@ -57,7 +57,6 @@ export const createPartnerSchema = (t: (key: string) => string) =>
       cityId: z.number().optional(),
       stateId: z.number().optional(),
 
-      address: z.string().optional(),
       district: z.string().optional(),
       streetName: z.string().optional(),
       postalCode: z.string().optional(),
@@ -106,14 +105,6 @@ export const createPartnerSchema = (t: (key: string) => string) =>
           ctx.addIssue({
             path: ["stateId"],
             message: t("validation_city_required"),
-            code: z.ZodIssueCode.custom,
-          });
-        }
-
-        if (!data.address || data.address.length < 5) {
-          ctx.addIssue({
-            path: ["address"],
-            message: t("validation_address_required"),
             code: z.ZodIssueCode.custom,
           });
         }
@@ -179,7 +170,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
       name: "",
       phone: "",
       mobile: "",
-      address: "",
       district: "",
       streetName: "",
       postalCode: "",
@@ -202,7 +192,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
         name: partner.customerName ?? "",
         phone: partner.phone ?? "",
         mobile: partner.mobile ?? "",
-        address: partner.address ?? "",
         district: "",
         streetName: "",
         postalCode: partner.postalCode ?? "",
@@ -220,7 +209,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
         name: partner.supplierName ?? "",
         phone: partner.phone ?? "",
         mobile: partner.mobile ?? "",
-        address: partner.address ?? "",
         district: "",
         streetName: "",
         postalCode: partner.postalCode ?? "",
@@ -238,7 +226,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
         name: "",
         phone: "",
         mobile: "",
-        address: "",
         district: "",
         streetName: "",
         postalCode: "",
@@ -275,7 +262,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
           supplierName: data.name,
           phone: data.phone,
           mobile: data.mobile ?? "",
-          address: data.address ?? "",
           city: selectedCity?.cityName ?? "",
           state: selectedState?.statesName ?? "",
           country: selectedCountry?.countryName ?? "",
@@ -290,7 +276,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
           customerName: data.name,
           phone: data.phone,
           mobile: data.mobile || "",
-          address: data.address || "",
           postalCode: data.postalCode || "",
           taxNumber: data.taxNumber ?? "",
           country: selectedCountry?.countryName ?? "",
@@ -543,8 +528,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                     </Field>
                   )}
                 />
-
-               
               </>
             )}
           </div>

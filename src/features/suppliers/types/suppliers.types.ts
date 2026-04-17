@@ -23,7 +23,6 @@ export interface createSupplier {
   email?: string;
   phone: string;
   mobile: string;
-  address: string;
   city: string;
   state: string;
   country: string;

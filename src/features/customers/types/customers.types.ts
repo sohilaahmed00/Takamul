@@ -20,7 +20,6 @@ export interface createCustomer {
   customerName: string;
   phone: string;
   mobile?: string;
-  address: string;
   city: string;
   state: string;
   postalCode: string;
