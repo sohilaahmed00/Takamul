@@ -25,17 +25,23 @@ export default function HomePage() {
     return item.productType !== "RawMatrial" && (!currentSubCat || item.categoryId === currentSubCat) && (!currentCat || item.categoryId === currentCat);
   });
 
-  const getCategoryName = useCallback((item: any) => {
-    if (language === "en") return item.categoryNameEn || item.categoryNameAr;
-    if (language === "ur") return item.categoryNameUr || item.categoryNameAr;
-    return item.categoryNameAr;
-  }, [language]);
+  const getCategoryName = useCallback(
+    (item: any) => {
+      if (language === "en") return item.categoryNameEn || item.categoryNameAr;
+      if (language === "ur") return item.categoryNameUr || item.categoryNameAr;
+      return item.categoryNameAr;
+    },
+    [language],
+  );
 
-  const getProductName = useCallback((item: any) => {
-    if (language === "en") return item.productNameEn || item.productNameAr;
-    if (language === "ur") return item.productNameUr || item.productNameAr;
-    return item.productNameAr;
-  }, [language]);
+  const getProductName = useCallback(
+    (item: any) => {
+      if (language === "en") return item.productNameEn || item.productNameAr;
+      if (language === "ur") return item.productNameUr || item.productNameAr;
+      return item.productNameAr;
+    },
+    [language],
+  );
 
   const addToCart = (item: { id: number; productNameAr: string; sellingPrice: number; taxAmount: number; taxCalculation: number; productNameEn?: string; productNameUr?: string }) => {
     setCart((prev) => {
@@ -86,42 +92,44 @@ export default function HomePage() {
   }, [productPranched, language, getProductName]);
 
   return (
-    <div className="flex-1 p-3 overflow-y-auto h-full">
+    <div className="flex-1  overflow-y-auto h-full">
       {/* Main category pills */}
-      <div className="flex gap-1.5 mb-2 flex-wrap">
-        {mainCategories?.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => {
-              setCurrentCat(c.id === currentCat ? null : c.id);
-              setCurrentSubCat(null);
-            }}
-            className={`px-3.5 py-1.5 rounded-full text-xs border transition-colors
-              ${c.id === currentCat ? "bg-primary text-white border-primary font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/40"}`}
-          >
-            {getCategoryName(c)}
-          </button>
-        ))}
-      </div>
-
-      {/* Sub-category pills */}
-      {activeCat?.subCategories?.length ? (
-        <div className="flex gap-1.5 mb-3 flex-wrap">
-          {activeCat.subCategories.map((sub) => (
+      <div className="border-b border-b-gray-300 p-3  mb-10 space-y-4">
+        <div className="flex gap-1.5  flex-wrap  ">
+          {mainCategories?.map((c) => (
             <button
-              key={sub.id}
-              onClick={() => setCurrentSubCat(currentSubCat === sub.id ? null : sub.id)}
-              className={`px-3 py-1 rounded-full text-xs border transition-colors
-                ${currentSubCat === sub.id ? "bg-primary/10 text-primary border-primary/30 font-semibold" : "bg-white text-gray-400 border-gray-200 hover:border-primary/30"}`}
+              key={c.id}
+              onClick={() => {
+                setCurrentCat(c.id === currentCat ? null : c.id);
+                setCurrentSubCat(null);
+              }}
+              className={`px-4 py-1.5 rounded-full text-sm border transition-colors
+              ${c.id === currentCat ? "bg-primary text-white border-primary font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/40"}`}
             >
-              {getCategoryName(sub)}
+              {getCategoryName(c)}
             </button>
           ))}
         </div>
-      ) : null}
+
+        {/* Sub-category pills */}
+        {activeCat?.subCategories?.length ? (
+          <div className="flex gap-1.5  flex-wrap">
+            {activeCat.subCategories.map((sub) => (
+              <button
+                key={sub.id}
+                onClick={() => setCurrentSubCat(currentSubCat === sub.id ? null : sub.id)}
+                className={`px-3 py-1 rounded-full text-sm border transition-colors
+                ${currentSubCat === sub.id ? "bg-primary/10 text-primary border-primary/30 font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/30"}`}
+              >
+                {getCategoryName(sub)}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
 
       {/* Menu grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3  xl:grid-cols-4 2xl:grid-cols-5 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3  xl:grid-cols-4 2xl:grid-cols-5 gap-2 p-3">
         {" "}
         {filteredProducts?.map((item, i) => (
           <div key={i} onClick={() => handleMenuClick(item)} className="bg-white rounded-xl p-2.5 text-center border border-primary/40 cursor-pointer hover:shadow-sm  transition-all">

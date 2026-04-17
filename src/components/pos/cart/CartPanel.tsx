@@ -300,9 +300,9 @@ export default function CartPanel() {
   const GRID = "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_45px_50px_85px] gap-2 px-2";
   return (
     <>
-      <div className="flex flex-col" style={{ width: 550 }}>
+      <div className="flex flex-col  border-r-2 border-[#000052]" style={{ width: 550 }}>
         {/* Head – Customer selector */}
-        <div className="px-3 py-2.5 border-b border-gray-100 flex items-center gap-2">
+        <div className="px-3 py-2.5 pb-[7.5px] border-b border-gray-300 flex items-center gap-2">
           {!selectedCustomer ? (
             <div className="w-full">
               <ComboboxField
@@ -422,8 +422,8 @@ export default function CartPanel() {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-100 flex-shrink-0">
-          <div className="flex px-3 border-b border-gray-100">
+        <div className="border-t border-gray-300 flex-shrink-0">
+          <div className="flex px-3 border-b border-gray-300">
             {TABS.map((tab) => {
               const label = tab === "add" ? t("add_permission") || "Add" : tab === "discount" ? t("discount") || "Discount" : tab === "coupon" ? t("coupon_code") || "Coupon Code" : t("note") || "Note";
 
@@ -471,7 +471,7 @@ export default function CartPanel() {
                   )}
                 </div>
               </div>
-              <div className="flex justify-between text-sm font-black text-gray-800 mt-2 pt-1 border-t border-gray-100 mb-3">
+              <div className="flex justify-between text-sm font-black text-gray-800 mt-2 pt-1 border-t border-gray-300 mb-3">
                 <span>{t("payable_amount")}</span>
                 <div className="flex items-center gap-1.5">
                   {discount > 0 && <span className="text-gray-300 line-through text-xs font-normal">${(sub + originalTax).toFixed(2)}</span>}

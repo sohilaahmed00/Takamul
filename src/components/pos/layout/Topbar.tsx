@@ -16,10 +16,10 @@ export default function Topbar() {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between bg-white border-b border-gray-100 py-3 px-3 md:px-5 gap-3">
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between bg-white border-b border-gray-100  px-3 md:px-5 gap-3">
       {" "}
       {/* Search */}
-      <div className="relative  flex-1 max-w-[900px]">
+      <div className="relative  flex-1 max-w-[900px] border-l-2 ms-[3px] border-[#000052] pe-2 py-3">
         <Input value={search} onChange={(e) => setSearch(e.target.value)} className="w-full pl-5 pr-12 py-3 rounded-lg text-sm outline-none bg-[#f6f6f6] focus:border-primary/40 text-gray-700 placeholder:text-gray-400" placeholder={t("search_products")} />
         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -28,7 +28,7 @@ export default function Topbar() {
           </svg>
         </span>
       </div>
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 py-3">
         <button onClick={() => navigate("/dashboard")} className="text-gray-400 hover:text-gray-600 transition-colors">
           <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5Z" />
