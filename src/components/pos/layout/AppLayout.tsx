@@ -22,6 +22,7 @@ import { PlaceholderPage } from "../pages/PlaceholderPage";
 import { ToastContainer } from "react-toastify";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEffect } from "react";
+import { ItemNumPadPanel } from "../cart/Itemnumpadpanel";
 
 function PageContent() {
   const { screen } = usePos();
@@ -51,7 +52,7 @@ function PageContent() {
 }
 
 export default function AppLayout() {
-  const { showHoldModal, setShowHoldModal, confirmHold } = usePos();
+  const { showHoldModal, setShowHoldModal, confirmHold, setSelectedItemIdx, setCart, cart, selectedItemIdx } = usePos();
 
   return (
     <div className="relative flex h-screen  overflow-hidden rounded-xl border border-gray-200" style={{ minHeight: 600 }}>
@@ -72,12 +73,22 @@ export default function AppLayout() {
         <div className="flex flex-1 overflow-hidden">
           {/* Page takes all remaining horizontal space */}
           <TooltipProvider>
-            {/* Page */}
             <div className="flex-1 overflow-y-auto min-w-0 p-4 bg-white dark:bg-background">
-              <PageContent />
-
+              {selectedItemIdx !== null && cart[selectedItemIdx] ? (
+                <ItemNumPadPanel
+                  item={cart[selectedItemIdx]}
+                  onQtyChange={(qty) => {
+                    setCart((prev) => prev.map((item, i) => (i === selectedItemIdx ? { ...item, qty } : item)));
+                  }}
+                  onDiscountChange={(disc) => {
+                    setCart((prev) => prev.map((item, i) => (i === selectedItemIdx ? { ...item, itemDiscount: disc } : item)));
+                  }}
+                  onClose={() => setSelectedItemIdx(null)}
+                />
+              ) : (
+                <PageContent />
+              )}
             </div>
-
             {/* Right Panel */}
             <RightPanel />
           </TooltipProvider>

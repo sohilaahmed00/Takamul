@@ -345,6 +345,38 @@ const GROUPS: Group[] = [
     label: "التقارير",
     pages: [
       {
+        id: "items_reports",
+        label: "تقارير الأصناف",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض",
+            subPermissions: [
+              {
+                id: "inventory",
+                label: "تقرير جرد الأصناف",
+                value: "reports.items.inventory",
+              },
+              {
+                id: "stock_alert",
+                label: "تقرير تنبيهات المخزون",
+                value: "reports.items.stock_alert",
+              },
+              {
+                id: "movement",
+                label: "تقرير حركة الصنف",
+                value: "reports.items.movement",
+              },
+              {
+                id: "top_selling",
+                label: "تقرير المنتج الأكثر مبيعًا",
+                value: "reports.items.top_selling",
+              },
+            ],
+          },
+        ],
+      },
+      {
         id: "sales_reports",
         label: "تقارير المبيعات",
         permissions: [
@@ -352,18 +384,137 @@ const GROUPS: Group[] = [
             id: "view",
             label: "عرض",
             subPermissions: [
-              { id: "view_daily", label: "عرض اليومي", value: "التقارير.المبيعات" },
-              { id: "view_monthly", label: "عرض الشهري", value: "التقارير.المبيعات" },
-              { id: "view_yearly", label: "عرض السنوي", value: "التقارير.المبيعات" },
+              {
+                id: "shifts",
+                label: "تقرير الورديات",
+                value: "reports.sales.shifts",
+              },
+              {
+                id: "item_sales",
+                label: "تقرير مبيعات صنف",
+                value: "reports.sales.item",
+              },
+              {
+                id: "daily_sales",
+                label: "إجمالي المبيعات على مستوى الأيام",
+                value: "reports.sales.daily",
+              },
+              {
+                id: "invoice_sales",
+                label: "إجمالي المبيعات على مستوى الفواتير",
+                value: "reports.sales.invoice",
+              },
+              {
+                id: "employee_sales",
+                label: "تقرير مبيعات موظف",
+                value: "reports.sales.employee",
+              },
             ],
           },
+        ],
+      },
+      {
+        id: "purchase_reports",
+        label: "تقارير المشتريات",
+        permissions: [
           {
-            id: "add",
-            label: "تصدير",
+            id: "view",
+            label: "عرض",
             subPermissions: [
-              { id: "export_pdf", label: "تصدير PDF", value: "التقارير.عرض" },
-              { id: "export_excel", label: "تصدير Excel", value: "التقارير.عرض" },
+              {
+                id: "item_purchases",
+                label: "تقرير مشتريات صنف",
+                value: "reports.purchases.item",
+              },
+              {
+                id: "daily_purchases",
+                label: "تقرير مشتريات على مستوى الأيام",
+                value: "reports.purchases.daily",
+              },
+              {
+                id: "invoice_purchases",
+                label: "تقرير مشتريات على مستوى الفواتير",
+                value: "reports.purchases.invoice",
+              },
             ],
+          },
+        ],
+      },
+      {
+        id: "customer_reports",
+        label: "تقارير العملاء",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض",
+            subPermissions: [
+              {
+                id: "customer_statement",
+                label: "تقرير كشف حساب عميل",
+                value: "reports.customers.statement",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "supplier_reports",
+        label: "تقارير الموردين",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض",
+            subPermissions: [
+              {
+                id: "supplier_statement",
+                label: "تقرير كشف حساب مورد",
+                value: "reports.suppliers.statement",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "expenses_reports",
+        label: "تقارير المصروفات",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض",
+            subPermissions: [
+              {
+                id: "expenses",
+                label: "تقرير المصروفات",
+                value: "reports.expenses.all",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "expenses_reports",
+        label: "تقارير المصروفات",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض",
+            subPermissions: [
+              {
+                id: "expenses",
+                label: "تقرير المصروفات",
+                value: "reports.expenses.all",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        id: "profits_reports",
+        label: "تقارير الأرباح",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض",
           },
         ],
       },
@@ -489,7 +640,6 @@ export default function PermissionsTree() {
     setChecked(newChecked);
   }, [detailsRole]);
 
-  
   const toggle = (set: Set<string>, key: string) => {
     const next = new Set(set);
     next.has(key) ? next.delete(key) : next.add(key);
