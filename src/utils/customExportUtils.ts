@@ -1,0 +1,726 @@
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+
+// =============================================
+// PDF Export - للتقارير (جداول وكشوفات)
+// =============================================
+export const exportCustomPDF = async (
+  title: string,
+  htmlString: string,
+  orientation: "portrait" | "landscape" = "portrait",
+  width: number = 794
+) => {
+  const iframe = document.createElement("iframe");
+  Object.assign(iframe.style, {
+    position: "fixed",
+    top: "-9999px",
+    left: "-9999px",
+    width: `${width}px`,
+    height: "2000px",
+    border: "none",
+    visibility: "hidden",
+  });
+  document.body.appendChild(iframe);
+
+  await new Promise<void>((resolve) => {
+    iframe.onload = () => resolve();
+    iframe.srcdoc = htmlString;
+  });
+
+  await iframe.contentDocument?.fonts.ready;
+  await new Promise((r) => setTimeout(r, 500));
+
+  const iframeBody = iframe.contentDocument!.body;
+  const actualHeight = iframeBody.scrollHeight;
+  iframe.style.height = `${actualHeight}px`;
+
+  const canvas = await html2canvas(iframeBody, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: "#ffffff",
+    logging: false,
+    windowWidth: width,
+    width: width,
+    height: actualHeight,
+  });
+
+  document.body.removeChild(iframe);
+
+  const imgData = canvas.toDataURL("image/png");
+  const pdf = new jsPDF({ orientation, unit: "px", format: "a4" });
+
+  const pdfW = pdf.internal.pageSize.getWidth();
+  const pdfH = pdf.internal.pageSize.getHeight();
+
+  const canvasRatio = canvas.height / canvas.width;
+  const imgH = pdfW * canvasRatio;
+
+  let yPos = 0;
+  let pageCount = 0;
+
+  while (yPos < imgH) {
+    if (pageCount > 0) pdf.addPage();
+    pdf.addImage(imgData, "PNG", 0, -yPos, pdfW, imgH);
+    yPos += pdfH;
+    pageCount++;
+  }
+
+  const blob = pdf.output("blob");
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${title}_${Date.now()}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+};
+
+// =============================================
+// Print Voucher - سند قبض / صرف (ورقة واحدة A4)
+// =============================================
+export const printVoucher = (htmlString: string) => {
+  // حقن print CSS قبل تحميل الـ iframe
+  const printCSS = `
+    @page {
+      size: A4 portrait;
+      margin: 10mm 12mm;
+    }
+    @media print {
+      html, body {
+        width: 210mm !important;
+        max-width: 210mm !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  `;
+
+  const injected = htmlString.includes("</head>")
+    ? htmlString.replace("</head>", `<style>${printCSS}</style></head>`)
+    : `<style>${printCSS}</style>` + htmlString;
+
+  const iframe = document.createElement("iframe");
+
+  // ← التغيير الأساسي: عرض حقيقي بدل صفر حتى يحسب المتصفح الـ layout صح
+  Object.assign(iframe.style, {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    width: "210mm",
+    height: "297mm",
+    border: "none",
+    opacity: "0",           // مخفي بصرياً لكن له layout
+    zIndex: "-9999",
+    pointerEvents: "none",
+  });
+
+  document.body.appendChild(iframe);
+
+  iframe.onload = async () => {
+    const doc = iframe.contentDocument!;
+    await doc.fonts.ready;
+    // انتظر تحميل الخط من Google Fonts
+    await new Promise((r) => setTimeout(r, 800));
+
+    // force layout recalc قبل الطباعة
+    iframe.contentDocument!.body.getBoundingClientRect();
+
+    iframe.contentWindow!.focus();
+    iframe.contentWindow!.print();
+
+    // إزالة الـ iframe بعد الطباعة
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+      }
+    }, 2000);
+  };
+
+  iframe.srcdoc = injected;
+};
+
+// =============================================
+// Export Voucher as PDF - سند قبض / صرف
+// =============================================
+export const exportVoucherPDF = (title: string, htmlString: string) => {
+  const iframe = document.createElement("iframe");
+  Object.assign(iframe.style, {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    width: "210mm",
+    height: "297mm",
+    border: "none",
+    opacity: "0",
+    zIndex: "-9999",
+    pointerEvents: "none",
+  });
+
+  const htmlWithPrint = htmlString.replace(
+    "</body>",
+    `<script>
+      document.fonts.ready.then(() => {
+        setTimeout(() => {
+          window.print();
+        }, 800);
+      });
+    </script>
+    </body>`
+  );
+
+  document.body.appendChild(iframe);
+
+  iframe.onload = () => {
+    setTimeout(() => {
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+      }
+    }, 5000);
+  };
+
+  iframe.srcdoc = htmlWithPrint;
+};
+
+// =============================================
+// printCustomHTML - للتقارير العامة
+// =============================================
+export const printCustomHTML = (title: string, htmlString: string) => {
+  printVoucher(htmlString);
+};
+
+// =============================================
+// Voucher HTML Template
+// =============================================
+const gStyles = `
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Cairo', Arial, sans-serif;
+    padding: 30px 45px;
+    background: #fff;
+    color: #1a1a1a;
+    width: 794px;
+    margin: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+  @media print {
+    body { padding: 15px; width: 100%; }
+    @page { margin: 10mm; }
+  }
+  .header {
+    text-align: center;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+  }
+  .header h1 { font-size: 22px; font-weight: 700; color: #0f172a; }
+  .header p { font-size: 13px; color: #475569; margin-top: 6px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  th {
+    background: #f8fafc;
+    padding: 12px 10px;
+    border: 1px solid #e2e8f0;
+    font-weight: 700;
+    text-align: center;
+    color: #334155;
+  }
+  td {
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    text-align: center;
+    color: #0f172a;
+  }
+  tr:nth-child(even) td { background: #fdfdfd; }
+  .badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 9999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  @media print {
+    body {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    .s-box.blue { background-color: #3b82f6 !important; }
+    .s-box.green { background-color: #10b981 !important; }
+    .s-box.orange { background-color: #f97316 !important; }
+  }
+`;
+
+export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any) => {
+  const isReceipt = type === "receipt";
+  const arTitle = isReceipt ? t("receipt_bond", "سند قبض") : t("payment_bond", "سند صرف");
+  const enTitle = isReceipt ? "RECEIPT VOUCHER" : "PAYMENT VOUCHER";
+  const arPartyLabel = isReceipt
+    ? t("received_from", "استلمنا من السيد / السادة :")
+    : t("to_mrs", "يصرف للسيد / السادة :");
+  const enPartyLabel = isReceipt ? "Received From M/s." : "Pay To M/s.";
+  const amountStr = Number(data.amount || 0).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+  });
+
+  return `<!DOCTYPE html>
+<html dir="${t("dir", "rtl")}" lang="${t("lang", "ar")}">
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm 10mm;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html {
+      /* ← التغيير: بدل 210mm نخلي html يملا الـ viewport اللي هو الـ iframe */
+      width: 100%;
+    }
+
+    body {
+      font-family: 'Cairo', Arial, sans-serif;
+      background: #fff;
+      color: #000;
+      /* ← التغيير: نسبة مئوية بدل mm الثابتة عشان يتوافق مع عرض الـ iframe */
+      width: 100%;
+      margin: 0 auto;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* ← إضافة: تأكيد الـ layout عند الطباعة */
+    @media print {
+      html, body {
+        width: 100% !important;
+        direction: rtl;
+      }
+      .voucher-border {
+        width: 100% !important;
+        border: 3px double #3b3b3b !important;
+      }
+    }
+
+    .voucher-border {
+      border: 3px double #3b3b3b;
+      padding: 12mm 10mm;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .header-grid {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+    .logo-box {
+      width: 25%;
+      text-align: center;
+      font-weight: 800;
+      font-size: 15px;
+      color: #333;
+    }
+    .title-box {
+      width: 50%;
+      text-align: center;
+    }
+    .title-box h1 {
+      font-size: 22px;
+      font-weight: 800;
+      border: 2px solid #333;
+      border-radius: 10px;
+      display: inline-block;
+      padding: 2px 22px;
+      margin-bottom: 4px;
+    }
+    .title-box p {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+    }
+    .sub-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .meta-data table {
+      width: auto;
+      font-size: 12px;
+      font-weight: 700;
+      border: none;
+      border-collapse: collapse;
+    }
+    .meta-data td, .meta-data th {
+      border: none;
+      padding: 3px 5px;
+      text-align: right;
+    }
+    .amount-display {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .amount-display-inner {
+      border: 2px solid #333;
+      padding: 4px 14px;
+      font-size: 17px;
+      font-weight: 800;
+      min-width: 120px;
+      text-align: center;
+      background: #fdfbf7 !important;
+    }
+    .amount-display-labels {
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .content-rows { margin-bottom: 16px; }
+    .c-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .c-label-ar { white-space: nowrap; padding-left: 6px; }
+    .c-value {
+      flex: 1;
+      border-bottom: 1px dotted #666;
+      text-align: center;
+      padding: 0 6px 2px;
+      color: #111;
+    }
+    .c-label-en {
+      white-space: nowrap;
+      padding-right: 6px;
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+    }
+    .signatures {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 25px;
+      padding: 0 8px;
+    }
+    .sig-col {
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      width: 30%;
+    }
+    .sig-line {
+      border-bottom: 1px solid #333;
+      margin-top: 30px;
+      width: 80%;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="voucher-border">
+    <div class="header-grid" dir="rtl">
+      <div class="logo-box" style="display:flex;flex-direction:column;align-items:center;">
+        <div style="font-size:18px;color:#1e3a8a;font-weight:900;">${t("takamul_data", "تكامل البيانات")}</div>
+      </div>
+      <div class="title-box">
+        <h1>${arTitle}</h1>
+        <p>${enTitle}</p>
+      </div>
+      <div class="logo-box" style="display:flex;flex-direction:column;align-items:center;">
+        <div style="width:38px;height:38px;border:3px solid #1e3a8a;border-radius:50%;display:inline-block;line-height:32px;font-size:22px;font-weight:900;color:#1e3a8a;text-align:center;">T</div>
+      </div>
+    </div>
+
+    <div class="sub-header" dir="rtl">
+      <div class="meta-data">
+        <table>
+          <tr>
+            <th>${t("date", "التاريخ")} :</th>
+            <td style="border-bottom:1px dotted #333;width:85px;text-align:center;">
+              ${new Date(data.transactionDate || Date.now()).toLocaleDateString("en-GB")}
+            </td>
+            <th style="font-family:Arial;font-size:10px;">: Date</th>
+          </tr>
+          <tr>
+            <th>${t("number", "رقم")} :</th>
+            <td style="border-bottom:1px dotted #333;width:85px;text-align:center;">${data.id || "-"}</td>
+            <th style="font-family:Arial;font-size:10px;">: No</th>
+          </tr>
+        </table>
+      </div>
+      <div class="amount-display">
+        <div class="amount-display-labels">
+          <div>${t("currency", "ريال")}</div>
+          <div>S. R.</div>
+        </div>
+        <div class="amount-display-inner">${amountStr}</div>
+      </div>
+    </div>
+
+    <div class="content-rows" dir="rtl">
+      <div class="c-row">
+        <div class="c-label-ar">${arPartyLabel}</div>
+        <div class="c-value">${data.partyName || data.customerName || data.supplierName || "-"}</div>
+        <div class="c-label-en" dir="ltr">${enPartyLabel}</div>
+      </div>
+      <div class="c-row">
+        <div class="c-label-ar">${t("the_sum_of", "مبلغ وقدره :")}</div>
+        <div class="c-value">${amountStr}</div>
+        <div class="c-label-en" dir="ltr">The sum of S.R.</div>
+      </div>
+      <div class="c-row">
+        <div class="c-label-ar">${t("being", "وذلك عن / يمثل :")}</div>
+        <div class="c-value">${data.description || "-"}</div>
+        <div class="c-label-en" dir="ltr">Being</div>
+      </div>
+      <div class="c-row">
+        <div class="c-label-ar">${t("bank_cash", "طريقة الدفع / البنك :")}</div>
+        <div class="c-value">${data.treasuryName || t("cash", "نقداً")}</div>
+        <div class="c-label-en" dir="ltr">Bank / Cash</div>
+      </div>
+    </div>
+
+    <div class="signatures" dir="rtl">
+      <div class="sig-col">
+        <div><span dir="ltr">Accountant</span> ${t("accountant", "المحاسب")}</div>
+        <div class="sig-line"></div>
+      </div>
+      <div class="sig-col">
+        <div><span dir="ltr">Receiver</span> ${t("receiver", "المستلم")}</div>
+        <div class="sig-line"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+};
+
+// =============================================
+// Treasury Statement
+// =============================================
+export const getTreasuryHTML = (title: string, filtersInfo: string, data: any[], columns: any[], t: any) => {
+  const tableRows = data.map((row, i) => {
+    return `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${row.type || "-"}</td>
+        <td>${row.date ? new Date(row.date).toLocaleDateString("en-GB") : "-"}</td>
+        <td>${row.number || "-"}</td>
+        <td>${row.partyName || "-"}</td>
+        <td style="color:#d97706;font-weight:700;">${row.debit > 0 ? Number(row.debit).toLocaleString() : (row.credit > 0 ? Number(row.credit).toLocaleString() : "-")}</td>
+        <td style="font-weight:bold;color:#059669;">
+          ${row.balance > 0 ? '<span style="color:#1d4ed8;">↑</span>' : '<span style="color:#dc2626;">↓</span>'}
+          ${Number(row.balance).toLocaleString()}
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  return `
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="UTF-8"/>
+      <link rel="preconnect" href="https://fonts.googleapis.com"/>
+      <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet"/>
+      <style>${gStyles}</style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>${title}</h1>
+        <p>${filtersInfo}</p>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>${t("serial","م")}</th>
+            <th>${t("movement_type","نوع الحركة")}</th>
+            <th>${t("date","التاريخ")}</th>
+            <th>${t("document_number","رقم المستند")}</th>
+            <th>${t("party_name","اسم الجهة")}</th>
+            <th>${t("amount","المبلغ")}</th>
+            <th>${t("balance","الرصيد")}</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </body>
+    </html>
+  `;
+};
+
+// =============================================
+// Account Statement
+// =============================================
+export const getAccountStatementHTML = (
+  title: string,
+  partyInfo: { name: string; label: string },
+  filtersInfo: string,
+  summary: { total1: number; label1: string; total2: number; label2: string; total3: number; label3: string; tableCol1?: string; tableCol2?: string },
+  data: any[],
+  t: any
+) => {
+  const tableRows = data.map((row, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${row.date ? new Date(row.date).toLocaleString("en-GB") : "-"}</td>
+      <td>${row.type || "-"}<br/><small style="color:#666">${row.reference || ""}</small></td>
+      <td style="color:#dc2626;font-weight:600;">${row.debit > 0 ? Number(row.debit).toLocaleString() : "-"}</td>
+      <td style="color:#059669;font-weight:600;">${row.credit > 0 ? Number(row.credit).toLocaleString() : "-"}</td>
+    </tr>
+  `).join("");
+
+  return `
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="UTF-8"/>
+      <link rel="preconnect" href="https://fonts.googleapis.com"/>
+      <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet"/>
+      <style>
+        ${gStyles}
+        .summary-boxes { display:flex; gap:15px; margin-bottom:30px; }
+        .s-box { flex:1; color:#fff !important; padding:15px; border-radius:12px; text-align:center; }
+        .s-box h4 { font-size:14px; opacity:0.9; margin-bottom:5px; font-weight:600; color:#fff !important; }
+        .s-box h2 { font-size:24px; font-weight:700; margin:0; color:#fff !important; }
+      </style>
+    </head>
+    <body style="-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
+      <table style="border:none;margin-bottom:25px;border-bottom:2px solid #e2e8f0;padding-bottom:15px;width:100%;">
+        <tr>
+          <td style="width:33%;border:none;text-align:right;vertical-align:top;">
+            <table style="width:auto;border:none;float:right;margin:0;">
+              <tr>
+                <th style="padding:4px 10px;border:none;font-size:14px;background:transparent;text-align:right;color:#475569;">${partyInfo.label}:</th>
+                <td style="font-weight:bold;padding:4px 10px;border:none;font-size:14px;text-align:left;">${partyInfo.name}</td>
+              </tr>
+            </table>
+          </td>
+          <td style="width:34%;border:none;text-align:center;vertical-align:top;">
+            <h2 style="font-size:24px;font-weight:800;color:#0f172a;margin-bottom:5px;margin-top:0;">${title}</h2>
+            <p style="font-size:14px;color:#475569;font-weight:600;margin:0;">${t("account_statement","Account Statement")}</p>
+          </td>
+          <td style="width:33%;border:none;text-align:left;vertical-align:top;">
+            <div style="background:#f8fafc !important;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;text-align:right;direction:rtl;display:inline-block;">
+              ${filtersInfo}
+            </div>
+          </td>
+        </tr>
+      </table>
+      <div class="summary-boxes" dir="rtl">
+        <div class="s-box blue" style="background-color:#3b82f6 !important;">
+          <h4>${summary.label3}</h4><h2>${Number(summary.total3).toLocaleString()}</h2>
+        </div>
+        <div class="s-box green" style="background-color:#10b981 !important;">
+          <h4>${summary.label2}</h4><h2>${Number(summary.total2).toLocaleString()}</h2>
+        </div>
+        <div class="s-box orange" style="background-color:#f97316 !important;">
+          <h4>${summary.label1}</h4><h2>${Number(summary.total1).toLocaleString()}</h2>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>${t("serial","م")}</th>
+            <th>${t("date","التاريخ")}</th>
+            <th>${t("type","النوع")}</th>
+            <th>${summary.tableCol1 || summary.label1}</th>
+            <th>${summary.tableCol2 || summary.label2}</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    </body>
+    </html>
+  `;
+};
+
+// =============================================
+// Quantity Adjustments
+// =============================================
+export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direction: "rtl" | "ltr" = "rtl") => {
+  const tableRows = lines.map((row, i) => {
+    const typeTranslated = row.type === "IN"
+      ? t("in", "إضافة")
+      : row.type === "OUT"
+      ? t("out", "خصم")
+      : t(row.type?.toLowerCase() || "", row.type || "-");
+    return `
+      <tr>
+        <td>${i + 1}</td>
+        <td>${row.productName || "-"}<br/><small style="color:#666">${row.barcode || ""}</small></td>
+        <td>${typeTranslated}</td>
+        <td style="font-weight:700;">${Number(row.quantity || 0).toLocaleString()}</td>
+      </tr>
+    `;
+  }).join("");
+
+  const totalQty = lines.reduce((s, r) => s + Number(r.quantity || 0), 0);
+
+  return `
+    <!DOCTYPE html>
+    <html dir="${t("dir","rtl")}" lang="${t("lang","ar")}">
+    <head>
+      <meta charset="UTF-8"/>
+      <link rel="preconnect" href="https://fonts.googleapis.com"/>
+      <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet"/>
+      <style>
+        ${gStyles}
+        .header-boxes { display:flex; justify-content:center; gap:40px; margin-bottom:30px; }
+        .h-box { text-align:center; width:150px; }
+        .h-box .title { font-weight:700; margin-bottom:8px; }
+        .h-box .value { border:1px solid #e2e8f0; padding:8px; border-radius:6px; background:#f8fafc; }
+        .footer-info { margin-top:30px; display:flex; flex-direction:column; align-items:flex-start; gap:10px; }
+        .summary-total { border:1px solid #000; display:flex; font-weight:700; }
+        .summary-total div { padding:8px 15px; }
+        .summary-total div:first-child { border-left:1px solid #000; }
+      </style>
+    </head>
+    <body>
+      <div style="text-align:center;margin-bottom:40px;">
+        <h2 style="font-size:20px;font-weight:800;">${t("quantity_adjustments","تعديلات كمية")}</h2>
+      </div>
+      <div class="header-boxes">
+        <div class="h-box">
+          <div class="title">${t("warehouse","المخزن")}</div>
+          <div class="value">${data.warehouseName || "-"}</div>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>${t("serial","م")}</th>
+            <th>${direction === "ltr" ? "Barcode / Name" : "باركود / اسم"}</th>
+            <th>${t("type","نوع")}</th>
+            <th>${t("quantity","كمية")}</th>
+          </tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+      <div class="footer-info">
+        <div class="summary-total">
+          <div>${totalQty}</div>
+          <div>${t("total_quantities","إجمالي الكميات")}</div>
+        </div>
+        <div style="margin-top:20px;font-size:14px;color:#333;">
+          <div>${t("data_entry","مدخل البيانات")} : ${data.performedBy || "-"}</div>
+          <div>${t("date","التاريخ")} : ${data.operationDate ? new Date(data.operationDate).toLocaleString("en-GB") : "-"}</div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
