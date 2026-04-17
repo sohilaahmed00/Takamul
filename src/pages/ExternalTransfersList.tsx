@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Search, WalletCards, CalendarDays, ReceiptText, UserRound, CreditCard, Filter, RotateCcw } from "lucide-react";
+import { Search, WalletCards, CalendarDays, ReceiptText, UserRound, CreditCard, Filter, RotateCcw, Printer, FileText, FileSpreadsheet } from "lucide-react";
 import { DataTable, type DataTablePageEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,8 @@ import ComboboxField from "@/components/ui/ComboboxField";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetTreasuryStatement } from "@/features/treasury-statement/hooks/useGetTreasuryStatement";
 import { Label } from "@/components/ui/label";
+import { exportToExcel } from "@/utils/exportUtils";
+import { exportCustomPDF, printCustomHTML, getTreasuryHTML } from "@/utils/customExportUtils";
 
 import { Input } from "@/components/ui/input";
 
@@ -109,6 +111,46 @@ export default function ExternalTransfersList() {
 
   const selectedTreasuryName = treasurys?.find((item) => item.id === submittedFilters.treasuryId)?.name || "";
 
+  const title = t("treasury_statement");
+
+  const getFiltersInfo = () => {
+    return `${t("treasury")}: ${selectedTreasuryName || t("all")} | ${t("from_date")}: ${submittedFilters.from || "-"} | ${t("to_date")}: ${submittedFilters.to || "-"}`;
+  };
+
+  const handleExportExcel = () => {
+    if (!rows.length) return;
+    const excelData = rows.map((r, i) => ({
+      [t("serial", "م")]: i + 1,
+      [t("movement_type", "نوع الحركة")]: r.type,
+      [t("date", "التاريخ")]: formatDate(r.date),
+      [t("document_number", "رقم المستند")]: r.number,
+      [t("party_name", "اسم الجهة")]: r.partyName,
+      [t("debit", "مدين")]: r.debit,
+      [t("credit", "دائن")]: r.credit,
+      [t("balance", "الرصيد")]: r.balance,
+    }));
+    exportToExcel(excelData, title, t, direction);
+  };
+
+  const [pdfLoading, setPdfLoading] = useState(false);
+
+  const handleExportPDF = async () => {
+    if (!rows.length) return;
+    setPdfLoading(true);
+    try {
+      const htmlString = getTreasuryHTML(title, getFiltersInfo(), rows, [], t);
+      await exportCustomPDF(title, htmlString);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handlePrint = () => {
+    if (!rows.length) return;
+    const htmlString = getTreasuryHTML(title, getFiltersInfo(), rows, [], t);
+    printCustomHTML(title, htmlString);
+  };
+
   return (
     <div dir={direction}>
       <style>
@@ -133,13 +175,29 @@ export default function ExternalTransfersList() {
       </style>
 
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <WalletCards size={20} className="text-[var(--primary)]" />
-            {t("treasury_statement")}
-          </CardTitle>
+        <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <WalletCards size={20} className="text-[var(--primary)]" />
+              {title}
+            </CardTitle>
+            <CardDescription>{t("customize_report_below")}</CardDescription>
+          </div>
 
-          <CardDescription>{t("customize_report_below")}</CardDescription>
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <button onClick={handlePrint} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <Printer size={16} />
+              <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            </button>
+            <button onClick={handleExportPDF} disabled={pdfLoading} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileText size={16} />
+              <span className="hidden sm:inline">{pdfLoading ? "تحميل..." : "PDF"}</span>
+            </button>
+            <button onClick={handleExportExcel} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileSpreadsheet size={16} />
+              <span className="hidden sm:inline">Excel</span>
+            </button>
+          </div>
         </CardHeader>
 
         <CardContent className="space-y-5">
