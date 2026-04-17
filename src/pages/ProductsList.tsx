@@ -215,26 +215,7 @@ export default function ProductsList() {
             <Column field="balance" sortable header={"الكمية"} />
             <Column field="barcode" sortable header={"الباركود"} />
             <Column field="costPrice" sortable header={"سعر الشراء"} />
-            <Column
-              header="قيمة الضريبة"
-              body={(row: Product) => {
-                const qty = row.balance > 0 ? row.balance : 1;
-                const price = row.sellingPrice * qty;
-                const rate = row.taxAmount / 100;
-
-                let tax = 0;
-
-                if (row.taxCalculation === 1) {
-                  tax = 0;
-                } else if (row.taxCalculation === 2) {
-                  tax = price - price / (1 + rate);
-                } else if (row.taxCalculation === 3) {
-                  tax = price * rate;
-                }
-
-                return tax.toFixed(2);
-              }}
-            />
+         
             <Column field="sellingPrice" sortable header={"سعر البيع"} />
 
             {activeTab == "allProducts" && (

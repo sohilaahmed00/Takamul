@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { GetAllCustomersResponse } from "../types/customers.types";
 import { customersKeys } from "../keys/customers.keys";
 import { getAllCustomers } from "../services/customers";
+import { handleEmptyResponse } from "@/lib/handleEmptyResponse";
 
 type GetAllCustomersParams = {
   page?: number;
@@ -12,5 +13,11 @@ type GetAllCustomersParams = {
 export const useGetAllCustomers = ({ page = 1, limit = 100, searchTerm }: GetAllCustomersParams = {}) =>
   useQuery<GetAllCustomersResponse>({
     queryKey: customersKeys.list({ page, limit, searchTerm }),
-    queryFn: () => getAllCustomers({ page, limit, searchTerm }),
+    queryFn: async () => {
+      try {
+        return await getAllCustomers({ page, limit, searchTerm });
+      } catch (err) {
+        return handleEmptyResponse(err, { page, limit });
+      }
+    },
   });
