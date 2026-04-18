@@ -599,7 +599,7 @@ export default function AddProduct() {
                 )}
 
                 {productType !== "RawMatrial" && (
-                  <div className="col-span-2">
+                  <div className={`${productType == "Direct" && "col-span-2"}`}>
                     <Controller
                       name="BaseUnit"
                       control={control}
