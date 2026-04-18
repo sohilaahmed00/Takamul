@@ -215,7 +215,7 @@ export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps
                       }}
                       className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 hover:border-blue-400 hover:text-blue-500 text-gray-400 transition-colors shrink-0"
                     >
-                      <Printer size={13} />
+                      {order?.orderStatus == "Confirmed" ? <Printer size={13} /> : <Eye size={13} />}
                     </button>
                   </button>
                 );
