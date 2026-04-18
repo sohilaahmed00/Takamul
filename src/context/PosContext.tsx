@@ -352,9 +352,9 @@ export function PosProvider({ children }: { children: ReactNode }) {
         })),
       };
 
-      // await printPreparationBon(sampleBon);
-      // await sleep(1500);
       await printInvoice(invoiceData);
+      await sleep(1500);
+      await printPreparationBon(sampleBon);
 
       setSuccessInfo({ method, amount });
       setCart([]);
