@@ -25,11 +25,12 @@ export default function Topbar2() {
   const [openDialog, setOpenDialog] = useState(false);
   const [balanceSelectedCustomer, setBalanceSelectedCustomer] = useState<number | null>(null);
   const { t } = useLanguage();
-    useEffect(() => {
-      if (customers) {
-        setSelectedCustomer(customers?.items[0]);
-      }
-    }, [customers]);
+  useEffect(() => {
+    if (customers) {
+      setSelectedCustomer(customers?.items[0]);
+      setBalanceSelectedCustomer(customers?.items[0].balance);
+    }
+  }, [customers]);
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
