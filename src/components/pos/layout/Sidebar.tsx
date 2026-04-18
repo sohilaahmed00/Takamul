@@ -41,17 +41,13 @@ const STATUS_MAP: Record<OrderStatusType, string | null> = {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps) {
-  const { setSelectedOrderId, setCart, selectedCustomer } = usePos();
-
+export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
+  const { setSelectedOrderId, selectedCustomer } = usePos();
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [entriesPerPage] = useState(20);
-
   const { data: orders } = useGetAllSales({
-    page: currentPage,
-    limit: entriesPerPage,
+    page: 1,
+    limit: 10,
     OrderType: "POS",
   });
 
@@ -66,15 +62,12 @@ export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps
     });
   }, [orders, search, activeStatus]);
 
-  // reset page when tab/search changes
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [activeStatus, search]);
+  // useEffect(() => {
+  //   setCurrentPage(1);
+  // }, [activeStatus, search]);
 
   const handleSelect = (order: SalesOrder) => {
     setSelectedOrderId(order.id);
-    onSelect?.(order);
-    onOpenChange(false);
   };
 
   return (
@@ -136,7 +129,11 @@ export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps
               {filtered.map((order: SalesOrder) => {
                 const badge = STATUS_BADGE[order.orderStatus] ?? fallbackBadge;
                 return (
-                  <button key={order.id} onClick={() => handleSelect(order)} className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-blue-50 transition-colors text-right w-full">
+                  <button
+                    key={order.id}
+                  
+                    className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-blue-50 transition-colors text-right w-full"
+                  >
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${badge.cls || "bg-sky-100 text-sky-600"}`}>
                       <FileText size={14} />
                     </div>
@@ -172,8 +169,6 @@ export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps
                     <button
                       onClick={async (e) => {
                         e.stopPropagation();
-                        setSelectedOrderId(order.id);
-                        onOpenChange(false);
                         const invoiceData: InvoiceData = {
                           logoUrl: LOGO_URL,
                           invoiceNumber: `—`,
@@ -224,19 +219,6 @@ export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps
           )}
         </div>
 
-        {/* ── Pagination ── */}
-        {(orders?.totalCount ?? 0) > entriesPerPage && (
-          <div className="px-4 py-2 border-t border-gray-100 bg-white shrink-0 flex items-center justify-center gap-2">
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)} className="text-[11px] px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-40 transition-colors">
-              السابق
-            </button>
-            <span className="text-[11px] text-gray-500">صفحة {currentPage}</span>
-            <button disabled={currentPage * entriesPerPage >= (orders?.totalCount ?? 0)} onClick={() => setCurrentPage((p) => p + 1)} className="text-[11px] px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 disabled:opacity-40 transition-colors">
-              التالي
-            </button>
-          </div>
-        )}
-
         {/* ── Footer ── */}
         <div className="px-4 py-2.5 border-t border-gray-100 bg-white shrink-0 flex items-center justify-between">
           <span className="text-[11px] text-gray-400">{filtered.length} طلب</span>
@@ -281,7 +263,7 @@ export default function Sidebar() {
 
         <div className="flex-1" />
       </div>
-      <OrdersDialog open={open} onOpenChange={setOpen} onSelect={(order) => console.log(order)} />
+      <OrdersDialog open={open} onOpenChange={setOpen} />
     </>
   );
 }

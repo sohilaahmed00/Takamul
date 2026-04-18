@@ -11,7 +11,6 @@ import { Input } from "@/components/ui/input";
 
 export default function OrdersPage() {
   const { setSelectedOrderId, selectedOrderId } = usePos();
-
   const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const { data: orders } = useGetAllSales({
