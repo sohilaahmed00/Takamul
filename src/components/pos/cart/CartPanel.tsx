@@ -704,7 +704,14 @@ export function CashierDialog({ open, onOpenChange, onCancel }: { open: boolean;
               </Button>
             ))}
 
-            <Button onClick={() => handleConfirmPayment("Cash", total.toFixed(2))} size="sm" className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white">
+            <Button
+              onClick={() => {
+                handleConfirmPayment("Cash", total.toFixed(2));
+                onOpenChange(false);
+              }}
+              size="sm"
+              className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white"
+            >
               <Printer size={13} />
               حفظ وطباعة فاتورة
             </Button>
