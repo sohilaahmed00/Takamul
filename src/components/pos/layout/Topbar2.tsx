@@ -23,7 +23,7 @@ export default function Topbar2() {
   const { data: treasurys } = useGetAllTreasurys();
   const { selectedCustomer, setSelectedCustomer } = usePos();
   const [openDialog, setOpenDialog] = useState(false);
-
+  const [balanceSelectedCustomer, setBalanceSelectedCustomer] = useState<number | null>(null);
   const { t } = useLanguage();
 
   const toggleFullScreen = () => {
@@ -99,8 +99,7 @@ export default function Topbar2() {
           {/* ══ فاصل ══ */}
           <div className="h-px bg-gray-100" />
 
-          {/* ══ الصف السفلي: الحقول ══ */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 items-end">
+          <div className="grid grid-cols-2 sm:grid-cols-4  lg:grid-cols-[minmax(0,1fr)_150px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-3 items-end">
             {/* اختر العميل */}
             <div className="flex items-end gap-2">
               <Button size="icon-lg" className="border-[#000052] hover:bg-[#000052]/10 text-[#000052]!" variant="outline" onClick={() => setOpenDialog(true)}>
@@ -114,6 +113,7 @@ export default function Topbar2() {
                   onChange={(val) => {
                     const c = customers?.items?.find((c) => String(c.id) === String(val));
                     if (c) setSelectedCustomer(c);
+                    setBalanceSelectedCustomer(c?.balance);
                   }}
                   items={customers?.items}
                   valueKey="id"
@@ -121,6 +121,10 @@ export default function Topbar2() {
                   placeholder={t("choose_customer")}
                 />
               </div>
+            </div>
+            <div className="flex flex-col gap-1">
+              <Label className="text-[10px] text-[#000052]">رصيد العميل</Label>
+              <Input value={balanceSelectedCustomer} readOnly={true} className="text-center cursor-not-allowed text-[11px] bg-white border-[#000052] text-[#000052]" />
             </div>
 
             {/* وقت وتاريخ الاستلام */}
