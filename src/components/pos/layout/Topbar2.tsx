@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +25,11 @@ export default function Topbar2() {
   const [openDialog, setOpenDialog] = useState(false);
   const [balanceSelectedCustomer, setBalanceSelectedCustomer] = useState<number | null>(null);
   const { t } = useLanguage();
+    useEffect(() => {
+      if (customers) {
+        setSelectedCustomer(customers?.items[0]);
+      }
+    }, [customers]);
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {

@@ -738,7 +738,11 @@ export default function CartPanel() {
   const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
   const [cashierOpen, setCashierOpen] = useState(false);
-
+  useEffect(() => {
+    if (customers) {
+      setSelectedCustomer(customers?.items[0]);
+    }
+  }, [customers]);
   const changeQty = (idx: number, d: number) => setCart((p) => p.map((item, i) => (i === idx ? { ...item, qty: Math.max(1, d) } : item)));
 
   // ── per-item discount ──────────────────────────────────────────────────────
