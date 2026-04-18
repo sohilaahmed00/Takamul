@@ -14,6 +14,8 @@ import { PlaceholderPage } from "../pages/PlaceholderPage";
 import { ToastContainer } from "react-toastify";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ItemNumPadPanel } from "../cart/Itemnumpadpanel";
+import { useEffect } from "react";
+import { initQZ } from "@/lib/qzService";
 
 function PageContent() {
   const { screen } = usePos();
@@ -42,7 +44,17 @@ function PageContent() {
 
 export default function AppLayout() {
   const { showHoldModal, setShowHoldModal, confirmHold, setSelectedItemIdx, setCart, cart, selectedItemIdx } = usePos();
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await initQZ();
+      } catch (err) {
+        console.error("QZ init error:", err);
+      }
+    };
 
+    init();
+  }, []);
   return (
     <div className="relative flex h-screen overflow-hidden py-2 bg-[#000052]">
       <ToastContainer pauseOnHover={false} />
