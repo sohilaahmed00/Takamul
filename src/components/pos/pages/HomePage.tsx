@@ -150,7 +150,7 @@ export default function HomePage() {
         {filteredProducts?.map((item, i) => (
           <>
             <div key={i} onClick={() => handleMenuClick(item)} className="bg-white rounded-xl overflow-hidden pt-1 pb-2.5 px-0 text-center border border-primary/40 cursor-pointer hover:shadow-sm  transition-all">
-              <div className="w-full px-2 max-w-full h-16 rounded-lg  bg-primary/5 mx-auto mb-2 flex items-center justify-center overflow-hidden">{item.imageUrl ? <img src={item.imageUrl} alt={getProductName(item)} className="w-full h-full object-cover " /> : <span className="text-2xl"></span>}</div>
+              <div className="w-full px-2 max-w-full h-16 rounded-lg  bg-primary/5 mx-auto mb-2 flex items-center justify-center overflow-hidden">{item.imageUrl ? <img src={item.imageUrl} alt={getProductName(item)} className="w-full h-full object-contain " /> : <span className="text-2xl"></span>}</div>
               <div className="text-xs font-semibold text-gray-700 mb-0.5 leading-tight">{getProductName(item)}</div>
               <div className="text-xs font-bold text-primary flex items-center justify-center flex-row-reverse gap-x-1">
                 <SaudiRiyal size={14} />
