@@ -95,75 +95,9 @@ export default function HomePage() {
   return (
     <div className="flex-1  overflow-y-auto h-full">
       <div className="border-b border-b-gray-300 p-3   space-y-4">
-        <div className="flex gap-1.5 justify-center  flex-wrap  ">
+        <div className={`flex gap-1.5 ${mainCategories?.length > 6 && " justify-center"}  flex-wrap`}>
           {mainCategories?.map((c) => (
             <>
-              <button
-                key={c.id}
-                onClick={() => {
-                  setCurrentCat(c.id === currentCat ? null : c.id);
-                  setCurrentSubCat(null);
-                }}
-                className={`px-9.5 py-3 rounded-full text-sm border transition-colors
-              ${c.id === currentCat ? "bg-primary text-white border-primary font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/40"}`}
-              >
-                {getCategoryName(c)}
-              </button>
-              <button
-                key={c.id}
-                onClick={() => {
-                  setCurrentCat(c.id === currentCat ? null : c.id);
-                  setCurrentSubCat(null);
-                }}
-                className={`px-9.5 py-3 rounded-full text-sm border transition-colors
-              ${c.id === currentCat ? "bg-primary text-white border-primary font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/40"}`}
-              >
-                {getCategoryName(c)}
-              </button>
-              <button
-                key={c.id}
-                onClick={() => {
-                  setCurrentCat(c.id === currentCat ? null : c.id);
-                  setCurrentSubCat(null);
-                }}
-                className={`px-9.5 py-3 rounded-full text-sm border transition-colors
-              ${c.id === currentCat ? "bg-primary text-white border-primary font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/40"}`}
-              >
-                {getCategoryName(c)}
-              </button>
-              <button
-                key={c.id}
-                onClick={() => {
-                  setCurrentCat(c.id === currentCat ? null : c.id);
-                  setCurrentSubCat(null);
-                }}
-                className={`px-9.5 py-3 rounded-full text-sm border transition-colors
-              ${c.id === currentCat ? "bg-primary text-white border-primary font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/40"}`}
-              >
-                {getCategoryName(c)}
-              </button>
-              <button
-                key={c.id}
-                onClick={() => {
-                  setCurrentCat(c.id === currentCat ? null : c.id);
-                  setCurrentSubCat(null);
-                }}
-                className={`px-9.5 py-3 rounded-full text-sm border transition-colors
-              ${c.id === currentCat ? "bg-primary text-white border-primary font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/40"}`}
-              >
-                {getCategoryName(c)}
-              </button>
-              <button
-                key={c.id}
-                onClick={() => {
-                  setCurrentCat(c.id === currentCat ? null : c.id);
-                  setCurrentSubCat(null);
-                }}
-                className={`px-9.5 py-3 rounded-full text-sm border transition-colors
-              ${c.id === currentCat ? "bg-primary text-white border-primary font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/40"}`}
-              >
-                {getCategoryName(c)}
-              </button>
               <button
                 key={c.id}
                 onClick={() => {
@@ -209,7 +143,6 @@ export default function HomePage() {
             </div>
           </>
         ))}
-     
       </div>
 
       {/* Children variant modal */}

@@ -282,7 +282,7 @@ export default function AddProduct() {
           CostPrice: productDataDirect.costPrice,
           MinStockLevel: productDataDirect.minStockLevel,
           TaxId: productDataDirect?.taxId,
-          // TaxCalculation:productDataDirect
+          TaxCalculation: productDataDirect?.taxCalculation,
         });
         break;
       }
@@ -314,6 +314,7 @@ export default function AddProduct() {
           SellingPrice: productDataPrepared.priceBeforeTax,
           CostPrice: productDataPrepared.costPrice,
           MinStockLevel: productDataPrepared.minStockLevel,
+          TaxCalculation: productDataPrepared?.taxCalculation,
           RawMaterials:
             productDataPrepared.components?.map((c) => ({
               rawMaterialId: c.componentProductId,

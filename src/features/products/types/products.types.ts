@@ -42,7 +42,7 @@ export type ProductDirect = {
   taxName: string;
   taxAmount: number;
   taxId: number;
-  taxCalculation: "Excludestax" | "Includestax" | string;
+  taxCalculation: number;
   isActive: boolean;
 };
 export type ProductBranch = {
