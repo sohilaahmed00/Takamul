@@ -353,7 +353,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       };
 
       await printInvoice(invoiceData);
-      await sleep(1500);
+      // await sleep(1500);
       await printPreparationBon(sampleBon);
 
       setSuccessInfo({ method, amount });
