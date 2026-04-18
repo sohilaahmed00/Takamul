@@ -604,7 +604,7 @@ export function PaymentDialog({ open, onOpenChange, total, onSave }: PaymentDial
 
             <Button
               onClick={() => {
-                handleConfirmPayment("Cash", total.toFixed(2));
+                handleConfirmPayment("Cash", total.toFixed(2), false);
                 onOpenChange(false);
               }}
               size="sm"

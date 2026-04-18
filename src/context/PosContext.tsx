@@ -36,7 +36,7 @@ interface PosContextValue {
 
   // Payment success
   successInfo: { method: string; amount: string };
-  handleConfirmPayment: (method: string, amount: string) => void;
+  handleConfirmPayment: (method: string, amount: string, printKitchenBon?: boolean) => void;
 
   // Order type
   orderType: OrderType;
@@ -244,7 +244,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       setScreen("home");
     } catch {}
   };
-  const handleConfirmPayment = async (method: string, amount: string) => {
+  const handleConfirmPayment = async (method: string, amount: string, printKitchenBon = true) => {
     if (orderType !== "dine-in") {
       if (!selectedVaultId) {
         notifyError("اختر الخزنة");
@@ -354,7 +354,9 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
       await printInvoice(invoiceData);
       // await sleep(1500);
-      await printPreparationBon(sampleBon);
+      if (printKitchenBon) {
+        await printPreparationBon(sampleBon);
+      }
 
       setSuccessInfo({ method, amount });
       setCart([]);
