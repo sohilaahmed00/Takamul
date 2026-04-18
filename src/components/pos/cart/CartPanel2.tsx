@@ -1005,23 +1005,23 @@ export default function CartPanel() {
             }}
           >
             <div className="flex items-center justify-center border-b border-l border-gray-300 p-2">
-              <button onClick={() => setQuotationOpen(true)} className="bg-violet-700 hover:bg-violet-800 text-white text-xs px-3 py-1 rounded-md">
+              <button onClick={() => setQuotationOpen(true)} className="bg-violet-700 hover:bg-violet-800 text-white text-xs px-3 py-1 rounded-md h-full w-full">
                 عرض أسعار
               </button>
             </div>
 
             <div className="flex items-center justify-center border-b border-gray-300 p-2">
-              <button className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-3 py-1 rounded-md">تعليق الفاتورة</button>
+              <button className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-3 py-1 rounded-md h-full w-full">تعليق الفاتورة</button>
             </div>
 
             <div className="flex items-center justify-center border-l border-gray-300 p-2">
-              <button onClick={() => setCart([])} className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded-md">
+              <button onClick={() => setCart([])} className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded-md h-full w-full">
                 حذف
               </button>
             </div>
 
             <div className="flex items-center justify-center p-2">
-              <button onClick={() => setInvoicesOpen(true)} className="bg-teal-600 hover:bg-teal-700 text-white text-xs px-3 py-1 rounded-md">
+              <button onClick={() => setInvoicesOpen(true)} className="bg-teal-600 hover:bg-teal-700 text-white text-xs px-3 py-1 rounded-md h-full w-full">
                 قائمة الفواتير
               </button>
             </div>

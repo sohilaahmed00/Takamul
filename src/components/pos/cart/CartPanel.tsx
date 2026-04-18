@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CircleArrowRight, Pause, Plus, X, ChevronsUpDown, Check, Trash2, Percent, Info } from "lucide-react";
+import { CircleArrowRight, Pause, Plus, X, ChevronsUpDown, Check, Trash2, Percent, Info, SaudiRiyal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -377,7 +377,7 @@ export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyCha
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
                 <button onClick={() => setDiscType((t) => (t === "pct" ? "flat" : "pct"))} className="flex items-center gap-2 bg-background border border-border rounded-full px-3 py-1.5 hover:bg-muted/50 transition-colors">
-                  <span className={cn("text-xs font-medium transition-colors", discType === "flat" ? "text-foreground" : "text-muted-foreground")}>ج.م</span>
+                  <span className={cn("text-xs font-medium transition-colors", discType === "flat" ? "text-foreground" : "text-muted-foreground")}>ر.س</span>
                   <div className="relative w-8 h-4 bg-muted rounded-full">
                     <div className={cn("absolute top-0.5 w-3 h-3 bg-primary rounded-full transition-all duration-200", discType === "pct" ? "right-0.5" : "left-0.5")} />
                   </div>
@@ -385,16 +385,9 @@ export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyCha
                 </button>
                 <div className="flex items-center gap-2">
                   <span className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">{inputBuffer}</span>
-                  <span className="text-xs text-muted-foreground">{discType === "pct" ? "%" : "ج.م"}</span>
+                  <span className="text-xs text-muted-foreground">{discType === "pct" ? "%" : "ر.س"}</span>
                   <ClearButton onClick={clearInput} />
                 </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                {[5, 10, 15].map((v) => (
-                  <button key={v} onClick={() => applyShortcut(v)} className={cn("h-9 rounded-lg text-sm font-semibold border transition-all active:scale-95", currentValue === v && discType === "pct" ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border text-foreground hover:bg-muted")}>
-                    {v}%
-                  </button>
-                ))}
               </div>
             </div>
           )}
@@ -427,7 +420,7 @@ export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyCha
                 : handleDone
             }
           >
-            {activeTab === "extras" ? "حفظ" : "تم ✓"}
+            {activeTab === "extras" ? "حفظ" : "تم "}
           </Button>
         </div>
       </DialogContent>
@@ -472,7 +465,7 @@ export default function CartPanel() {
   const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
 
-  const changeQty = (idx: number, d: number) => setCart((p) => p.map((item, i) => (i === idx ? { ...item, qty: Math.max(1, item.qty + d) } : item)));
+  const changeQty = (idx: number, d: number) => setCart((p) => p.map((item, i) => (i === idx ? { ...item, qty: Math.max(1, d) } : item)));
 
   // ── per-item discount ──────────────────────────────────────────────────────
   const setItemDisc = (idx: number, type: "pct" | "flat", raw: string) => {
@@ -526,7 +519,7 @@ export default function CartPanel() {
   const GRID = "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_45px_50px_85px] gap-2 px-2";
   return (
     <>
-      <div className="flex flex-col border-r-2 border-[#000052]" style={{ width: 550, flexShrink: 0 }}>
+      <div className="flex flex-col border-r border-gray-300" style={{ width: 550, flexShrink: 0 }}>
         <div className="px-3  border-b border-gray-300 flex items-center justify-between  py-3 shrink-0">
           <div className="flex items-center gap-4 ">
             {/* Home */}
@@ -537,13 +530,7 @@ export default function CartPanel() {
               </svg>
             </button>
 
-            {/* Refresh */}
-            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                <path d="M3 3v5h5" />
-              </svg>
-            </button>
+       
 
             {/* Network */}
             <div className="flex items-center gap-1">
@@ -610,7 +597,7 @@ export default function CartPanel() {
             )}
           </div>
         </div>{" "}
-        <div className="px-3 py-2.5 pb-[65px]! border-b border-gray-300 flex items-center gap-2">
+        <div className="px-3 py-[14.75px]  border-b border-gray-300 flex items-center gap-2">
           {!selectedCustomer ? (
             <div className="w-full">
               <ComboboxField
@@ -685,22 +672,22 @@ export default function CartPanel() {
                     <div className="min-w-0 overflow-hidden">
                       <div className="text-xs font-bold text-gray-800 ">{item?.name}</div>
                       {(item.extras ?? []).length > 0 && <div className="text-[10px] text-gray-400">+ {item.extras!.map((e) => e.name).join("، ")}</div>}
-                      {hasDisc && <div className="text-[10px] text-primary font-semibold">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% ${t("off")}` : `-$${item.itemDiscount!.value.toFixed(2)}`}</div>}
+                      {hasDisc && <div className="text-[10px] text-primary font-semibold">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% ${t("off")}` : `-${item.itemDiscount!.value.toFixed(2)}`}</div>}
                     </div>
                     <span className="text-xs text-gray-400 font-medium text-center">{item?.qty}</span>
 
                     {/* السعر قبل الضريبة */}
                     <div className="text-right">
-                      {hasDisc && <div className="text-[10px] text-gray-300 line-through">${origBasePrice.toFixed(2)}</div>}
-                      <div className="text-xs font-semibold text-gray-700">${itemBasePrice(item).toFixed(2)}</div>
+                      {hasDisc && <div className="text-[10px] text-gray-300 line-through">{origBasePrice.toFixed(2)}</div>}
+                      <div className="text-xs font-semibold text-gray-700 flex items-center flex-row">{itemBasePrice(item).toFixed(2)}</div>
                     </div>
                     {/* ض.ق.م */}
                     <div className="text-right">
-                      <div className="text-xs text-gray-500">${calcItemTax(item).toFixed(2)}</div>{" "}
+                      <div className="text-xs text-gray-500">{calcItemTax(item).toFixed(2)}</div>{" "}
                     </div>
                     {/* الإجمالي */}
                     <div className="text-right">
-                      <div className="text-xs font-bold text-gray-800">${(itemBasePrice(item) + calcItemTax(item)).toFixed(2)}</div>{" "}
+                      <div className="text-xs font-bold text-gray-800">{(itemBasePrice(item) + calcItemTax(item)).toFixed(2)}</div>{" "}
                     </div>
                     {/* عمليات */}
                     <div className="flex items-center justify-center gap-1">
@@ -758,24 +745,10 @@ export default function CartPanel() {
 
           {activeTab === "add" && (
             <div className="px-3 pt-2.5 pb-3">
-              <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-                <span>{t("subtotal")}</span>
-                <div className="flex items-center gap-1.5">
-                  {discount > 0 && <span className="text-gray-300 line-through text-[10px]">${sub?.toFixed(2)}</span>}
-                  <span className="font-semibold text-gray-800">${subAfterDiscount.toFixed(2)}</span>
-                </div>
-              </div>
-              <div className="flex justify-between text-xs text-gray-500 mb-1.5">
-                <span>{t("tax_label")}</span>
-                <div className="flex items-center gap-1.5">
-                  {discount > 0 && <span className="text-gray-300 line-through text-[10px]">${originalTax.toFixed(2)}</span>}
-                  <span className="font-semibold text-gray-800">${taxAfterDiscount.toFixed(2)}</span>
-                </div>
-              </div>
               <div className="flex justify-between text-xs mb-1.5 items-center">
                 <span className={discount > 0 || itemDiscountsTotal > 0 ? "text-primary font-semibold" : "text-gray-500"}>{t("discount_label")}</span>
                 <div className="flex items-center gap-1">
-                  <span className={`font-semibold ${discount > 0 || itemDiscountsTotal > 0 ? "text-gray-800" : "text-gray-400"}`}>-{discount > 0 ? `$${discount.toFixed(2)}` : `$${itemDiscountsTotal.toFixed(2)}`}</span>
+                  <span className={`font-semibold ${discount > 0 || itemDiscountsTotal > 0 ? "text-gray-800" : "text-gray-400"}`}>-{discount > 0 ? `${discount.toFixed(2)}` : `${itemDiscountsTotal.toFixed(2)}`}</span>
                   {discount > 0 && (
                     <button onClick={() => setDiscount(0)} className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-300 leading-none">
                       ×
@@ -783,11 +756,26 @@ export default function CartPanel() {
                   )}
                 </div>
               </div>
+              <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+                <span>{t("subtotal")}</span>
+                <div className="flex items-center gap-1.5">
+                  {discount > 0 && <span className="text-gray-300 line-through text-[10px]">{sub?.toFixed(2)}</span>}
+                  <span className="font-semibold text-gray-800">{subAfterDiscount.toFixed(2)}</span>
+                </div>
+              </div>
+              <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+                <span>{t("tax_label")}</span>
+                <div className="flex items-center gap-1.5">
+                  {discount > 0 && <span className="text-gray-300 line-through text-[10px]">{originalTax.toFixed(2)}</span>}
+                  <span className="font-semibold text-gray-800">{taxAfterDiscount.toFixed(2)}</span>
+                </div>
+              </div>
+
               <div className="flex justify-between text-sm font-black text-gray-800 mt-2 pt-1 border-t border-gray-300 mb-3">
                 <span>{t("payable_amount")}</span>
                 <div className="flex items-center gap-1.5">
-                  {discount > 0 && <span className="text-gray-300 line-through text-xs font-normal">${(sub + originalTax).toFixed(2)}</span>}
-                  <span>${total.toFixed(2)}</span>
+                  {discount > 0 && <span className="text-gray-300 line-through text-xs font-normal">{(sub + originalTax).toFixed(2)}</span>}
+                  <span>{total.toFixed(2)}</span>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -816,7 +804,7 @@ export default function CartPanel() {
                   }}
                   className="flex-1"
                 >
-                  {t("proceed")} <CircleArrowRight />
+                 دفع <CircleArrowRight />
                 </Button>
               </div>
             </div>
