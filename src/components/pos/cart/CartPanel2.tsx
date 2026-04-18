@@ -479,7 +479,7 @@ export function PaymentDialog({ open, onOpenChange, total, onSave }: PaymentDial
           <div className="flex items-center gap-2">
             <div className="flex flex-col items-end">
               <span className="text-[10px] text-white/50">{t("payable_amount")}</span>
-              <span className="text-[18px] font-black text-green-400">${total.toFixed(2)}</span>
+              <span className="text-[18px] font-black text-green-400">{total.toFixed(2)}</span>
             </div>
             <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded flex items-center justify-center bg-white/15 hover:bg-white/25 transition-colors">
               <X size={14} />
