@@ -354,7 +354,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
       await printInvoice(invoiceData);
       // await sleep(1500);
-      if (printKitchenBon) {
+      if (printKitchenBon == true) {
         await printPreparationBon(sampleBon);
       }
 
