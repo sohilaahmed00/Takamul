@@ -28,6 +28,7 @@ import MobileDataCard from "@/components/MobileDataCard";
 import ComboboxField from "@/components/ui/ComboboxField";
 
 import { Input } from "@/components/ui/input";
+import AddSupplierModal from "@/components/modals/AddSupplierModal";
 
 interface PurchaseItem {
   id: string;
