@@ -598,7 +598,7 @@ export default function AddProduct() {
                   />
                 )}
 
-                {productType !== "RawMatrial" && (
+                {(productType !== "RawMatrial" && productType !== "Branched") && (
                   <div className={`${productType == "Direct" && "col-span-2"}`}>
                     <Controller
                       name="BaseUnit"
