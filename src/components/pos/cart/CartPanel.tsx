@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CircleArrowRight, Pause, Plus, X, ChevronsUpDown, Check, Trash2, Percent, Info, SaudiRiyal } from "lucide-react";
+import { CircleArrowRight, Pause, Plus, X, ChevronsUpDown, Check, Trash2, Percent, Info, SaudiRiyal, Vault, FileText, MessageCircle, Mail, Save, Printer } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -22,6 +22,8 @@ import { cn } from "@/lib/utils";
 import { Numpad } from "../cashier/CashierPanel";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
+import { Treasury } from "@/features/treasurys/types/treasurys.types";
 
 const TABS = ["add", "discount", "coupon", "note"] as const;
 
@@ -449,6 +451,270 @@ function ExtrasGrid({ additions, selectedIds, onToggle }: { additions: Addition[
   );
 }
 
+function VaultChips({ value, onChange, treasurys }: { value: number; onChange: (id: number) => void; treasurys: Treasury[] }) {
+  return (
+    <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" } as React.CSSProperties} onClick={(e) => e.stopPropagation()}>
+      {treasurys.map((v) => {
+        const active = value === v.id;
+        return (
+          <button
+            key={v.id}
+            onClick={() => onChange(v.id)}
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border-2 transition-all flex-shrink-0
+              ${active ? "border-green-500 bg-green-50" : "border-gray-200 bg-white hover:border-gray-300"}`}
+          >
+            <Vault size={10} className={active ? "text-green-600" : "text-gray-400"} />
+            <span className={`text-xs font-bold whitespace-nowrap ${active ? "text-green-700" : "text-gray-500"}`}>{v.name}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+interface Split {
+  id: string;
+  vaultId: number;
+  raw: string;
+}
+export function CashierDialog({ open, onOpenChange, onCancel }: { open: boolean; onOpenChange: (v: boolean) => void; onCancel?: () => void }) {
+  const { t } = useLanguage();
+  const { data: treasurys } = useGetAllTreasurys();
+  const { selectedCustomer, setSelectedCustomer, cart, discount, setPaidAmount, setSelectedVaultId, handleConfirmPayment } = usePos();
+  const { total } = calcTotals(cart, discount);
+
+  const [vaultId, setVaultId] = useState<number | null>(null);
+  const activeVault = vaultId ?? treasurys?.[0]?.id ?? null;
+
+  const [npRaw, setNpRaw] = useState(() => String(Math.round(total * 100)));
+  const [isSplit, setIsSplit] = useState(false);
+  const [splits, setSplits] = useState<Split[]>([]);
+  const [activeId, _setActiveId] = useState("s1");
+  const [justActivated, setJustActivated] = useState(false);
+  useEffect(() => {
+    if (!isSplit) {
+      setNpRaw(String(Math.round(total * 100)));
+    }
+  }, [total, isSplit]);
+  const setActiveId = (id: string) => {
+    _setActiveId(id);
+    setJustActivated(true);
+  };
+
+  useEffect(() => {
+    if (treasurys?.length && vaultId === null) {
+      setVaultId(treasurys[0].id);
+      setSelectedVaultId(treasurys[0].id);
+    }
+  }, [treasurys]);
+
+  const rawToFloat = (r: string) => parseInt(r || "0") / 100;
+  const fmtFloat = (n: number) => n.toFixed(2);
+
+  const pushKey = (k: string) => {
+    if (k === "cancel") {
+      onCancel?.();
+      return;
+    }
+
+    const transform = (prev: string) => {
+      if (k === "del") return prev.length > 1 ? prev.slice(0, -1) : "0";
+      if (k === "00") return prev === "0" ? "0" : prev + "00";
+      if (k === ".") return prev.includes(".") ? prev : prev + ".";
+      return prev === "0" ? k : prev + k;
+    };
+
+    if (!isSplit) {
+      setNpRaw((p) => transform(p));
+    } else {
+      setSplits((prev) => {
+        const shouldClear = justActivated && k !== "del" && k !== ".";
+        const updated = prev.map((s) => {
+          if (s.id !== activeId) return s;
+          const base = shouldClear ? "0" : s.raw;
+          return { ...s, raw: transform(base) };
+        });
+        const otherIds = prev.map((s) => s.id).filter((id) => id !== activeId);
+        if (otherIds.length === 1) {
+          const activePaid = updated.find((s) => s.id === activeId)!;
+          const remaining = total - rawToFloat(activePaid.raw);
+          const remainRaw = remaining > 0 ? String(Math.round(remaining * 100)) : "0";
+          return updated.map((s) => (s.id === otherIds[0] ? { ...s, raw: remainRaw } : s));
+        }
+        return updated;
+      });
+      if (justActivated) setJustActivated(false);
+    }
+  };
+
+  const toggleSplit = () => {
+    setIsSplit((v) => {
+      if (!v) {
+        setSplits([
+          { id: "s1", vaultId: treasurys?.[0]?.id ?? 0, raw: "0" },
+          { id: "s2", vaultId: treasurys?.[0]?.id ?? 0, raw: "0" },
+        ]);
+        setActiveId("s1");
+      }
+      return !v;
+    });
+  };
+
+  const singlePaid = rawToFloat(npRaw);
+  const splitPaid = splits.reduce((sum, s) => sum + rawToFloat(s.raw), 0);
+  const paid = isSplit ? splitPaid : singlePaid;
+  const change = parseFloat((paid - total).toFixed(2));
+
+  useEffect(() => {
+    setPaidAmount(paid);
+  }, [paid]);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent showCloseButton={false} className="max-w-md p-0 gap-0 overflow-hidden">
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between px-4 py-3 text-white" style={{ background: "#000052" }}>
+          <div className="flex flex-col">
+            <DialogTitle className="text-[14px] font-medium text-white">إتمام عملية الدفع</DialogTitle>
+            {selectedCustomer && <span className="text-[11px] text-white/60 mt-0.5">{selectedCustomer.customerName}</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] text-white/50">{t("payable_amount")}</span>
+              <span className="text-[18px] font-black text-green-400">${total.toFixed(2)}</span>
+            </div>
+            <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded flex items-center justify-center bg-white/15 hover:bg-white/25 transition-colors">
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 p-4 overflow-y-auto max-h-[80vh]">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-semibold text-gray-500">{isSplit ? t("split_between_vaults") : t("destination_vault")}</label>
+              <button
+                onClick={toggleSplit}
+                className={`text-[11px] px-3 py-1 rounded-full font-semibold border transition-colors
+                  ${isSplit ? "border-green-500 text-green-600 bg-green-50" : "border-gray-200 text-gray-500 hover:border-green-300 hover:text-green-600"}`}
+              >
+                {isSplit ? t("split_on") : t("split_payment")}
+              </button>
+            </div>
+
+            {/* Single vault chips */}
+            {!isSplit && (
+              <VaultChips
+                value={activeVault ?? 0}
+                onChange={(id) => {
+                  setVaultId(id);
+                  setSelectedVaultId(id);
+                }}
+                treasurys={treasurys ?? []}
+              />
+            )}
+          </div>
+
+          {isSplit && (
+            <div className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-2">
+                {splits.map((sp) => {
+                  const isActive = activeId === sp.id;
+                  return (
+                    <div
+                      key={sp.id}
+                      onClick={() => setActiveId(sp.id)}
+                      className={`rounded-xl border-2 p-3 cursor-pointer transition-all
+                        ${isActive ? "border-green-500 bg-green-50/60 shadow-sm" : "border-gray-200 bg-white hover:border-gray-300"}`}
+                    >
+                      {/* Active pill */}
+                      <div className="flex items-center justify-between mb-2">
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full
+                          ${isActive ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400"}`}
+                        >
+                          {isActive ? t("active") : t("tap")}
+                        </span>
+                      </div>
+
+                      {/* Vault chips */}
+                      <VaultChips value={sp.vaultId} onChange={(vid) => setSplits((p) => p.map((s) => (s.id === sp.id ? { ...s, vaultId: vid } : s)))} treasurys={treasurys ?? []} />
+
+                      {/* Amount bubble */}
+                      <div
+                        className={`mt-2.5 rounded-lg px-2 py-2.5 text-center font-black text-lg tracking-tight
+                        ${isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
+                      >
+                        ${rawToFloat(sp.raw).toFixed(2)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Split summary */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 flex flex-col gap-0.5">
+                  <span className="text-[10px] text-gray-400 font-semibold">{t("total_entered")}</span>
+                  <span className="text-lg font-black text-gray-800">${fmtFloat(splitPaid)}</span>
+                </div>
+                <div
+                  className={`rounded-xl border px-4 py-3 flex flex-col gap-0.5
+                  ${change >= 0 ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50"}`}
+                >
+                  <span className={`text-[10px] font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
+                  <span className={`text-lg font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>${fmtFloat(Math.abs(change))}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* ── Numpad ── */}
+          <Numpad onKey={pushKey} />
+
+          {!isSplit && (
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 flex flex-col gap-0.5">
+                <span className="text-[10px] text-gray-400 font-semibold">{t("tendered")}</span>
+                <span className="text-xl font-black text-gray-800">${fmtFloat(singlePaid)}</span>
+              </div>
+              <div
+                className={`rounded-xl border px-4 py-3 flex flex-col gap-0.5
+                ${change >= 0 ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50"}`}
+              >
+                <span className={`text-[10px] font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
+                <span className={`text-xl font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>${fmtFloat(Math.abs(change))}</span>
+              </div>
+            </div>
+          )}
+
+          {/* ── Split cards ── */}
+
+          <hr className="border-gray-100" />
+
+          {/* ── Actions ── */}
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { action: "pdf", label: "طباعة PDF", Icon: FileText },
+              { action: "whatsapp", label: "إرسال واتساب", Icon: MessageCircle },
+              { action: "email", label: "إرسال إيميل", Icon: Mail },
+              { action: "save_only", label: "حفظ فقط", Icon: Save },
+            ].map(({ action, label, Icon }) => (
+              <Button key={action} variant="outline" size="sm" className="h-10 text-[12px] gap-1.5">
+                <Icon size={13} />
+                {label}
+              </Button>
+            ))}
+
+            <Button onClick={() => handleConfirmPayment("Cash", total.toFixed(2))} size="sm" className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white">
+              <Printer size={13} />
+              حفظ وطباعة فاتورة
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // ── Main CartPanel ────────────────────────────────────────────────────────────
 export default function CartPanel() {
   const { t } = useLanguage();
@@ -464,6 +730,7 @@ export default function CartPanel() {
   const { notifyError, notifySuccess } = useToast();
   const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
+  const [cashierOpen, setCashierOpen] = useState(false);
 
   const changeQty = (idx: number, d: number) => setCart((p) => p.map((item, i) => (i === idx ? { ...item, qty: Math.max(1, d) } : item)));
 
@@ -529,8 +796,6 @@ export default function CartPanel() {
                 <path d="M9 21V12h6v9" />
               </svg>
             </button>
-
-       
 
             {/* Network */}
             <div className="flex items-center gap-1">
@@ -794,17 +1059,17 @@ export default function CartPanel() {
                       if (dineInMode === "add-items") {
                         await handleAddItemsToExistingOrder();
                       } else if (dineInMode === "checkout") {
-                        setScreen("cashier");
+                        setCashierOpen(true);
                       } else {
                         await handleCreateDineInOrder();
                       }
                     } else {
-                      setScreen("cashier");
+                      setCashierOpen(true);
                     }
                   }}
                   className="flex-1"
                 >
-                 دفع <CircleArrowRight />
+                  دفع <CircleArrowRight />
                 </Button>
               </div>
             </div>
@@ -855,6 +1120,7 @@ export default function CartPanel() {
         </div>
       </div>
 
+      <CashierDialog open={cashierOpen} onOpenChange={setCashierOpen} onCancel={() => setCashierOpen(false)} />
       <AddParnterModal isOpen={openDialog} onClose={() => setOpenDialog(false)} />
 
       <ItemNumPadDialog

@@ -1,11 +1,11 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { usePos } from "@/context/PosContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
 import { useGetAllMainCategories } from "@/features/categories/hooks/useGetAllMainCategories";
 import { Product, ProductBranch } from "@/features/products/types/products.types";
 import { useGetProductBranchedById } from "@/features/products/hooks/useGetProductBranchedById";
-import { SaudiRiyal } from "lucide-react";
+import { ChevronLeft, ChevronRight, SaudiRiyal } from "lucide-react";
 
 export default function HomePage() {
   const { language, t } = useLanguage();
@@ -91,41 +91,57 @@ export default function HomePage() {
       setSelectedProductId(null);
     }
   }, [productPranched, language, getProductName]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (dir: "right" | "left") => {
+    scrollRef.current?.scrollBy({ left: dir === "left" ? 150 : -150, behavior: "smooth" });
+  };
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+
+  const checkScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollRight(el.scrollLeft > 0);
+    setCanScrollLeft(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    checkScroll();
+    el.addEventListener("scroll", checkScroll);
+    return () => el.removeEventListener("scroll", checkScroll);
+  }, [mainCategories]);
 
   return (
     <div className="flex-1  overflow-y-auto h-full">
-      <div className="border-b border-b-gray-300 p-3   space-y-4">
-        <div className={`flex gap-1.5 ${mainCategories?.length > 6 && " justify-center"}  flex-wrap`}>
-          {mainCategories?.map((c) => (
-            <>
+      <div className="border-b border-b-gray-300 p-3">
+        <div className="flex items-center gap-2">
+          <button onClick={() => scroll("left")} className={`shrink-0 w-8 h-8 rounded-full border border-gray-200 bg-white hover:border-primary/40 flex items-center justify-center transition-all `}>
+            <ChevronRight size={15} className="text-gray-500" />
+          </button>
+
+          <div ref={scrollRef} className="flex gap-1.5 overflow-x-auto scroll-smooth" style={{ scrollbarWidth: "none" } as React.CSSProperties}>
+            {mainCategories?.map((c) => (
               <button
                 key={c.id}
                 onClick={() => {
                   setCurrentCat(c.id === currentCat ? null : c.id);
                   setCurrentSubCat(null);
                 }}
-                className={`px-9.5 py-3 rounded-full text-sm border transition-colors
-              ${c.id === currentCat ? "bg-primary text-white border-primary font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/40"}`}
+                className={`px-9.5 py-3 rounded-full text-sm border transition-colors shrink-0
+            ${c.id === currentCat ? "bg-primary text-white border-primary font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/40"}`}
               >
                 {getCategoryName(c)}
               </button>
-            </>
-          ))}
-        </div>
-        {activeCat?.subCategories?.length ? (
-          <div className="flex gap-1.5  flex-wrap">
-            {activeCat.subCategories.map((sub) => (
-              <button
-                key={sub.id}
-                onClick={() => setCurrentSubCat(currentSubCat === sub.id ? null : sub.id)}
-                className={`px-3 py-1 rounded-full text-sm border transition-colors
-                ${currentSubCat === sub.id ? "bg-primary/10 text-primary border-primary/30 font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/30"}`}
-              >
-                {getCategoryName(sub)}
-              </button>
             ))}
           </div>
-        ) : null}
+
+          <button onClick={() => scroll("right")} className={`shrink-0 w-8 h-8 rounded-full border border-gray-200 bg-white hover:border-primary/40 flex items-center justify-center transition-all `}>
+            <ChevronLeft size={15} className="text-gray-500" />
+          </button>
+        </div>
       </div>
 
       {/* Menu grid */}

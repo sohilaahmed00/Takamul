@@ -350,28 +350,61 @@ interface PaymentDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   total: number;
-  onSave: (opts: { vault: Treasury; method: string; action: SaveAction }) => void;
+  onSave?: (opts: { vault: Treasury; method: string; action: SaveAction }) => void;
+}
+
+function VaultChips({ value, onChange, treasurys }: { value: number; onChange: (id: number) => void; treasurys: Treasury[] }) {
+  return (
+    <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" } as React.CSSProperties} onClick={(e) => e.stopPropagation()}>
+      {treasurys.map((v) => {
+        const active = value === v.id;
+        return (
+          <button
+            key={v.id}
+            onClick={() => onChange(v.id)}
+            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border-2 transition-all flex-shrink-0
+              ${active ? "border-green-500 bg-green-50" : "border-gray-200 bg-white hover:border-gray-300"}`}
+          >
+            <Vault size={10} className={active ? "text-green-600" : "text-gray-400"} />
+            <span className={`text-xs font-bold whitespace-nowrap ${active ? "text-green-700" : "text-gray-500"}`}>{v.name}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
 }
 
 export function PaymentDialog({ open, onOpenChange, total, onSave }: PaymentDialogProps) {
   const { data: treasurys } = useGetAllTreasurys();
+  const { setPaidAmount, setSelectedVaultId, handleConfirmPayment } = usePos();
+  const { t } = useLanguage();
 
-  const [vaultId, setVaultId] = useState<number>(0);
-  const [method, setMethod] = useState(METHODS[0]);
+  const [vaultId, setVaultId] = useState<number | null>(null);
+  const activeVault = vaultId ?? treasurys?.[0]?.id ?? null;
+
   const [npRaw, setNpRaw] = useState(() => String(Math.round(total * 100)));
   const [isSplit, setIsSplit] = useState(false);
   const [splits, setSplits] = useState<Split[]>([]);
   const [activeId, _setActiveId] = useState("s1");
   const [justActivated, setJustActivated] = useState(false);
 
-  const { setPaidAmount } = usePos();
-  const { t } = useLanguage();
+  const setActiveId = (id: string) => {
+    _setActiveId(id);
+    setJustActivated(true);
+  };
 
   useEffect(() => {
-    if (treasurys?.length && !vaultId) {
+    if (treasurys?.length && vaultId === null) {
       setVaultId(treasurys[0].id);
+      setSelectedVaultId(treasurys[0].id);
     }
   }, [treasurys]);
+
+  useEffect(() => {
+    if (!isSplit) {
+      setNpRaw(String(Math.round(total * 100)));
+    }
+  }, [total, isSplit]);
 
   const rawToFloat = (r: string) => parseInt(r || "0") / 100;
   const fmtFloat = (n: number) => n.toFixed(2);
@@ -396,27 +429,30 @@ export function PaymentDialog({ open, onOpenChange, total, onSave }: PaymentDial
           const base = shouldClear ? "0" : s.raw;
           return { ...s, raw: transform(base) };
         });
-
         const otherIds = prev.map((s) => s.id).filter((id) => id !== activeId);
         if (otherIds.length === 1) {
           const activePaid = updated.find((s) => s.id === activeId)!;
-          const activeAmt = rawToFloat(activePaid.raw);
-          const remaining = total - activeAmt;
+          const remaining = total - rawToFloat(activePaid.raw);
           const remainRaw = remaining > 0 ? String(Math.round(remaining * 100)) : "0";
           return updated.map((s) => (s.id === otherIds[0] ? { ...s, raw: remainRaw } : s));
         }
-
         return updated;
       });
-
       if (justActivated) setJustActivated(false);
     }
   };
 
-  const handleAction = (action: SaveAction) => {
-    const selectedVault = treasurys?.find((v) => v.id === vaultId);
-    onSave({ vault: selectedVault, method, action });
-    onOpenChange(false);
+  const toggleSplit = () => {
+    setIsSplit((v) => {
+      if (!v) {
+        setSplits([
+          { id: "s1", vaultId: treasurys?.[0]?.id ?? 0, raw: String(Math.round(total * 100)) },
+          { id: "s2", vaultId: treasurys?.[0]?.id ?? 0, raw: "0" },
+        ]);
+        setActiveId("s1");
+      }
+      return !v;
+    });
   };
 
   const singlePaid = rawToFloat(npRaw);
@@ -428,86 +464,145 @@ export function PaymentDialog({ open, onOpenChange, total, onSave }: PaymentDial
     setPaidAmount(paid);
   }, [paid]);
 
+  const handleAction = (action: SaveAction) => {
+    const selectedVault = treasurys?.find((v) => v.id === vaultId);
+    // onSave({ vault: selectedVault, action });
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 gap-0 " >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 text-white rounded-t-lg" style={{ background: "#000052" }}>
+      <DialogContent showCloseButton={false} className="max-w-md p-0 gap-0 overflow-hidden">
+        {/* ── Header ── */}
+        <div className="flex items-center justify-between px-4 py-3 text-white" style={{ background: "#000052" }}>
           <DialogTitle className="text-[14px] font-medium text-white">إتمام عملية الدفع</DialogTitle>
-          <span className="bg-white/15 rounded px-2.5 py-1 text-[13px]">الإجمالي: {total.toFixed(2)} ر.س</span>
+          <div className="flex items-center gap-2">
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] text-white/50">{t("payable_amount")}</span>
+              <span className="text-[18px] font-black text-green-400">${total.toFixed(2)}</span>
+            </div>
+            <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded flex items-center justify-center bg-white/15 hover:bg-white/25 transition-colors">
+              <X size={14} />
+            </button>
+          </div>
         </div>
 
-        <div className=" flex flex-col gap-4 p-4 overflow-hidden">
-          {/* الخزنة */}
-          <div className="flex flex-col gap-1">
-            <label className="text-[11px] text-gray-500">الخزنة</label>
-            <div className="flex gap-1.5 overflow-x-auto min-w-0">
-              {(treasurys ?? []).map((v) => {
-                const active = vaultId === v.id;
+        <div className="flex flex-col gap-4 p-4 overflow-y-auto max-h-[80vh]">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-semibold text-gray-500">{isSplit ? t("split_between_vaults") : t("destination_vault")}</label>
+              <button
+                onClick={toggleSplit}
+                className={`text-[11px] px-3 py-1 rounded-full font-semibold border transition-colors
+                  ${isSplit ? "border-green-500 text-green-600 bg-green-50" : "border-gray-200 text-gray-500 hover:border-green-300 hover:text-green-600"}`}
+              >
+                {isSplit ? t("split_on") : t("split_payment")}
+              </button>
+            </div>
+
+            {!isSplit && (
+              <VaultChips
+                value={activeVault ?? 0}
+                onChange={(id) => {
+                  setVaultId(id);
+                  setSelectedVaultId(id);
+                }}
+                treasurys={treasurys ?? []}
+              />
+            )}
+          </div>
+
+          {/* ── Split cards ── */}
+          {isSplit && (
+            <div className="flex flex-col gap-3">
+              {splits.map((sp, idx) => {
+                const isActive = activeId === sp.id;
+                const cardActive = idx === 0 ? "border-green-500 bg-green-50/60" : "border-blue-400 bg-blue-50/60";
+                const pillActive = idx === 0 ? "bg-green-500 text-white" : "bg-blue-400 text-white";
+                const amtActive = idx === 0 ? "text-green-700" : "text-blue-700";
+
                 return (
-                  <button
-                    key={v.id}
-                    onClick={() => setVaultId(v.id)}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border-2 transition-all flex-shrink-0
-                      ${active
-                        ? "border-[#000052] bg-[#000052] text-white"
-                        : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
-                      }`}
+                  <div
+                    key={sp.id}
+                    onClick={() => setActiveId(sp.id)}
+                    className={`rounded-xl border-2 cursor-pointer transition-all
+                      ${isActive ? cardActive + " shadow-sm" : "border-gray-200 bg-white hover:border-gray-300"}`}
                   >
-                    <Vault size={10} className={active ? "text-white" : "text-gray-400"} />
-                    <span className="text-xs font-bold whitespace-nowrap">{v.name}</span>
-                  </button>
+                    <div className="flex items-center justify-between px-3 pt-3 pb-2">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full
+                        ${isActive ? pillActive : "bg-gray-100 text-gray-400"}`}
+                      >
+                        {isActive ? t("active") : t("tap")}
+                      </span>
+                      <div
+                        className={`text-xl font-black tracking-tight
+                        ${isActive ? amtActive : "text-gray-500"}`}
+                      >
+                        ${rawToFloat(sp.raw).toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="px-3 pb-3">
+                      <VaultChips value={sp.vaultId} onChange={(vid) => setSplits((p) => p.map((s) => (s.id === sp.id ? { ...s, vaultId: vid } : s)))} treasurys={treasurys ?? []} />
+                    </div>
+                  </div>
                 );
               })}
-            </div>
-          </div>
 
-          {/* Numpad */}
+              {/* ── Split summary ── */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 flex flex-col gap-0.5">
+                  <span className="text-[10px] text-gray-400 font-semibold">{t("total_entered")}</span>
+                  <span className="text-lg font-black text-gray-800">${fmtFloat(splitPaid)}</span>
+                </div>
+                <div
+                  className={`rounded-xl border px-4 py-3 flex flex-col gap-0.5
+                  ${change >= 0 ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50"}`}
+                >
+                  <span className={`text-[10px] font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
+                  <span className={`text-lg font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>${fmtFloat(Math.abs(change))}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── Numpad ── */}
           <Numpad onKey={pushKey} />
 
-          {/* المدفوع / الباقي */}
-          <div className="flex justify-between items-center bg-gray-50 rounded-lg px-3 py-2.5 text-[12px]">
-            <div className="flex gap-1">
-              <span className="text-gray-500">المدفوع:</span>
-              <span className="font-semibold text-gray-800">{fmtFloat(singlePaid)} ر.س</span>
+          {/* ── Single paid/change ── */}
+          {!isSplit && (
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 flex flex-col gap-0.5">
+                <span className="text-[10px] text-gray-400 font-semibold">{t("tendered")}</span>
+                <span className="text-xl font-black text-gray-800">${fmtFloat(singlePaid)}</span>
+              </div>
+              <div
+                className={`rounded-xl border px-4 py-3 flex flex-col gap-0.5
+                ${change >= 0 ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50"}`}
+              >
+                <span className={`text-[10px] font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
+                <span className={`text-xl font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>${fmtFloat(Math.abs(change))}</span>
+              </div>
             </div>
-            <div className="flex gap-1">
-              <span className={`font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>
-                {change >= 0 ? t("change") : t("remaining")}
-              </span>
-              <span className={`font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>
-                {fmtFloat(Math.abs(change))}
-              </span>
-            </div>
-          </div>
+          )}
 
           <hr className="border-gray-100" />
 
-          {/* Actions */}
+          {/* ── Actions ── */}
           <div className="grid grid-cols-2 gap-2">
             {[
-              { action: "pdf",       label: "طباعة PDF",    Icon: FileText      },
-              { action: "whatsapp",  label: "إرسال واتساب", Icon: MessageCircle },
-              { action: "email",     label: "إرسال إيميل",  Icon: Mail          },
-              { action: "save_only", label: "حفظ فقط",      Icon: Save          },
+              { action: "pdf", label: "طباعة PDF", Icon: FileText },
+              { action: "whatsapp", label: "إرسال واتساب", Icon: MessageCircle },
+              { action: "email", label: "إرسال إيميل", Icon: Mail },
+              { action: "save_only", label: "حفظ فقط", Icon: Save },
             ].map(({ action, label, Icon }) => (
-              <Button
-                key={action}
-                variant="outline"
-                size="sm"
-                onClick={() => handleAction(action as SaveAction)}
-                className="h-10 text-[12px] gap-1.5"
-              >
+              <Button key={action} variant="outline" size="sm" onClick={() => handleAction(action as SaveAction)} className="h-10 text-[12px] gap-1.5">
                 <Icon size={13} />
                 {label}
               </Button>
             ))}
 
-            <Button
-              onClick={() => handleAction("save_print")}
-              size="sm"
-              className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white"
-            >
+            <Button onClick={() => handleConfirmPayment("Cash", total.toFixed(2))} size="sm" className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white">
               <Printer size={13} />
               حفظ وطباعة فاتورة
             </Button>
@@ -948,7 +1043,6 @@ export default function CartPanel() {
           </tbody>
         </table>
       </div>
-
       <div style={{ fontSize: 11 }} className="w-full border border-gray-300 ">
         <div className="hidden lg:grid" style={{ gridTemplateColumns: "1fr 1fr 260px 100px" }}>
           <div className="border-l border-gray-200 flex flex-col">
@@ -1081,8 +1175,18 @@ export default function CartPanel() {
           </div>
         </div>
       </div>
-
-      <PaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} total={total} onSave={handlePayment} />
+      <PaymentDialog
+        open={paymentOpen}
+        onOpenChange={setPaymentOpen}
+        total={total}
+        // onSave={({ vault, action }) => {
+        //   if (action === "save_print")
+        //   if (action === "save_only")
+        //   if (action === "pdf")
+        //   if (action === "whatsapp")
+        //   if (action === "email")
+        // }}
+      />{" "}
       <InvoicesDialog
         open={invoicesOpen}
         onOpenChange={setInvoicesOpen}

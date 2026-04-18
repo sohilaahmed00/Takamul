@@ -4,7 +4,7 @@ import { usePos } from "@/context/PosContext";
 import type { Screen } from "@/constants/data";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SalesOrder } from "@/features/sales/types/sales.types";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import formatDate from "@/lib/formatDate";
 import { useGetAllSales } from "@/features/sales/hooks/useGetAllSales";
 
@@ -13,8 +13,7 @@ interface OrdersDialogProps {
   onOpenChange: (v: boolean) => void;
   onSelect?: (order: SalesOrder) => void;
 }
-
-// ── Status badge map — adjust keys to match your orderStatus values ────────────
+// ── Status / Tab config ────────────────────────────────────────────────────────
 
 const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   completed: { label: "مكتملة", cls: "bg-green-100 text-green-700" },
@@ -25,11 +24,27 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
 
 const fallbackBadge = { label: "", cls: "bg-sky-100 text-sky-600" };
 
+type OrderStatusType = "الكل" | "مكتملة" | "معلقة";
+
+const STATUS_TABS: { key: OrderStatusType; label: string }[] = [
+  { key: "الكل", label: "الكل" },
+  { key: "مكتملة", label: "الفواتير" },
+  { key: "معلقة", label: "الفواتير المعلقة" },
+];
+
+// map Arabic tab label → orderStatus value
+const STATUS_MAP: Record<OrderStatusType, string | null> = {
+  الكل: null,
+  مكتملة: "Confirmed",
+  معلقة: "UnConfirmed",
+};
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps) {
   const { setSelectedOrderId } = usePos();
 
+  const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [entriesPerPage] = useState(20);
@@ -43,10 +58,18 @@ export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (orders?.items ?? []).filter((o) => {
-      if (!q) return true;
-      return o.orderNumber?.toLowerCase().includes(q) || o.customerName?.toLowerCase().includes(q) || o.orderStatus?.toLowerCase().includes(q);
+      const matchStatus = STATUS_MAP[activeStatus] === null || o.orderStatus === STATUS_MAP[activeStatus];
+
+      const matchSearch = !q || o.orderNumber?.toLowerCase().includes(q) || o.customerName?.toLowerCase().includes(q) || o.orderStatus?.toLowerCase().includes(q);
+
+      return matchStatus && matchSearch;
     });
-  }, [orders, search]);
+  }, [orders, search, activeStatus]);
+
+  // reset page when tab/search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeStatus, search]);
 
   const handleSelect = (order: SalesOrder) => {
     setSelectedOrderId(order.id);
@@ -77,6 +100,15 @@ export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps
           </button>
         </div>
 
+        {/* ── Status Tabs ── */}
+        <div className="flex items-center gap-1.5 px-4 py-3 flex-wrap shrink-0 border-b border-gray-100 bg-white">
+          {STATUS_TABS.map((tab) => (
+            <button key={tab.key} onClick={() => setActiveStatus(tab.key)} className={`text-[11px] font-medium px-3 py-1.5 rounded-full border transition-all ${activeStatus === tab.key ? "bg-[#000052] text-white border-[#000052]" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         {/* ── Search ── */}
         <div className="flex items-center gap-2 px-4 py-2.5 shrink-0 border-b border-gray-100 bg-white">
           <div className="flex-1 relative">
@@ -105,12 +137,10 @@ export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps
                 const badge = STATUS_BADGE[order.orderStatus] ?? fallbackBadge;
                 return (
                   <button key={order.id} onClick={() => handleSelect(order)} className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-blue-50 transition-colors text-right w-full">
-                    {/* Icon */}
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${badge.cls || "bg-sky-100 text-sky-600"}`}>
                       <FileText size={14} />
                     </div>
 
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-semibold text-[#000052] text-[12px] truncate">{order.orderNumber}</span>
@@ -128,7 +158,6 @@ export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps
                       </div>
                     </div>
 
-                    {/* Total + Date */}
                     <div className="flex flex-col items-end shrink-0 gap-0.5">
                       <span className="flex items-center gap-1 text-[12px] font-bold text-gray-800">
                         {order.grandTotal.toFixed(2)}
@@ -140,7 +169,6 @@ export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps
                       </span>
                     </div>
 
-                    {/* Eye btn */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();

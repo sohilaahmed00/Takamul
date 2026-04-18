@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUpdateQuantityAdjustment } from "@/features/quantity-adjustments/hooks/useUpdateQuantityAdjustment";
 import z from "zod/v3";
 import { useGetQuantityAdjustmentById } from "@/features/quantity-adjustments/hooks/useGetQuantityAdjustmentById";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const QuantityAdjustmentSchema = (t: (key: string) => string) =>
   z.object({
@@ -65,7 +66,7 @@ export default function AddQuantityAdjustment() {
         {
           stockInventoryId: 0,
           operationType: "Add",
-          quantity: undefined as any,
+          quantity: 0,
           notes: "",
         },
       ],
@@ -201,7 +202,7 @@ export default function AddQuantityAdjustment() {
               <div className="space-y-3 mt-3">
                 {itemFields.map((item, index) => {
                   const selectedId = form.watch(`items.${index}.stockInventoryId`);
-                  const selectedProduct = inventoryMap[selectedId] ;
+                  const selectedProduct = inventoryMap[selectedId];
 
                   return (
                     <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 md:p-2 bg-zinc-50 dark:bg-zinc-900/30 md:bg-transparent dark:md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 dark:border-zinc-800 items-center group mb-8">
@@ -250,8 +251,16 @@ export default function AddQuantityAdjustment() {
                         render={({ field, fieldState }) => (
                           <Field className="relative">
                             <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("operation_type")}</FieldLabel>
+                            <Select value={field.value} onValueChange={(val) => !isView && field.onChange(val)} disabled={isView}>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder={t("choose_operation_type")} />
+                              </SelectTrigger>
 
-                            <ComboboxField field={field} items={["Add", "Remove"]} placeholder={t("choose_operation_type")} disabled={isView} onValueChange={(val) => !isView && field.onChange(val)} />
+                              <SelectContent>
+                                <SelectItem value="Add">إضافة</SelectItem>
+                                <SelectItem value="Remove">حذف</SelectItem>
+                              </SelectContent>
+                            </Select>
 
                             {fieldState.invalid && (
                               <div className="absolute top-full mt-1 right-0 z-10 w-full">
@@ -272,11 +281,11 @@ export default function AddQuantityAdjustment() {
                             <Field data-invalid={fieldState.invalid} className="relative">
                               <Input
                                 type="number"
-                                value={field.value === undefined ? "" : field.value}
+                                value={field.value == 0 ? "" : field.value}
                                 onChange={(e) => {
                                   if (!isView) {
                                     const val = e.target.value;
-                                    field.onChange(val === "" ? undefined : Number(val));
+                                    field.onChange(Number(val));
                                   }
                                 }}
                                 readOnly={isView}

@@ -1,39 +1,100 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TABLES_LIST, DELIVERY_COMPANIES } from "@/constants/data";
-import { usePos } from "@/context/PosContext";
-import type { OrderType } from "@/constants/data";
-import { useGetAllFreeTables } from "@/features/pos/hooks/useGetFreeTables";
-import { useGetAllTables } from "@/features/pos/hooks/useGetAllTables";
+import { useState } from "react";
+import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
 import { useLanguage } from "@/context/LanguageContext";
-import { useNavigate } from "react-router-dom";
-
+import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
+import { Product } from "@/features/products/types/products.types";
+import { usePos } from "@/context/PosContext";
 
 export default function Topbar() {
-  const { networkSpeed, orderType, setOrderType, selectedTable, setSelectedTable, selectedDelivery, setSelectedDelivery, search, setSearch } = usePos();
-  const { data: freeTables } = useGetAllTables();
+  const { data: products } = useGetAllProducts({ page: 1, limit: 10000 });
   const { t } = useLanguage();
-  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const { setCart } = usePos();
+  const [open, setOpen] = useState(false);
+
+  const filteredProducts =
+    search.trim().length > 0
+      ? (products?.items ?? []).filter((p: Product) => {
+          const searchLower = search.toLowerCase();
+          return p.productNameAr?.includes(search) || p.productNameEn?.toLowerCase().includes(searchLower);
+        })
+      : [];
 
   return (
-<div className="bg-white border-b border-gray-300 px-3 md:px-5 py-3">
-  <div className="relative w-full">
-    
-    <Input
-      value={search}
-      onChange={(e) => setSearch(e.target.value)}
-      className="w-full pl-5 pr-12 py-3 rounded-lg text-sm outline-none bg-[#f6f6f6] focus:border-primary/40 text-gray-700 placeholder:text-gray-400"
-      placeholder={t("search_products")}
-    />
+    <div className="bg-white border-b border-gray-300 px-3 md:px-5 py-3">
+      <Popover open={open && filteredProducts.length > 0} onOpenChange={setOpen}>
+        <PopoverAnchor asChild>
+          <div className="relative w-full">
+            <Input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setOpen(true);
+              }}
+              onFocus={() => setOpen(true)}
+              onBlur={() => setTimeout(() => setOpen(false), 200)}
+              placeholder={t("search_products")}
+              className="w-full pl-5 pr-12 h-10 bg-[#f6f6f6] focus:border-primary/40"
+            />
+            <span className="absolute inset-y-0 right-3 flex items-center text-gray-400 pointer-events-none">
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+            </span>
+          </div>
+        </PopoverAnchor>
 
-    <span className="absolute inset-y-0 right-3 flex items-center text-gray-400 pointer-events-none">
-      <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-        <circle cx="11" cy="11" r="8" />
-        <path d="m21 21-4.35-4.35" />
-      </svg>
-    </span>
+        <PopoverContent className="p-0" style={{ width: "var(--radix-popover-trigger-width)" }} onOpenAutoFocus={(e) => e.preventDefault()} side="bottom" align="start" sideOffset={4}>
+          <div className="max-h-64 overflow-y-auto">
+            {filteredProducts.map((product: Product) => (
+              <div
+                key={product.id}
+                onMouseDown={() => {
+                  setOpen(false);
+                  setCart((prev) => {
+                    const existing = prev.find((i) => i.productId === product.id);
 
-  </div>
-</div>
+                    if (existing) {
+                      return prev.map((i) => (i.productId === product.id ? { ...i, qty: i.qty + 1 } : i));
+                    }
+
+                    return [
+                      ...prev,
+                      {
+                        name: product.productNameAr,
+                        productNameEn: product.productNameEn,
+                        productNameUr: product.productNameUr,
+                        price: product.sellingPrice,
+                        qty: 1,
+                        note: "",
+                        op: null,
+                        taxamount: product.taxAmount,
+                        productId: product.id,
+                        taxCalculation: product.taxCalculation,
+                      },
+                    ];
+                  });
+                }}
+                className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 cursor-pointer transition-colors"
+              >
+                {/* {product.image && (
+                  <img
+                    src={product.image}
+                    alt={product.productNameAr}
+                    className="w-8 h-8 rounded object-cover flex-shrink-0"
+                  />
+                )} */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{product.productNameAr}</p>
+                  {product.productNameEn && <p className="text-xs text-muted-foreground truncate">{product.productNameEn}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
