@@ -72,7 +72,7 @@ async function printToPrinter(html: string, printerName: string) {
   if (!qz.websocket.isActive()) {
     throw new Error("QZ not connected");
   }
-  const printer = await qz.printers.find(printerName);
+  const printer = await qz.printers.find();
 
   const config = qz.configs.create(printer, {
     copies: 1,
