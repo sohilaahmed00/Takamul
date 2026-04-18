@@ -54,7 +54,7 @@ export function itemBasePriceRaw(item: Omit<CartItem, "name" | "op" | "productId
   const base = item.price * item.qty;
   const rate = (item.taxamount ?? 0) / 100;
   return item.taxCalculation === 2 ? base / (1 + rate) : base;
-  // بدون خصم
+  
 }
 
 export function itemBasePrice(item: Omit<CartItem, "name" | "op" | "productId" | "note">): number {

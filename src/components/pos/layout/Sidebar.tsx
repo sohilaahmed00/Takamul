@@ -1,12 +1,13 @@
-import { Clock, Eye, FileText, LogOut, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
-import { NAV_ITEMS } from "@/constants/data";
-import { usePos } from "@/context/PosContext";
-import type { Screen } from "@/constants/data";
+import { Clock, Eye, FileText, LogOut, Printer, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
+import { calcItemTax, calcTotals, itemBasePrice, NAV_ITEMS } from "@/constants/data";
+import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL, usePos } from "@/context/PosContext";
+import type { CartItem, Screen } from "@/constants/data";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { SalesOrder } from "@/features/sales/types/sales.types";
 import { useEffect, useMemo, useState } from "react";
 import formatDate from "@/lib/formatDate";
 import { useGetAllSales } from "@/features/sales/hooks/useGetAllSales";
+import { InvoiceData, printInvoice } from "../orders/printInvoice";
 
 interface OrdersDialogProps {
   open: boolean;
@@ -32,7 +33,6 @@ const STATUS_TABS: { key: OrderStatusType; label: string }[] = [
   { key: "معلقة", label: "الفواتير المعلقة" },
 ];
 
-// map Arabic tab label → orderStatus value
 const STATUS_MAP: Record<OrderStatusType, string | null> = {
   الكل: null,
   مكتملة: "Confirmed",
@@ -42,7 +42,7 @@ const STATUS_MAP: Record<OrderStatusType, string | null> = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps) {
-  const { setSelectedOrderId } = usePos();
+  const { setSelectedOrderId, setCart, selectedCustomer } = usePos();
 
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
   const [search, setSearch] = useState("");
@@ -133,7 +133,7 @@ export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps
             </div>
           ) : (
             <div className="flex flex-col divide-y divide-gray-100">
-              {filtered.map((order) => {
+              {filtered.map((order: SalesOrder) => {
                 const badge = STATUS_BADGE[order.orderStatus] ?? fallbackBadge;
                 return (
                   <button key={order.id} onClick={() => handleSelect(order)} className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-blue-50 transition-colors text-right w-full">
@@ -170,14 +170,52 @@ export function OrdersDialog({ open, onOpenChange, onSelect }: OrdersDialogProps
                     </div>
 
                     <button
-                      onClick={(e) => {
+                      onClick={async (e) => {
                         e.stopPropagation();
                         setSelectedOrderId(order.id);
                         onOpenChange(false);
+                        const invoiceData: InvoiceData = {
+                          logoUrl: LOGO_URL,
+                          invoiceNumber: `—`,
+                          institutionName: INSTITUTION_NAME,
+                          institutionTaxNumber: INSTITUTION_TAX_NO,
+                          invoiceDate: formatDate(new Date()),
+                          institutionAddress: INSTITUTION_ADDRESS,
+                          institutionPhone: INSTITUTION_PHONE,
+                          customerName: selectedCustomer?.customerName ?? undefined,
+                          customerPhone: undefined,
+
+                          items: order?.items.map((item) => {
+                            const tt: CartItem = {
+                              price: item?.unitPrice,
+                              qty: item?.quantity,
+                              taxamount: item?.taxAmount,
+                              taxCalculation: item?.taxCalculation,
+                              productId: item?.id,
+                              op: null,
+                            };
+                            const base = itemBasePrice(tt);
+                            const tax = calcItemTax(tt);
+                            return {
+                              productName: tt.name,
+                              quantity: tt.qty,
+                              unitPrice: Number(base.toFixed(2)),
+                              taxAmount: Number(tax.toFixed(2)),
+                              total: Number((base + tax).toFixed(2)),
+                            };
+                          }),
+
+                          subTotal: Number(order?.subTotal.toFixed(2)),
+                          discountAmount: Number(order?.discountAmount.toFixed(2)),
+                          taxAmount: order?.taxAmount,
+                          grandTotal: order?.grandTotal,
+                          notes: INSTITUTION_NOTES,
+                        };
+                        await printInvoice(invoiceData);
                       }}
                       className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 hover:border-blue-400 hover:text-blue-500 text-gray-400 transition-colors shrink-0"
                     >
-                      <Eye size={13} />
+                      <Printer size={13} />
                     </button>
                   </button>
                 );
