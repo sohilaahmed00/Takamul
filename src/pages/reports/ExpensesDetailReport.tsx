@@ -46,7 +46,7 @@ export default function ExpensesDetailReport() {
   // ─── Data Fetching ──────────────────────────────────────────
   const { data: branches = [] } = useGetAllBranches();
   const { data: treasuries = [] } = useGetAllTreasurys();
-  const { data: itemsRes } = useGetItems(); // جلب البنود بدلاً من الكاتيجوري
+  const { data: itemsRes } = useGetItems(); 
 
   const itemsList = useMemo(() => {
     const data = Array.isArray(itemsRes) ? itemsRes : itemsRes?.items || [];
@@ -177,7 +177,7 @@ export default function ExpensesDetailReport() {
                   <SelectContent>
                     <SelectItem value={null}>{t("all", "الكل")}</SelectItem>
                     {treasuries.map((b) => (
-                      <SelectItem key={String(b.id)} value={String(b.name)}>
+                      <SelectItem key={String(b.id)} value={String(b.id)}>
                         {b.name}
                       </SelectItem>
                     ))}
