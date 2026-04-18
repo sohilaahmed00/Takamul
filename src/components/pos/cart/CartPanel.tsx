@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
-import { calcItemTax, calcTotals, CartItem, itemBasePrice, itemTotal } from "@/constants/data";
+import { calcItemTax, calcTotals, CartItem, DELIVERY_COMPANIES, itemBasePrice, itemTotal, OrderType } from "@/constants/data";
 import { usePos } from "@/context/PosContext";
 import { useGetAllAdditions } from "@/features/Additions/hooks/useGetAllAdditions";
 import type { Addition } from "@/features/Additions/types/additions.types";
@@ -17,9 +17,11 @@ import useToast from "@/hooks/useToast";
 import { useGetAllTables } from "@/features/pos/hooks/useGetAllTables";
 import ComboboxField from "@/components/ui/ComboboxField";
 import { useLanguage } from "@/context/LanguageContext";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { Numpad } from "../cashier/CashierPanel";
+import { useNavigate } from "react-router-dom";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const TABS = ["add", "discount", "coupon", "note"] as const;
 
@@ -239,21 +241,37 @@ interface ItemNumPadDialogProps {
   item: CartItem | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  additions: Addition[];
   onQtyChange: (qty: number) => void;
   onDiscountChange: (discount: { type: "pct" | "flat"; value: number } | null) => void;
+  onSaveExtras: (selectedIds: number[]) => void;
 }
+
+type Tab = "qty" | "disc" | "extras";
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
-export function ItemNumPadDialog({ item, open, onOpenChange, onQtyChange, onDiscountChange }: ItemNumPadDialogProps) {
-  const [activeTab, setActiveTab] = useState<"qty" | "disc">("qty");
+export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyChange, onDiscountChange, onSaveExtras }: ItemNumPadDialogProps) {
+  const [activeTab, setActiveTab] = useState<Tab>("qty");
   const [inputBuffer, setInputBuffer] = useState("0");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [isFirstInput, setIsFirstInput] = useState(true);
 
   const currentValue = parseFloat(inputBuffer) || 0;
+  const selectedExtraIds = (item?.extras ?? []).map((e) => e.id!).filter(Boolean);
+  const hasExtras = selectedExtraIds.length > 0;
+  const [localExtras, setLocalExtras] = useState<number[]>([]);
 
-  // Reset state when item changes or dialog opens
+  useEffect(() => {
+    if (item && open) {
+      setLocalExtras(item.extras?.map((e) => e.id!) ?? []);
+    }
+  }, [item, open]);
+
+  const handleToggleExtra = (id: number, name: string) => {
+    setLocalExtras((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  };
+
   useEffect(() => {
     if (item && open) {
       setActiveTab("qty");
@@ -261,7 +279,7 @@ export function ItemNumPadDialog({ item, open, onOpenChange, onQtyChange, onDisc
       setDiscType(item.itemDiscount?.type ?? "pct");
       setIsFirstInput(true);
     }
-  }, [item, open]);
+  }, [item?.name, open]);
 
   const handleKey = useCallback(
     (key: string) => {
@@ -269,7 +287,6 @@ export function ItemNumPadDialog({ item, open, onOpenChange, onQtyChange, onDisc
         onOpenChange(false);
         return;
       }
-
       setInputBuffer((prev) => {
         if (isFirstInput && key !== "⌫" && key !== "del") {
           setIsFirstInput(false);
@@ -277,25 +294,19 @@ export function ItemNumPadDialog({ item, open, onOpenChange, onQtyChange, onDisc
           if (key === ".") return "0.";
           return key;
         }
-
-        if (key === "⌫" || key === "del") {
-          return prev.length > 1 ? prev.slice(0, -1) : "0";
-        }
-        if (key === "00") {
-          return prev === "0" ? "0" : prev + "00";
-        }
-        if (key === ".") {
-          return prev.includes(".") ? prev : prev + ".";
-        }
+        if (key === "⌫" || key === "del") return prev.length > 1 ? prev.slice(0, -1) : "0";
+        if (key === "00") return prev === "0" ? "0" : prev + "00";
+        if (key === ".") return prev.includes(".") ? prev : prev + ".";
         return prev === "0" ? key : prev + key;
       });
     },
     [onOpenChange, isFirstInput],
   );
 
-  const switchTab = (tab: "qty" | "disc") => {
+  const switchTab = (tab: Tab) => {
     setActiveTab(tab);
-    setInputBuffer(tab === "qty" ? String(item?.qty ?? 1) : String(item?.itemDiscount?.value ?? 0));
+    if (tab === "qty") setInputBuffer(String(item?.qty ?? 1));
+    else if (tab === "disc") setInputBuffer(String(item?.itemDiscount?.value ?? 0));
     setIsFirstInput(true);
   };
 
@@ -307,7 +318,7 @@ export function ItemNumPadDialog({ item, open, onOpenChange, onQtyChange, onDisc
   const handleDone = () => {
     if (activeTab === "qty") {
       onQtyChange(Math.max(1, Math.floor(currentValue)));
-    } else {
+    } else if (activeTab === "disc") {
       onDiscountChange(currentValue === 0 ? null : { type: discType, value: currentValue });
     }
     onOpenChange(false);
@@ -321,9 +332,15 @@ export function ItemNumPadDialog({ item, open, onOpenChange, onQtyChange, onDisc
 
   if (!item) return null;
 
+  const tabs: { key: Tab; label: string; badge?: number }[] = [
+    { key: "qty", label: "الكمية" },
+    { key: "disc", label: "الخصم" },
+    { key: "extras", label: "الإضافات", badge: hasExtras ? selectedExtraIds.length : undefined },
+  ];
+
   return (
-    <Dialog modal={false} open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="p-0 overflow-hidden gap-0 max-w-sm w-full" >
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="p-0 overflow-hidden gap-0 max-w-sm w-full">
         {/* ── Header ── */}
         <DialogHeader className="px-4 pt-4 pb-0">
           <DialogTitle className="text-right text-sm font-semibold text-foreground/80 truncate">{item.name}</DialogTitle>
@@ -331,20 +348,21 @@ export function ItemNumPadDialog({ item, open, onOpenChange, onQtyChange, onDisc
 
         {/* ── Tabs ── */}
         <div className="flex mt-3 border-b border-border">
-          {(["qty", "disc"] as const).map((tab) => {
-            const isActive = activeTab === tab;
+          {tabs.map(({ key, label, badge }) => {
+            const isActive = activeTab === key;
             return (
-              <button key={tab} onClick={() => switchTab(tab)} className={cn("flex-1 py-3 text-[13px] font-semibold transition-all duration-150 border-b-2 -mb-px", isActive ? "border-primary text-foreground bg-muted/50" : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30")}>
-                {tab === "qty" ? "الكمية" : "الخصم"}
+              <button key={key} onClick={() => switchTab(key)} className={cn("flex-1 py-3 text-[13px] font-semibold transition-all duration-150 border-b-2 -mb-px relative", isActive ? "border-primary text-foreground bg-muted/50" : "border-transparent text-muted-foreground hover:text-foreground hover:bg-muted/30")}>
+                {label}
+                {badge !== undefined && <span className="absolute -top-1 right-2 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-primary text-primary-foreground text-[9px] font-bold leading-none">{badge}</span>}
               </button>
             );
           })}
         </div>
 
-        {/* ── Display Area ── */}
+        {/* ── Content Area ── */}
         <div className="bg-muted/30 px-4 py-3 border-b border-border">
-          {activeTab === "qty" ? (
-            /* Qty Display */
+          {/* Qty */}
+          {activeTab === "qty" && (
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">الكمية</span>
               <div className="flex items-center gap-2">
@@ -353,28 +371,24 @@ export function ItemNumPadDialog({ item, open, onOpenChange, onQtyChange, onDisc
                 <ClearButton onClick={clearInput} />
               </div>
             </div>
-          ) : (
-            /* Disc Display */
+          )}
+
+          {activeTab === "disc" && (
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between">
-                {/* Toggle Switch */}
                 <button onClick={() => setDiscType((t) => (t === "pct" ? "flat" : "pct"))} className="flex items-center gap-2 bg-background border border-border rounded-full px-3 py-1.5 hover:bg-muted/50 transition-colors">
                   <span className={cn("text-xs font-medium transition-colors", discType === "flat" ? "text-foreground" : "text-muted-foreground")}>ج.م</span>
-                  {/* pill track */}
                   <div className="relative w-8 h-4 bg-muted rounded-full">
-                    <div className={cn("absolute top-0.5 w-3 h-3 bg-foreground rounded-full transition-all duration-200", discType === "pct" ? "right-0.5" : "left-0.5")} />
+                    <div className={cn("absolute top-0.5 w-3 h-3 bg-primary rounded-full transition-all duration-200", discType === "pct" ? "right-0.5" : "left-0.5")} />
                   </div>
                   <span className={cn("text-xs font-medium transition-colors", discType === "pct" ? "text-foreground" : "text-muted-foreground")}>%</span>
                 </button>
-
                 <div className="flex items-center gap-2">
                   <span className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">{inputBuffer}</span>
                   <span className="text-xs text-muted-foreground">{discType === "pct" ? "%" : "ج.م"}</span>
                   <ClearButton onClick={clearInput} />
                 </div>
               </div>
-
-              {/* Shortcut Buttons */}
               <div className="grid grid-cols-3 gap-2">
                 {[5, 10, 15].map((v) => (
                   <button key={v} onClick={() => applyShortcut(v)} className={cn("h-9 rounded-lg text-sm font-semibold border transition-all active:scale-95", currentValue === v && discType === "pct" ? "bg-primary text-primary-foreground border-primary" : "bg-background border-border text-foreground hover:bg-muted")}>
@@ -384,20 +398,36 @@ export function ItemNumPadDialog({ item, open, onOpenChange, onQtyChange, onDisc
               </div>
             </div>
           )}
+
+          {/* Extras — grid cards */}
+          {activeTab === "extras" && <ExtrasGrid additions={additions} selectedIds={localExtras} onToggle={handleToggleExtra} />}
         </div>
 
-        {/* ── Numpad ── */}
-        <div className="px-3 pt-3 pb-2 bg-background">
-          <Numpad onKey={handleKey} />
-        </div>
+        {/* ── Numpad (qty & disc only) ── */}
+        {activeTab !== "extras" && (
+          <div className="px-3 pt-3 pb-2 bg-background">
+            <Numpad onKey={handleKey} />
+          </div>
+        )}
 
-        {/* ── Action Buttons ── */}
-        <div className="flex gap-2 px-3 pb-4">
-          <Button variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
+        {/* ── Footer ── */}
+        <div className="grid grid-cols-2 gap-2 px-3 pb-4 pt-2">
+          <Button size="2xl" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
             إلغاء
           </Button>
-          <Button className="flex-2 flex-grow-[2]" onClick={handleDone}>
-            تم ✓
+          <Button
+            size="2xl"
+            className="flex-1"
+            onClick={
+              activeTab === "extras"
+                ? () => {
+                    onSaveExtras(localExtras);
+                    onOpenChange(false);
+                  }
+                : handleDone
+            }
+          >
+            {activeTab === "extras" ? "حفظ" : "تم ✓"}
           </Button>
         </div>
       </DialogContent>
@@ -405,10 +435,31 @@ export function ItemNumPadDialog({ item, open, onOpenChange, onQtyChange, onDisc
   );
 }
 
+// ── Extras Grid ───────────────────────────────────────────────────────────────
+
+function ExtrasGrid({ additions, selectedIds, onToggle }: { additions: Addition[]; selectedIds: number[]; onToggle: (id: number, name: string) => void }) {
+  if (!additions.length) {
+    return <p className="text-xs text-muted-foreground text-center py-4">لا توجد إضافات متاحة</p>;
+  }
+
+  return (
+    <div className="grid grid-cols-3 gap-2">
+      {additions.map((addition) => {
+        const isSelected = selectedIds.includes(addition.id!);
+        return (
+          <button key={addition.id} onClick={() => onToggle(addition.id!, addition.additionNameAr)} className={cn("py-3 px-2 rounded-xl border text-[12px] font-semibold transition-all duration-150 active:scale-95 leading-tight", isSelected ? "bg-primary/10 border-primary/40 text-primary" : "bg-background border-border text-foreground hover:bg-muted/60")}>
+            {addition.additionNameAr}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // ── Main CartPanel ────────────────────────────────────────────────────────────
 export default function CartPanel() {
   const { t } = useLanguage();
-  const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
+  const { cart, setCart, setSelectedTable, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [discInput, setDiscInput] = useState("");
@@ -445,22 +496,14 @@ export default function CartPanel() {
   };
 
   // ── per-item extras (toggle by id) ────────────────────────────────────────
-  const toggleExtra = (itemIdx: number, additionId: number, additionName: string) => {
-    setCart((p) =>
-      p.map((item, i) => {
-        if (i !== itemIdx) return item;
-        const extras = item.extras ?? [];
-        const exists = extras.find((e) => e.id === additionId);
-        return {
-          ...item,
-          extras: exists ? extras.filter((e) => e.id !== additionId) : [...extras, { id: additionId, name: additionName, price: 0 }],
-        };
+  const saveExtras = (idx: number, selectedIds: number[]) => {
+    setCart((prev) =>
+      prev.map((item, i) => {
+        if (i !== idx) return item;
+        const newExtras = (additions ?? []).filter((a) => selectedIds.includes(a.id!)).map((a) => ({ id: a.id!, name: a.additionNameAr, price: 0 }));
+        return { ...item, extras: newExtras };
       }),
     );
-  };
-
-  const removeExtra = (itemIdx: number, additionId: number) => {
-    setCart((p) => p.map((item, i) => (i === itemIdx ? { ...item, extras: (item.extras ?? []).filter((e) => e.id !== additionId) } : item)));
   };
 
   const applyDiscount = () => {
@@ -477,13 +520,97 @@ export default function CartPanel() {
 
   const hasItemDiscount = useMemo(() => cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0), [cart]);
   const hasOrderDiscount = discount > 0;
+  const navigate = useNavigate();
+  const { data: freeTables } = useGetAllTables();
 
   const GRID = "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_45px_50px_85px] gap-2 px-2";
   return (
     <>
-      <div className="flex flex-col  border-r-2 border-[#000052]" style={{ width: 550 }}>
-        {/* Head – Customer selector */}
-        <div className="px-3 py-2.5 pb-[7.5px] border-b border-gray-300 flex items-center gap-2">
+      <div className="flex flex-col border-r-2 border-[#000052]" style={{ width: 550, flexShrink: 0 }}>
+        <div className="px-3  border-b border-gray-300 flex items-center justify-between  py-3 shrink-0">
+          <div className="flex items-center gap-4 ">
+            {/* Home */}
+            <button onClick={() => navigate("/dashboard")} className="text-gray-400 hover:text-gray-600 transition-colors">
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5Z" />
+                <path d="M9 21V12h6v9" />
+              </svg>
+            </button>
+
+            {/* Refresh */}
+            <button className="text-gray-400 hover:text-gray-600 transition-colors">
+              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </button>
+
+            {/* Network */}
+            <div className="flex items-center gap-1">
+              <span className={`text-xs font-bold ${networkSpeed === "slow" ? "text-red-500" : networkSpeed === "medium" ? "text-yellow-500" : "text-green-500"}`}>{networkSpeed === "slow" ? t("speed_slow") : networkSpeed === "medium" ? t("speed_medium") : t("speed_fast")}</span>
+
+              <button className={networkSpeed === "slow" ? "text-red-500" : networkSpeed === "medium" ? "text-yellow-500" : "text-green-500"}>
+                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path d="M5 12.55a11 11 0 0 1 14.08 0" strokeOpacity={networkSpeed === "slow" ? 0.3 : 1} />
+                  <path d="M1.42 9a16 16 0 0 1 21.16 0" strokeOpacity={networkSpeed === "fast" ? 1 : 0.3} />
+                  <path d="M8.53 16.11a6 6 0 0 1 6.95 0" strokeOpacity={networkSpeed !== "slow" ? 1 : 0.3} />
+                  <circle cx="12" cy="20" r="1" fill="currentColor" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          {/* Order Type */}
+          <div className="flex items-center gap-2 shrink-0">
+            <Select
+              value={orderType}
+              onValueChange={(val: OrderType) => {
+                setOrderType(val);
+                setSelectedTable(null);
+                setSelectedDelivery(null);
+              }}
+            >
+              <SelectTrigger className="h-8 text-xs w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="takeaway">{t("order_takeaway")}</SelectItem>
+                <SelectItem value="dine-in">{t("order_dine_in")}</SelectItem>
+                <SelectItem value="delivery">{t("order_delivery")}</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {orderType === "dine-in" && (
+              <Select value={selectedTable ?? ""} onValueChange={setSelectedTable}>
+                <SelectTrigger className="h-8 text-xs w-28">
+                  <SelectValue placeholder={t("choose_table")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {freeTables?.map((t) => (
+                    <SelectItem key={t.id} value={String(t.id)}>
+                      {t.tableName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {orderType === "delivery" && (
+              <Select value={selectedDelivery ?? ""} onValueChange={setSelectedDelivery}>
+                <SelectTrigger className="h-8 text-xs w-32">
+                  <SelectValue placeholder={t("delivery_company")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {DELIVERY_COMPANIES.map((d) => (
+                    <SelectItem key={d} value={d}>
+                      {d}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+        </div>{" "}
+        <div className="px-3 py-2.5 pb-[65px]! border-b border-gray-300 flex items-center gap-2">
           {!selectedCustomer ? (
             <div className="w-full">
               <ComboboxField
@@ -511,7 +638,6 @@ export default function CartPanel() {
             <Plus size={14} />
           </Button>
         </div>
-
         {/* Items */}
         <div className="flex-1 overflow-y-auto px-2 py-1.5 space-y-1">
           {cart?.length === 0 ? (
@@ -561,16 +687,8 @@ export default function CartPanel() {
                       {(item.extras ?? []).length > 0 && <div className="text-[10px] text-gray-400">+ {item.extras!.map((e) => e.name).join("، ")}</div>}
                       {hasDisc && <div className="text-[10px] text-primary font-semibold">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% ${t("off")}` : `-$${item.itemDiscount!.value.toFixed(2)}`}</div>}
                     </div>
-                    {/* الكمية */}
-                    <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
-                      <button onClick={() => changeQty(idx, -1)} className="px-1.5 py-1 text-gray-500 hover:bg-gray-50 text-sm font-bold">
-                        −
-                      </button>
-                      <span className="flex-1 py-1 text-xs font-semibold text-center border-x border-gray-200">{item.qty}</span>
-                      <button onClick={() => changeQty(idx, 1)} className="px-1.5 py-1 text-gray-500 hover:bg-gray-50 text-sm font-bold">
-                        +
-                      </button>
-                    </div>
+                    <span className="text-xs text-gray-400 font-medium text-center">{item?.qty}</span>
+
                     {/* السعر قبل الضريبة */}
                     <div className="text-right">
                       {hasDisc && <div className="text-[10px] text-gray-300 line-through">${origBasePrice.toFixed(2)}</div>}
@@ -586,7 +704,7 @@ export default function CartPanel() {
                     </div>
                     {/* عمليات */}
                     <div className="flex items-center justify-center gap-1">
-                      <DiscountPopover
+                      {/* <DiscountPopover
                         item={item}
                         idx={idx}
                         disabled={hasOrderDiscount}
@@ -596,9 +714,16 @@ export default function CartPanel() {
                           setItemDisc(i, nextType, String(item.itemDiscount?.value ?? ""));
                         }}
                         onDiscClear={(i) => setCart((p) => p.map((it, j) => (j === i ? { ...it, itemDiscount: null } : it)))}
-                      />
-                      <ExtrasPopover item={item} idx={idx} additions={additions ?? []} onToggleExtra={toggleExtra} />
-                      <div role="button" onClick={() => removeItem(idx)} className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-red-100 flex items-center justify-center transition-colors cursor-pointer">
+                      /> */}
+                      {/* <ExtrasPopover item={item} idx={idx} additions={additions ?? []} onToggleExtra={toggleExtra} /> */}
+                      <div
+                        role="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeItem(idx);
+                        }}
+                        className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-red-100 flex items-center justify-center transition-colors cursor-pointer"
+                      >
                         <Trash2 size={13} className="text-gray-400 hover:text-red-500" />
                       </div>
                     </div>
@@ -608,7 +733,6 @@ export default function CartPanel() {
             </>
           )}
         </div>
-
         {/* Footer */}
         <div className="border-t border-gray-300 flex-shrink-0">
           <div className="flex px-3 border-b border-gray-300">
@@ -744,17 +868,23 @@ export default function CartPanel() {
       </div>
 
       <AddParnterModal isOpen={openDialog} onClose={() => setOpenDialog(false)} />
+
       <ItemNumPadDialog
         item={selectedCartItem}
-        open={itemNumPadDialog}
-        onOpenChange={setItemNumPadDialog}
+        open={!!selectedCartItem}
+        onOpenChange={(open) => !open && setSelectedCartItem(null)}
+        additions={additions}
         onQtyChange={(qty) => {
-          const idx = cart.indexOf(selectedCartItem);
+          const idx = cart.indexOf(selectedCartItem!);
           changeQty(idx, qty);
         }}
         onDiscountChange={(disc) => {
           const idx = cart.indexOf(selectedCartItem!);
           setItemDisc(idx, disc?.type ?? "pct", disc === null ? "" : String(disc.value));
+        }}
+        onSaveExtras={(selectedIds) => {
+          const idx = cart.indexOf(selectedCartItem!);
+          saveExtras(idx, selectedIds);
         }}
       />
     </>

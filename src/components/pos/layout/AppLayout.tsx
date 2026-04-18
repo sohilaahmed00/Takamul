@@ -44,8 +44,7 @@ export default function AppLayout() {
   const { showHoldModal, setShowHoldModal, confirmHold, setSelectedItemIdx, setCart, cart, selectedItemIdx } = usePos();
 
   return (
-    // 🔥 الخلفية الكحلي (اللي هيظهر منها الانحناء)
-    <div className="relative flex h-screen overflow-hidden bg-[#000052]">
+    <div className="relative flex h-screen overflow-hidden py-2 bg-[#000052]">
       <ToastContainer pauseOnHover={false} />
 
       {/* Modal */}
@@ -54,32 +53,16 @@ export default function AppLayout() {
       {/* Sidebar */}
       <Sidebar />
 
-      <div className="flex flex-1 flex-col overflow-hidden min-w-0 bg-white rounded-tr-[28px] shadow-sm">
-        {/* Topbar */}
-        <div className="rounded-tr-[28px] overflow-hidden bg-white">
-          <Topbar />
-        </div>
-
-        {/* Content */}
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0 bg-white rounded-tr-[28px] rounded-lg">
         <div className="flex flex-1 overflow-hidden">
           <TooltipProvider>
-            {/* Page */}
-            <div className="flex-1 overflow-y-auto min-w-0  bg-white">
-              {selectedItemIdx !== null && cart[selectedItemIdx] ? (
-                <ItemNumPadPanel
-                  item={cart[selectedItemIdx]}
-                  onQtyChange={(qty) => {
-                    setCart((prev) => prev.map((item, i) => (i === selectedItemIdx ? { ...item, qty } : item)));
-                  }}
-                  onDiscountChange={(disc) => {
-                    setCart((prev) => prev.map((item, i) => (i === selectedItemIdx ? { ...item, itemDiscount: disc } : item)));
-                  }}
-                  onClose={() => setSelectedItemIdx(null)}
-                />
-              ) : (
-                <PageContent />
-              )}
-            </div>  
+            {/* Page + Topbar */}
+            <div className="flex-1 overflow-y-auto min-w-0 bg-white flex flex-col">
+              <div className="rounded-tr-[28px] overflow-hidden bg-white">
+                <Topbar />
+              </div>
+              <PageContent />
+            </div>
 
             {/* Right Panel */}
             <RightPanel />

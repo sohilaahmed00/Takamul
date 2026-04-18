@@ -93,8 +93,7 @@ export default function HomePage() {
 
   return (
     <div className="flex-1  overflow-y-auto h-full">
-      {/* Main category pills */}
-      <div className="border-b border-b-gray-300 p-3  mb-10 space-y-4">
+      <div className="border-b border-b-gray-300 p-3 min-h-[116px] mb-10 space-y-4">
         <div className="flex gap-1.5  flex-wrap  ">
           {mainCategories?.map((c) => (
             <button
@@ -110,8 +109,6 @@ export default function HomePage() {
             </button>
           ))}
         </div>
-
-        {/* Sub-category pills */}
         {activeCat?.subCategories?.length ? (
           <div className="flex gap-1.5  flex-wrap">
             {activeCat.subCategories.map((sub) => (
