@@ -20,7 +20,6 @@ const fmtRaw = (r: string) => fmtFloat(rawToFloat(r));
 
 // ── Vault Chips (horizontal scroll) ─────────────────────────────────────────
 function VaultChips({ value, onChange, treasurys }: { value: number; onChange: (id: number) => void; treasurys: Treasury[] }) {
-  
   return (
     <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" } as React.CSSProperties} onClick={(e) => e.stopPropagation()}>
       {treasurys.map((v) => {
@@ -46,8 +45,7 @@ const ROWS = [
   ["7", "8", "9"],
   ["4", "5", "6"],
   ["1", "2", "3"],
-  ["00", "0", "del"],
-  [".", "cancel"],
+  [".", "0", "del"],
 ];
 
 export function Numpad({ onKey }: { onKey: (k: string) => void }) {
@@ -95,10 +93,6 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
       setSelectedVaultId(treasurys[0].id);
     }
   }, [treasurys]);
-
-
-
- 
 
   const pushKey = (k: string) => {
     if (k === "cancel") {
@@ -150,7 +144,7 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
           { id: "s2", vaultId: treasurys?.[0]?.id ?? 0, raw: "0" },
         ]);
         setActiveId("s1");
-        setPendingClear(false); 
+        setPendingClear(false);
       }
       return !v;
     });

@@ -102,7 +102,7 @@ function ComboboxField<T, TFieldValues extends FieldValues, TName extends FieldP
           showClear={showClear && !!currentValue}
           className={cn(
             "h-10 ",
-            disabled ? "bg-gray-50 border-[#000052] text-[#000052]! dark:bg-slate-900/50 cursor-not-allowed" : ""
+            disabled ? "bg-gray-50  dark:bg-slate-900/50 cursor-not-allowed" : ""
           )}
         />
         <ComboboxContent>

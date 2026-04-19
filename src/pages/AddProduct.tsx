@@ -36,6 +36,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
 import z from "zod/v3";
 import useToast from "@/hooks/useToast";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
@@ -46,13 +47,18 @@ export const createProductSchema = z.object({
   ProductNameUr: z.string().nullable().optional(),
   Description: z.string().optional().or(z.literal("")),
   CategoryId: z.number().min(1, "التصنيف مطلوب"),
-  CostPrice: z.number({ required_error: "سعر التكلفة مطلوب" }).min(0, "سعر التكلفة يجب أن يكون أكبر من أو يساوي صفر"),
+  CostPrice: z.number().min(0, "سعر التكلفة يجب أن يكون أكبر من أو يساوي صفر").default(0),
   SellingPrice: z.number({ required_error: "سعر البيع مطلوب" }).min(0, "سعر البيع يجب أن يكون أكبر من أو يساوي صفر"),
   MinStockLevel: z.number().min(1, "الحد الأدنى للمخزون غير صحيح").optional(),
   TaxId: z.number().min(1, "الضريبة مطلوبة"),
   TaxCalculation: z.number().min(1, "طريقة حساب الضريبة مطلوبة"),
-  // BaseUnit: z.coerce.number().min(1, "اختر الوحدة"),
   Image: z.union([z.instanceof(File), z.string()]).optional(),
+  BaseUnitId: z
+    .number({
+      required_error: "وحدة الأساس مطلوبة",
+      invalid_type_error: "وحدة الأساس مطلوبة",
+    })
+    .min(1, "وحدة الأساس مطلوبة"),
 });
 
 export const createBranchedProductSchema = createProductSchema
@@ -93,22 +99,20 @@ export const createRawMaterialSchema = createProductSchema
     TaxCalculation: true,
     SellingPrice: true,
     MinStockLevel: true,
-    // BaseUnit: true,
   })
   .extend({
-    BaseUnitId: z
-      .number({
-        required_error: "وحدة الأساس مطلوبة",
-        invalid_type_error: "وحدة الأساس مطلوبة",
-      })
-      .min(1, "وحدة الأساس مطلوبة"),
     PurchaseUnitId: z
       .number({
         required_error: "وحدة الشراء مطلوبة",
         invalid_type_error: "وحدة الشراء مطلوبة",
       })
       .min(1, "وحدة الشراء مطلوبة"),
-    ConversionFactor: z.number().min(1, "معامل التحويل يجب أن يكون أكبر من صفر"),
+    ConversionFactor: z
+      .number({
+        required_error: " معامل التحويل مطلوبة",
+        invalid_type_error: "ادخل قيمة صحيحة",
+      })
+      .min(1, "معامل التحويل يجب أن يكون أكبر من صفر"),
   });
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -129,7 +133,6 @@ export const baseDefaultValues: FormValues = {
   CostPrice: undefined,
   SellingPrice: undefined,
   MinStockLevel: undefined,
-  // BaseUnit: undefined,
   TaxId: 0,
   TaxCalculation: 0,
   Image: undefined,
@@ -137,7 +140,7 @@ export const baseDefaultValues: FormValues = {
   RawMaterials: [{ rawMaterialId: 0, quantity: undefined as unknown as number, unitId: 0 }],
   BaseUnitId: 0,
   PurchaseUnitId: 0,
-  ConversionFactor: 1,
+  ConversionFactor: undefined,
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -277,11 +280,12 @@ export default function AddProduct() {
           ProductNameUr: productDataDirect.productNameUr,
           Description: productDataDirect.description || "",
           Barcode: productDataDirect.barcode,
-          SellingPrice: productDataDirect.priceBeforeTax,
+          SellingPrice: productDataDirect?.sellingPrice == 2 ? productDataDirect.priceBeforeTax : productDataDirect.priceAfterTax,
           CostPrice: productDataDirect.costPrice,
           MinStockLevel: productDataDirect.minStockLevel,
           TaxId: productDataDirect?.taxId,
-          // TaxCalculation:productDataDirect
+          TaxCalculation: productDataDirect?.taxCalculation,
+          CategoryId: productDataDirect?.parentCategoryId,
         });
         break;
       }
@@ -313,6 +317,7 @@ export default function AddProduct() {
           SellingPrice: productDataPrepared.priceBeforeTax,
           CostPrice: productDataPrepared.costPrice,
           MinStockLevel: productDataPrepared.minStockLevel,
+          TaxCalculation: productDataPrepared?.taxCalculation,
           RawMaterials:
             productDataPrepared.components?.map((c) => ({
               rawMaterialId: c.componentProductId,
@@ -363,7 +368,7 @@ export default function AddProduct() {
     (data: FormValues): FormData => {
       const formData = new FormData();
 
-      const skipKeys = new Set(["Image", "image", "ChildrenIds", "RawMaterials", "BaseUnitId", "PurchaseUnitId", "ConversionFactor"]);
+      const skipKeys = new Set(["Image", "image", "ChildrenIds", "RawMaterials", "PurchaseUnitId", "ConversionFactor"]);
 
       Object.entries(data).forEach(([key, value]) => {
         if (skipKeys.has(key) || value === undefined || value === null) return;
@@ -391,7 +396,6 @@ export default function AddProduct() {
 
       // Raw material-specific fields
       if (productType === "RawMatrial") {
-        if (data.BaseUnitId) formData.append("BaseUnitId", String(data.BaseUnitId));
         if (data.PurchaseUnitId) formData.append("PurchaseUnitId", String(data.PurchaseUnitId));
         if (data.ConversionFactor !== undefined) formData.append("ConversionFactor", String(data.ConversionFactor));
       }
@@ -511,16 +515,6 @@ export default function AddProduct() {
                   )}
                 />
 
-                {/* Main category */}
-                {productType !== "RawMatrial" && (
-                  <Field>
-                    <FieldLabel className="gap-x-0">
-                      التصنيف الرئيسي<span className="text-red-500">*</span>
-                    </FieldLabel>
-                    <ComboboxField value={mainCategoryId} onValueChange={(val) => setMainCategoryId(val ? Number(val) : undefined)} items={mainCategories} valueKey="id" labelKey="categoryNameAr" placeholder="اختر التصنيف الرئيسي" />
-                  </Field>
-                )}
-
                 {/* English name */}
                 <Controller
                   name="ProductNameEn"
@@ -534,23 +528,6 @@ export default function AddProduct() {
                   )}
                 />
 
-                {/* Sub-category */}
-                {productType !== "RawMatrial" && (
-                  <Controller
-                    name="CategoryId"
-                    control={control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel className="gap-x-0">
-                          التصنيف الفرعي <span className="text-red-500">*</span>
-                        </FieldLabel>
-                        <ComboboxField field={field} items={subCategories} valueKey="id" labelKey="categoryNameAr" placeholder="اختر التصنيف الفرعي" />
-                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                      </Field>
-                    )}
-                  />
-                )}
-
                 <Controller
                   name="ProductNameUr"
                   control={control}
@@ -562,37 +539,24 @@ export default function AddProduct() {
                     </Field>
                   )}
                 />
-
-                {/* Barcode */}
-                {productType !== "RawMatrial" && productType !== "Branched" && (
+                {/* Main category */}
+                {productType !== "RawMatrial" && (
                   <Controller
-                    name="Barcode"
+                    name="CategoryId"
                     control={control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>
-                          الباركود <span className="text-red-500">*</span>
+                        <FieldLabel className="">
+                          التصنيف الرئيسي<span className="text-red-500">*</span>
                         </FieldLabel>
-                        <div className="flex gap-2">
-                          <Input {...field} placeholder="ادخل الباركود *" className="flex-1" />
-                          <Button
-                            type="button"
-                            className="h-full"
-                            variant="outline"
-                            onClick={() =>
-                              setValue("Barcode", generateRandomBarcode(), {
-                                shouldValidate: true,
-                              })
-                            }
-                          >
-                            <Barcode size={10} />
-                          </Button>
-                        </div>
+                        <ComboboxField field={field} items={mainCategories} valueKey="id" labelKey="categoryNameAr" placeholder="اختر التصنيف الرئيسي" />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
                   />
                 )}
+
+                {/* Barcode */}
 
                 {/* Cost price */}
                 {productType !== "Branched" && (
@@ -601,9 +565,7 @@ export default function AddProduct() {
                     control={control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>
-                          التكلفة <span className="text-red-500">*</span>
-                        </FieldLabel>
+                        <FieldLabel>التكلفة</FieldLabel>
                         <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} type="number" placeholder="ادخل التكلفة *" />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
@@ -611,7 +573,6 @@ export default function AddProduct() {
                   />
                 )}
 
-                {/* Selling price + tax fields */}
                 {productType !== "RawMatrial" && productType !== "Branched" && (
                   <>
                     <Controller
@@ -627,21 +588,80 @@ export default function AddProduct() {
                         </Field>
                       )}
                     />
-
-                    <div className="lg:col-span-2">
+                    <div className="col-span-2">
                       <Controller
-                        name="MinStockLevel"
+                        name="Barcode"
                         control={control}
                         render={({ field, fieldState }) => (
                           <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel className="gap-x-0">الحد الأدنى للمخزون</FieldLabel>
-                            <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} placeholder="ادخل الحد الادنى للمخزون" />
+                            <FieldLabel>
+                              الباركود <span className="text-red-500">*</span>
+                            </FieldLabel>
+                            <div className="flex flex-row items-stretch gap-2">
+                              <Input {...field} placeholder="ادخل الباركود *" className="flex-1 min-w-0" />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon-xl"
+                                className="shrink-0 px-3"
+                                onClick={() =>
+                                  setValue("Barcode", generateRandomBarcode(), {
+                                    shouldValidate: true,
+                                  })
+                                }
+                              >
+                                <Barcode size={16} />
+                              </Button>
+                            </div>
                             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                           </Field>
                         )}
                       />
                     </div>
 
+                    <Controller
+                      name="MinStockLevel"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel className="gap-x-0">الحد الأدنى للمخزون</FieldLabel>
+                          <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} placeholder="ادخل الحد الادنى للمخزون" />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+
+                    <Controller
+                      name="BaseUnitId"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel className="gap-x-0">
+                            الوحدة <span className="text-red-500">*</span>
+                          </FieldLabel>
+                          <Select
+                            value={field.value ? String(field.value) : ""}
+                            onValueChange={(value) => {
+                              field.onChange(Number(value));
+                            }}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder={"اختر الوحدة"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                {units?.items?.map((c) => (
+                                  <SelectItem key={c.id} value={String(c.id)}>
+                                    {c.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>{" "}
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
                     <Controller
                       name="TaxId"
                       control={control}
@@ -902,9 +922,9 @@ export default function AddProduct() {
                           />
                         </div>
 
-                        <div className="lg:col-span-1 flex items-center justify-end lg:pt-8 pt-2">
-                          <Button type="button" variant="ghost" className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 w-full lg:w-auto" onClick={() => removeRawMaterial(index)}>
-                            <Trash2 size={18} />
+                        <div className="lg:col-span-1 flex items-center justify-center lg:pt-8 pt-2">
+                          <Button type="button" variant="destructive" className="" onClick={() => removeRawMaterial(index)}>
+                            <Trash2 size={18} className="" />
                             <span className="lg:hidden ml-2">حذف الخامة</span>
                           </Button>
                         </div>
@@ -963,11 +983,11 @@ export default function AddProduct() {
                   إلغاء
                 </Button>
                 <div className="flex flex-col-reverse lg:flex-row items-center gap-3 w-full lg:w-auto">
-                  <Button variant="outline" size="lg" type="button" className="w-full lg:w-auto px-8 h-12 text-base">
+                  <Button loading={isLoading} variant="outline" size="lg" type="button" className="w-full lg:w-auto px-8 h-12 text-base">
                     حفظ وإضافة آخر
                   </Button>
-                  <Button size="lg" type="submit" disabled={isLoading} className="w-full lg:w-auto px-8 h-12 text-base">
-                    {isLoading ? "جاري الحفظ..." : "حفظ البيانات"}
+                  <Button loading={isLoading} size="lg" type="submit" disabled={isLoading} className="w-full lg:w-auto px-8 h-12 text-base">
+                    حفظ البيانات{" "}
                   </Button>
                 </div>
               </div>

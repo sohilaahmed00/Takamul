@@ -48,9 +48,9 @@ const UnitSchema = z.object({
 export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps) {
   const { t } = useLanguage();
   const { data: categoriesData } = useGetAllCategories();
-  const { mutateAsync: createUnit } = useCreateUnit();
-  const { mutateAsync: updateUpdateUnit } = useUpdateUnit();
-
+  const { mutateAsync: createUnit, isPending } = useCreateUnit();
+  const { mutateAsync: updateUpdateUnit, isPending: updatePending } = useUpdateUnit();
+  const isLoading = isPending || updatePending;
   const form = useForm<z.infer<typeof UnitSchema>>({
     resolver: zodResolver(UnitSchema),
     defaultValues: {
@@ -130,7 +130,7 @@ export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps
           </form>
 
           <DialogFooter>
-            <Button form="addCustomerForm" className="h-12 px-6 text-base" type="submit">
+            <Button size="2xl" loading={isLoading} form="addCustomerForm" type="submit">
               {unit ? t("edit_unit") : t("add_unit")}
             </Button>
           </DialogFooter>

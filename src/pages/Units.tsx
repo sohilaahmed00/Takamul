@@ -557,7 +557,7 @@ const Units = () => {
           <CardTitle>إدارة الوحدات</CardTitle>
           <CardDescription>إضافة وتعديل وحدات القياس وربطها بالأصناف لضمان دقة العمليات</CardDescription>{" "}
           <CardAction>
-            <Button variant={"default"} onClick={() => setIsAddModalOpen(true)}>
+            <Button size="xl" variant={"default"} onClick={() => setIsAddModalOpen(true)}>
               إضافة وحدة
             </Button>
           </CardAction>

@@ -36,7 +36,7 @@ interface PosContextValue {
 
   // Payment success
   successInfo: { method: string; amount: string };
-  handleConfirmPayment: (method: string, amount: string) => void;
+  handleConfirmPayment: (method: string, amount: string, printKitchenBon?: boolean) => void;
 
   // Order type
   orderType: OrderType;
@@ -82,6 +82,12 @@ export type DineInMode = "new-order" | "add-items" | "checkout" | null;
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
+export const INSTITUTION_NAME = "اسم المؤسسة";
+export const INSTITUTION_TAX_NO = "310XXXXXXXXX";
+export const INSTITUTION_ADDRESS = "عنوان المؤسسة";
+export const INSTITUTION_PHONE = "05XXXXXXXX";
+export const INSTITUTION_NOTES = "";
+export const LOGO_URL: string | undefined = undefined;
 export function PosProvider({ children }: { children: ReactNode }) {
   const [screen, setScreen] = useState<Screen>("home");
   const navigate = useNavigate();
@@ -109,12 +115,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const [selectedItemIdx, setSelectedItemIdx] = useState<number | null>(null);
   const [search, setSearch] = useState("");
 
-  const INSTITUTION_NAME = "اسم المؤسسة";
-  const INSTITUTION_TAX_NO = "310XXXXXXXXX";
-  const INSTITUTION_ADDRESS = "عنوان المؤسسة";
-  const INSTITUTION_PHONE = "05XXXXXXXX";
-  const INSTITUTION_NOTES = "";
-  const LOGO_URL: string | undefined = undefined;
   useEffect(() => {
     const connection = (navigator as any).connection;
     if (!connection) return;
@@ -244,7 +244,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       setScreen("home");
     } catch {}
   };
-  const handleConfirmPayment = async (method: string, amount: string) => {
+  const handleConfirmPayment = async (method: string, amount: string, printKitchenBon = true) => {
     if (orderType !== "dine-in") {
       if (!selectedVaultId) {
         notifyError("اختر الخزنة");
@@ -352,9 +352,11 @@ export function PosProvider({ children }: { children: ReactNode }) {
         })),
       };
 
-      // await printPreparationBon(sampleBon);
-      // await sleep(1500);
       await printInvoice(invoiceData);
+      // await sleep(1500);
+      if (printKitchenBon == true) {
+        await printPreparationBon(sampleBon);
+      }
 
       setSuccessInfo({ method, amount });
       setCart([]);

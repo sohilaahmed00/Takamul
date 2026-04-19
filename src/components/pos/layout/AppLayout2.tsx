@@ -25,6 +25,7 @@ import { useEffect } from "react";
 import HomePage2 from "../pages/HomePage2";
 import RightPanel2 from "./RightPanel2";
 import Topbar2 from "./Topbar2";
+import { initQZ } from "@/lib/qzService";
 
 function PageContent() {
   const { screen } = usePos();
@@ -55,13 +56,22 @@ function PageContent() {
 
 export default function AppLayout2() {
   const { showHoldModal, setShowHoldModal, confirmHold } = usePos();
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await initQZ();
+      } catch (err) {
+        console.error("QZ init error:", err);
+      }
+    };
 
+    init();
+  }, []);
   return (
     <div className="relative flex h-screen bg-gray-100 overflow-hidden rounded-xl border border-gray-200" style={{ minHeight: 600 }}>
       <ToastContainer pauseOnHover={false} />
 
       {showHoldModal && <HoldModal onClose={() => setShowHoldModal(false)} onConfirm={confirmHold} />}
-
 
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         <Topbar2 />
@@ -71,9 +81,7 @@ export default function AppLayout2() {
             {" "}
             {/* ← flex-col مش flex-row */}
             {/* Page — full width */}
-            <div className="  min-w-0  ">
-              {/* <PageContent /> */}
-            </div>
+            <div className="  min-w-0  ">{/* <PageContent /> */}</div>
             <RightPanel2 />
           </div>
         </TooltipProvider>

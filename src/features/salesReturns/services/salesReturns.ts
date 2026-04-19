@@ -1,6 +1,6 @@
 import { httpClient } from "@/api/httpClient";
-import type { CreateSalesOrder, GetAllSalesOrderResponse, SalesOrder } from "../types/sales.types";
 import { CreateSalesReturns } from "../types/salesReturns.types";
+import { GetAllSalesOrderResponse, SalesOrder } from "@/features/sales/types/sales.types";
 
 // ===================
 // GET

@@ -37,12 +37,13 @@ export type ProductDirect = {
   costPrice: number;
   sellingPrice: number;
   priceBeforeTax: number;
+  priceAfterTax: number;
   minStockLevel: number;
   imageUrl: string;
   taxName: string;
   taxAmount: number;
   taxId: number;
-  taxCalculation: "Excludestax" | "Includestax" | string;
+  taxCalculation: number;
   isActive: boolean;
 };
 export type ProductBranch = {
@@ -91,6 +92,8 @@ export type ProductPrepared = {
   parentCategoryId: number;
   sellingPrice: number;
   priceBeforeTax: number;
+  priceAfterTax: number;
+
   taxAmount: number;
   taxName: string | null;
   taxCalculation: number;
