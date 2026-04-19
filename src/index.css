@@ -86,6 +86,14 @@
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
 
+  /* Stat Card Colors */
+  --stat-purple: #8b5cf6;
+  --stat-blue: #3b82f6;
+  --stat-green: #22c55e;
+  --stat-red: #ef4444;
+  --stat-teal: #14b8a6;
+  --stat-slate: #64748b;
+
   /* Dashboard Cards Initial Colors */
   --dashboard-blue: #3b82f6;
   --dashboard-orange: #f59e0b;

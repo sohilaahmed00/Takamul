@@ -4,14 +4,12 @@ import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, RotateCcw, FileText, Printer, FileSpreadsheet, Wallet, CreditCard, ClipboardList } from "lucide-react";
-import ComboboxField from "@/components/ui/ComboboxField";
-import { Input } from "@/components/ui/input";
-
+import { Search, RotateCcw, FileText, Printer, FileSpreadsheet, Wallet } from "lucide-react";
 import { useGetExpensesReport } from "@/features/reports/hooks/Usegetexpensesreport";
+import { FinancialStatCard } from "@/components/FinancialStatCard";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
-import { useGetItems } from "@/features/items/hooks/useGetItems"; // التغيير هنا لجلب البنود
+import { useGetItems } from "@/features/items/hooks/useGetItems";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
@@ -20,6 +18,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { exportCustomPDF, printCustomHTML, generateReportHTML, exportToExcel } from "@/utils/customExportUtils";
 
 interface FilterState {
   branchId: string;
@@ -31,9 +30,10 @@ interface FilterState {
 
 export default function ExpensesDetailReport() {
   const { t, direction } = useLanguage();
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const initialFilters: FilterState = {
-    branchId: "1",
+    branchId: " ",
     itemId: "",
     treasuryId: "",
     from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
@@ -43,10 +43,9 @@ export default function ExpensesDetailReport() {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [searchParams, setSearchParams] = useState<FilterState>(initialFilters);
 
-  // ─── Data Fetching ──────────────────────────────────────────
   const { data: branches = [] } = useGetAllBranches();
   const { data: treasuries = [] } = useGetAllTreasurys();
-  const { data: itemsRes } = useGetItems(); // جلب البنود بدلاً من الكاتيجوري
+  const { data: itemsRes } = useGetItems();
 
   const itemsList = useMemo(() => {
     const data = Array.isArray(itemsRes) ? itemsRes : itemsRes?.items || [];
@@ -61,9 +60,9 @@ export default function ExpensesDetailReport() {
     isLoading: expensesLoading,
     isFetching: expensesFetching,
   } = useGetExpensesReport({
-    branchid: searchParams.branchId,
-    TreasuryId: searchParams.treasuryId || undefined,
-    ItemId: searchParams.itemId || undefined,
+    branchid: searchParams.branchId.trim() || undefined,
+    TreasuryId: searchParams.treasuryId.trim() || undefined,
+    ItemId: searchParams.itemId.trim() || undefined,
     FromDate: searchParams.from,
     ToDate: searchParams.to,
   });
@@ -83,6 +82,59 @@ export default function ExpensesDetailReport() {
   };
 
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
+  const title = t("expenses_report", "تقرير المصروفات");
+
+  const getExportData = () => {
+    const branchName = branches.find((b) => String(b.id) === searchParams.branchId.trim())?.name || t("all", "الكل");
+    const treasuryName = treasuries.find((b) => String(b.id) === searchParams.treasuryId.trim())?.name || t("all", "الكل");
+    const itemLabel = itemsList.find((i) => i.value === searchParams.itemId.trim())?.label || t("all", "الكل");
+    
+    const filtersInfo = [
+      `${t("branch", "الفرع")}: ${branchName}`,
+      `${t("item", "البند")}: ${itemLabel}`,
+      `${t("treasury", "الخزينة")}: ${treasuryName}`,
+      `${t("from", "من")}: ${searchParams.from}`,
+      `${t("to", "إلى")}: ${searchParams.to}`
+    ].join(" | ");
+
+    const summaryCards = [
+      { title: t("total_expenses", "إجمالي المصروفات"), value: formatNumber(expensesResponse?.totalAmount), color: "orange" },
+      { title: t("operation_count", "عدد العمليات"), value: String(expensesResponse?.totalCount ?? 0), color: "blue" },
+    ];
+
+    const columns = [
+      { header: "م", field: "serial" },
+      { header: t("operation_date", "تاريخ العملية"), field: "date", body: (r: any) => formatDate(r.date) },
+      { header: t("treasury", "الخزينة"), field: "treasuryName" },
+      { header: t("amount", "المبلغ"), field: "amount", body: (r: any) => formatNumber(r.amount) },
+      { header: t("item", "البند"), field: "itemName" },
+      { header: t("statement", "البيان"), field: "notes" },
+    ];
+
+    return { filtersInfo, summaryCards, columns };
+  };
+
+  const handlePrint = () => {
+    const { filtersInfo, summaryCards, columns } = getExportData();
+    const html = generateReportHTML(title, filtersInfo, summaryCards, columns, expensesResponse?.data || [], t, direction);
+    printCustomHTML(title, html);
+  };
+
+  const handlePDF = async () => {
+    setPdfLoading(true);
+    try {
+      const { filtersInfo, summaryCards, columns } = getExportData();
+      const html = generateReportHTML(title, filtersInfo, summaryCards, columns, expensesResponse?.data || [], t, direction);
+      await exportCustomPDF(title, html);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handleExcel = () => {
+    const { columns } = getExportData();
+    exportToExcel(expensesResponse?.data || [], columns, title);
+  };
 
   return (
     <div dir={direction} className="space-y-4">
@@ -91,45 +143,39 @@ export default function ExpensesDetailReport() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Wallet size={20} className="text-[var(--primary)]" />
-              {t("expenses_report", "تقرير المصروفات")}
+              {title}
             </CardTitle>
           </div>
           <div className="flex items-center gap-4 text-sm font-medium">
-            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+            <button onClick={handlePrint} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
               <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+            <button onClick={handlePDF} disabled={pdfLoading} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400 disabled:opacity-50">
               <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+            <button onClick={handleExcel} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
               <FileSpreadsheet size={16} /> <span className="hidden sm:inline">Excel</span>
             </button>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-6">
-          {/* Summary Boxes */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-orange-500 text-white rounded-xl p-5 shadow-sm relative overflow-hidden">
-              <div className="relative z-10">
-                <p className="opacity-90 text-xs font-medium mb-1">{t("total_expenses", "إجمالي المصروفات")}</p>
-                <h2 className="text-2xl font-bold font-mono">{formatNumber(expensesResponse?.totalAmount)}</h2>
-              </div>
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20">
-                <CreditCard size={28} />
-              </div>
-            </div>
-            <div className="bg-blue-500 text-white rounded-xl p-5 shadow-sm relative overflow-hidden">
-              <div className="relative z-10">
-                <p className="opacity-90 text-xs font-medium mb-1">{t("operation_count", "عدد العمليات")}</p>
-                <h2 className="text-2xl font-bold font-mono">{expensesResponse?.totalCount ?? 0}</h2>
-              </div>
-              <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/20">
-                <ClipboardList size={28} />
-              </div>
-            </div>
+        <CardContent className="space-y-4">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <FinancialStatCard
+              title={t("total_expenses", "إجمالي المصروفات")}
+              value={formatNumber(expensesResponse?.totalAmount)}
+              icon={Wallet}
+              color="orange"
+            />
+            <FinancialStatCard
+              title={t("operation_count", "عدد العمليات")}
+              value={expensesResponse?.totalCount ?? 0}
+              icon={FileText}
+              color="blue"
+            />
           </div>
-
+          {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
               {hasAnyPermission([Permissions?.branches?.all, Permissions?.branches?.view]) && (
@@ -158,7 +204,7 @@ export default function ExpensesDetailReport() {
                     <SelectValue placeholder={t("select_item", "اختر البند")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>{t("all", "الكل")}</SelectItem>
+                    <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
                     {itemsList.map((b) => (
                       <SelectItem key={String(b.value)} value={String(b.value)}>
                         {b.label}
@@ -175,9 +221,9 @@ export default function ExpensesDetailReport() {
                     <SelectValue placeholder={t("select_treasury", "اختر الخزينة")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={null}>{t("all", "الكل")}</SelectItem>
+                    <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
                     {treasuries.map((b) => (
-                      <SelectItem key={String(b.id)} value={String(b.name)}>
+                      <SelectItem key={String(b.id)} value={String(b.id)}>
                         {b.name}
                       </SelectItem>
                     ))}
@@ -194,7 +240,7 @@ export default function ExpensesDetailReport() {
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
-                    portalId="root-portal" // لحل مشكلة الطبقات (z-index)
+                    portalId="root-portal"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -229,17 +275,16 @@ export default function ExpensesDetailReport() {
                   <Search size={16} />
                   {t("search", "بحث")}
                 </Button>
-                <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800">
-                  <RotateCcw size={15} />
+                <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                  <RotateCcw size={15} className="text-[var(--primary)]" />
                 </Button>
               </div>
             </div>
           </div>
 
-          {/* Table */}
-          <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden shadow-sm">
+          <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
             <DataTable value={expensesResponse?.data ?? []} paginator rows={10} loading={expensesLoading || expensesFetching} className="custom-green-table custom-compact-table" emptyMessage={t("no_data", "لا توجد بيانات")} responsiveLayout="stack">
-              <Column header="م" body={(_, opt) => opt.rowIndex + 1} headerStyle={{ width: "50px" }} />
+              <Column header="م" body={(_, opt) => opt.rowIndex + 1} />
               <Column header={t("operation_date", "تاريخ العملية")} body={(r) => <span className="text-sm">{formatDate(r.date)}</span>} sortable />
               <Column field="treasuryName" header={t("treasury", "الخزينة")} sortable />
               <Column field="amount" header={t("amount", "المبلغ")} sortable body={(r) => <span className="text-sm font-bold text-red-500">{formatNumber(r.amount)}</span>} />

@@ -1,10 +1,10 @@
 import { categoriesKeys } from "@/features/categories/keys/categories.keys";
 import { getCategoryById } from "@/features/categories/services/categories";
 import type { Category } from "@/features/categories/types/categories.types";
+import { salesKeys } from "@/features/sales/keys/sales.keys";
+import { getSalesOrderById } from "@/features/sales/services/sales";
+import { SalesOrder } from "@/features/sales/types/sales.types";
 import { useQuery } from "@tanstack/react-query";
-import { salesKeys } from "../keys/sales.keys";
-import { getSalesOrderById } from "../services/sales";
-import type { SalesOrder } from "../types/sales.types";
 
 export const useGetSalesReturnsById = (id?: number) =>
   useQuery<SalesOrder>({

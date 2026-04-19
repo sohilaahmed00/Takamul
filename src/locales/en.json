@@ -1574,5 +1574,19 @@
   "cost_of_total_sales": "Cost of Total Sales",
   "profit": "Profit",
   "total_expenses": "Total Expenses",
-  "net_profit": "Net Profit"
+  "net_profit": "Net Profit",
+  "total_purchases_operations": "Total Purchases Operations",
+  "sales": "Sales",
+  "collections": "Collections",
+  "operation_type": "Operation Type",
+  "customer_name": "Customer Name",
+  "supplier_name": "Supplier Name",
+  "from_date": "From Date",
+  "to_date": "To Date",
+  "total_purchases": "Total Purchases",
+  "currency_sar": "ر.س",
+  "total_sales_operations": "Total Sales Operations",
+  "total_sales": "Total Sales",
+  "total_sales_value": "Total Sales Value",
+  "operation_count": "Operation Count"
 }

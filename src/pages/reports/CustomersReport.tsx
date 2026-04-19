@@ -1,163 +1,249 @@
-// import React, { useState } from 'react';
-// import {
-//   Search,
-//   FileText,
-//   ChevronDown,
-//   ChevronUp,
-//   ArrowRight,
-//   ArrowLeft,
-//   Users
+// import React, { useState, useMemo } from 'react';
+// import { 
+//   FileText, 
+//   FileSpreadsheet, 
+//   Search, 
+//   Users, 
+//   DollarSign, 
+//   Printer, 
+//   RotateCcw,
+//   UserCheck,
+//   CreditCard
 // } from 'lucide-react';
-// import { cn } from '@/lib/utils';
+// import { DataTable, type DataTablePageEvent } from 'primereact/datatable';
+// import { Column } from 'primereact/column';
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 // import { useLanguage } from '@/context/LanguageContext';
-
+// import { useGetAllCustomers } from '@/features/customers/hooks/useGetAllCustomers';
+// import { useAuthStore } from "@/store/authStore";
 // import { Input } from "@/components/ui/input";
+// import { FinancialStatCard } from "@/components/FinancialStatCard";
+// import { 
+//   generateReportHTML, 
+//   printCustomHTML, 
+//   exportCustomPDF, 
+//   exportToExcel 
+// } from "@/utils/customExportUtils";
 
-// const CustomersReport = () => {
-//   const { t, dir } = useLanguage();
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [itemsPerPage, setItemsPerPage] = useState(10);
+// export default function CustomersReport() {
+//   const { t, direction, language } = useLanguage();
+//   const [entriesPerPage, setEntriesPerPage] = useState(10);
+//   const [currentPage, setCurrentPage] = useState(1);
+//   const [pdfLoading, setPdfLoading] = useState(false);
+//   const [globalFilterValue, setGlobalFilterValue] = useState('');
 
-//   // Mock data based on the image
-//   const customers = [
-//     { id: 1, company: '', name: '123', phone: '', email: '', totalSales: 7.00, totalAmount: 1350.00, paid: 1100.00, balance: -250.00 },
-//     { id: 2, company: '', name: 'new55', phone: '', email: '', totalSales: 6.00, totalAmount: 73.00, paid: 65.00, balance: -8.00 },
-//     { id: 3, company: '', name: 'test', phone: '966570357361', email: 'admin@solution.com', totalSales: 3.00, totalAmount: 80.00, paid: 80.00, balance: 0.00 },
-//     { id: 4, company: '', name: 'test010', phone: '', email: '', totalSales: 1.00, totalAmount: 3.00, paid: 0.00, balance: -3.00 },
-//     { id: 5, company: '', name: 'محمد', phone: '', email: '', totalSales: 6.00, totalAmount: 2585.00, paid: 2585.00, balance: 0.00 },
-//     { id: 6, company: 'تكامل البيانات', name: 'تكامل البيانات', phone: '966540283038', email: 'gmail.com@966540283038', totalSales: 0.00, totalAmount: 0.00, paid: 0.00, balance: 0.00 },
-//     { id: 7, company: 'شخص عام', name: 'عميل افتراضي', phone: '00', email: 'info@posit.sa', totalSales: 335.00, totalAmount: 19877.95, paid: 19649.85, balance: -228.10 },
-//     { id: 8, company: '', name: 'محمددددد', phone: '966592128972', email: '', totalSales: 3.00, totalAmount: 270.00, paid: 270.00, balance: 0.00 }
-//   ];
+//   // Data Fetching
+//   const { data: customersData, isLoading } = useGetAllCustomers({ 
+//     page: currentPage, 
+//     limit: entriesPerPage,
+//     searchTerm: globalFilterValue || undefined
+//   });
+  
+//   const customers = customersData?.items ?? [];
+//   const totalCount = customersData?.totalCount ?? 0;
+
+//   const summary = useMemo(() => {
+//     const totalBalance = customers.reduce((s, c) => s + (c.balance || 0), 0);
+//     const activeCustomers = customers.length; // Simplified for this report
+
+//     return {
+//       totalBalance,
+//       activeCustomers,
+//       totalCount: totalCount
+//     };
+//   }, [customers, totalCount]);
+
+//   const fmt = (n: number) => (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+//   const handleSearch = () => {
+//     setCurrentPage(1);
+//   };
+
+//   const handleClear = () => {
+//     setGlobalFilterValue('');
+//     setCurrentPage(1);
+//   };
+
+//   const reportTitle = t('customers_report', 'تقرير العملاء');
+
+//   const getFiltersInfo = () => {
+//     return globalFilterValue ? `${t('search', 'بحث')}: ${globalFilterValue}` : t('all_customers', 'جميع العملاء');
+//   };
+
+//   const handlePrint = () => {
+//     const columns = [
+//       { header: t('customer_name', 'اسم العميل'), field: 'name' },
+//       { header: t('phone', 'الهاتف'), field: 'phone' },
+//       { header: t('email', 'البريد الإلكتروني'), field: 'email' },
+//       { header: t('balance', 'الرصيد'), field: 'balance' }
+//     ];
+
+//     const data = customers.map(c => ({
+//       ...c,
+//       balance: fmt(c.balance || 0)
+//     }));
+
+//     const summaryCards = [
+//       { title: t('total_customers', 'إجمالي العملاء'), value: String(summary.totalCount), icon: 'Users' },
+//       { title: t('total_balance', 'إجمالي الأرصدة'), value: `${fmt(summary.totalBalance)} SAR`, icon: 'CreditCard' }
+//     ];
+
+//     const html = generateReportHTML(reportTitle, getFiltersInfo(), summaryCards, columns, data, t, direction);
+//     printCustomHTML(reportTitle, html);
+//   };
+
+//   const handleExportPDF = async () => {
+//     setPdfLoading(true);
+//     try {
+//       const columns = [
+//         { header: t('customer_name', 'اسم العميل'), field: 'name' },
+//         { header: t('phone', 'الهاتف'), field: 'phone' },
+//         { header: t('balance', 'الرصيد'), field: 'balance' }
+//       ];
+
+//       const data = customers.map(c => ({
+//         name: c.name,
+//         phone: c.phone || '-',
+//         balance: fmt(c.balance || 0)
+//       }));
+
+//       const summaryCards = [
+//         { title: t('total_customers', 'إجمالي العملاء'), value: String(summary.totalCount), icon: 'Users' },
+//         { title: t('total_balance', 'إجمالي الأرصدة'), value: `${fmt(summary.totalBalance)} SAR`, icon: 'CreditCard' }
+//       ];
+
+//       const html = generateReportHTML(reportTitle, getFiltersInfo(), summaryCards, columns, data, t, direction);
+//       await exportCustomPDF(reportTitle, html);
+//     } finally {
+//       setPdfLoading(false);
+//     }
+//   };
+
+//   const handleExportExcel = () => {
+//     const columns = [
+//       { header: t('customer_name', 'اسم العميل'), field: 'name' },
+//       { header: t('phone', 'الهاتف'), field: 'phone' },
+//       { header: t('email', 'البريد الإلكتروني'), field: 'email' },
+//       { header: t('balance', 'الرصيد'), field: 'balance' }
+//     ];
+//     exportToExcel(customers, columns, reportTitle);
+//   };
 
 //   return (
-//     <div className="p-6 bg-white min-h-screen" dir={dir}>
-//       {/* Breadcrumbs */}
-//       <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-//         <span>البداية</span>
-//         <span>/</span>
-//         <span>التقارير</span>
-//         <span>/</span>
-//         <span className="text-emerald-800 font-medium">تقرير العملاء</span>
-//       </div>
-
-//       {/* Header */}
-//       <div className="bg-white rounded-t-lg border border-gray-200 p-4">
-//         <div className="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
-//           <div className="flex items-center gap-2 text-emerald-800">
-//             <Users className="w-5 h-5" />
-//             <h1 className="text-xl font-bold">العملاء</h1>
-//           </div>
-//           <div className="flex gap-2">
-//             <button className="p-1.5 hover:bg-gray-100 rounded text-emerald-800 border border-emerald-800">
-//               <FileText className="w-4 h-4" />
-//             </button>
-//             <button className="p-1.5 hover:bg-gray-100 rounded text-emerald-800 border border-emerald-800">
-//               <ChevronUp className="w-4 h-4" />
-//             </button>
-//             <button className="p-1.5 hover:bg-gray-100 rounded text-emerald-800 border border-emerald-800">
-//               <ChevronDown className="w-4 h-4" />
-//             </button>
-//           </div>
-//         </div>
-
-//         <p className="text-emerald-800 font-bold mb-6 text-center">الرجاء الضغط التقرير بغية التحقق من التقرير العملاء.</p>
-
-//         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-//           <div className="relative w-full md:w-64">
-//             <Input
-//               type="text"
-//               placeholder={t("search_label")}
-//               className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-emerald-600 text-right"
-//               value={searchTerm}
-//               onChange={(e) => setSearchTerm(e.target.value)}
-//             />
-//             <Search className="absolute right-3 top-2.5 text-gray-400 w-5 h-5" />
+//     <div className="space-y-6 pb-12" dir={direction}>
+//       <Card className="border-none shadow-sm overflow-hidden bg-white dark:bg-slate-950">
+//         <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
+//           <div>
+//             <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+//               <Users className="w-5 h-5 text-[var(--primary)]" />
+//               {reportTitle}
+//             </CardTitle>
+//             <CardDescription className="mt-1">
+//               {t('view_customer_reports_below', 'استعراض تقارير العملاء أدناه')}
+//             </CardDescription>
 //           </div>
 
-//           <div className="flex items-center gap-2">
-//             <span className="text-emerald-800 font-bold">اظهار</span>
-//             <select
-//               className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-600"
-//               value={itemsPerPage}
-//               onChange={(e) => setItemsPerPage(Number(e.target.value))}
+//           <div className="flex items-center gap-4 text-sm font-medium">
+//             <button 
+//               onClick={handlePrint} 
+//               className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
 //             >
-//               <option value={10}>10</option>
-//               <option value={25}>25</option>
-//               <option value={50}>50</option>
-//               <option value={100}>100</option>
-//             </select>
-//           </div>
-//         </div>
-
-//         {/* Table */}
-//         <div className="overflow-x-auto border border-gray-200 rounded">
-//           <table className="w-full text-right border-collapse min-w-[1200px]">
-//             <thead>
-//               <tr className="bg-emerald-600 text-white">
-//                 <th className="p-3 border border-emerald-500 text-center">الشركة</th>
-//                 <th className="p-3 border border-emerald-500 text-center">اسم</th>
-//                 <th className="p-3 border border-emerald-500 text-center">هاتف</th>
-//                 <th className="p-3 border border-emerald-500 text-center">عنوان البريد الإلكتروني</th>
-//                 <th className="p-3 border border-emerald-500 text-center">مجموع المبيعات</th>
-//                 <th className="p-3 border border-emerald-500 text-center">المجموع الكلي</th>
-//                 <th className="p-3 border border-emerald-500 text-center">مدفوع</th>
-//                 <th className="p-3 border border-emerald-500 text-center">الرصيد الحالي</th>
-//                 <th className="p-3 border border-emerald-500 text-center">الإجراءات</th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {customers.map((customer, index) => (
-//                 <tr key={customer.id} className={cn(index % 2 === 0 ? 'bg-white' : 'bg-gray-50')}>
-//                   <td className="p-3 border border-gray-200 text-sm font-bold">{customer.company}</td>
-//                   <td className="p-3 border border-gray-200 text-sm font-bold">{customer.name}</td>
-//                   <td className="p-3 border border-gray-200 text-sm">{customer.phone}</td>
-//                   <td className="p-3 border border-gray-200 text-sm">{customer.email}</td>
-//                   <td className="p-3 border border-gray-200 text-sm font-bold">{customer.totalSales.toFixed(2)}</td>
-//                   <td className="p-3 border border-gray-200 text-sm font-bold">{customer.totalAmount.toFixed(2)}</td>
-//                   <td className="p-3 border border-gray-200 text-sm font-bold">{customer.paid.toFixed(2)}</td>
-//                   <td className="p-3 border border-gray-200 text-sm font-bold text-emerald-600">{customer.balance.toFixed(2)}</td>
-//                   <td className="p-3 border border-gray-200 text-sm">
-//                     <button className="bg-emerald-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-emerald-700 transition-colors">
-//                       عرض التقرير
-//                     </button>
-//                   </td>
-//                 </tr>
-//               ))}
-//               {/* Footer Row */}
-//               <tr className="bg-gray-100 font-bold text-gray-600">
-//                 <td className="p-3 border border-gray-200 text-xs">[الشركة]</td>
-//                 <td className="p-3 border border-gray-200 text-xs">[اسم]</td>
-//                 <td className="p-3 border border-gray-200 text-xs">[هاتف]</td>
-//                 <td className="p-3 border border-gray-200 text-xs">[عنوان البريد الإلكتروني]</td>
-//                 <td className="p-3 border border-gray-200 text-sm">0.00</td>
-//                 <td className="p-3 border border-gray-200 text-sm">24,238.95</td>
-//                 <td className="p-3 border border-gray-200 text-sm">23,749.85</td>
-//                 <td className="p-3 border border-gray-200 text-sm text-emerald-600">489.10-</td>
-//                 <td className="p-3 border border-gray-200 text-xs">الإجراءات</td>
-//               </tr>
-//             </tbody>
-//           </table>
-//         </div>
-
-//         {/* Pagination */}
-//         <div className="flex flex-col md:flex-row justify-between items-center mt-4 gap-4">
-//           <div className="flex items-center border border-gray-300 rounded overflow-hidden">
-//             <button className="px-4 py-2 bg-white hover:bg-gray-100 border-l border-gray-300 text-gray-600 flex items-center gap-1">
-//               <ArrowRight className="w-4 h-4" /> التالي
+//               <Printer size={16} /> 
+//               <span className="hidden sm:inline">{t("print", "طباعة")}</span>
 //             </button>
-//             <button className="px-4 py-2 bg-emerald-600 text-white border-l border-gray-300">1</button>
-//             <button className="px-4 py-2 bg-white hover:bg-gray-100 text-gray-600 flex items-center gap-1">
-//               سابق <ArrowLeft className="w-4 h-4" />
+//             <button 
+//               onClick={handleExportPDF} 
+//               disabled={pdfLoading}
+//               className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400 disabled:opacity-50"
+//             >
+//               <FileText size={16} /> 
+//               <span className="hidden sm:inline">{pdfLoading ? t('loading', 'جاري التحميل...') : 'PDF'}</span>
+//             </button>
+//             <button 
+//               onClick={handleExportExcel} 
+//               className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
+//             >
+//               <FileSpreadsheet size={16} /> 
+//               <span className="hidden sm:inline">Excel</span>
 //             </button>
 //           </div>
-//           <div className="text-emerald-800 font-bold">
-//             عرض 1 إلى 8 من 8 سجلات
+//         </CardHeader>
+
+//         <CardContent className="pt-6">
+//           {/* Summary Cards */}
+//           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+//             <FinancialStatCard
+//               title={t('total_customers', 'إجمالي العملاء')}
+//               value={String(summary.totalCount)}
+//               icon={Users}
+//               color="blue"
+//             />
+//             <FinancialStatCard
+//               title={t('active_customers', 'العملاء النشطين')}
+//               value={String(summary.activeCustomers)}
+//               icon={UserCheck}
+//               color="teal"
+//             />
+//             <FinancialStatCard
+//               title={t('total_balance', 'إجمالي الأرصدة')}
+//               value={`${fmt(summary.totalBalance)} SAR`}
+//               icon={CreditCard}
+//               color="orange"
+//             />
 //           </div>
-//         </div>
-//       </div>
+
+//           {/* Filters */}
+//           <div className="mb-8 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+//             <div className="flex flex-col md:flex-row gap-4 items-end">
+//               <div className="flex-1 w-full relative">
+//                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+//                 <Input
+//                   type="text"
+//                   placeholder={t("search_customers", "البحث عن العملاء...")}
+//                   className="pl-10 h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl shadow-sm"
+//                   value={globalFilterValue}
+//                   onChange={(e) => setGlobalFilterValue(e.target.value)}
+//                 />
+//               </div>
+
+//               <div className="flex gap-2 w-full md:w-auto">
+//                 <button 
+//                   onClick={handleSearch}
+//                   className="h-11 px-8 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 flex-1 md:flex-none rounded-xl shadow-md shadow-emerald-200 dark:shadow-none font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
+//                 >
+//                   <Search size={18} />
+//                   {t("search", "بحث")}
+//                 </button>
+//                 <button 
+//                   onClick={handleClear}
+//                   className="h-11 px-4 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all rounded-xl shadow-sm"
+//                 >
+//                   <RotateCcw size={18} className="text-slate-500" />
+//                 </button>
+//               </div>
+//             </div>
+//           </div>
+
+//           <DataTable
+//             value={customers} totalRecords={totalCount} loading={isLoading}
+//             lazy paginator rows={entriesPerPage} rowsPerPageOptions={[5, 10, 20, 50]}
+//             first={(currentPage - 1) * entriesPerPage}
+//             onPage={(e: DataTablePageEvent) => {
+//               if (e.page === undefined) return;
+//               setCurrentPage(e.page + 1);
+//               setEntriesPerPage(e.rows ?? entriesPerPage);
+//             }}
+//             className="custom-standard-table" dataKey="id"
+//             emptyMessage={t('no_data', 'لا توجد بيانات')}
+//             scrollable scrollHeight="600px"
+//           >
+//             <Column header={t('customer_name', 'اسم العميل')} field="name" sortable body={(r) => <span className="font-bold text-[var(--primary)]">{r.name}</span>} />
+//             <Column header={t('phone', 'الهاتف')} field="phone" sortable />
+//             <Column header={t('email', 'البريد الإلكتروني')} field="email" sortable />
+//             <Column header={t('balance', 'الرصيد')} field="balance" sortable body={(r) => <span className={`font-bold ${r.balance < 0 ? 'text-red-500' : 'text-emerald-600'}`}>{fmt(r.balance)}</span>} />
+//           </DataTable>
+//         </CardContent>
+//       </Card>
 //     </div>
 //   );
-// };
-
-// export default CustomersReport;
+// }

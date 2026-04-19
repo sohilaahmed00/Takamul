@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -30,10 +29,18 @@ import {
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
+import { FinancialStatCard } from "@/components/FinancialStatCard";
+import {
+  generateReportHTML,
+  printCustomHTML,
+  exportCustomPDF,
+  exportToExcel
+} from "@/utils/customExportUtils";
 
 export default function LowStockReport() {
   const { t, direction } = useLanguage();
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const [entriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -73,35 +80,101 @@ export default function LowStockReport() {
     });
   };
 
+  const title = t("low_stock_alerts", "تنبيهات المخزون");
+
+  const getFiltersInfo = () => {
+    const b = branches.find(x => String(x.id) === submittedFilters.branchId.trim());
+    return `${t("branch", "الفرع")}: ${b ? b.name : t("all", "الكل")}`;
+  };
+
+  const exportColumns = [
+    { header: t("serial", "م"), field: "serial" },
+    { header: t("barcode", "باركود"), field: "barcode" },
+    { header: t("item_name", "اسم الصنف"), field: "productName" },
+    { header: t("current_quantity", "الكمية الحالية"), field: "currentQty", body: (r: any) => formatNumber(r.currentQty) },
+    { header: t("min_stock_level", "حد الطلب"), field: "minStockLevel", body: (r: any) => formatNumber(r.minStockLevel) },
+  ];
+
+  const handleExportPDF = async () => {
+    if (!rows.length) return;
+    setPdfLoading(true);
+    try {
+      const html = generateReportHTML(
+        title,
+        getFiltersInfo(),
+        [],
+        exportColumns,
+        rows,
+        t,
+        direction
+      );
+      await exportCustomPDF(title, html);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handlePrint = () => {
+    if (!rows.length) return;
+    const html = generateReportHTML(
+      title,
+      getFiltersInfo(),
+      [],
+      exportColumns,
+      rows,
+      t,
+      direction
+    );
+    printCustomHTML(title, html);
+  };
+
+  const handleExportExcel = () => {
+    if (!rows.length) return;
+    exportToExcel(rows, exportColumns, title);
+  };
+
   return (
-    <div dir={direction}>
+    <div dir={direction} className="space-y-4">
       <Card>
         <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle size={20} className="text-[var(--primary)]" />
-              {t("low_stock_alerts", "تنبيهات المخزون")}
+              {title}
             </CardTitle>
-            <CardDescription>{t("customize_report_below")}</CardDescription>
           </div>
 
           <div className="flex items-center gap-4 text-sm font-medium">
-            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
+            >
+              <Printer size={16} />
+              <span className="hidden sm:inline">{t("print", "طباعة")}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            <button
+              onClick={handleExportPDF}
+              disabled={pdfLoading}
+              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400 disabled:opacity-50"
+            >
+              <FileText size={16} />
+              <span className="hidden sm:inline">PDF</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">XML</span>
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
+            >
+              <FileSpreadsheet size={16} />
+              <span className="hidden sm:inline">Excel</span>
             </button>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-5">
-          {/* Filters Row */}
+
+          {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4 items-end">
               {hasAnyPermission([Permissions?.branches?.all, Permissions?.branches?.view]) && (
                 <div className="space-y-2 lg:col-span-1">
                   <Label className="text-xs font-medium text-text-main">{t("branch", "الفرع")}</Label>
@@ -120,32 +193,35 @@ export default function LowStockReport() {
                   </Select>
                 </div>
               )}
-              
-              <Button onClick={handleSearch} size="sm" className="h-10 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold transition-all duration-300 hover:scale-[1.02] transform" disabled={isLoading || isFetching}>
-                <Search size={16} /> {t("execute_operation", "اتمام العملية")}
-              </Button>
-              <Button onClick={handleClear} size="sm" variant="outline" className="h-10 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all duration-300">
-                <RotateCcw size={15} /> {t("clear", "مسح")}
-              </Button>
+
+              <div className="flex flex-row items-end gap-2 mb-2 lg:col-span-1">
+                <Button onClick={handleSearch} disabled={isLoading || isFetching} className="flex-1 h-9 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold">
+                  <Search size={16} />
+                  {t("search", "بحث")}
+                </Button>
+                <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                  <RotateCcw size={15} className="text-[var(--primary)]" />
+                </Button>
+              </div>
             </div>
           </div>
 
-          <div className="hidden md:block rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
+          <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
             <DataTable
               value={rows}
               loading={isLoading || isFetching}
               paginator
               rows={entriesPerPage}
-              first={(currentPage - 1) * entriesPerPage}
-              onPage={(e: DataTablePageEvent) => {
-                if (e.page === undefined) return;
-                setCurrentPage(e.page + 1);
-              }}
               dataKey="productId"
               className="custom-green-table custom-compact-table low-stock-table"
               emptyMessage={t("no_data")}
               responsiveLayout="stack"
             >
+              <Column
+                header={t("serial", "م")}
+                body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>}
+                className="w-16"
+              />
               <Column
                 field="barcode"
                 header={t("barcode", "باركود")}
@@ -188,95 +264,6 @@ export default function LowStockReport() {
                 )}
               />
             </DataTable>
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 md:hidden">
-            {isLoading || isFetching ? (
-              <div className="p-8 text-center text-sm text-[var(--text-muted)]">{t("loading", "جاري التحميل...")}</div>
-            ) : rows.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-200 dark:border-slate-800 bg-[#fafafa] dark:bg-slate-900/20 p-8 text-center text-sm text-[var(--text-muted)]">
-                {t("no_data")}
-              </div>
-            ) : (
-              rows
-                .slice(
-                  (currentPage - 1) * entriesPerPage,
-                  currentPage * entriesPerPage
-                )
-                .map((row) => (
-                  <div
-                    key={row.productId}
-                    className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 shadow-sm overflow-hidden"
-                  >
-                    <div className="flex items-center justify-between gap-3 px-4 py-3 bg-[#f8fafc] dark:bg-slate-900/60 border-b border-gray-100 dark:border-slate-800">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="h-9 w-9 rounded-xl bg-[rgba(49,201,110,0.12)] flex items-center justify-center shrink-0">
-                          <AlertTriangle size={18} className="text-amber-500" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs text-[var(--text-muted)] mb-0.5">
-                            {row.barcode}
-                          </p>
-                          <p className="text-sm font-bold text-[var(--text-main)] truncate">
-                            {row.productName}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-4 space-y-4">
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="rounded-xl bg-[#f8fafc] dark:bg-slate-900/60 p-3 text-center border border-gray-100 dark:border-slate-800">
-                          <p className="text-xs text-[var(--text-muted)] mb-2">
-                            {t("min_stock_level", "حد الطلب")}
-                          </p>
-                          <p className="text-sm font-bold">
-                            {formatNumber(row.minStockLevel)}
-                          </p>
-                        </div>
-                        <div className="rounded-xl bg-red-50 dark:bg-red-900/20 p-3 text-center border border-red-100 dark:border-red-900/30">
-                          <p className="text-xs text-red-600 dark:text-red-400 mb-2">
-                            {t("current_quantity", "الكمية الحالية")}
-                          </p>
-                          <p className="text-sm font-bold text-red-700 dark:text-red-300">
-                            {formatNumber(row.currentQty)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-            )}
-
-            {rows.length > entriesPerPage && (
-              <div className="flex items-center justify-center gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                  disabled={currentPage === 1}
-                  className="h-10 px-4 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-[var(--text-main)] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {t("previous")}
-                </button>
-                <div className="h-10 min-w-10 px-4 rounded-xl bg-[rgba(49,201,110,0.12)] text-[var(--primary)] flex items-center justify-center text-sm font-bold">
-                  {currentPage}
-                </div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setCurrentPage((prev) =>
-                      prev < Math.ceil(rows.length / entriesPerPage)
-                        ? prev + 1
-                        : prev
-                    )
-                  }
-                  disabled={currentPage >= Math.ceil(rows.length / entriesPerPage)}
-                  className="h-10 px-4 rounded-xl border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900/40 text-[var(--text-main)] text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {t("next")}
-                </button>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
