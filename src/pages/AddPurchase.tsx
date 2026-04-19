@@ -319,7 +319,7 @@ export default function AddPurchase() {
                 type="datetime-local"
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                
+
                 required
               />
             </div>
@@ -332,7 +332,7 @@ export default function AddPurchase() {
                 type="text"
                 value={formData.refNo}
                 onChange={(e) => setFormData({ ...formData, refNo: e.target.value })}
-                
+
                 required
               />
             </div>
@@ -417,7 +417,7 @@ export default function AddPurchase() {
                 <Input
                   type="text"
                   value={fileName}
-                  
+
                   readOnly
                   placeholder={t("no_file_chosen") || "لم يتم اختيار ملف"}
                 />
@@ -793,7 +793,7 @@ export default function AddPurchase() {
                       discountBeforeVat: Number(e.target.value),
                     })
                   }
-                  
+
                 />
               </div>
 
@@ -810,7 +810,7 @@ export default function AddPurchase() {
                       discountAfterVat: Number(e.target.value),
                     })
                   }
-                  
+
                 />
               </div>
 
@@ -824,7 +824,7 @@ export default function AddPurchase() {
                   onChange={(e) =>
                     setFormData({ ...formData, amountPaid: Number(e.target.value) })
                   }
-                  
+
                 />
               </div>
 
@@ -858,7 +858,7 @@ export default function AddPurchase() {
                   onChange={(e) =>
                     setFormData({ ...formData, paymentTerms: e.target.value })
                   }
-                  
+
                 />
               </div>
 

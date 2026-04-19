@@ -1558,5 +1558,19 @@
 "cost_of_total_sales": "کل فروخت کی لاگت",
 "profit": "منافع",
 "total_expenses": "کل اخراجات",
-"net_profit": "خالص منافع"
+"net_profit": "خالص منافع",
+"total_purchases_operations": "کل خریداری کی کارروائیاں",
+"sales": "فروخت",
+  "collections": "وصولی",
+  "operation_type": "کارروائی کی قسم",
+  "customer_name": "گاہک کا نام",
+  "supplier_name": "سپلائر کا نام",
+  "from_date": "شروع کی تاریخ",
+  "to_date": "اختتام کی تاریخ",
+  "total_purchases": "کل خریداری",
+
+  "total_sales_operations": "کل فروخت کی کارروائیاں",
+  "total_sales": "کل فروخت",
+  "total_sales_value": "کل فروخت کی قیمت",
+  "operation_count": "کارروائیوں کی تعداد"
 }

@@ -1,6 +1,8 @@
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { tafqeet } from "./tafqeet";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 // =============================================
 // PDF Export - للتقارير (جداول وكشوفات)
@@ -76,12 +78,15 @@ export const exportCustomPDF = async (title: string, htmlString: string, orienta
 // Print Voucher - سند قبض / صرف (ورقة واحدة A4)
 // =============================================
 export const printVoucher = (htmlString: string) => {
-  // حقن print CSS قبل تحميل الـ iframe
+  const w = 900;
+  const h = 700;
+  const left = window.screen.width / 2 - w / 2;
+  const top = window.screen.height / 2 - h / 2;
+  const win = window.open("", "_blank", `width=${w},height=${h},left=${left},top=${top}`);
+  if (!win) return;
+
   const printCSS = `
-    @page {
-      size: A4 portrait;
-      margin: 10mm 10mm;
-    }
+    @page { size: A4 portrait; margin: 10mm 10mm; }
     @media print {
       html, body {
         width: 100% !important;
@@ -97,44 +102,17 @@ export const printVoucher = (htmlString: string) => {
 
   const injected = htmlString.includes("</head>") ? htmlString.replace("</head>", `<style>${printCSS}</style></head>`) : `<style>${printCSS}</style>` + htmlString;
 
-  const iframe = document.createElement("iframe");
+  win.document.open();
+  win.document.write(injected);
+  win.document.close();
 
-  // ← التغيير الأساسي: عرض حقيقي بدل صفر حتى يحسب المتصفح الـ layout صح
-  Object.assign(iframe.style, {
-    position: "fixed",
-    top: "0",
-    left: "0",
-    width: "210mm",
-    height: "297mm",
-    border: "none",
-    opacity: "0", // مخفي بصرياً لكن له layout
-    zIndex: "-9999",
-    pointerEvents: "none",
-  });
-
-  document.body.appendChild(iframe);
-
-  iframe.onload = async () => {
-    const doc = iframe.contentDocument!;
-    await doc.fonts.ready;
-    // انتظر تحميل الخط من Google Fonts
-    await new Promise((r) => setTimeout(r, 800));
-
-    // force layout recalc قبل الطباعة
-    iframe.contentDocument!.body.getBoundingClientRect();
-
-    iframe.contentWindow!.focus();
-    iframe.contentWindow!.print();
-
-    // إزالة الـ iframe بعد الطباعة
+  win.document.fonts.ready.then(() => {
     setTimeout(() => {
-      if (document.body.contains(iframe)) {
-        document.body.removeChild(iframe);
-      }
-    }, 2000);
-  };
-
-  iframe.srcdoc = injected;
+      win.focus();
+      win.print();
+      setTimeout(() => win.close(), 1000);
+    }, 600);
+  });
 };
 
 // =============================================
@@ -597,9 +575,33 @@ export const getAccountStatementHTML = (title: string, partyInfo: { name: string
       <style>
         ${gStyles}
         .summary-boxes { display:flex; gap:15px; margin-bottom:30px; }
-        .s-box { flex:1; color:#fff !important; padding:15px; border-radius:12px; text-align:center; }
-        .s-box h4 { font-size:14px; opacity:0.9; margin-bottom:5px; font-weight:600; color:#fff !important; }
-        .s-box h2 { font-size:24px; font-weight:700; margin:0; color:#fff !important; }
+        .s-box { 
+          flex:1; 
+          padding:15px; 
+          border-radius:12px; 
+          text-align:right; 
+          border: 1px solid #e2e8f0;
+          background: #fff;
+        }
+        .s-box h4 { 
+          font-size:11px; 
+          color:#64748b; 
+          margin-bottom:6px; 
+          font-weight:700; 
+          text-transform: uppercase;
+        }
+        .s-box h2 { 
+          font-size:20px; 
+          font-weight:800; 
+          margin:0; 
+          color:#0f172a; 
+        }
+        .s-box.blue { border-left: 4px solid #3b82f6; }
+        .s-box.green { border-left: 4px solid #10b981; }
+        .s-box.orange { border-left: 4px solid #f97316; }
+        [dir="rtl"] .s-box.blue { border-left: 0; border-right: 4px solid #3b82f6; }
+        [dir="rtl"] .s-box.green { border-left: 0; border-right: 4px solid #10b981; }
+        [dir="rtl"] .s-box.orange { border-left: 0; border-right: 4px solid #f97316; }
       </style>
     </head>
     <body style="-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;">
@@ -625,14 +627,14 @@ export const getAccountStatementHTML = (title: string, partyInfo: { name: string
         </tr>
       </table>
       <div class="summary-boxes" dir="rtl">
-        <div class="s-box blue" style="background-color:#3b82f6 !important;">
-          <h4>${summary.label3}</h4><h2>${Number(summary.total3).toLocaleString()}</h2>
+        <div class="s-box blue">
+          <h4>${summary.label3}</h4><h2>${Number(summary.total3).toLocaleString()} <span style="font-size:12px;color:#64748b;">${t("currency_sar", "ر.س")}</span></h2>
         </div>
-        <div class="s-box green" style="background-color:#10b981 !important;">
-          <h4>${summary.label2}</h4><h2>${Number(summary.total2).toLocaleString()}</h2>
+        <div class="s-box green">
+          <h4>${summary.label2}</h4><h2>${Number(summary.total2).toLocaleString()} <span style="font-size:12px;color:#64748b;">${t("currency_sar", "ر.س")}</span></h2>
         </div>
-        <div class="s-box orange" style="background-color:#f97316 !important;">
-          <h4>${summary.label1}</h4><h2>${Number(summary.total1).toLocaleString()}</h2>
+        <div class="s-box orange">
+          <h4>${summary.label1}</h4><h2>${Number(summary.total1).toLocaleString()} <span style="font-size:12px;color:#64748b;">${t("currency_sar", "ر.س")}</span></h2>
         </div>
       </div>
       <table>
@@ -725,4 +727,252 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
     </body>
     </html>
   `;
+};
+
+// =============================================
+// Standardized Report HTML Template
+// =============================================
+export const generateReportHTML = (
+  title: string,
+  filtersInfo: string,
+  summaryCards: { title: string; value: any; suffix?: string; color?: string }[],
+  columns: { header: string; field: string; body?: (row: any) => string }[],
+  data: any[],
+  t: any,
+  direction: "rtl" | "ltr" = "rtl"
+) => {
+  const tableHeaders = columns.map(col => `<th>${col.header}</th>`).join("");
+  const tableRows = data.map((row, i) => {
+    const cells = columns.map(col => {
+      let val = "";
+      if (col.field === "serial") {
+        val = (i + 1).toString();
+      } else if (col.body) {
+        val = col.body(row);
+      } else {
+        const parts = col.field.split(".");
+        let tempVal = row;
+        for (const p of parts) {
+          tempVal = tempVal ? tempVal[p] : "-";
+        }
+        val = tempVal !== null && tempVal !== undefined ? tempVal : "-";
+      }
+      return `<td>${val}</td>`;
+    }).join("");
+    return `<tr>${cells}</tr>`;
+  }).join("");
+
+  const filtersArray = typeof filtersInfo === 'string' ? filtersInfo.split(" | ") : [];
+  const filtersHTML = filtersArray.length > 0 
+    ? `<div class="filters-row">
+        ${filtersArray.map(f => {
+          const parts = f.split(": ");
+          if (parts.length < 2) return "";
+          const label = parts[0];
+          const value = parts.slice(1).join(": ");
+          return `
+            <div class="filter-item">
+              <span class="filter-label">${label}:</span>
+              <span class="filter-value">${value || '-'}</span>
+            </div>
+          `;
+        }).join("")}
+       </div>`
+    : "";
+
+  const cardsHTML = (summaryCards && summaryCards.length > 0) 
+    ? `<div class="report-cards-container">
+        ${summaryCards.map(card => {
+          const colorHex = card.color === 'blue' ? '#3b82f6' : 
+                          card.color === 'green' ? '#10b981' : 
+                          card.color === 'orange' ? '#f59e0b' : 
+                          card.color === 'red' ? '#ef4444' : 
+                          card.color === 'purple' ? '#8b5cf6' : 
+                          card.color === 'teal' ? '#14b8a6' : '#3b82f6';
+          return `
+            <div class="report-card ${card.color || 'blue'}">
+              <div class="card-accent" style="background-color: ${colorHex}"></div>
+              <div class="card-content">
+                <div class="card-title">${card.title}</div>
+                <div class="card-value">
+                  ${card.value}
+                  ${card.suffix ? `<span class="card-suffix">${card.suffix}</span>` : ""}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      </div>`
+    : "";
+
+  const customStyles = `
+    .filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+      direction: ${direction};
+    }
+    .filter-item {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 5px 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+    .filter-label {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .filter-value {
+      font-size: 11px;
+      color: #0f172a;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .report-cards-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 30px;
+      direction: ${direction};
+    }
+    .report-card {
+      background: #fff !important;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 180px;
+      flex: 1;
+      text-align: ${direction === 'rtl' ? 'right' : 'left'};
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .card-accent {
+      position: absolute;
+      top: 0;
+      ${direction === 'rtl' ? 'right: 0;' : 'left: 0;'}
+      width: 4px;
+      height: 100%;
+    }
+    
+    .card-content {
+      flex: 1;
+    }
+    .card-title {
+      font-size: 10px;
+      color: #64748b;
+      font-weight: 700;
+      margin-bottom: 2px;
+      text-transform: uppercase;
+    }
+    .card-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+    .card-suffix {
+      font-size: 10px;
+      color: #94a3b8;
+    }
+  `;
+
+  return `
+    <!DOCTYPE html>
+    <html dir="${direction}" lang="${direction === "rtl" ? "ar" : "en"}">
+    <head>
+      <meta charset="UTF-8"/>
+      <link rel="preconnect" href="https://fonts.googleapis.com"/>
+      <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+      <style>
+        ${gStyles}
+        ${customStyles}
+      </style>
+    </head>
+    <body style="-webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+      <div class="header">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <div style="font-size: 16px; font-weight: 800; color: #1e40af;">${t("takamul_data", "تكامل البيانات")}</div>
+          <h1 style="margin: 0; font-size: 20px;">${title}</h1>
+          <div style="font-size: 11px; color: #64748b;">${new Date().toLocaleString(direction === 'rtl' ? 'ar-SA' : 'en-GB')}</div>
+        </div>
+      </div>
+      
+      ${filtersHTML}
+      ${cardsHTML}
+
+      <table>
+        <thead>
+          <tr>${tableHeaders}</tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+      
+      <div style="margin-top: 30px; padding-top: 10px; border-top: 1px solid #e2e8f0; font-size: 10px; color: #94a3b8; text-align: center;">
+        ${t("printed_via_takamul", "تمت الطباعة عبر نظام تكامل لإدارة البيانات")}
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+// =============================================
+// Excel Export - الموحد لكافة التقارير
+// =============================================
+export const exportToExcel = (
+  data: any[],
+  columns: { header: string; field: string; body?: (row: any) => any }[],
+  fileName: string
+) => {
+  const excelData = data.map((row, i) => {
+    const obj: any = {};
+    columns.forEach((col) => {
+      let val = "";
+      if (col.field === "serial") {
+        val = (i + 1).toString();
+      } else if (col.body) {
+        val = col.body(row);
+        // إذا كانت القيمة كائن (React Element)، نحاول استخراج النص منه
+        if (typeof val === "object" && val !== null && (val as any).props && (val as any).props.children) {
+          val = (val as any).props.children;
+        }
+      } else {
+        const parts = col.field.split(".");
+        let tempVal = row;
+        for (const p of parts) {
+          tempVal = tempVal ? tempVal[p] : "-";
+        }
+        val = tempVal !== null && tempVal !== undefined ? tempVal : "-";
+      }
+      if (col.header) {
+        obj[col.header] = val !== null && val !== undefined ? String(val) : "-";
+      }
+    });
+    return obj;
+  });
+
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
+  
+  // ضبط اتجاه الورقة ليكون من اليمين لليسار إذا كان العنوان بالعربي
+  worksheet["!views"] = [{ RTL: true }];
+
+  const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+  const blob = new Blob([excelBuffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  saveAs(blob, `${fileName}_${Date.now()}.xlsx`);
 };
