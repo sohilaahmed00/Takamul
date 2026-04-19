@@ -140,9 +140,9 @@ export default function SalesByDayReport() {
         title,
         getFiltersInfo(),
         [
-          { title: t("total_sales_excl_tax"), value: formatNumber(totalSales), color: "orange" },
-          { title: t("total_tax"), value: formatNumber(totalTax), color: "blue" },
-          { title: t("grand_total_with_tax"), value: formatNumber(totalFinal), color: "teal" },
+          { title: t("total_sales_excl_tax"), value: `${formatNumber(totalSales)} ${t('sar', 'ر.س')}`, color: "orange" },
+          { title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.س')}`, color: "blue" },
+          { title: t("grand_total_with_tax"), value: `${formatNumber(totalFinal)} ${t('sar', 'ر.س')}`, color: "teal" },
         ],
         exportColumns,
         salesData,
@@ -161,9 +161,9 @@ export default function SalesByDayReport() {
       title,
       getFiltersInfo(),
       [
-        { title: t("total_sales_excl_tax"), value: formatNumber(totalSales), color: "orange" },
-        { title: t("total_tax"), value: formatNumber(totalTax), color: "blue" },
-        { title: t("grand_total_with_tax"), value: formatNumber(totalFinal), color: "teal" },
+        { title: t("total_sales_excl_tax"), value: `${formatNumber(totalSales)} ${t('sar', 'ر.س')}`, color: "orange" },
+        { title: t("total_tax"), value: `${formatNumber(totalTax)} ${t('sar', 'ر.س')}`, color: "blue" },
+        { title: t("grand_total_with_tax"), value: `${formatNumber(totalFinal)} ${t('sar', 'ر.س')}`, color: "teal" },
       ],
       exportColumns,
       salesData,
@@ -222,18 +222,21 @@ export default function SalesByDayReport() {
             <FinancialStatCard
               title={t("total_sales_excl_tax", "إجمالي المبيعات بدون ضريبة")}
               value={formatNumber(totalSales)}
+              suffix="SAR"
               icon={TrendingUp}
               color="orange"
             />
             <FinancialStatCard
               title={t("total_tax", "إجمالي الضريبة")}
               value={formatNumber(totalTax)}
+              suffix="SAR"
               icon={Receipt}
               color="blue"
             />
             <FinancialStatCard
               title={t("grand_total_with_tax", "الإجمالي النهائي")}
               value={formatNumber(totalFinal)}
+              suffix="SAR"
               icon={DollarSign}
               color="teal"
             />

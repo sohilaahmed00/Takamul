@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import {
-  DollarSign,
+  SaudiRiyal,
   Printer,
   FileText,
   FileSpreadsheet,
@@ -328,7 +328,7 @@ export default function ProfitReport() {
         <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <DollarSign size={20} className="text-[var(--primary)]" />
+              <SaudiRiyal size={20} className="text-[var(--primary)]" />
               {title}
             </CardTitle>
           </div>

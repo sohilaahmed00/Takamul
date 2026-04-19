@@ -100,9 +100,9 @@ export default function CustomerStatementReport() {
     ].join(" | ");
 
     const summaryCards = [
-      { title: t("total_sales", "إجمالي المبيعات"), value: formatNumber(totalDebit), color: "orange" },
-      { title: t("total_collections", "إجمالي التحصيلات"), value: formatNumber(totalCredit), color: "teal" },
-      { title: t("total_debit", "إجمالي المديونية"), value: formatNumber(totalBalance), color: "blue" },
+      { title: t("total_sales", "إجمالي المبيعات"), value: `${formatNumber(totalDebit)} ${t('sar', 'ر.س')}`, color: "orange" },
+      { title: t("total_collections", "إجمالي التحصيلات"), value: `${formatNumber(totalCredit)} ${t('sar', 'ر.س')}`, color: "teal" },
+      { title: t("total_debit", "إجمالي المديونية"), value: `${formatNumber(totalBalance)} ${t('sar', 'ر.س')}`, color: "blue" },
     ];
 
     const columns = [
@@ -168,9 +168,9 @@ export default function CustomerStatementReport() {
 
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-            <FinancialStatCard title={t("total_sales", "إجمالي المبيعات")} value={formatNumber(totalDebit)} icon={TrendingUp} color="orange" />
-            <FinancialStatCard title={t("total_collections", "إجمالي التحصيلات")} value={formatNumber(totalCredit)} icon={Receipt} color="teal" />
-            <FinancialStatCard title={t("total_debit", "إجمالي المديونية")} value={formatNumber(totalBalance)} icon={Wallet} color="blue" />
+            <FinancialStatCard title={t("total_sales", "إجمالي المبيعات")} value={formatNumber(totalDebit)} suffix="SAR" icon={TrendingUp} color="orange" />
+            <FinancialStatCard title={t("total_collections", "إجمالي التحصيلات")} value={formatNumber(totalCredit)} suffix="SAR" icon={Receipt} color="teal" />
+            <FinancialStatCard title={t("total_debit", "إجمالي المديونية")} value={formatNumber(totalBalance)} suffix="SAR" icon={Wallet} color="blue" />
           </div>
 
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">

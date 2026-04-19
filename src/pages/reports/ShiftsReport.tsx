@@ -75,8 +75,8 @@ export default function ShiftsReport() {
     }));
 
     const summaryCards = [
-      { title: t('total_sales', 'إجمالي المبيعات'), value: `${fmt(summary.totalAll)} SAR`, icon: 'DollarSign' },
-      { title: t('total_cash', 'إجمالي النقدي'), value: `${fmt(summary.totalCash)} SAR`, icon: 'Wallet' }
+      { title: t('total_sales', 'إجمالي المبيعات'), value: `${fmt(summary.totalAll)} ${t('sar', 'ر.س')}`, icon: 'DollarSign' },
+      { title: t('total_cash', 'إجمالي النقدي'), value: `${fmt(summary.totalCash)} ${t('sar', 'ر.س')}`, icon: 'Wallet' }
     ];
 
     const html = generateReportHTML(reportTitle, t('all_shifts', 'جميع الورديات'), summaryCards, columns, data, t, direction);
@@ -100,7 +100,7 @@ export default function ShiftsReport() {
       }));
 
       const summaryCards = [
-        { title: t('total_sales', 'إجمالي المبيعات'), value: `${fmt(summary.totalAll)} SAR`, icon: 'DollarSign' }
+        { title: t('total_sales', 'إجمالي المبيعات'), value: `${fmt(summary.totalAll)} ${t('sar', 'ر.س')}`, icon: 'DollarSign' }
       ];
 
       const html = generateReportHTML(reportTitle, t('all_shifts', 'جميع الورديات'), summaryCards, columns, data, t, direction);
@@ -155,19 +155,22 @@ export default function ShiftsReport() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <FinancialStatCard 
               title={t('total_all', 'الإجمالي الكلي')} 
-              value={`${fmt(summary.totalAll)} SAR`} 
+              value={fmt(summary.totalAll)}
+              suffix="SAR"
               icon={DollarSign}
               color="blue"
             />
             <FinancialStatCard 
               title={t('total_cash', 'إجمالي النقدي')} 
-              value={`${fmt(summary.totalCash)} SAR`} 
+              value={fmt(summary.totalCash)}
+              suffix="SAR"
               icon={Wallet}
               color="teal"
             />
             <FinancialStatCard 
               title={t('total_network', 'إجمالي الشبكة')} 
-              value={`${fmt(summary.totalNetwork)} SAR`} 
+              value={fmt(summary.totalNetwork)}
+              suffix="SAR"
               icon={CreditCard}
               color="orange"
             />
