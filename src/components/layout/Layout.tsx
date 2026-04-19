@@ -11,8 +11,7 @@ import Logo from "@/components/Logo";
 import WelcomeBanner from "@/components/WelcomeBanner";
 import LogoModal from "@/components/modals/LogoModal";
 import { ToastContainer } from "react-toastify";
-import { TooltipProvider } from "../ui/tooltip";
-
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
@@ -166,7 +165,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex transition-colors duration-300" dir={direction}>
-      <ToastContainer pauseOnHover={false} limit={1} />
+      <ToastContainer />
 
       <AnimatePresence>{isMobileMenuOpen && isMobile && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-black/50 z-40 lg:hidden" />}</AnimatePresence>
 
@@ -319,11 +318,10 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object.values(Permissions?.reports)) && <SidebarItem icon={BarChart} label={t("reports")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "reports"} onClick={() => toggleSubmenu("reports")} />}
+          <SidebarItem icon={BarChart} label={t("reports")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "reports"} onClick={() => toggleSubmenu("reports")} />
           <AnimatePresence>
             {openSubmenu === "reports" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-<<<<<<< HEAD:src/components/Layout.tsx
                 <SubmenuItem label={t("item_reports")} icon={Package} path="/reports/category/items" />
                 <SubmenuItem label={t("sales_reports")} icon={ShoppingCart} path="/reports/category/sales" />
                 <SubmenuItem label={t("purchase_reports")} icon={CornerUpLeft} path="/reports/category/purchases" />
@@ -332,15 +330,6 @@ export default function Layout() {
                 <SubmenuItem label={t("suppliers_reports", "تقارير الموردين")} icon={Truck} path="/reports/category/suppliers" />
                 <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />
                 <SubmenuItem label={t("profits_reports")} icon={Calculator} path="/reports/category/profits" />
-=======
-                {hasPermission("التقارير.المنتجات") && <SubmenuItem label={t("item_reports")} icon={Package} path="/reports/category/items" />}
-                {hasPermission("التقارير.المبيعات") && <SubmenuItem label={t("sales_reports")} icon={ShoppingCart} path="/reports/category/sales" />}
-                {hasPermission("التقارير.المشتريات") && <SubmenuItem label={t("purchase_reports")} icon={CornerUpLeft} path="/reports/category/purchases" />}
-                {hasPermission("التقارير.العملاء") && <SubmenuItem label={t("customer_reports")} icon={User} path="/reports/category/customers" />}
-                {hasPermission("التقارير.الموردين") && <SubmenuItem label={t("suppliers_reports", "تقارير الموردين")} icon={Truck} path="/reports/category/suppliers" />}
-                {hasPermission("التقارير.المصروفات") && <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />}
-                <SubmenuItem label={t("profits_reports")} icon={Calculator} path="/reports/profit" />
->>>>>>> fc77f36f61f599ab1965cb03da9312cccdcb633d:src/components/layout/Layout.tsx
                 <div className="h-px bg-gray-100 my-1 mx-2" />
 
                 {/* <SubmenuItem label={t("sales_report_by_category")} icon={List} path="/reports/sales-by-category" /> */}
