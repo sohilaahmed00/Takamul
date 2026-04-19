@@ -62,7 +62,7 @@ export default function Topbar2() {
                     <Home size={13} />
                   </Link>
                 </Button>
-                <Button onClick={() => setShowKeyboard(true)} variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="لوحة المفاتيح">
+                <Button onClick={() => setShowKeyboard(!showKeyboard)} variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="لوحة المفاتيح">
                   <KeyboardIcon size={13} />
                 </Button>
                 <Button onClick={toggleFullScreen} variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="ملء الشاشة">
