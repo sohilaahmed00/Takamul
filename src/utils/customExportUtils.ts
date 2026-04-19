@@ -107,6 +107,7 @@ export const printVoucher = (htmlString: string) => {
   win.document.close();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   win.document.fonts.ready.then(() => {
 =======
   // ← التغيير الأساسي: عرض حقيقي بدل صفر حتى يحسب المتصفح الـ layout صح
@@ -138,6 +139,9 @@ export const printVoucher = (htmlString: string) => {
 
     // إزالة الـ iframe بعد الطباعة
 >>>>>>> fc77f36f61f599ab1965cb03da9312cccdcb633d
+=======
+  win.document.fonts.ready.then(() => {
+>>>>>>> e4b4b4bb39b5e71d5aa8af0f1602715af13c3de8
     setTimeout(() => {
       win.focus();
       win.print();
@@ -760,6 +764,9 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
   `;
 };
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e4b4b4bb39b5e71d5aa8af0f1602715af13c3de8
 
 // =============================================
 // Standardized Report HTML Template
@@ -1008,5 +1015,8 @@ export const exportToExcel = (
   });
   saveAs(blob, `${fileName}_${Date.now()}.xlsx`);
 };
+<<<<<<< HEAD
 =======
 >>>>>>> fc77f36f61f599ab1965cb03da9312cccdcb633d
+=======
+>>>>>>> e4b4b4bb39b5e71d5aa8af0f1602715af13c3de8
