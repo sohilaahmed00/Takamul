@@ -30,7 +30,7 @@ import { DelegatesProvider } from "@/context/DelegatesContext";
 import { TablesProvider } from "@/context/TablesContext";
 import { AdditionsProvider } from "@/context/AdditionsContext";
 import { WarehousesProvider } from "@/context/WarehousesContext";
-
+import "react-simple-keyboard/build/css/index.css";
 import QueryProvider from "./providers/query-provider.tsx";
 
 import "primereact/resources/themes/lara-light-blue/theme.css";
