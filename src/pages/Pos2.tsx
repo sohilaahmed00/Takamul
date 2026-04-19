@@ -208,11 +208,12 @@ function CartPanel({ cart, setCart, discount, setDiscount, onProceed, onHold, t 
           </div>
         </div>
       </AccordionContent>
-    </AccordionItem>
-  ))}
-            </Accordion>
+    </AccordionItem >
+  ))
+}
+            </Accordion >
           )}
-        </div>
+        </div >
 
   { activeTab === "add" && (
     <div className="px-3 pt-2.5 pb-3">

@@ -1,131 +1,354 @@
-// import { useMemo, useState } from 'react';
-// import { Link } from 'react-router-dom';
-// import { FileText, FileSpreadsheet, Search, DollarSign, TrendingUp, BarChart2, Edit2, Printer } from 'lucide-react';
-// import { DataTable, type DataTablePageEvent } from 'primereact/datatable';
-// import { Column } from 'primereact/column';
-// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// import { useLanguage } from '@/context/LanguageContext';
-// import { useGetAllSales } from '@/features/sales/hooks/useGetAllSales';
-// import { useSales } from '@/context/SalesContext';
-// import { usePurchases } from '@/context/PurchasesContext';
-// import { useExpenses } from '@/context/ExpensesContext';
-// import type { SalesOrder } from '@/features/sales/types/sales.types';
+import React, { useState, useMemo } from 'react';
+import {
+  FileText,
+  FileSpreadsheet,
+  Search,
+  DollarSign,
+  TrendingUp,
+  BarChart2,
+  Printer,
+  RotateCcw,
+  Calendar as CalendarIcon,
+  Receipt
+} from 'lucide-react';
+import { DataTable, type DataTablePageEvent } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { useLanguage } from '@/context/LanguageContext';
+import { useGetAllSales } from '@/features/sales/hooks/useGetAllSales';
+import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
+import type { SalesOrder } from '@/features/sales/types/sales.types';
+import { Input } from "@/components/ui/input";
+import { FinancialStatCard } from "@/components/FinancialStatCard";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { format } from "date-fns";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import {
+  generateReportHTML,
+  printCustomHTML,
+  exportCustomPDF,
+  exportToExcel
+} from "@/utils/customExportUtils";
 
-// import { Input } from "@/components/ui/input";
+const StatusBadge = ({ status }: { status: string }) => {
+  const { t } = useLanguage();
+  return (
+    <span className="text-xs font-semibold px-2 py-1 rounded-full bg-slate-100 text-slate-700">
+      {status === 'Confirmed' ? t('confirmed', 'مؤكد') : t('not_confirmed', 'غير مؤكد')}
+    </span>
+  );
+};
 
-// const StatusBadge = ({ status }: { status: string }) => {
-//   const { t } = useLanguage();
-//   return (
-//     <span className="text-xs font-semibold text-gray-700">
-//       {status === 'Confirmed' ? t('confirmed') : t('not_confirmed')}
-//     </span>
-//   );
-// };
+export default function SalesReport() {
+  const { t, direction, language } = useLanguage();
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
-// const SummaryCard = ({ title, value, color, icon: Icon }: { title: string; value: string; color: string; icon: any }) => (
-//   <div className={`rounded-xl p-5 text-white shadow-md relative overflow-hidden ${color}`}>
-//     <div className="relative z-10">
-//       <p className="text-white/80 text-xs font-medium mb-1">{title}</p>
-//       <h3 className="text-xl font-bold">{value}</h3>
-//     </div>
-//     <div className="absolute left-4 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-white/20">
-//       <Icon size={22} className="text-white" />
-//     </div>
-//   </div>
-// );
+  const [filters, setFilters] = useState({
+    branchId: " ",
+    from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
+    to: new Date().toISOString().split("T")[0],
+  });
 
-// export default function SalesReport() {
-//   const { t, direction, language } = useLanguage();
-//   const [entriesPerPage, setEntriesPerPage] = useState(10);
-//   const [currentPage, setCurrentPage] = useState(1);
-//   const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const [searchParams, setSearchParams] = useState(filters);
 
-//   const { data: salesOrders } = useGetAllSales({ page: currentPage, limit: entriesPerPage });
-//   const orders = salesOrders?.items ?? [];
-//   const totalCount = salesOrders?.totalCount ?? 0;
+  // Data Fetching
+  const { data: salesOrders, isLoading } = useGetAllSales({
+    page: currentPage,
+    limit: entriesPerPage
+  });
 
-//   // Use contexts for global summary (matching dashboard)
-//   const { sales } = useSales();
-//   const { purchases } = usePurchases();
-//   const { expenses } = useExpenses();
+  const orders = salesOrders?.items ?? [];
+  const totalCount = salesOrders?.totalCount ?? 0;
 
-//   const globalSummary = useMemo(() => {
-//     const totalSales = sales.reduce((sum, s) => sum + (s.grandTotal || 0), 0);
-//     const totalPurchases = purchases.reduce((sum, p) => sum + (p.total || 0), 0);
-//     const totalExpenses = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+  const { data: branches = [] } = useGetAllBranches();
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
-//     return {
-//       totalSales,
-//       totalNoTax: sales.reduce((sum, s) => sum + ((s as any).subTotal || 0), 0),
-//       totalTax: sales.reduce((sum, s) => sum + ((s as any).taxAmount || 0), 0),
-//       netProfit: totalSales - totalPurchases - totalExpenses
-//     };
-//   }, [sales, purchases, expenses]);
+  const summary = useMemo(() => {
+    const totalSales = orders.reduce((sum, s) => sum + (s.grandTotal || 0), 0);
+    const totalTax = orders.reduce((sum, s) => sum + (s.taxAmount || 0), 0);
+    const totalNoTax = totalSales - totalTax;
 
-//   const fmt = (n: number) => n.toFixed(2);
-//   const fmtDate = (d: string) => { try { return new Date(d).toLocaleDateString('en-GB'); } catch { return d; } };
+    return {
+      totalSales,
+      totalNoTax,
+      totalTax,
+      count: totalCount
+    };
+  }, [orders, totalCount]);
 
-//   const header = useMemo(() => (
-//     <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-//       <div className="flex items-center gap-4 text-sm font-medium">
-//         <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-//           <Printer size={16} /> <span className="hidden sm:inline">{t("print", "Print")}</span>
-//         </button>
-//         <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-//           <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
-//         </button>
-//         <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-//           <FileSpreadsheet size={16} /> <span className="hidden sm:inline">Excel</span>
-//         </button>
-//       </div>
-//       <div className="relative w-full sm:w-64">
-//         <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none"><Search size={16} className="text-gray-400" /></div>
-//         <Input type="text" value={globalFilterValue} onChange={e => { setGlobalFilterValue(e.target.value); setCurrentPage(1); }}
-//           placeholder={t('search_placeholder')}
-//           className="w-full border border-gray-200 focus:border-[var(--primary)] text-gray-700 text-sm rounded-lg py-2 pr-10 pl-4 outline-none transition-all" />
-//       </div>
-//     </div>
-//   ), [globalFilterValue, t]);
+  const fmt = (n: number) => (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-//   return (
-//     <div className="space-y-4 pb-12" dir={direction}>
-//       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-//         <SummaryCard title={t('total_no_tax')} value={`${fmt(globalSummary.totalNoTax)} SAR`} color="bg-teal-500" icon={BarChart2} />
-//         <SummaryCard title={t('item_vat')} value={`${fmt(globalSummary.totalTax)} SAR`} color="bg-[#2ecc71]" icon={FileText} />
-//         <SummaryCard title={t('total_sales_report')} value={`${fmt(globalSummary.totalSales)} SAR`} color="bg-[#38bdf8]" icon={DollarSign} />
-//         <SummaryCard title={t('net_profit')} value={`${fmt(globalSummary.netProfit)} SAR`} color="bg-[#8b5cf6]" icon={TrendingUp} />
-//       </div>
+  const handleSearch = () => {
+    setCurrentPage(1);
+    setSearchParams(filters);
+  };
 
-//       <Card>
-//         <CardHeader>
-//           <CardTitle>{t('sales_report')}</CardTitle>
-//           <CardDescription>{t('customize_report_below')}</CardDescription>
-//         </CardHeader>
-//         <CardContent>
-//           <DataTable
-//             value={orders} totalRecords={totalCount} loading={!salesOrders}
-//             lazy paginator rows={entriesPerPage} rowsPerPageOptions={[5, 10, 20, 50]}
-//             first={(currentPage - 1) * entriesPerPage}
-//             onPage={(e: DataTablePageEvent) => {
-//               if (e.page === undefined) return;
-//               setCurrentPage(e.page + 1);
-//               setEntriesPerPage(e.rows ?? entriesPerPage);
-//             }}
-//             header={header} className="custom-green-table custom-compact-table" dataKey="id"
-//             emptyMessage={t('no_data')} globalFilter={globalFilterValue}
-//             globalFilterFields={['orderNumber', 'customerName', 'warehouseName']}
-//           >
-//             <Column header={t('invoice_number')} field="orderNumber" sortable body={(r: SalesOrder) => r.orderNumber} />
-//             <Column header={t('date')} field="orderDate" sortable body={(r: SalesOrder) => new Date(r.orderDate).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB')} />
-//             <Column header={t('customer_name')} field="customerName" sortable />
-//             <Column header={t('cashier')} field="createdBy" sortable />
-//             <Column header={t('invoice_status')} field="orderStatus" body={(r: SalesOrder) => <StatusBadge status={r.orderStatus} />} />
-//             <Column header={t('total_amount')} field="grandTotal" sortable body={(r: SalesOrder) => fmt(r.grandTotal)} />
-//             <Column header={t('paid_amount')} body={(r: SalesOrder) => fmt(r.payments?.reduce((s, p) => s + p.amount, 0) ?? 0)} />
+  const handleClear = () => {
+    const reset = {
+      branchId: " ",
+      from: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
+      to: new Date().toISOString().split("T")[0],
+    };
+    setFilters(reset);
+    setSearchParams(reset);
+    setCurrentPage(1);
+  };
 
-//           </DataTable>
-//         </CardContent>
-//       </Card>
-//     </div>
-//   );
-// }
+  const reportTitle = t('sales_report', 'تقرير المبيعات');
+
+  const getFiltersInfo = () => {
+    const branchName = branches.find(b => String(b.id) === searchParams.branchId.trim())?.name || t('all', 'الكل');
+    return `${t('branch', 'الفرع')}: ${branchName} | ${t('from', 'من')}: ${searchParams.from} | ${t('to', 'إلى')}: ${searchParams.to}`;
+  };
+
+  const handlePrint = () => {
+    const columns = [
+      { header: t("serial", "م"), field: "serial" },
+      { header: t('invoice_number', 'رقم الفاتورة'), field: 'orderNumber' },
+      { header: t('date', 'التاريخ'), field: 'orderDate' },
+      { header: t('customer_name', 'اسم العميل'), field: 'customerName' },
+      { header: t('total_amount', 'الإجمالي'), field: 'grandTotal' },
+      { header: t('status', 'الحالة'), field: 'orderStatus' }
+    ];
+
+    const data = orders.map(o => ({
+      ...o,
+      orderDate: new Date(o.orderDate).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB'),
+      grandTotal: fmt(o.grandTotal),
+      orderStatus: o.orderStatus === 'Confirmed' ? t('confirmed') : t('not_confirmed')
+    }));
+
+    const summaryCards = [
+      { title: t('total_sales', 'إجمالي المبيعات'), value: `${fmt(summary.totalSales)} SAR`, icon: 'DollarSign' },
+      { title: t('total_no_tax', 'الإجمالي بدون ضريبة'), value: `${fmt(summary.totalNoTax)} SAR`, icon: 'Receipt' },
+      { title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} SAR`, icon: 'BarChart2' }
+    ];
+
+    const html = generateReportHTML(reportTitle, getFiltersInfo(), summaryCards, columns, data, t, direction);
+    printCustomHTML(reportTitle, html);
+  };
+
+  const handleExportPDF = async () => {
+    setPdfLoading(true);
+    try {
+      const columns = [
+        { header: t("serial", "م"), field: "serial" },
+        { header: t('invoice_number', 'رقم الفاتورة'), field: 'orderNumber' },
+        { header: t('date', 'التاريخ'), field: 'orderDate' },
+        { header: t('customer_name', 'اسم العميل'), field: 'customerName' },
+        { header: t('total_amount', 'الإجمالي'), field: 'grandTotal' }
+      ];
+
+      const data = orders.map(o => ({
+        ...o,
+        orderDate: new Date(o.orderDate).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB'),
+        grandTotal: fmt(o.grandTotal)
+      }));
+
+      const summaryCards = [
+        { title: t('total_sales', 'إجمالي المبيعات'), value: `${fmt(summary.totalSales)} SAR`, icon: 'DollarSign' },
+        { title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} SAR`, icon: 'BarChart2' }
+      ];
+
+      const html = generateReportHTML(reportTitle, getFiltersInfo(), summaryCards, columns, data, t, direction);
+      await exportCustomPDF(reportTitle, html);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handleExportExcel = () => {
+    const columns = [
+      { header: t("serial", "م"), field: "serial" },
+      { header: t('invoice_number'), field: 'orderNumber' },
+      { header: t('date'), field: 'orderDate', body: (o: any) => new Date(o.orderDate).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB') },
+      { header: t('customer_name'), field: 'customerName' },
+      { header: t('total_amount'), field: 'grandTotal' },
+      { header: t('status'), field: 'orderStatus' }
+    ];
+    exportToExcel(orders, columns, reportTitle);
+  };
+
+  return (
+    <div className="space-y-6 pb-12" dir={direction}>
+      <Card className="border-none shadow-sm overflow-hidden bg-white dark:bg-slate-950">
+        <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
+          <div>
+            <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <BarChart2 className="w-5 h-5 text-[var(--primary)]" />
+              {reportTitle}
+            </CardTitle>
+            <CardDescription className="mt-1">
+              {t('customize_report_below', 'تخصيص التقرير أدناه')}
+            </CardDescription>
+          </div>
+
+          <div className="flex items-center gap-4 text-sm font-medium">
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
+            >
+              <Printer size={16} />
+              <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            </button>
+            <button
+              onClick={handleExportPDF}
+              disabled={pdfLoading}
+              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400 disabled:opacity-50"
+            >
+              <FileText size={16} />
+              <span className="hidden sm:inline">{pdfLoading ? t('loading', 'جاري التحميل...') : 'PDF'}</span>
+            </button>
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
+            >
+              <FileSpreadsheet size={16} />
+              <span className="hidden sm:inline">Excel</span>
+            </button>
+          </div>
+        </CardHeader>
+
+        <CardContent className="pt-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <FinancialStatCard
+              title={t('total_sales', 'إجمالي المبيعات')}
+              value={`${fmt(summary.totalSales)} SAR`}
+              icon={DollarSign}
+              color="blue"
+            />
+            <FinancialStatCard
+              title={t('total_no_tax', 'الإجمالي بدون ضريبة')}
+              value={`${fmt(summary.totalNoTax)} SAR`}
+              icon={Receipt}
+              color="teal"
+            />
+            <FinancialStatCard
+              title={t('total_tax', 'إجمالي الضريبة')}
+              value={`${fmt(summary.totalTax)} SAR`}
+              icon={BarChart2}
+              color="orange"
+            />
+            <FinancialStatCard
+              title={t('invoices_count', 'عدد الفواتير')}
+              value={String(summary.count)}
+              icon={TrendingUp}
+              color="purple"
+            />
+          </div>
+
+          {/* Filters */}
+          <div className="mb-8 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-end">
+              {hasAnyPermission([Permissions?.branches?.all, Permissions?.branches?.view]) && (
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t("branch", "الفرع")}</Label>
+                  <Select value={filters.branchId} onValueChange={(val) => setFilters(p => ({ ...p, branchId: val }))}>
+                    <SelectTrigger className="h-11 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 rounded-xl shadow-sm">
+                      <SelectValue placeholder={t("select_branch", "اختر الفرع")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value=" ">{t("all", "الكل")}</SelectItem>
+                      {branches.map((b) => (
+                        <SelectItem key={b.id} value={String(b.id)}>{b.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t("from_date", "من تاريخ")}</Label>
+                <div className="relative">
+                  <DatePicker
+                    selected={filters.from ? new Date(filters.from) : null}
+                    onChange={(date) => setFilters(p => ({ ...p, from: date ? format(date, "yyyy-MM-dd") : "" }))}
+                    dateFormat="dd/MM/yyyy"
+                    customInput={
+                      <div className="flex items-center gap-2 cursor-pointer px-3 h-11 w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm text-sm">
+                        <CalendarIcon className="h-4 w-4 text-slate-400 shrink-0" />
+                        <span>{filters.from ? format(new Date(filters.from), "dd/MM/yyyy") : t("select_date")}</span>
+                      </div>
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{t("to_date", "إلى تاريخ")}</Label>
+                <div className="relative">
+                  <DatePicker
+                    selected={filters.to ? new Date(filters.to) : null}
+                    onChange={(date) => setFilters(p => ({ ...p, to: date ? format(date, "yyyy-MM-dd") : "" }))}
+                    dateFormat="dd/MM/yyyy"
+                    customInput={
+                      <div className="flex items-center gap-2 cursor-pointer px-3 h-11 w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-sm text-sm">
+                        <CalendarIcon className="h-4 w-4 text-slate-400 shrink-0" />
+                        <span>{filters.to ? format(new Date(filters.to), "dd/MM/yyyy") : t("select_date")}</span>
+                      </div>
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSearch}
+                  className="h-11 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 flex-1 rounded-xl shadow-md shadow-emerald-200 dark:shadow-none font-bold transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center"
+                >
+                  <Search size={18} />
+                  {t("search", "بحث")}
+                </button>
+                <button
+                  onClick={handleClear}
+                  className="h-11 px-4 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all rounded-xl shadow-sm"
+                >
+                  <RotateCcw size={18} className="text-slate-500" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <DataTable
+            value={orders} totalRecords={totalCount} loading={isLoading}
+            lazy paginator rows={entriesPerPage} rowsPerPageOptions={[5, 10, 20, 50]}
+            first={(currentPage - 1) * entriesPerPage}
+            onPage={(e: DataTablePageEvent) => {
+              if (e.page === undefined) return;
+              setCurrentPage(e.page + 1);
+              setEntriesPerPage(e.rows ?? entriesPerPage);
+            }}
+            className="custom-standard-table" dataKey="id"
+            emptyMessage={t('no_data', 'لا توجد بيانات')}
+            scrollable scrollHeight="600px"
+          >
+            <Column
+              header={t("serial", "م")}
+              body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>}
+              className="w-16"
+            />
+            <Column header={t('invoice_number', 'رقم الفاتورة')} field="orderNumber" sortable body={(r: SalesOrder) => <span className="font-bold text-[var(--primary)]">{r.orderNumber}</span>} />
+            <Column header={t('date', 'التاريخ')} field="orderDate" sortable body={(r: SalesOrder) => new Date(r.orderDate).toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-GB')} />
+            <Column header={t('customer_name', 'اسم العميل')} field="customerName" sortable />
+            <Column header={t('cashier', 'الكاشير')} field="createdBy" sortable />
+            <Column header={t('status', 'الحالة')} body={(r: SalesOrder) => <StatusBadge status={r.orderStatus} />} />
+            <Column header={t('total_amount', 'الإجمالي')} field="grandTotal" sortable body={(r: SalesOrder) => <span className="font-bold">{fmt(r.grandTotal)}</span>} />
+          </DataTable>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

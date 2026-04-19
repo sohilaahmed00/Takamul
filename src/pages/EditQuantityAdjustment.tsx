@@ -266,7 +266,7 @@ const EditQuantityAdjustment = () => {
         {/* Date */}
         <div className="mb-6">
           <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">{t("date")} *</label>
-          <Input type="text" value={formData.date}  readOnly />
+          <Input type="text" value={formData.date} readOnly />
         </div>
 
         {/* Search */}
@@ -280,7 +280,7 @@ const EditQuantityAdjustment = () => {
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setShowDropdown(true); }}
                 onFocus={() => setShowDropdown(true)}
-                
+
               />
               <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             </div>

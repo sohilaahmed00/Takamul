@@ -1,162 +1,226 @@
-import React, { useState } from 'react';
-import {
-  Search,
-  FileText,
-  FileSpreadsheet,
-  Download,
-  ChevronDown,
-  ChevronUp,
-  ArrowRight,
-  ArrowLeft,
-  Layout,
-  Printer
+import React, { useState, useMemo } from 'react';
+import { 
+  Search, 
+  FileText, 
+  FileSpreadsheet, 
+  Printer, 
+  RotateCcw,
+  RefreshCw,
+  Clock,
+  User,
+  CreditCard,
+  DollarSign,
+  Wallet
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { useLanguage } from '@/context/LanguageContext';
-
+import { FinancialStatCard } from "@/components/FinancialStatCard";
 import { Input } from "@/components/ui/input";
+import { 
+  generateReportHTML, 
+  printCustomHTML, 
+  exportCustomPDF, 
+  exportToExcel 
+} from "@/utils/customExportUtils";
 
-const ShiftsReport = () => {
-  const { t, dir } = useLanguage();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+export default function ShiftsReport() {
+  const { t, direction, language } = useLanguage();
+  const [globalFilterValue, setGlobalFilterValue] = useState('');
+  const [pdfLoading, setPdfLoading] = useState(false);
 
-  // Mock data based on the image
+  // Mock data based on the previous implementation
   const shifts = [
-    { id: 59, openTime: '16:54:29 28/02/2026', closeTime: '', user: 'market market mtawfik12b@gmail.com', cash: 0.00, network: 0.00, bank: 0.00, total: 0.00, notes: '' },
-    { id: 58, openTime: '14:59:42 31/01/2026', closeTime: '', user: 'admin ds@hotmail.com', cash: 0.00, network: 0.00, bank: 0.00, total: 0.00, notes: '' },
-    { id: 57, openTime: '19:20:59 30/01/2026', closeTime: '', user: 'salon salon info11@posit2030.com', cash: 0.00, network: 0.00, bank: 0.00, total: 0.00, notes: '' },
-    { id: 56, openTime: '00:37:24 25/01/2026', closeTime: '', user: 'rest rest mmmmmmm@gmail.com', cash: 0.00, network: 0.00, bank: 0.00, total: 0.00, notes: '' },
-    { id: 55, openTime: '20:22:18 21/01/2026', closeTime: '02:34:33 24/01/2026', user: 'salon salon info11@posit2030.com', cash: 0.00, network: 3.0000, bank: 0.0000, total: 105.00, notes: '' },
-    { id: 54, openTime: '16:04:23 18/01/2026', closeTime: '14:59:31 31/01/2026', user: 'admin ds@hotmail.com', cash: 0.00, network: 3.0000, bank: 0.0000, total: 16.00, notes: '' },
-    { id: 53, openTime: '18:34:02 13/01/2026', closeTime: '', user: '', cash: 0.00, network: 0.00, bank: 0.00, total: 0.00, notes: '' },
-    { id: 52, openTime: '23:24:52 10/01/2026', closeTime: '02:31:35 24/01/2026', user: 'rest rest mmmmmmm@gmail.com', cash: 100.00, network: 0.0000, bank: 0.0000, total: 378.00, notes: '' },
-    { id: 51, openTime: '23:10:47 10/01/2026', closeTime: '14:34:39 18/01/2026', user: 'admin ds@hotmail.com', cash: 0.00, network: 14.0000, bank: 0.0000, total: 30.00, notes: '' },
-    { id: 50, openTime: '23:08:11 10/01/2026', closeTime: '23:09:05 10/01/2026', user: 'rest rest mmmmmmm@gmail.com', cash: 10.00, network: 0.0000, bank: 0.0000, total: 10.00, notes: '' }
+    { id: 59, openTime: '16:54:29 28/02/2026', closeTime: '-', user: 'market market mtawfik12b@gmail.com', cash: 0.00, network: 0.00, bank: 0.00, total: 0.00, notes: '' },
+    { id: 58, openTime: '14:59:42 31/01/2026', closeTime: '-', user: 'admin ds@hotmail.com', cash: 0.00, network: 0.00, bank: 0.00, total: 0.00, notes: '' },
+    { id: 57, openTime: '19:20:59 30/01/2026', closeTime: '-', user: 'salon salon info11@posit2030.com', cash: 0.00, network: 0.00, bank: 0.00, total: 0.00, notes: '' },
+    { id: 55, openTime: '20:22:18 21/01/2026', closeTime: '02:34:33 24/01/2026', user: 'salon salon info11@posit2030.com', cash: 0.00, network: 102.00, bank: 0.00, total: 105.00, notes: '' },
+    { id: 54, openTime: '16:04:23 18/01/2026', closeTime: '14:59:31 31/01/2026', user: 'admin ds@hotmail.com', cash: 0.00, network: 16.00, bank: 0.00, total: 16.00, notes: '' },
+    { id: 52, openTime: '23:24:52 10/01/2026', closeTime: '02:31:35 24/01/2026', user: 'rest rest mmmmmmm@gmail.com', cash: 100.00, network: 278.00, bank: 0.00, total: 378.00, notes: '' },
   ];
 
+  const summary = useMemo(() => {
+    const totalCash = shifts.reduce((s, r) => s + (r.cash || 0), 0);
+    const totalNetwork = shifts.reduce((s, r) => s + (r.network || 0), 0);
+    const totalAll = shifts.reduce((s, r) => s + (r.total || 0), 0);
+
+    return {
+      totalCash,
+      totalNetwork,
+      totalAll,
+      activeShifts: shifts.filter(s => s.closeTime === '-').length
+    };
+  }, [shifts]);
+
+  const fmt = (n: number) => (n || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const reportTitle = t('shifts_report', 'تقرير الورديات');
+
+  const handlePrint = () => {
+    const columns = [
+      { header: t("serial", "م"), field: "serial" },
+      { header: t('shift_id', 'رقم الوردية'), field: 'id' },
+      { header: t('open_time', 'وقت الافتتاح'), field: 'openTime' },
+      { header: t('user', 'المستخدم'), field: 'user' },
+      { header: t('cash', 'نقدي'), field: 'cash' },
+      { header: t('network', 'شبكة'), field: 'network' },
+      { header: t('total', 'الإجمالي'), field: 'total' }
+    ];
+
+    const data = shifts.map(s => ({
+      ...s,
+      cash: fmt(s.cash),
+      network: fmt(s.network),
+      total: fmt(s.total)
+    }));
+
+    const summaryCards = [
+      { title: t('total_sales', 'إجمالي المبيعات'), value: `${fmt(summary.totalAll)} SAR`, icon: 'DollarSign' },
+      { title: t('total_cash', 'إجمالي النقدي'), value: `${fmt(summary.totalCash)} SAR`, icon: 'Wallet' }
+    ];
+
+    const html = generateReportHTML(reportTitle, t('all_shifts', 'جميع الورديات'), summaryCards, columns, data, t, direction);
+    printCustomHTML(reportTitle, html);
+  };
+
+  const handleExportPDF = async () => {
+    setPdfLoading(true);
+    try {
+      const columns = [
+        { header: t("serial", "م"), field: "serial" },
+        { header: t('shift_id', 'رقم الوردية'), field: 'id' },
+        { header: t('user', 'المستخدم'), field: 'user' },
+        { header: t('total', 'الإجمالي'), field: 'total' }
+      ];
+
+      const data = shifts.map(s => ({
+        id: s.id,
+        user: s.user,
+        total: fmt(s.total)
+      }));
+
+      const summaryCards = [
+        { title: t('total_sales', 'إجمالي المبيعات'), value: `${fmt(summary.totalAll)} SAR`, icon: 'DollarSign' }
+      ];
+
+      const html = generateReportHTML(reportTitle, t('all_shifts', 'جميع الورديات'), summaryCards, columns, data, t, direction);
+      await exportCustomPDF(reportTitle, html);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handleExportExcel = () => {
+    const columns = [
+      { header: t("serial", "م"), field: "serial" },
+      { header: t('shift_id', 'رقم الوردية'), field: 'id' },
+      { header: t('open_time', 'وقت الافتتاح'), field: 'openTime' },
+      { header: t('user', 'المستخدم'), field: 'user' },
+      { header: t('cash', 'نقدي'), field: 'cash' },
+      { header: t('network', 'شبكة'), field: 'network' },
+      { header: t('total', 'الإجمالي'), field: 'total' }
+    ];
+    exportToExcel(shifts, columns, reportTitle);
+  };
+
   return (
-    <div className="p-6 bg-white min-h-screen" dir={dir}>
-      {/* Header */}
-      <div className="bg-white rounded-t-lg border-b border-gray-200 p-4 flex justify-between items-center">
-        <div className="flex items-center gap-2 text-[var(--primary)]">
-          <Layout className="w-5 h-5" />
-          <h1 className="text-xl font-bold">تقرير الورديات</h1>
-        </div>
+    <div className="space-y-6 pb-12" dir={direction}>
+      <Card className="border-none shadow-sm overflow-hidden bg-white dark:bg-slate-950">
+        <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-6">
+          <div>
+            <CardTitle className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
+              <RefreshCw className="w-5 h-5 text-[var(--primary)]" />
+              {reportTitle}
+            </CardTitle>
+            <CardDescription className="mt-1">
+              {t('shifts_report_desc', 'استعراض تفاصيل الورديات والمبالغ المحصلة')}
+            </CardDescription>
+          </div>
+
           <div className="flex items-center gap-4 text-sm font-medium">
-            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+            <button onClick={handlePrint} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
               <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            <button onClick={handleExportPDF} disabled={pdfLoading} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+              <FileText size={16} /> <span className="hidden sm:inline">{pdfLoading ? t('loading') : 'PDF'}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
+            <button onClick={handleExportExcel} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
               <FileSpreadsheet size={16} /> <span className="hidden sm:inline">Excel</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <Download size={16} /> <span className="hidden sm:inline">XML</span>
-            </button>
           </div>
-      </div>
+        </CardHeader>
 
-      <div className="bg-white p-4 border-x border-gray-200">
-        <p className="text-[var(--primary)] font-medium mb-4">يرجى تخصيص التقرير أدناه</p>
-
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-          <div className="relative w-full md:w-64">
-            <Input
-              type="text"
-              placeholder={t("search_label")}
-              className="w-full h-9 pr-10 pl-4 py-2 border border-blue-200 focus:border-[var(--primary)] text-gray-700 text-sm rounded-lg outline-none transition-all"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+        <CardContent className="pt-6">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <FinancialStatCard 
+              title={t('total_all', 'الإجمالي الكلي')} 
+              value={`${fmt(summary.totalAll)} SAR`} 
+              icon={DollarSign}
+              color="blue"
             />
-            <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <FinancialStatCard 
+              title={t('total_cash', 'إجمالي النقدي')} 
+              value={`${fmt(summary.totalCash)} SAR`} 
+              icon={Wallet}
+              color="teal"
+            />
+            <FinancialStatCard 
+              title={t('total_network', 'إجمالي الشبكة')} 
+              value={`${fmt(summary.totalNetwork)} SAR`} 
+              icon={CreditCard}
+              color="orange"
+            />
+            <FinancialStatCard 
+              title={t('active_shifts', 'الورديات المفتوحة')} 
+              value={String(summary.activeShifts)} 
+              icon={Clock}
+              color="purple"
+            />
+          </div>
+          <div className="mb-6 flex flex-col md:flex-row gap-4 justify-between items-center">
+            <div className="relative w-full md:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <Input 
+                type="text" 
+                value={globalFilterValue} 
+                onChange={e => setGlobalFilterValue(e.target.value)}
+                placeholder={t('search_placeholder', 'بحث...')}
+                className="pl-10 h-11 bg-slate-50 border-none rounded-xl" 
+              />
+            </div>
+            {globalFilterValue && (
+              <button 
+                onClick={() => setGlobalFilterValue('')}
+                className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-100 p-2 rounded-lg"
+              >
+                <RotateCcw size={16} />
+              </button>
+            )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-[var(--primary)]">اظهار</span>
-            <select
-              className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-[var(--primary)]"
-              value={itemsPerPage}
-              onChange={(e) => setItemsPerPage(Number(e.target.value))}
-            >
-              <option value={10}>10</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Table */}
-        <div className="overflow-x-auto border border-gray-200 rounded">
-          <table className="w-full text-right border-collapse min-w-[1000px]">
-            <thead>
-              <tr className="bg-[var(--primary)] text-white">
-                <th className="p-3 border border-[var(--primary-hover)]">رقم الوردية</th>
-                <th className="p-3 border border-[var(--primary-hover)]">وقت الافتتاح</th>
-                <th className="p-3 border border-[var(--primary-hover)]">وقت الاغلاق</th>
-                <th className="p-3 border border-[var(--primary-hover)]">المستخدم</th>
-                <th className="p-3 border border-[var(--primary-hover)]">نقدي الصندوق</th>
-                <th className="p-3 border border-[var(--primary-hover)]">شبكة</th>
-                <th className="p-3 border border-[var(--primary-hover)]">تحويل بنكي</th>
-                <th className="p-3 border border-[var(--primary-hover)]">اجمالي النقدي</th>
-                <th className="p-3 border border-[var(--primary-hover)]">مذكرة</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shifts.map((shift, index) => (
-                <tr key={shift.id} className={cn(index % 2 === 0 ? 'bg-white' : 'bg-gray-50')}>
-                  <td className="p-3 border border-gray-200 text-sm">{shift.id}</td>
-                  <td className="p-3 border border-gray-200 text-sm">{shift.openTime}</td>
-                  <td className="p-3 border border-gray-200 text-sm">{shift.closeTime}</td>
-                  <td className="p-3 border border-gray-200 text-sm whitespace-pre-line">{shift.user}</td>
-                  <td className="p-3 border border-gray-200 text-sm">{shift.cash.toFixed(2)}</td>
-                  <td className="p-3 border border-gray-200 text-sm">{shift.network.toFixed(4)}</td>
-                  <td className="p-3 border border-gray-200 text-sm">{shift.bank.toFixed(4)}</td>
-                  <td className="p-3 border border-gray-200 text-sm font-bold">{shift.total.toFixed(2)}</td>
-                  <td className="p-3 border border-gray-200 text-sm">{shift.notes}</td>
-                </tr>
-              ))}
-              {/* Footer Row */}
-              <tr className="bg-gray-100 font-bold text-gray-600">
-                <td className="p-3 border border-gray-200 text-xs" colSpan={1}></td>
-                <td className="p-3 border border-gray-200 text-xs">[yyyy-mm-dd HH:mm:ss]</td>
-                <td className="p-3 border border-gray-200 text-xs">[yyyy-mm-dd HH:mm:ss]</td>
-                <td className="p-3 border border-gray-200 text-xs">[المستخدم]</td>
-                <td className="p-3 border border-gray-200 text-xs">[نقدي الصندوق]</td>
-                <td className="p-3 border border-gray-200 text-xs">[إيصال]</td>
-                <td className="p-3 border border-gray-200 text-xs">[الشبكات]</td>
-                <td className="p-3 border border-gray-200 text-xs">[إجمالي النقدي]</td>
-                <td className="p-3 border border-gray-200 text-xs">[مذكرة]</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="flex flex-col md:flex-row justify-between items-center mt-4 gap-4">
-          <div className="flex items-center border border-gray-300 rounded overflow-hidden">
-            <button className="px-4 py-2 bg-white hover:bg-gray-100 border-l border-gray-300 text-gray-600 flex items-center gap-1">
-              <ArrowRight className="w-4 h-4" /> التالي
-            </button>
-            <button className="px-4 py-2 bg-[var(--primary)] text-white border-l border-gray-300">1</button>
-            <button className="px-4 py-2 bg-white hover:bg-gray-100 border-l border-gray-300 text-gray-600">2</button>
-            <button className="px-4 py-2 bg-white hover:bg-gray-100 border-l border-gray-300 text-gray-600">3</button>
-            <button className="px-4 py-2 bg-white hover:bg-gray-100 border-l border-gray-300 text-gray-600">4</button>
-            <button className="px-4 py-2 bg-white hover:bg-gray-100 border-l border-gray-300 text-gray-600">5</button>
-            <button className="px-4 py-2 bg-white hover:bg-gray-100 text-gray-600 flex items-center gap-1">
-              سابق <ArrowLeft className="w-4 h-4" />
-            </button>
-          </div>
-          <div className="text-[var(--primary)] font-bold">
-            عرض 1 إلى 10 من 44 سجلات
-          </div>
-        </div>
-      </div>
+          <DataTable
+            value={shifts} paginator rows={10} 
+            className="custom-standard-table" dataKey="id"
+            emptyMessage={t('no_data', 'لا توجد بيانات')} 
+            globalFilter={globalFilterValue}
+            scrollable scrollHeight="600px"
+          >
+            <Column
+              header={t("serial", "م")}
+              body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>}
+              className="w-16"
+            />
+            <Column header={t('shift_id', 'رقم الوردية')} field="id" sortable body={(r) => <span className="font-bold">{r.id}</span>} />
+            <Column header={t('open_time', 'وقت الافتتاح')} field="openTime" sortable />
+            <Column header={t('close_time', 'وقت الاغلاق')} field="closeTime" sortable body={(r) => <span className={r.closeTime === '-' ? 'text-blue-500 font-medium' : ''}>{r.closeTime}</span>} />
+            <Column header={t('user', 'المستخدم')} field="user" sortable className="max-w-[200px] overflow-hidden truncate" />
+            <Column header={t('cash', 'نقدي')} field="cash" sortable body={(r) => fmt(r.cash)} />
+            <Column header={t('network', 'شبكة')} field="network" sortable body={(r) => fmt(r.network)} />
+            <Column header={t('total', 'الإجمالي')} body={(r) => <span className="font-bold text-[var(--primary)]">{fmt(r.total)}</span>} />
+          </DataTable>
+        </CardContent>
+      </Card>
     </div>
   );
-};
-
-export default ShiftsReport;
+}

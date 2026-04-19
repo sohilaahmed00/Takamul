@@ -130,7 +130,7 @@ import Branches from "@/pages/Branches";
 import LowStockReport from "@/pages/reports/LowStockReport";
 import StockBalanceReport from "@/pages/reports/StockBalanceReport";
 import ItemMovementReport from "@/pages/reports/ItemMovementReport";
-// import PurchasesReport from "@/pages/reports/PurchasesReport";
+import PurchasesReport from "@/pages/reports/PurchasesReport";
 import ItemSalesReport from "@/pages/reports/ItemSalesReport";
 import SalesByInvoiceReport from "@/pages/reports/SalesByInvoiceReport";
 import SalesByDayReport from "@/pages/reports/SalesByDayReport";
@@ -144,8 +144,8 @@ import ProfitReport from "@/pages/reports/ProfitReport";
 import BestSellersChart from "@/pages/reports/BestSellersChart";
 import ShiftsReport from "@/pages/reports/ShiftsReport";
 // import CustomersReport from "@/pages/reports/CustomersReport";
-import CustomerAgingReport from "@/pages/reports/CustomerAgingReport";
-// import SalesReport from "@/pages/reports/SalesReport";
+// import CustomerAgingReport from "@/pages/reports/CustomerAgingReport";
+import SalesReport from "@/pages/reports/SalesReport";
 import ItemsReportsCategory from "@/pages/reports/ItemsReportsCategory";
 import SalesReportsCategory from "@/pages/reports/SalesReportsCategory";
 import PurchasesReportsCategory from "@/pages/reports/PurchasesReportsCategory";
@@ -335,13 +335,13 @@ function AppRoutes() {
           <Route path="/reports/low-stock" element={<LowStockReport />} />
           <Route path="/reports/stock-balance" element={<StockBalanceReport />} />
           <Route path="/reports/item-movement" element={<ItemMovementReport />} />
-          {/* <Route path="/reports/purchases" element={<PurchasesReport />} /> */}
+          <Route path="/reports/purchases" element={<PurchasesReport />} />
           <Route path="/reports/best-sellers" element={<BestSellersChart />} />
           <Route path="/reports/shifts" element={<ShiftsReport />} />
           {/* <Route path="/reports/customers" element={<CustomersReport />} /> */}
-          <Route path="/reports/customer-aging" element={<CustomerAgingReport />} />
+          {/* <Route path="/reports/customer-aging" element={<CustomerAgingReport />} /> */}
 
-          {/* <Route path="/reports/sales" element={<SalesReport />} /> */}
+          <Route path="/reports/sales" element={<SalesReport />} />
           <Route path="/reports/item-sales" element={<ItemSalesReport />} />
           <Route path="/reports/sales-by-invoice" element={<SalesByInvoiceReport />} />
           <Route path="/reports/sales-by-day" element={<SalesByDayReport />} />

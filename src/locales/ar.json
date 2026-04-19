@@ -1578,5 +1578,19 @@
   "cost_of_total_sales": "تكلفة اجمالي المبيعات",
   "profit": "الربح",
   "total_expenses": "إجمالي المصروفات",
-  "net_profit": "الربح الصافي"
+  "net_profit": "الربح الصافي",
+  "total_purchases_operations": "عدد عمليات المشتريات",
+  "sales": "مبيعات",
+  "collections": "تحصيلات",
+  "operation_type": "نوع العملية",
+  "customer_name": "اسم العميل",
+  "supplier_name": "اسم المورد",
+  "from_date": "من تاريخ",
+  "to_date": "إلى تاريخ",
+  "total_purchases": "اجمالي المشتريات",
+  "currency_sar": "ر.س",
+  "total_sales_operations": "عدد عمليات البيع",
+  "total_sales": "اجمالي المبيعات",
+  "total_sales_value": "اجمالي المبيعات",
+  "operation_count": "عدد العمليات"
 }

@@ -2,10 +2,11 @@ import React, { useState, useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, RotateCcw, FileText, Printer, FileSpreadsheet, Barcode } from "lucide-react";
+import { Search, RotateCcw, FileText, Printer, FileSpreadsheet, Barcode, DollarSign, ShoppingCart } from "lucide-react";
 import ComboboxField from "@/components/ui/ComboboxField";
+import { FinancialStatCard } from "@/components/FinancialStatCard";
 
 import { useGetProductPurchases } from "@/features/reports/hooks/Usegetproductpurchases";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
@@ -17,14 +18,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
 import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar as CalendarIcon } from "lucide-react";
-
+import { Label } from "@/components/ui/label";
+import {
+  generateReportHTML,
+  printCustomHTML,
+  exportCustomPDF,
+  exportToExcel
+} from "@/utils/customExportUtils";
 
 interface FilterState {
   branchId: string;
@@ -35,6 +41,7 @@ interface FilterState {
 
 export default function ItemPurchasesReport() {
   const { t, direction } = useLanguage();
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const initialFilters: FilterState = {
     branchId: "all",
@@ -46,7 +53,6 @@ export default function ItemPurchasesReport() {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [searchParams, setSearchParams] = useState<FilterState>(initialFilters);
 
-  // جلب المنتجات مع تحديد الصفحة والعدد لضمان عمل الـ Hook
   const { data: productsData, isLoading: productsLoading } = useGetAllProducts({ page: 1, limit: 1000 });
   const { data: branches = [] } = useGetAllBranches();
 
@@ -69,47 +75,129 @@ export default function ItemPurchasesReport() {
   const rows = useMemo(() => purchasesResponse?.details ?? [], [purchasesResponse]);
   const totalAmount = purchasesResponse?.summary?.totalPurchases ?? 0;
   const totalOperations = purchasesResponse?.summary?.totalOperations ?? 0;
+
+  const title = t("item_purchases_report", "تقرير مشتريات صنف");
+
+  const getFiltersInfo = () => {
+    const b = branches.find(x => String(x.id) === searchParams.branchId);
+    const p = (productsData?.items ?? []).find(x => String(x.id) === searchParams.productId);
+    return [
+      `${t("branch", "الفرع")}: ${searchParams.branchId === "all" ? t("all") : (b ? b.name : "")}`,
+      `${t("product_name", "اسم الصنف")}: ${p ? p.productNameAr : t("not_selected")}`,
+      `${t("from", "من")}: ${searchParams.from}`,
+      `${t("to", "إلى")}: ${searchParams.to}`
+    ].join(" | ");
+  };
+
+  const exportColumns = [
+    { header: t("serial", "م"), field: "serial" },
+    { header: t("date", "التاريخ"), field: "date", body: (r: any) => r.date ? new Date(r.date).toLocaleDateString("en-GB") : "-" },
+    { header: t("invoice_number", "رقم الفاتورة"), field: "orderNumber" },
+    { header: t("purchased_quantity", "الكمية المشتراة"), field: "quantityPurchased" },
+    { header: t("total_purchases_value", "إجمالي الشراء"), field: "totalPurchases", body: (r: any) => formatNumber(r.totalPurchases) },
+  ];
+
+  const handleExportPDF = async () => {
+    if (!rows.length) return;
+    setPdfLoading(true);
+    try {
+      const html = generateReportHTML(
+        title,
+        getFiltersInfo(),
+        [
+          { title: t("total_item_purchases"), value: formatNumber(totalAmount), color: "orange" },
+          { title: t("total_purchases_operations"), value: totalOperations.toLocaleString(), color: "blue" },
+        ],
+        exportColumns,
+        rows,
+        t,
+        direction
+      );
+      await exportCustomPDF(title, html);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handlePrint = () => {
+    if (!rows.length) return;
+    const html = generateReportHTML(
+      title,
+      getFiltersInfo(),
+      [
+        { title: t("total_item_purchases"), value: formatNumber(totalAmount), color: "orange" },
+        { title: t("total_purchases_operations"), value: totalOperations.toLocaleString(), color: "blue" },
+      ],
+      exportColumns,
+      rows,
+      t,
+      direction
+    );
+    printCustomHTML(title, html);
+  };
+
+  const handleExportExcel = () => {
+    if (!rows.length) return;
+    exportToExcel(rows, exportColumns, title);
+  };
+
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   return (
-    <div dir={direction}>
+    <div dir={direction} className="space-y-4">
       <Card>
         <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <CardTitle className="flex items-center gap-2">
               <Barcode size={20} className="text-[var(--primary)]" />
-              {t("item_purchases_report", "تقرير مشتريات صنف")}
+              {title}
             </CardTitle>
           </div>
           <div className="flex items-center gap-4 text-sm font-medium">
-            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            <button
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
+            >
+              <Printer size={16} />
+              <span className="hidden sm:inline">{t("print", "طباعة")}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            <button
+              onClick={handleExportPDF}
+              disabled={pdfLoading}
+              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400 disabled:opacity-50"
+            >
+              <FileText size={16} />
+              <span className="hidden sm:inline">PDF</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">XML</span>
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
+            >
+              <FileSpreadsheet size={16} />
+              <span className="hidden sm:inline">Excel</span>
             </button>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Summary Boxes */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-orange-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("total_item_purchases", "إجمالي مشتريات الصنف")}</p>
-              <h2 className="text-2xl font-bold">{formatNumber(totalAmount)}</h2>
-            </div>
-            <div className="bg-blue-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("total_purchases_operations", "عدد عمليات المشتريات")}</p>
-              <h2 className="text-2xl font-bold">{totalOperations.toLocaleString()}</h2>
-            </div>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <FinancialStatCard
+              title={t("total_item_purchases", "إجمالي مشتريات الصنف")}
+              value={formatNumber(totalAmount)}
+              icon={DollarSign}
+              color="orange"
+            />
+            <FinancialStatCard
+              title={t("total_purchases_operations", "عدد عمليات المشتريات")}
+              value={totalOperations.toLocaleString()}
+              icon={ShoppingCart}
+              color="blue"
+            />
           </div>
-
-          {/* Filters */}
+          {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 xl:grid-cols-5 gap-4 items-end">
               {hasAnyPermission([Permissions?.branches?.all, Permissions?.branches?.view]) && (
                 <div className="space-y-2 lg:col-span-1 mb-2">
                   <label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</label>
@@ -159,7 +247,7 @@ export default function ItemPurchasesReport() {
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
-                    portalId="root-portal" // لحل مشكلة الطبقات (z-index)
+                    portalId="root-portal"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -187,12 +275,11 @@ export default function ItemPurchasesReport() {
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
-                    portalId="root-portal" // لحل مشكلة الطبقات (z-index)
+                    portalId="root-portal"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
-                          {/* هنا تم التعديل من filters.from إلى filters.to */}
                           {filters.to
                             ? format(new Date(filters.to), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
@@ -203,19 +290,17 @@ export default function ItemPurchasesReport() {
                 </div>
               </div>
               <div className="flex flex-row items-end gap-2 mb-2 lg:col-span-1">
-                <Button onClick={handleSearch} disabled={purchasesLoading || purchasesFetching || !filters.productId} className="h-9 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold flex-1">
+                <Button onClick={handleSearch} disabled={purchasesLoading || purchasesFetching || !filters.productId} className="flex-1 h-9 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold">
                   <Search size={16} />
-                  {t("execute_operation", "اتمام العملية")}
+                  {t("search", "بحث")}
                 </Button>
                 <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
-                  <RotateCcw size={15} />
-                  {t("clear", "مسح")}
+                  <RotateCcw size={15} className="text-[var(--primary)]" />
                 </Button>
               </div>
             </div>
           </div>
 
-          {/* Table */}
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
             <DataTable
               value={rows} paginator rows={10}

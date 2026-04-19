@@ -2,10 +2,10 @@ import React, { useState, useMemo } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, RotateCcw, FileText, Printer, FileSpreadsheet, Calendar } from "lucide-react";
-import ComboboxField from "@/components/ui/ComboboxField";
+import { Search, RotateCcw, FileText, Printer, FileSpreadsheet, Calendar, DollarSign, Receipt, TrendingUp } from "lucide-react";
+import { FinancialStatCard } from "@/components/FinancialStatCard";
 import {
   Select,
   SelectContent,
@@ -13,8 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-import { Input } from "@/components/ui/input";
 
 import { useGetDailyPurchasesReport } from "@/features/reports/hooks/Usegetdailypurchasesreport";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
@@ -24,7 +22,13 @@ import { format } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar as CalendarIcon } from "lucide-react";
-
+import { Label } from "@/components/ui/label";
+import { 
+  generateReportHTML, 
+  printCustomHTML, 
+  exportCustomPDF, 
+  exportToExcel 
+} from "@/utils/customExportUtils";
 
 interface FilterState {
   branchId: string;
@@ -42,16 +46,9 @@ const FISCAL_QUARTERS = [
   { value: "Q4", label: "🔴 الربع الرابع Q4 (أكتوبر - ديسمبر)", from: "-10-01", to: "-12-31" },
 ];
 
-const mockRows = [
-  { id: "1", date: "2026-07-01", purchases: 1850.46, tax: 277.54, totalWithTax: 2128.0 },
-  { id: "2", date: "2026-07-02", purchases: 1916.75, tax: 287.25, totalWithTax: 2204.0 },
-  { id: "3", date: "2026-07-03", purchases: 1835.77, tax: 275.23, totalWithTax: 2111.0 },
-  { id: "4", date: "2026-07-04", purchases: 1085.25, tax: 162.75, totalWithTax: 1248.0 },
-  { id: "5", date: "2026-07-05", purchases: 2611.45, tax: 391.55, totalWithTax: 3003.0 },
-];
-
 export default function PurchasesByDayReport() {
   const { t, direction } = useLanguage();
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const [filters, setFilters] = useState<FilterState>({
     branchId: " ",
@@ -109,53 +106,142 @@ export default function PurchasesByDayReport() {
   const formatNumber = (value?: number) =>
     Number(value ?? 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const totalPurchases = useMemo(() => purchasesData.reduce((s, r) => s + r.totalPurchases, 0), [purchasesData]);
-  const totalTax = useMemo(() => purchasesData.reduce((s, r) => s + (r.netPurchases - r.totalPurchases), 0), [purchasesData]);
-  const totalFinal = useMemo(() => purchasesData.reduce((s, r) => s + r.netPurchases, 0), [purchasesData]);
+  const totalPurchases = useMemo(() => purchasesData.reduce((s, r) => s + (r.totalPurchases || 0), 0), [purchasesData]);
+  const totalTax = useMemo(() => purchasesData.reduce((s, r) => s + ((r.netPurchases || 0) - (r.totalPurchases || 0)), 0), [purchasesData]);
+  const totalFinal = useMemo(() => purchasesData.reduce((s, r) => s + (r.netPurchases || 0), 0), [purchasesData]);
+
+  const title = t("purchases_by_day", "تقرير مشتريات على مستوى الأيام");
+
+  const getFiltersInfo = () => {
+    const b = branches.find(x => String(x.id) === searchParams.branchId.trim());
+    const qLabel = FISCAL_QUARTERS.find(q => q.value === searchParams.fiscalQuarter)?.label || t("none", "لا يوجد");
+    
+    return [
+      `${t("branch", "الفرع")}: ${b ? b.name : t("all", "الكل")}`,
+      `${t("fiscal_year", "السنة المالية")}: ${searchParams.fiscalYear}`,
+      `${t("fiscal_quarter", "الربع المالي")}: ${qLabel}`,
+      `${t("from", "من")}: ${searchParams.from}`,
+      `${t("to", "إلى")}: ${searchParams.to}`
+    ].join(" | ");
+  };
+
+  const exportColumns = [
+    { header: t("serial", "م"), field: "serial" },
+    { header: t("date", "التاريخ"), field: "date", body: (r: any) => new Date(r.date).toLocaleDateString("en-GB") },
+    { header: t("total_purchases_excl_tax", "إجمالي المشتريات بدون ضريبة"), field: "totalPurchases", body: (r: any) => formatNumber(r.totalPurchases) },
+    { header: t("total_tax", "إجمالي الضريبة"), field: "tax", body: (r: any) => formatNumber(r.netPurchases - r.totalPurchases) },
+    { header: t("grand_total_with_tax", "الإجمالي النهائي"), field: "netPurchases", body: (r: any) => formatNumber(r.netPurchases) },
+  ];
+
+  const handleExportPDF = async () => {
+    if (!purchasesData.length) return;
+    setPdfLoading(true);
+    try {
+      const html = generateReportHTML(
+        title,
+        getFiltersInfo(),
+        [
+          { title: t("total_purchases_excl_tax"), value: formatNumber(totalPurchases), color: "orange" },
+          { title: t("total_tax"), value: formatNumber(totalTax), color: "blue" },
+          { title: t("grand_total_with_tax"), value: formatNumber(totalFinal), color: "teal" },
+        ],
+        exportColumns,
+        purchasesData,
+        t,
+        direction
+      );
+      await exportCustomPDF(title, html);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
+  const handlePrint = () => {
+    if (!purchasesData.length) return;
+    const html = generateReportHTML(
+      title,
+      getFiltersInfo(),
+      [
+        { title: t("total_purchases_excl_tax"), value: formatNumber(totalPurchases), color: "orange" },
+        { title: t("total_tax"), value: formatNumber(totalTax), color: "blue" },
+        { title: t("grand_total_with_tax"), value: formatNumber(totalFinal), color: "teal" },
+      ],
+      exportColumns,
+      purchasesData,
+      t,
+      direction
+    );
+    printCustomHTML(title, html);
+  };
+
+  const handleExportExcel = () => {
+    if (!purchasesData.length) return;
+    exportToExcel(purchasesData, exportColumns, title);
+  };
+
   const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
+
   return (
-    <div dir={direction}>
+    <div dir={direction} className="space-y-4">
       <Card>
         <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-
-          <CardTitle className="flex items-center gap-2">
-            <Calendar size={20} className="text-[var(--primary)]" />
-            {t("purchases_by_day", "تقرير مشتريات على مستوى الأيام")}
-          </CardTitle>
-
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar size={20} className="text-[var(--primary)]" />
+              {title}
+            </CardTitle>
+          </div>
           <div className="flex items-center gap-4 text-sm font-medium">
-            <button onClick={() => window.print()} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <Printer size={16} /> <span className="hidden sm:inline">{t("print", "طباعة")}</span>
+            <button 
+              onClick={handlePrint}
+              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
+            >
+              <Printer size={16} /> 
+              <span className="hidden sm:inline">{t("print", "طباعة")}</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <FileText size={16} /> <span className="hidden sm:inline">PDF</span>
+            <button 
+              onClick={handleExportPDF}
+              disabled={pdfLoading}
+              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400 disabled:opacity-50"
+            >
+              <FileText size={16} /> 
+              <span className="hidden sm:inline">PDF</span>
             </button>
-            <button className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
-              <FileSpreadsheet size={16} /> <span className="hidden sm:inline">XML</span>
+            <button 
+              onClick={handleExportExcel}
+              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
+            >
+              <FileSpreadsheet size={16} /> 
+              <span className="hidden sm:inline">Excel</span>
             </button>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4">
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-orange-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("total_purchases_excl_tax", "إجمالي المشتريات بدون ضريبة")}</p>
-              <h2 className="text-2xl font-bold">{formatNumber(totalPurchases)}</h2>
-            </div>
-            <div className="bg-blue-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("total_tax", "إجمالي الضريبة")}</p>
-              <h2 className="text-2xl font-bold">{formatNumber(totalTax)}</h2>
-            </div>
-            <div className="bg-teal-500 text-white rounded-xl p-4 shadow flex flex-col justify-center">
-              <p className="opacity-90 text-xs font-medium mb-1">{t("grand_total_with_tax", "الإجمالي النهائي")}</p>
-              <h2 className="text-2xl font-bold">{formatNumber(totalFinal)}</h2>
-            </div>
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+            <FinancialStatCard
+              title={t("total_purchases_excl_tax", "إجمالي المشتريات بدون ضريبة")}
+              value={formatNumber(totalPurchases)}
+              icon={TrendingUp}
+              color="orange"
+            />
+            <FinancialStatCard
+              title={t("total_tax", "إجمالي الضريبة")}
+              value={formatNumber(totalTax)}
+              icon={Receipt}
+              color="blue"
+            />
+            <FinancialStatCard
+              title={t("grand_total_with_tax", "الإجمالي النهائي")}
+              value={formatNumber(totalFinal)}
+              icon={DollarSign}
+              color="teal"
+            />
           </div>
-
-
+          {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 xl:grid-cols-6 gap-4 items-end">
               {hasAnyPermission([Permissions?.branches?.all, Permissions?.branches?.view]) && (
                 <div className="space-y-2 lg:col-span-1 ">
                   <label className="text-xs font-medium text-[var(--text-main)]">{t("branch", "الفرع")}</label>
@@ -222,7 +308,7 @@ export default function PurchasesByDayReport() {
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
-                    portalId="root-portal" // لحل مشكلة الطبقات (z-index)
+                    portalId="root-portal"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -250,12 +336,11 @@ export default function PurchasesByDayReport() {
                     dateFormat="dd/MM/yyyy"
                     placeholderText={t("select_date", "يوم/شهر/سنة")}
                     popperPlacement="bottom-start"
-                    portalId="root-portal" // لحل مشكلة الطبقات (z-index)
+                    portalId="root-portal"
                     customInput={
                       <div className="flex items-center gap-2 cursor-pointer px-3 h-10 w-full">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                         <span className="text-sm">
-                          {/* هنا تم التعديل من filters.from إلى filters.to */}
                           {filters.to
                             ? format(new Date(filters.to), "dd/MM/yyyy")
                             : t("select_date", "يوم/شهر/سنة")}
@@ -265,20 +350,17 @@ export default function PurchasesByDayReport() {
                   />
                 </div>
               </div>
-              <div className="flex flex-row items-end gap-2 lg:col-span-2">
-                <Button onClick={handleSearch} disabled={purchasesLoading || purchasesFetching} className="h-9 px-6 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold flex-1">
+              <div className="flex flex-row items-end gap-2 mb-2 lg:col-span-1">
+                <Button onClick={handleSearch} disabled={purchasesLoading || purchasesFetching} className="flex-1 h-9 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold">
                   <Search size={16} />
-                  {t("execute_operation", "اتمام العملية")}
+                  {t("search", "بحث")}
                 </Button>
                 <Button onClick={handleClear} variant="outline" className="h-9 px-3 gap-1 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
-                  <RotateCcw size={15} />
-                  {t("clear", "مسح")}
+                  <RotateCcw size={15} className="text-[var(--primary)]" />
                 </Button>
               </div>
             </div>
           </div>
-
-
 
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
             <DataTable
@@ -289,9 +371,14 @@ export default function PurchasesByDayReport() {
               emptyMessage={t("no_data", "لا توجد بيانات")}
               responsiveLayout="stack"
             >
+              <Column
+                header={t("serial", "م")}
+                body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>}
+                className="w-16"
+              />
               <Column field="date" header={t("date", "التاريخ")} sortable body={(r) => <span className="text-sm font-bold text-[var(--text-main)]">{new Date(r.date).toLocaleDateString("en-GB")}</span>} />
               <Column field="totalPurchases" header={t("purchases_excl_tax", "المشتريات")} sortable body={(r) => <span className="text-sm font-medium">{formatNumber(r.totalPurchases)}</span>} />
-              <Column header={t("tax", "الضريبة")} sortable body={(r) => <span className="text-sm">{formatNumber(r.netPurchases - r.totalPurchases)}</span>} />
+              <Column header={t("tax", "الضريبة")} sortable body={(r) => <span className="text-sm">{formatNumber((r.netPurchases || 0) - (r.totalPurchases || 0))}</span>} />
               <Column field="netPurchases" header={t("total_with_tax", "إجمالي المستندات بعد الضريبة")} sortable body={(r) => <span className="text-sm font-bold text-[var(--primary)]">{formatNumber(r.netPurchases)}</span>} />
             </DataTable>
           </div>

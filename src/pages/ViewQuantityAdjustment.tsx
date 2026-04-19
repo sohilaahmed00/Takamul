@@ -71,7 +71,7 @@ export default function ViewQuantityAdjustment() {
             <Input
               type="text"
               value={formattedDate}
-              
+
               readOnly
             />
           </div>
