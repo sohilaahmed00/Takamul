@@ -1,7 +1,7 @@
 import React from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings, type SystemSettings } from "@/context/SettingsContext";
-import { Settings, Package, ShoppingCart, Hash, DollarSign, Barcode, Mail, Star, Percent, FileText, Printer, Save } from "lucide-react";
+import { Settings, Package, ShoppingCart, Hash, SaudiRiyal, Barcode, Mail, Star, Percent, FileText, Printer, Save } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
@@ -69,7 +69,7 @@ export default function SystemSettings() {
     { id: "items", title: t("items_settings"), icon: Package },
     { id: "sales", title: t("sales_settings"), icon: ShoppingCart },
     { id: "prefixes", title: t("prefixes_settings"), icon: Hash },
-    { id: "money", title: t("money_formatting"), icon: DollarSign },
+    { id: "money", title: t("money_formatting"), icon: SaudiRiyal },
     { id: "barcode", title: t("barcode_scale"), icon: Barcode },
     { id: "email", title: t("email_settings"), icon: Mail },
     { id: "points", title: t("earned_points"), icon: Star },

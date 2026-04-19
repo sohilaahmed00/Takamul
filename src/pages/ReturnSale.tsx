@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     X, Search, Upload, Trash2, Plus, Bold, Italic, List, CheckCircle, AlertCircle,
-    RotateCcw, FileText, DollarSign // تم إضافة الأيقونات الناقصة هنا
+    RotateCcw, FileText, SaudiRiyal // تم إضافة الأيقونات الناقصة هنا
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -172,7 +172,7 @@ export default function ReturnSale() {
                             <label className="text-sm font-bold text-gray-700">الخصم على المرتجع</label>
                             <div className="relative">
                                 <Input type="number" value={formData.discount || ''} onChange={e => setFormData({ ...formData, discount: Number(e.target.value) })}  />
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">SAR</span>
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">ر.س</span>
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -303,7 +303,7 @@ export default function ReturnSale() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <div className="bg-gray-50/50 p-4 border-b border-gray-100 font-bold text-gray-700 flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <DollarSign size={18} className="text-[#00a651]" />
+                        <SaudiRiyal size={18} className="text-[#00a651]" />
                         طرق إرجاع المبلغ للعميل
                     </div>
                     <div className={`px-3 py-1 rounded-full text-xs flex items-center gap-1 font-bold ${Math.abs(totals.balance) < 0.1 ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-orange-100 text-orange-700 border border-orange-200'}`}>

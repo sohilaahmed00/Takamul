@@ -131,9 +131,9 @@ export default function PurchasesReport() {
     }));
 
     const summaryCards = [
-      { title: t('total_purchases', 'إجمالي المشتريات'), value: `${fmt(summary.totalPurchases)} SAR`, icon: 'ShoppingBag' },
-      { title: t('paid_amount', 'المبلغ المدفوع'), value: `${fmt(summary.paidAmount)} SAR`, icon: 'BarChart2' },
-      { title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} SAR`, icon: 'Receipt' }
+      { title: t('total_purchases', 'إجمالي المشتريات'), value: `${fmt(summary.totalPurchases)} ${t('sar', 'ر.س')}`, icon: 'ShoppingBag' },
+      { title: t('paid_amount', 'المبلغ المدفوع'), value: `${fmt(summary.paidAmount)} ${t('sar', 'ر.س')}`, icon: 'BarChart2' },
+      { title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} ${t('sar', 'ر.س')}`, icon: 'Receipt' }
     ];
 
     const html = generateReportHTML(reportTitle, getFiltersInfo(), summaryCards, columns, data, t, direction);
@@ -158,8 +158,8 @@ export default function PurchasesReport() {
       }));
 
       const summaryCards = [
-        { title: t('total_purchases', 'إجمالي المشتريات'), value: `${fmt(summary.totalPurchases)} SAR`, icon: 'ShoppingBag' },
-        { title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} SAR`, icon: 'Receipt' }
+        { title: t('total_purchases', 'إجمالي المشتريات'), value: `${fmt(summary.totalPurchases)} ${t('sar', 'ر.س')}`, icon: 'ShoppingBag' },
+        { title: t('total_tax', 'إجمالي الضريبة'), value: `${fmt(summary.totalTax)} ${t('sar', 'ر.س')}`, icon: 'Receipt' }
       ];
 
 
@@ -227,19 +227,22 @@ export default function PurchasesReport() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <FinancialStatCard
               title={t('total_purchases', 'إجمالي المشتريات')}
-              value={`${fmt(summary.totalPurchases)} SAR`}
+              value={fmt(summary.totalPurchases)}
+              suffix="SAR"
               icon={ShoppingBag}
               color="orange"
             />
             <FinancialStatCard
               title={t('paid_amount', 'المبلغ المدفوع')}
-              value={`${fmt(summary.paidAmount)} SAR`}
+              value={fmt(summary.paidAmount)}
+              suffix="SAR"
               icon={BarChart2}
               color="teal"
             />
             <FinancialStatCard
               title={t('total_tax', 'إجمالي الضريبة')}
-              value={`${fmt(summary.totalTax)} SAR`}
+              value={fmt(summary.totalTax)}
+              suffix="SAR"
               icon={Receipt}
               color="blue"
             />

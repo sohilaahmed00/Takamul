@@ -110,7 +110,7 @@ export default function ItemSalesReport() {
         title,
         getFiltersInfo(),
         [
-          { title: t("total_item_sales"), value: formatNumber(totalSalesAmount), color: "orange" },
+          { title: t("total_item_sales"), value: `${formatNumber(totalSalesAmount)} ${t('sar', 'ر.س')}`, color: "orange" },
           { title: t("total_sales_quantity"), value: totalQuantity.toLocaleString(), color: "blue" },
         ],
         exportColumns,
@@ -130,7 +130,7 @@ export default function ItemSalesReport() {
       title,
       getFiltersInfo(),
       [
-        { title: t("total_item_sales"), value: formatNumber(totalSalesAmount), color: "orange" },
+        { title: t("total_item_sales"), value: `${formatNumber(totalSalesAmount)} ${t('sar', 'ر.س')}`, color: "orange" },
         { title: t("total_sales_quantity"), value: totalQuantity.toLocaleString(), color: "blue" },
       ],
       exportColumns,
@@ -190,6 +190,7 @@ export default function ItemSalesReport() {
             <FinancialStatCard
               title={t("total_item_sales", "إجمالي مبيعات الصنف")}
               value={formatNumber(totalSalesAmount)}
+              suffix="SAR"
               icon={DollarSign}
               color="orange"
             />

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { LucideIcon } from 'lucide-react';
+import { LucideIcon, DollarSign, SaudiRiyal } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface FinancialStatCardProps {
@@ -53,8 +53,17 @@ export const FinancialStatCard: React.FC<FinancialStatCardProps> = ({
   delay = 0,
   onClick,
 }) => {
-  const { direction } = useLanguage();
+  const { direction, language, t } = useLanguage();
   const config = colorConfigs[color] || colorConfigs.blue;
+
+  // Automatically swap DollarSign for SaudiRiyal in Arabic
+  let DisplayIcon = Icon;
+  if (Icon === DollarSign && language === 'ar') {
+    DisplayIcon = SaudiRiyal;
+  }
+
+  // Handle common "SAR" suffix for localization
+  const displaySuffix = suffix === 'SAR' ? t('sar', 'ر.س') : suffix;
 
   return (
     <motion.div
@@ -67,19 +76,20 @@ export const FinancialStatCard: React.FC<FinancialStatCardProps> = ({
       }`}
     >
       <div className={`flex items-center gap-4 ${direction === 'rtl' ? 'flex-row-reverse' : ''}`}>
-        {Icon && (
+        {DisplayIcon && (
           <div className={`h-12 w-12 rounded-2xl ${config.bg} flex items-center justify-center shrink-0`}>
-            <Icon size={24} className={config.icon} />
+            <DisplayIcon size={24} className={config.icon} />
           </div>
         )}
         <div className={`flex-1 ${direction === 'rtl' ? 'text-right' : 'text-left'}`}>
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{title}</p>
           <h3 className="text-2xl font-bold text-slate-900 dark:text-white flex items-baseline gap-1">
             {value}
-            {suffix && <span className="text-xs font-medium text-slate-400">{suffix}</span>}
+            {displaySuffix && <span className="text-xs font-medium text-slate-400">{displaySuffix}</span>}
           </h3>
         </div>
       </div>
     </motion.div>
   );
 };
+

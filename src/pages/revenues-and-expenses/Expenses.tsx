@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Plus, Search, Edit2, Trash2, DollarSign } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, SaudiRiyal } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 
@@ -158,7 +158,7 @@ export default function Expenses() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <DollarSign size={20} className="text-[var(--primary)]" />
+            <SaudiRiyal size={20} className="text-[var(--primary)]" />
             {t("expenses")}
           </CardTitle>
 

@@ -98,8 +98,8 @@ export default function StockBalanceReport() {
         title,
         getFiltersInfo(),
         [
-          { title: t("total_cost"), value: formatNumber(totalCostValue), color: "orange" },
-          { title: t("total_selling_price"), value: formatNumber(totalSaleValue), color: "blue" },
+          { title: t("total_cost"), value: `${formatNumber(totalCostValue)} ${t('sar', 'ر.س')}`, color: "orange" },
+          { title: t("total_selling_price"), value: `${formatNumber(totalSaleValue)} ${t('sar', 'ر.س')}`, color: "blue" },
         ],
         exportColumns,
         reportData,
@@ -118,8 +118,8 @@ export default function StockBalanceReport() {
       title,
       getFiltersInfo(),
       [
-        { title: t("total_cost"), value: formatNumber(totalCostValue), color: "orange" },
-        { title: t("total_selling_price"), value: formatNumber(totalSaleValue), color: "blue" },
+        { title: t("total_cost"), value: `${formatNumber(totalCostValue)} ${t('sar', 'ر.س')}`, color: "orange" },
+        { title: t("total_selling_price"), value: `${formatNumber(totalSaleValue)} ${t('sar', 'ر.س')}`, color: "blue" },
       ],
       exportColumns,
       reportData,
@@ -178,12 +178,14 @@ export default function StockBalanceReport() {
             <FinancialStatCard
               title={t("total_cost", "إجمالي التكلفة")}
               value={formatNumber(totalCostValue)}
+              suffix="SAR"
               icon={LineChart}
               color="orange"
             />
             <FinancialStatCard
               title={t("total_selling_price", "إجمالي سعر البيع")}
               value={formatNumber(totalSaleValue)}
+              suffix="SAR"
               icon={DollarSign}
               color="blue"
             />

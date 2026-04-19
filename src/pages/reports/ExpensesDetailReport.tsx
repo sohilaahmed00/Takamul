@@ -165,6 +165,7 @@ export default function ExpensesDetailReport() {
             <FinancialStatCard
               title={t("total_expenses", "إجمالي المصروفات")}
               value={formatNumber(expensesResponse?.totalAmount)}
+              suffix="SAR"
               icon={Wallet}
               color="orange"
             />
