@@ -236,7 +236,7 @@ function AppRoutes() {
           {/* العروض */}
           <Route path="/quotes" element={<QuotesList />} />
           <Route path="/quotes/create" element={<CreateQuote />} />
-          <Route path="/quotes/view/:id" element={<ViewQuote />} />
+          <Route path="/quotes/edit/:id" element={<CreateQuote />} />
 
           {/* الورديات */}
           <Route path="/shifts" element={<ShiftsList />} />

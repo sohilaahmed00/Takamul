@@ -51,18 +51,11 @@ export default function PosSales() {
   };
   return (
     <div className="space-y-4 pb-12" dir={direction}>
-      <div className="text-sm text-gray-500 flex items-center gap-1 font-medium px-2">
-        <span className="cursor-pointer hover:text-[var(--primary)]" onClick={() => navigate("/")}>
-          {t("home")}
-        </span>
-        <span>/</span>
-        <span className="text-gray-800">{t("sales")}</span>
-      </div>
+ 
 
       <Card>
         <CardHeader className="">
           <CardTitle>مبيعات POS</CardTitle>
-          <CardDescription>{t("manage_sales_desc")}</CardDescription>
           {/* <CardAction>
             <Button variant={"default"} asChild>
               <Link to={"/sales/create"}>{t("add_sales_invoice")}</Link>

@@ -53,7 +53,6 @@ export default function A4Sales() {
       <Card>
         <CardHeader className="">
           <CardTitle>{t("a4_sales_heading")}</CardTitle>
-          <CardDescription>{t("manage_sales_desc")}</CardDescription>
           <CardAction>
             {/* <Button size="2xl" variant={"default"} asChild>
               <Link to={"/sales/create"}>{t("add_sales_invoice")}</Link>
@@ -63,7 +62,6 @@ export default function A4Sales() {
         <CardContent>
           <DataTable
             value={salesOrders?.items || []}
-            rowsPerPageOptions={[5, 10, 20, 50]}
             lazy
             paginator
             rows={entriesPerPage}

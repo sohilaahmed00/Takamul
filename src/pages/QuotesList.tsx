@@ -6,7 +6,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import EmailQuoteModal from "@/components/modals/EmailQuoteModal";
-import MobileDataCard from "@/components/MobileDataCard";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 
 import AddQuoteModal from "@/components/modals/AddQuoteModal";
@@ -79,7 +78,6 @@ export default function QuotesList() {
       <CardContent>
         <DataTable
           value={quotations || []}
-          rowsPerPageOptions={[5, 10, 20, 50]}
           lazy
           paginator
           rows={entriesPerPage}
@@ -101,19 +99,16 @@ export default function QuotesList() {
           <Column header={t("date")} sortable field="quotationDate" body={(row) => formatDate(row.quotationDate)} />
           <Column header={t("customer_name")} sortable field="customerName" />
           <Column header={t("cashier")} sortable field="createdBy" />
-          <Column header={t("quote_status")} sortable field="status" />
-          <Column header={t("subtotal")} sortable field="subTotal" />
-          <Column header={t("tax_amount")} sortable field="taxAmount" />
           <Column header={t("discount_amount")} sortable field="discountAmount" />
           <Column header={t("total_amount")} sortable field="grandTotal" />
           <Column
             header={t("actions")}
             body={(row) => (
               <div className="flex gap-2">
-                <button onClick={() => { }} className="btn-minimal-action btn-compact-action">
+                <Link to={`/quotes/edit/${row?.id}`}  className="btn-minimal-action btn-compact-action">
                   <Edit2 size={16} />
-                </button>
-                <button onClick={() => { }} className="btn-minimal-action btn-compact-action text-red-500">
+                </Link>
+                <button onClick={() => {}} className="btn-minimal-action btn-compact-action text-red-500">
                   <Trash2 size={16} />
                 </button>
               </div>
