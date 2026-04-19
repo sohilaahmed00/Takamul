@@ -234,7 +234,7 @@ export default function ItemPurchasesReport() {
                   placeholder={productsLoading ? t("loading", "جارِ التحميل...") : t("select_product", "اختر الصنف")}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 mb-2">
                 <label className="text-xs font-medium text-[var(--text-main)]">
                   {t("from_date", "تاريخ البداية")}
                 </label>
@@ -262,7 +262,7 @@ export default function ItemPurchasesReport() {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 mb-2">
                 <label className="text-xs font-medium text-[var(--text-main)]">
                   {t("to_date", "تاريخ النهاية")}
                 </label>

@@ -96,7 +96,7 @@ export default function SupplierStatementReport() {
     const branchName = branches.find((b) => String(b.id) === searchParams.branchId.trim())?.name || t("all", "الكل");
 
     const filtersInfo = [
-      `${t("branch", "الفرع")}: ${branchName}`,
+      `${t("supplier_name", "اسم المورد")}: ${selectedSupplierName || t("all", "الكل")}`,
       `${t("from_date", "من")}: ${fromFmt}`,
       `${t("to_date", "إلى")}: ${toFmt}`,
       `${t("operation_type", "نوع العملية")}: ${searchParams.type || t("all", "الكل")}`,
@@ -124,7 +124,7 @@ export default function SupplierStatementReport() {
   const handlePrint = () => {
     if (!statementData?.length) return;
     const { filtersInfo, summaryCards, columns } = getExportData();
-    const html = generateReportHTML(`${title} - ${selectedSupplierName}`, filtersInfo, summaryCards, columns, statementData, t, direction);
+    const html = generateReportHTML(title, filtersInfo, summaryCards, columns, statementData, t, direction);
     printCustomHTML(title, html);
   };
 
@@ -133,7 +133,7 @@ export default function SupplierStatementReport() {
     setPdfLoading(true);
     try {
       const { filtersInfo, summaryCards, columns } = getExportData();
-      const html = generateReportHTML(`${title} - ${selectedSupplierName}`, filtersInfo, summaryCards, columns, statementData, t, direction);
+      const html = generateReportHTML(title, filtersInfo, summaryCards, columns, statementData, t, direction);
       await exportCustomPDF(title, html);
     } finally {
       setPdfLoading(false);
@@ -226,7 +226,7 @@ export default function SupplierStatementReport() {
                 </Select>
               </div>
 
-              <div className="flex flex-row items-end gap-2 mb-2 lg:col-span-1">
+              <div className="flex flex-row items-end gap-2 lg:col-span-1">
                 <Button onClick={handleSearch} disabled={isLoading || isFetching || !filters.supplierId} className="flex-1 h-9 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white gap-2 rounded-lg shadow-sm font-bold">
                   <Search size={16} /> {t("search", "بحث")}
                 </Button>
