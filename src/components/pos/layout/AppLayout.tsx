@@ -60,7 +60,7 @@ export default function AppLayout() {
       <ToastContainer pauseOnHover={false} />
 
       {/* Modal */}
-      {showHoldModal && <HoldModal onClose={() => setShowHoldModal(false)} onConfirm={confirmHold} />}
+      {showHoldModal && <HoldModal open={showHoldModal} onClose={() => setShowHoldModal(false)} onConfirm={confirmHold} />}
 
       {/* Sidebar */}
       <Sidebar />

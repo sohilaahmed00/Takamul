@@ -150,7 +150,7 @@ function createFileValidator(options: { maxFiles: number; maxSizeMB?: number; al
   return (file: File, currentFiles: File[]) => {
     if (currentFiles.length >= options.maxFiles) return `مسموح بـ ${options.maxFiles} ملفات فقط`;
     if (options.allowedTypes && !options.allowedTypes.some((type) => file.type.startsWith(type))) return "نوع الملف غير مدعوم";
-    const maxSize = (options.maxSizeMB || 2) * 1024 * 1024;
+    const maxSize = (options.maxSizeMB || 200) * 1024 * 1024;
     if (file.size > maxSize) return `حجم الملف يجب أن يكون أقل من ${options.maxSizeMB || 2}MB`;
     return null;
   };
@@ -168,11 +168,11 @@ export default function AddProduct() {
   const { notifyError, notifySuccess } = useToast();
   const [mainCategoryId, setMainCategoryId] = useState<number>();
   const [productType, setProductType] = useState<ProductType>("Direct");
-
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const type = searchParams.get("type") as ProductType;
   const isEditMode = !!id;
+  const [fileError, setFileError] = useState<string | null>(null);
 
   // ── Data hooks ──────────────────────────────────────────────────────────
   const { data: taxesData } = useGetAllTaxes();
@@ -222,7 +222,7 @@ export default function AddProduct() {
   const { fields: rawMaterialFields, append: appendRawMaterial, remove: removeRawMaterial } = useFieldArray({ control, name: "RawMaterials" });
 
   const anchor = useComboboxAnchor();
-  const validateFile = useMemo(() => createFileValidator({ maxFiles: 1, maxSizeMB: 2, allowedTypes: ["image/"] }), []);
+  const validateFile = useMemo(() => createFileValidator({ maxFiles: 1, maxSizeMB: 100, allowedTypes: ["image/"] }), []);
 
   // ── Watched values ───────────────────────────────────────────────────────
   const CostPrice = watch("CostPrice");
@@ -230,7 +230,7 @@ export default function AddProduct() {
   const TaxId = watch("TaxId");
   const TaxCalculation = watch("TaxCalculation");
   const ImageField = watch("Image");
-  const files = ImageField instanceof File ? [ImageField] : [];
+  const [files, setFiles] = useState<File[]>(() => (ImageField instanceof File ? [ImageField] : []));
 
   // ── Price summary ────────────────────────────────────────────────────────
   const summary = useMemo(() => {
@@ -941,46 +941,77 @@ export default function AddProduct() {
 
                 {/* Image upload */}
                 {productType !== "RawMatrial" && (
-                  <div className="lg:col-span-2">
+                  <div className="col-span-2">
                     <Controller
                       name="Image"
                       control={control}
-                      render={({ field }) => (
-                        <FileUpload value={files} onValueChange={(newFiles) => field.onChange(newFiles[0])} onFileValidate={(file) => validateFile(file, files)} accept="image/*" maxFiles={1}>
-                          <FileUploadDropzone>
-                            <div className="flex flex-col items-center gap-1">
-                              <div className="flex items-center justify-center rounded-full border p-2.5">
-                                <Upload className="size-6 text-muted-foreground" />
+                      render={({ field, fieldState }) => (
+                        <>
+                          <FileUpload
+                            value={files}
+                            onValueChange={(newFiles) => {
+                              setFiles(newFiles);
+                              field.onChange(newFiles[0] ?? undefined);
+                              if (newFiles.length > 0) setFileError(null);
+                            }}
+                            onFileValidate={(file) => {
+                              const error = validateFile(file, files);
+                              if (error) {
+                                setFileError(error);
+                                return error;
+                              }
+                              setFileError(null);
+                              return null;
+                            }}
+                            accept="image/*"
+                            maxFiles={1}
+                          >
+                            <FileUploadDropzone>
+                              <div className="flex flex-col items-center gap-1">
+                                <div className="flex items-center justify-center rounded-full border p-2.5">
+                                  <Upload className="size-6 text-muted-foreground" />
+                                </div>
+                                <p className="font-medium text-sm">اسحب وافلت الصورة هنا</p>
+                                <p className="text-muted-foreground text-xs">أو اضغط للتصفح</p>
                               </div>
-                              <p className="font-medium text-sm">اسحب وافلت الصورة هنا</p>
-                              <p className="text-muted-foreground text-xs">أو اضغط للتصفح</p>
-                            </div>
-                            <FileUploadTrigger asChild>
-                              <Button variant="outline" size="sm" className="mt-2 w-fit">
-                                تصفح الملفات
-                              </Button>
-                            </FileUploadTrigger>
-                          </FileUploadDropzone>
-                          <FileUploadList>
-                            {files.map((file) => (
-                              <FileUploadItem key={file.name} value={file}>
-                                <FileUploadItemPreview />
-                                <FileUploadItemMetadata />
-                                <FileUploadItemDelete asChild>
-                                  <Button variant="ghost" size="icon" className="size-7" onClick={() => field.onChange(undefined)}>
-                                    <X />
-                                  </Button>
-                                </FileUploadItemDelete>
-                              </FileUploadItem>
-                            ))}
-                          </FileUploadList>
-                        </FileUpload>
+                              <FileUploadTrigger asChild>
+                                <Button variant="outline" size="sm" className="mt-2 w-fit">
+                                  تصفح الملفات
+                                </Button>
+                              </FileUploadTrigger>
+                            </FileUploadDropzone>
+
+                            <FileUploadList>
+                              {files.map((file) => (
+                                <FileUploadItem key={file.name} value={file}>
+                                  <FileUploadItemPreview />
+                                  <FileUploadItemMetadata />
+                                  <FileUploadItemDelete asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="size-7"
+                                      onClick={() => {
+                                        setFiles([]);
+                                        setFileError(null);
+                                        field.onChange(undefined);
+                                      }}
+                                    >
+                                      <X />
+                                    </Button>
+                                  </FileUploadItemDelete>
+                                </FileUploadItem>
+                              ))}
+                            </FileUploadList>
+                          </FileUpload>
+
+                          {fileError && <p className="text-red-500 text-sm mt-1">{fileError}</p>}
+                        </>
                       )}
                     />
                   </div>
                 )}
               </div>
-
               {/* Action buttons */}
               <div className="flex flex-col-reverse lg:flex-row justify-between py-4 border px-3 gap-3 rounded border-gray-100">
                 <Button size="lg" variant="destructive" type="button" className="w-full lg:w-auto px-8 h-12" onClick={() => navigate("/products")}>

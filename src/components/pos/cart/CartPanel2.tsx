@@ -821,40 +821,46 @@ export default function CartPanel() {
     [products],
   );
 
-  useEffect(() => {
-    let buffer = "";
-    let timer: ReturnType<typeof setTimeout>;
-    let lastKeyTime = 0;
+useEffect(() => {
+  let buffer = "";
+  let timer: ReturnType<typeof setTimeout>;
+  let lastKeyTime = 0;
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const now = Date.now();
-      const timeDiff = now - lastKeyTime;
-      lastKeyTime = now;
+  const handleKeyDown = (e: KeyboardEvent) => {
+    const activeEl = document.activeElement;
+    const isTyping =
+      activeEl instanceof HTMLInputElement ||
+      activeEl instanceof HTMLTextAreaElement ||
+      activeEl instanceof HTMLSelectElement;
 
-      const isScanner = timeDiff < 50 || buffer.length > 0;
-      if (!isScanner) {
-        buffer = "";
-        return;
-      }
+    const now = Date.now();
+    const timeDiff = now - lastKeyTime;
+    lastKeyTime = now;
 
-      if (e.key === "Enter") {
-        if (buffer.length > 2) handleBarcodeScanned(buffer);
-        buffer = "";
-        clearTimeout(timer);
-        return;
-      }
-
-      buffer += e.key;
+    if (e.key === "Enter") {
+      if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer); // ✅ بس لو مش معلم
+      buffer = "";
       clearTimeout(timer);
-      timer = setTimeout(() => {
-        if (buffer.length > 2) handleBarcodeScanned(buffer);
-        buffer = "";
-      }, 300);
-    };
+      return;
+    }
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleBarcodeScanned]);
+    const isPartOfScan = timeDiff < 50 || buffer.length > 0;
+    if (!isPartOfScan) {
+      buffer = e.key;
+    } else {
+      buffer += e.key;
+    }
+
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer); // ✅ بس لو مش معلم
+      buffer = "";
+    }, 300);
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+  return () => window.removeEventListener("keydown", handleKeyDown);
+}, [handleBarcodeScanned]);
 
   const handlePayment = ({ vault, method, action }: { vault: Treasury; method: string; action: SaveAction }) => {
     switch (action) {

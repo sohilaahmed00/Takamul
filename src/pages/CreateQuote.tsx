@@ -35,7 +35,7 @@ const QuoteSchema = (t: (key: string) => string) =>
         z.object({
           productId: z.number().min(1, t("choose_product_validation")),
           quantity: z.number().min(1, t("quantity_must_be_greater_than_zero")),
-          unitId: z.number().min(1, t("choose_product_unit")),
+          unitName: z.string(),
           unitPrice: z.number().min(0, t("price_must_be_gte_zero")),
           taxPercentage: z.number().min(0, t("price_must_be_gte_zero")),
           discountType: z.enum(["percentage", "fixed"]).default("fixed"),
@@ -315,7 +315,6 @@ const CreateQuote: React.FC = () => {
           productId: quote?.productId,
           quantity: quote?.quantity,
           unitPrice: quote?.unitPrice,
-          
         })),
       });
     }
@@ -345,7 +344,7 @@ const CreateQuote: React.FC = () => {
 
   const { grandTotal, count } = calcSummary();
 
-  const handleAddItem = () => appendItem({ productId: 0, quantity: 1, unitId: 0, unitPrice: 0, taxPercentage: 0, discountType: "fixed", discountValue: 0 });
+  const handleAddItem = () => appendItem({ productId: 0, quantity: 1, unitName: "", unitPrice: 0, taxPercentage: 0, discountType: "fixed", discountValue: 0 });
 
   const handleSubmit = async (data: SalesInvoiceType) => {
     const payload: CreateQuotation = {
@@ -359,7 +358,6 @@ const CreateQuote: React.FC = () => {
       shippingCost: data.shippingCost,
       items: data.items.map((item) => ({
         productId: item.productId,
-        unitId: item.unitId,
         taxPercentage: 0,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
@@ -496,6 +494,8 @@ const CreateQuote: React.FC = () => {
                                       onValueChange={(val) => {
                                         const p = products?.items?.find((p) => p.id === Number(val));
                                         if (p) form.setValue(`items.${index}.unitPrice`, p.sellingPrice);
+                                        const unitProduct = units?.items?.find((unit) => unit?.id == p?.baseUnitId);
+                                        form.setValue(`items.${index}.unitName`, unitProduct?.name);
                                       }}
                                     />
                                     {fieldState.invalid && (
@@ -521,16 +521,11 @@ const CreateQuote: React.FC = () => {
 
                               <Controller
                                 control={form.control}
-                                name={`items.${index}.unitId`}
-                                render={({ field, fieldState }) => (
-                                  <Field className="relative">
+                                name={`items.${index}.unitName`}
+                                render={({ field }) => (
+                                  <Field>
                                     <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("unit")}</FieldLabel>
-                                    <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder={t("unit")} />
-                                    {fieldState.invalid && (
-                                      <div className="absolute top-full mt-1 right-0 z-10 w-full">
-                                        <FieldError errors={[fieldState.error]} />
-                                      </div>
-                                    )}
+                                    <span className="block text-center py-2 px-3 bg-gray-100 rounded-md">{field.value || "-"}</span>{" "}
                                   </Field>
                                 )}
                               />

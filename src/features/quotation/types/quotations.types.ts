@@ -13,6 +13,8 @@ export type Quotation = {
   grandTotal: number;
   status: boolean;
   items: {
+    baseUnitName: string;
+    baseUnitId: number;
     productId: number;
     productCode: string;
     productName: string;
@@ -37,7 +39,6 @@ export type CreateQuotation = {
   globalDiscountPercentage: number;
   items: {
     productId: number;
-    unitId: number;
     taxPercentage: number;
     quantity: number;
     unitPrice: number;

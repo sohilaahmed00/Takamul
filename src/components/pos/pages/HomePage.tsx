@@ -23,7 +23,7 @@ export default function HomePage() {
   const activeCat = mainCategories?.find((c) => c.id === currentCat);
 
   const filteredProducts = products?.items.filter((item) => {
-    return item.productType !== "RawMatrial" && (!currentSubCat || item.categoryId === currentSubCat) && (!currentCat || item.categoryId === currentCat);
+    return item.productType !== "RawMatrial" && !(item.productType === "Direct" && item.parentProductId) && (!currentSubCat || item.categoryId === currentSubCat) && (!currentCat || item.categoryId === currentCat);
   });
 
   const getCategoryName = useCallback(
@@ -98,7 +98,75 @@ export default function HomePage() {
   };
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const handleBarcodeScanned = useCallback(
+    (barcode: string) => {
+      const product = products?.items?.find((p) => p.barcode === barcode);
+      if (!product) {
+        console.warn("المنتج مش موجود:", barcode);
+        return;
+      }
+      setCart((prev) => {
+        const exists = prev.findIndex((i) => i.productId === product.id);
+        if (exists !== -1) {
+          return prev.map((i, idx) => (idx === exists ? { ...i, qty: i.qty + 1 } : i));
+        }
+        return [
+          ...prev,
+          {
+            name: product.productNameAr,
+            productNameEn: product.productNameEn,
+            productNameUr: product.productNameUr,
+            price: product.sellingPrice,
+            qty: 1,
+            note: "",
+            op: null,
+            taxamount: product.taxAmount,
+            productId: product.id,
+            taxCalculation: product.taxCalculation,
+          },
+        ];
+      });
+    },
+    [products],
+  );
 
+  useEffect(() => {
+    let buffer = "";
+    let timer: ReturnType<typeof setTimeout>;
+    let lastKeyTime = 0;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      const isTyping = activeEl instanceof HTMLInputElement || activeEl instanceof HTMLTextAreaElement || activeEl instanceof HTMLSelectElement;
+
+      const now = Date.now();
+      const timeDiff = now - lastKeyTime;
+      lastKeyTime = now;
+
+      if (e.key === "Enter") {
+        if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer);
+        buffer = "";
+        clearTimeout(timer);
+        return;
+      }
+
+      const isPartOfScan = timeDiff < 50 || buffer.length > 0;
+      if (!isPartOfScan) {
+        buffer = e.key;
+      } else {
+        buffer += e.key;
+      }
+
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer); 
+        buffer = "";
+      }, 300);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleBarcodeScanned]);
   const checkScroll = () => {
     const el = scrollRef.current;
     if (!el) return;
@@ -150,7 +218,7 @@ export default function HomePage() {
         {filteredProducts?.map((item, i) => (
           <>
             <div key={i} onClick={() => handleMenuClick(item)} className="bg-white rounded-xl overflow-hidden pt-1 pb-2.5 px-0 text-center border border-primary/40 cursor-pointer hover:shadow-sm  transition-all">
-              <div className="w-full px-2 max-w-full h-16 rounded-lg  bg-primary/5 mx-auto mb-2 flex items-center justify-center overflow-hidden">{item.imageUrl ? <img src={item.imageUrl} alt={getProductName(item)} className="w-full h-full object-contain " /> : <span className="text-2xl"></span>}</div>
+              <div className="w-full px-2 max-w-full h-16 rounded-lg   mx-auto mb-2 flex items-center justify-center overflow-hidden">{item.imageUrl ? <img src={item.imageUrl} alt={getProductName(item)} className="w-full h-full object-contain " /> : <span className="text-2xl"></span>}</div>
               <div className="text-xs font-semibold text-gray-700 mb-0.5 leading-tight">{getProductName(item)}</div>
               <div className="text-xs font-bold text-primary flex items-center justify-center flex-row-reverse gap-x-1">
                 <SaudiRiyal size={14} />

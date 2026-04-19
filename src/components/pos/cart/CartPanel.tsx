@@ -63,25 +63,28 @@ function ExtrasCombobox({ selectedIds, onToggle, additions }: { selectedIds: num
   );
 }
 
-function CouponTab() {
+interface CouponTabProps {
+  code: string;
+  setCode: (v: string) => void;
+  status: "idle" | "valid" | "invalid" | "used";
+  setStatus: (v: "idle" | "valid" | "invalid" | "used") => void;
+  appliedCard: GiftCard | null;
+  setAppliedCard: (v: GiftCard | null) => void;
+}
+
+function CouponTab({ code, setCode, status, setStatus, appliedCard, setAppliedCard }: CouponTabProps) {
   const { cart, discount, setDiscount, setSelectedGiftCardId } = usePos();
   const { sub, tax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const { t } = useLanguage();
-
   const { data: giftCards } = useGetGiftCards();
-  const [code, setCode] = useState("");
-  const [status, setStatus] = useState<"idle" | "valid" | "invalid" | "used">("idle");
-  const [appliedCard, setAppliedCard] = useState<GiftCard | null>(null);
 
   const handleApply = () => {
     const card = giftCards?.items?.find((c) => c.code.toLowerCase() === code.trim().toLowerCase());
-
     if (!card) return setStatus("invalid");
     if (!card.isActive || card.isDeleted) return setStatus("used");
 
     const total = sub + tax;
     const deduct = Math.min(card.remainingAmount, total);
-
     setDiscount(deduct);
     setAppliedCard(card);
     setSelectedGiftCardId(card.id);
@@ -170,19 +173,23 @@ export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyCha
   const [inputBuffer, setInputBuffer] = useState("0");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [isFirstInput, setIsFirstInput] = useState(true);
+  const [localExtras, setLocalExtras] = useState<number[]>([]);
+  const [localQty, setLocalQty] = useState<number>(1);
+  const [localDisc, setLocalDisc] = useState<{ type: "pct" | "flat"; value: number } | null>(null);
 
   const currentValue = parseFloat(inputBuffer) || 0;
   const selectedExtraIds = (item?.extras ?? []).map((e) => e.id!).filter(Boolean);
   const hasExtras = selectedExtraIds.length > 0;
-  const [localExtras, setLocalExtras] = useState<number[]>([]);
 
   useEffect(() => {
     if (item && open) {
       setLocalExtras(item.extras?.map((e) => e.id!) ?? []);
+      setLocalQty(item.qty);
+      setLocalDisc(item.itemDiscount ?? null);
     }
   }, [item, open]);
 
-  const handleToggleExtra = (id: number, name: string) => {
+  const handleToggleExtra = (id: number) => {
     setLocalExtras((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
@@ -218,9 +225,16 @@ export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyCha
   );
 
   const switchTab = (tab: Tab) => {
+    if (activeTab === "qty") {
+      setLocalQty(Math.max(1, Math.floor(currentValue)));
+    } else if (activeTab === "disc") {
+      setLocalDisc(currentValue === 0 ? null : { type: discType, value: currentValue });
+    }
+
     setActiveTab(tab);
-    if (tab === "qty") setInputBuffer(String(item?.qty ?? 1));
-    else if (tab === "disc") setInputBuffer(String(item?.itemDiscount?.value ?? 0));
+
+    if (tab === "qty") setInputBuffer(String(localQty));
+    else if (tab === "disc") setInputBuffer(String(localDisc?.value ?? 0));
     setIsFirstInput(true);
   };
 
@@ -230,11 +244,19 @@ export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyCha
   };
 
   const handleDone = () => {
+    let finalQty = localQty;
+    let finalDisc = localDisc;
+
     if (activeTab === "qty") {
-      onQtyChange(Math.max(1, Math.floor(currentValue)));
+      finalQty = Math.max(1, Math.floor(currentValue));
     } else if (activeTab === "disc") {
-      onDiscountChange(currentValue === 0 ? null : { type: discType, value: currentValue });
+      finalDisc = currentValue === 0 ? null : { type: discType, value: currentValue };
     }
+
+    // ابعت كل حاجة مع بعض
+    onQtyChange(finalQty);
+    onDiscountChange(finalDisc);
+    onSaveExtras(localExtras);
     onOpenChange(false);
   };
 
@@ -255,12 +277,10 @@ export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyCha
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="p-0 overflow-hidden gap-0 max-w-sm w-full">
-        {/* ── Header ── */}
         <DialogHeader className="px-4 pt-4 pb-0">
           <DialogTitle className="text-right text-sm font-semibold text-foreground/80 truncate">{item.name}</DialogTitle>
         </DialogHeader>
 
-        {/* ── Tabs ── */}
         <div className="flex mt-3 border-b border-border">
           {tabs.map(({ key, label, badge }) => {
             const isActive = activeTab === key;
@@ -273,9 +293,7 @@ export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyCha
           })}
         </div>
 
-        {/* ── Content Area ── */}
         <div className="bg-muted/30 px-4 py-3 border-b border-border">
-          {/* Qty */}
           {activeTab === "qty" && (
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">الكمية</span>
@@ -306,35 +324,22 @@ export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyCha
             </div>
           )}
 
-          {/* Extras — grid cards */}
           {activeTab === "extras" && <ExtrasGrid additions={additions} selectedIds={localExtras} onToggle={handleToggleExtra} />}
         </div>
 
-        {/* ── Numpad (qty & disc only) ── */}
         {activeTab !== "extras" && (
           <div className="px-3 pt-3 pb-2 bg-background">
             <Numpad onKey={handleKey} />
           </div>
         )}
 
-        {/* ── Footer ── */}
+        {/* ✅ زرار واحد "تم" بيبعت كل حاجة */}
         <div className="grid grid-cols-2 gap-2 px-3 pb-4 pt-2">
           <Button size="2xl" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
             إلغاء
           </Button>
-          <Button
-            size="2xl"
-            className="flex-1"
-            onClick={
-              activeTab === "extras"
-                ? () => {
-                    onSaveExtras(localExtras);
-                    onOpenChange(false);
-                  }
-                : handleDone
-            }
-          >
-            {activeTab === "extras" ? "حفظ" : "تم "}
+          <Button size="2xl" className="flex-1" onClick={handleDone}>
+            تم
           </Button>
         </div>
       </DialogContent>
@@ -397,20 +402,15 @@ export function CashierDialog({ open, onOpenChange, onCancel }: { open: boolean;
   const [vaultId, setVaultId] = useState<number | null>(null);
   const activeVault = vaultId ?? treasurys?.[0]?.id ?? null;
 
-  const [npRaw, setNpRaw] = useState(() => String(Math.round(total * 100)));
   const [isSplit, setIsSplit] = useState(false);
+  const [singleRaw, setSingleRaw] = useState("0");
   const [splits, setSplits] = useState<Split[]>([]);
-  const [activeId, _setActiveId] = useState("s1");
+  const [activeId, _setActiveId] = useState("s0");
   const [justActivated, setJustActivated] = useState(false);
+
   useEffect(() => {
-    if (!isSplit) {
-      setNpRaw(String(Math.round(total * 100)));
-    }
+    if (!isSplit) setSingleRaw(String(Math.round(total * 100)));
   }, [total, isSplit]);
-  const setActiveId = (id: string) => {
-    _setActiveId(id);
-    setJustActivated(true);
-  };
 
   useEffect(() => {
     if (treasurys?.length && vaultId === null) {
@@ -419,8 +419,20 @@ export function CashierDialog({ open, onOpenChange, onCancel }: { open: boolean;
     }
   }, [treasurys]);
 
+  const setActiveId = (id: string) => {
+    _setActiveId(id);
+    setJustActivated(true);
+  };
+
   const rawToFloat = (r: string) => parseInt(r || "0") / 100;
   const fmtFloat = (n: number) => n.toFixed(2);
+
+  const transform = (prev: string, k: string): string => {
+    if (k === "del") return prev.length > 1 ? prev.slice(0, -1) : "0";
+    if (k === "00") return prev === "0" ? "0" : prev + "00";
+    if (k === ".") return prev.includes(".") ? prev : prev + ".";
+    return prev === "0" ? k : prev + k;
+  };
 
   const pushKey = (k: string) => {
     if (k === "cancel") {
@@ -428,50 +440,51 @@ export function CashierDialog({ open, onOpenChange, onCancel }: { open: boolean;
       return;
     }
 
-    const transform = (prev: string) => {
-      if (k === "del") return prev.length > 1 ? prev.slice(0, -1) : "0";
-      if (k === "00") return prev === "0" ? "0" : prev + "00";
-      if (k === ".") return prev.includes(".") ? prev : prev + ".";
-      return prev === "0" ? k : prev + k;
-    };
-
     if (!isSplit) {
-      setNpRaw((p) => transform(p));
-    } else {
-      setSplits((prev) => {
-        const shouldClear = justActivated && k !== "del" && k !== ".";
-        const updated = prev.map((s) => {
-          if (s.id !== activeId) return s;
-          const base = shouldClear ? "0" : s.raw;
-          return { ...s, raw: transform(base) };
-        });
-        const otherIds = prev.map((s) => s.id).filter((id) => id !== activeId);
-        if (otherIds.length === 1) {
-          const activePaid = updated.find((s) => s.id === activeId)!;
-          const remaining = total - rawToFloat(activePaid.raw);
-          const remainRaw = remaining > 0 ? String(Math.round(remaining * 100)) : "0";
-          return updated.map((s) => (s.id === otherIds[0] ? { ...s, raw: remainRaw } : s));
-        }
-        return updated;
-      });
-      if (justActivated) setJustActivated(false);
+      setSingleRaw((p) => transform(p, k));
+      return;
     }
+
+    setSplits((prev) => {
+      const shouldClear = justActivated && k !== "del" && k !== ".";
+      const updated = prev.map((s) => {
+        if (s.id !== activeId) return s;
+        const base = shouldClear ? "0" : s.raw;
+        return { ...s, raw: transform(base, k) };
+      });
+
+      const others = updated.filter((s) => s.id !== activeId);
+      if (others.length === 1) {
+        const activePaid = rawToFloat(updated.find((s) => s.id === activeId)!.raw);
+        const remaining = total - activePaid;
+        const remainRaw = remaining > 0 ? String(Math.round(remaining * 100)) : "0";
+        return updated.map((s) => (s.id === others[0].id ? { ...s, raw: remainRaw } : s));
+      }
+      return updated;
+    });
+
+    if (justActivated) setJustActivated(false);
   };
 
   const toggleSplit = () => {
     setIsSplit((v) => {
       if (!v) {
-        setSplits([
-          { id: "s1", vaultId: treasurys?.[0]?.id ?? 0, raw: "0" },
-          { id: "s2", vaultId: treasurys?.[0]?.id ?? 0, raw: "0" },
-        ]);
-        setActiveId("s1");
+        setSplits(
+          (treasurys ?? []).map((t, i) => ({
+            id: `s${i}`,
+            vaultId: t.id,
+            raw: "0",
+          })),
+        );
+        setActiveId("s0");
+      } else {
+        setSingleRaw(String(Math.round(total * 100)));
       }
       return !v;
     });
   };
 
-  const singlePaid = rawToFloat(npRaw);
+  const singlePaid = rawToFloat(singleRaw);
   const splitPaid = splits.reduce((sum, s) => sum + rawToFloat(s.raw), 0);
   const paid = isSplit ? splitPaid : singlePaid;
   const change = parseFloat((paid - total).toFixed(2));
@@ -480,10 +493,19 @@ export function CashierDialog({ open, onOpenChange, onCancel }: { open: boolean;
     setPaidAmount(paid);
   }, [paid]);
 
+  const DiffCard = ({ change, large }: { change: number; large?: boolean }) => (
+    <div className={cn("rounded-xl border px-4 py-3 flex flex-col gap-0.5", change >= 0 ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50")}>
+      <span className={cn("text-[10px] font-semibold", change >= 0 ? "text-green-500" : "text-red-400")}>{change >= 0 ? t("change") : t("remaining")}</span>
+      <span className={cn("font-black", large ? "text-xl" : "text-lg", change >= 0 ? "text-green-600" : "text-red-500")}>${fmtFloat(Math.abs(change))}</span>
+    </div>
+  );
+
+  const splitCount = splits.length;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="max-w-md p-0 gap-0 overflow-hidden">
-        {/* ── Header ── */}
+        {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 text-white" style={{ background: "#000052" }}>
           <div className="flex flex-col">
             <DialogTitle className="text-[14px] font-medium text-white">إتمام عملية الدفع</DialogTitle>
@@ -501,14 +523,11 @@ export function CashierDialog({ open, onOpenChange, onCancel }: { open: boolean;
         </div>
 
         <div className="flex flex-col gap-4 p-4 overflow-y-auto max-h-[80vh]">
+          {/* Vault / Split toggle row */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
               <label className="text-[11px] font-semibold text-gray-500">{isSplit ? t("split_between_vaults") : t("destination_vault")}</label>
-              <button
-                onClick={toggleSplit}
-                className={`text-[11px] px-3 py-1 rounded-full font-semibold border transition-colors
-                  ${isSplit ? "border-green-500 text-green-600 bg-green-50" : "border-gray-200 text-gray-500 hover:border-green-300 hover:text-green-600"}`}
-              >
+              <button onClick={toggleSplit} className={cn("text-[11px] px-3 py-1 rounded-full font-semibold border transition-colors", isSplit ? "border-green-500 text-green-600 bg-green-50" : "border-gray-200 text-gray-500 hover:border-green-300 hover:text-green-600")}>
                 {isSplit ? t("split_on") : t("split_payment")}
               </button>
             </div>
@@ -526,38 +545,21 @@ export function CashierDialog({ open, onOpenChange, onCancel }: { open: boolean;
             )}
           </div>
 
+          {/* Split cards */}
           {isSplit && (
             <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-2 gap-2">
+              <div className={cn("grid gap-2", splitCount === 1 && "grid-cols-1", splitCount === 2 && "grid-cols-2", splitCount === 3 && "grid-cols-3")}>
                 {splits.map((sp) => {
                   const isActive = activeId === sp.id;
+                  const vault = treasurys?.find((t) => t.id === sp.vaultId);
                   return (
-                    <div
-                      key={sp.id}
-                      onClick={() => setActiveId(sp.id)}
-                      className={`rounded-xl border-2 p-3 cursor-pointer transition-all
-                        ${isActive ? "border-green-500 bg-green-50/60 shadow-sm" : "border-gray-200 bg-white hover:border-gray-300"}`}
-                    >
-                      {/* Active pill */}
-                      <div className="flex items-center justify-between mb-2">
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full
-                          ${isActive ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400"}`}
-                        >
-                          {isActive ? t("active") : t("tap")}
-                        </span>
+                    <div key={sp.id} onClick={() => setActiveId(sp.id)} className={cn("rounded-xl border-2 p-3 cursor-pointer transition-all flex flex-col gap-2", isActive ? "border-[#000052] bg-blue-50/60" : "border-gray-200 bg-white hover:border-gray-300")}>
+                      <div className="flex items-center justify-between gap-1">
+                        <span className={cn("text-[10px] font-semibold truncate", isActive ? "text-[#000052]" : "text-gray-400")}>{vault?.name ?? `خزنة ${sp.id}`}</span>
+                        <span className={cn("w-2 h-2 rounded-full flex-shrink-0", isActive ? "bg-[#000052]" : "bg-gray-200")} />
                       </div>
 
-                      {/* Vault chips */}
-                      <VaultChips value={sp.vaultId} onChange={(vid) => setSplits((p) => p.map((s) => (s.id === sp.id ? { ...s, vaultId: vid } : s)))} treasurys={treasurys ?? []} />
-
-                      {/* Amount bubble */}
-                      <div
-                        className={`mt-2.5 rounded-lg px-2 py-2.5 text-center font-black text-lg tracking-tight
-                        ${isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
-                      >
-                        ${rawToFloat(sp.raw).toFixed(2)}
-                      </div>
+                      <div className={cn("rounded-lg px-2 py-2 text-center font-black text-base tracking-tight", isActive ? "bg-blue-100 text-[#000052]" : "bg-gray-100 text-gray-400")}>${rawToFloat(sp.raw).toFixed(2)}</div>
                     </div>
                   );
                 })}
@@ -569,40 +571,28 @@ export function CashierDialog({ open, onOpenChange, onCancel }: { open: boolean;
                   <span className="text-[10px] text-gray-400 font-semibold">{t("total_entered")}</span>
                   <span className="text-lg font-black text-gray-800">${fmtFloat(splitPaid)}</span>
                 </div>
-                <div
-                  className={`rounded-xl border px-4 py-3 flex flex-col gap-0.5
-                  ${change >= 0 ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50"}`}
-                >
-                  <span className={`text-[10px] font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
-                  <span className={`text-lg font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>${fmtFloat(Math.abs(change))}</span>
-                </div>
+                <DiffCard change={change} />
               </div>
             </div>
           )}
-          {/* ── Numpad ── */}
+
+          {/* Numpad */}
           <Numpad onKey={pushKey} />
 
+          {/* Single summary */}
           {!isSplit && (
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 flex flex-col gap-0.5">
                 <span className="text-[10px] text-gray-400 font-semibold">{t("tendered")}</span>
                 <span className="text-xl font-black text-gray-800">${fmtFloat(singlePaid)}</span>
               </div>
-              <div
-                className={`rounded-xl border px-4 py-3 flex flex-col gap-0.5
-                ${change >= 0 ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50"}`}
-              >
-                <span className={`text-[10px] font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
-                <span className={`text-xl font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>${fmtFloat(Math.abs(change))}</span>
-              </div>
+              <DiffCard change={change} large />
             </div>
           )}
 
-          {/* ── Split cards ── */}
-
           <hr className="border-gray-100" />
 
-          {/* ── Actions ── */}
+          {/* Actions */}
           <div className="grid grid-cols-2 gap-2">
             {[
               { action: "pdf", label: "طباعة PDF", Icon: FileText },
@@ -650,6 +640,11 @@ export default function CartPanel() {
   const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
   const [cashierOpen, setCashierOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [status, setStatus] = useState<"idle" | "valid" | "invalid" | "used">("idle");
+  const [appliedCard, setAppliedCard] = useState<GiftCard | null>(null);
+  const [orderNote, setOrderNote] = useState("");
+  const [noteInput, setNoteInput] = useState("");
   useEffect(() => {
     if (customers) {
       setSelectedCustomer(customers?.items[0]);
@@ -1023,18 +1018,33 @@ export default function CartPanel() {
 
           {activeTab === "coupon" && (
             <div className="p-3">
-              <CouponTab />
+              <CouponTab code={code} setCode={setCode} status={status} setStatus={setStatus} appliedCard={appliedCard} setAppliedCard={setAppliedCard} />
             </div>
           )}
 
           {activeTab === "note" && (
             <div className="p-3">
-              <textarea className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 resize-none focus:border-primary/40" rows={2} placeholder={t("add_order_note")} />
+              <textarea value={noteInput} onChange={(e) => setNoteInput(e.target.value)} className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 resize-none focus:border-primary/40" rows={2} placeholder={t("add_order_note")} />
               <div className="flex gap-2">
-                <Button size={"2xl"} className="flex-1" variant="destructive">
+                <Button
+                  size={"2xl"}
+                  className="flex-1"
+                  variant="destructive"
+                  onClick={() => {
+                    setNoteInput("");
+                    setOrderNote("");
+                  }}
+                >
                   {t("clear")}
                 </Button>
-                <Button size={"2xl"} className="flex-1">
+                <Button
+                  size={"2xl"}
+                  className="flex-1"
+                  onClick={() => {
+                    setOrderNote(noteInput);
+                    setActiveTab("add");
+                  }}
+                >
                   {t("save")}
                 </Button>
               </div>

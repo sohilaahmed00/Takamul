@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 
 export default function ProductsList() {
   const { direction, t } = useLanguage();
-  const [entriesPerPage, setEntriesPerPage] = useState(5);
+  const [entriesPerPage, setEntriesPerPage] = useState(3000);
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   type ProductType = "Direct" | "Branched" | "Prepared" | "RawMatrial";
