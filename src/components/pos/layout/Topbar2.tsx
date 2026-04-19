@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Home, LogOut, Pause, Bug, Keyboard, Maximize, Plus } from "lucide-react";
+import { Home, LogOut, Pause, Bug, Maximize, Plus } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
@@ -13,7 +13,8 @@ import { usePos } from "@/context/PosContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { Link } from "react-router-dom";
 import AddParnterModal from "@/components/modals/AddParnterModal";
-
+import Keyboard from "react-simple-keyboard";
+import "react-simple-keyboard/build/css/index.css";
 export default function Topbar2() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [warehouse, setWarehouse] = useState("");
@@ -24,6 +25,8 @@ export default function Topbar2() {
   const { selectedCustomer, setSelectedCustomer } = usePos();
   const [openDialog, setOpenDialog] = useState(false);
   const [balanceSelectedCustomer, setBalanceSelectedCustomer] = useState<number | null>(null);
+  const [showKeyboard, setShowKeyboard] = useState(false);
+  const [input, setInput] = useState("");
   const { t } = useLanguage();
   useEffect(() => {
     if (customers) {
@@ -58,7 +61,7 @@ export default function Topbar2() {
                     <Home size={13} />
                   </Link>
                 </Button>
-                <Button variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="لوحة المفاتيح">
+                <Button onClick={() => setShowKeyboard(true)} variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="لوحة المفاتيح">
                   <Keyboard size={13} />
                 </Button>
                 <Button onClick={toggleFullScreen} variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="ملء الشاشة">
@@ -179,6 +182,14 @@ export default function Topbar2() {
         </div>
       </div>
       <AddParnterModal isOpen={openDialog} onClose={() => setOpenDialog(false)} />
+      {showKeyboard && (
+        <Keyboard
+          onChange={(val) => setInput(val)}
+          onKeyPress={(btn) => {
+            if (btn === "{enter}") setShowKeyboard(false);
+          }}
+        />
+      )}
     </>
   );
 }

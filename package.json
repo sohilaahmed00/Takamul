@@ -43,6 +43,7 @@
     "react-dropzone": "^15.0.0",
     "react-hook-form": "^7.72.1",
     "react-router-dom": "^7.14.0",
+    "react-simple-keyboard": "^3.8.193",
     "react-toastify": "^11.0.5",
     "recharts": "^3.8.1",
     "shadcn": "^4.2.0",
