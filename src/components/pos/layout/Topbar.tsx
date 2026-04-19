@@ -17,7 +17,7 @@ export default function Topbar() {
     search.trim().length > 0
       ? (products?.items ?? []).filter((p: Product) => {
           const searchLower = search.toLowerCase();
-          return p.productNameAr?.includes(search) || p.productNameEn?.toLowerCase().includes(searchLower);
+          return p.productNameAr?.includes(search) || p.productNameEn?.toLowerCase().includes(searchLower) || p.barcode?.includes(searchLower);
         })
       : [];
 
