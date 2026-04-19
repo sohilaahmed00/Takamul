@@ -42,6 +42,38 @@ export interface Group {
 
 const GROUPS: Group[] = [
   {
+    id: "users",
+    label: "المستخدمين",
+    pages: [
+      {
+        id: "products_list",
+        label: "الصلاحيات",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض الادوار",
+            value: "الأدوار.عرض",
+          },
+          {
+            id: "view2",
+            label: "عرض الصلاحيات",
+            value: "الأدوار.عرض الصلاحيات",
+          },
+          {
+            id: "edit",
+            label: "تعديل الادوار",
+            value: "الأدوار.تعديل",
+          },
+          {
+            id: "delete",
+            label: "حذف الادوار",
+            value: "الأدوار.حذف",
+          },
+        ],
+      },
+    ],
+  },
+  {
     id: "products",
     label: "الأصناف",
     pages: [
@@ -351,6 +383,7 @@ const GROUPS: Group[] = [
           {
             id: "view",
             label: "عرض",
+            value: "التقارير.المنتجات",
             subPermissions: [
               {
                 id: "inventory",
@@ -383,6 +416,7 @@ const GROUPS: Group[] = [
           {
             id: "view",
             label: "عرض",
+            value: "التقارير.المبيعات",
             subPermissions: [
               {
                 id: "shifts",
@@ -420,6 +454,7 @@ const GROUPS: Group[] = [
           {
             id: "view",
             label: "عرض",
+            value: "التقارير.المشتريات",
             subPermissions: [
               {
                 id: "item_purchases",
@@ -447,6 +482,7 @@ const GROUPS: Group[] = [
           {
             id: "view",
             label: "عرض",
+            value: "التقارير.العملاء",
             subPermissions: [
               {
                 id: "customer_statement",
@@ -464,6 +500,7 @@ const GROUPS: Group[] = [
           {
             id: "view",
             label: "عرض",
+            value: "التقارير.الموردين",
             subPermissions: [
               {
                 id: "supplier_statement",
@@ -602,11 +639,11 @@ export default function PermissionsTree() {
   const [openPerms, setOpenPerms] = useState<Set<string>>(new Set());
   const [roleName, setRoleName] = useState("");
   const navigate = useNavigate();
-  const { id } = useParams();
-  const isEditMode = !!id;
   const { mutateAsync: createRole } = useCreateRole();
-  const { data: detailsRole } = useGetRoleById(Number(id));
   const { mutateAsync: updateRole } = useUpdateRole();
+  const { id } = useParams();
+  const { data: detailsRole } = useGetRoleById(id);
+  const isEditMode = !!id;
   useEffect(() => {
     if (id && detailsRole) {
       setRoleName(detailsRole?.roleName);

@@ -33,7 +33,7 @@ export const deleteRole = (roleName: string) =>
   httpClient<{ message: string }>(`/permissions/RemoveRole/${roleName}`, {
     method: "DELETE",
   });
-export function getRoleById(id: number) {
+export function getRoleById(id: number | string) {
   return httpClient<Role>(`/role-permissions/${id}`);
 }
 

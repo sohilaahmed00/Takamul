@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Plus, Trash2, ArrowLeft } from "lucide-react";
 import axios from "axios";
@@ -17,7 +17,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUpdateQuantityAdjustment } from "@/features/quantity-adjustments/hooks/useUpdateQuantityAdjustment";
 import z from "zod/v3";
 import { useGetQuantityAdjustmentById } from "@/features/quantity-adjustments/hooks/useGetQuantityAdjustmentById";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
+import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHouses";
 
 const QuantityAdjustmentSchema = (t: (key: string) => string) =>
   z.object({
@@ -50,11 +52,24 @@ export default function AddQuantityAdjustment() {
 
   const { data: stockInventory } = useGetQuantityAdjustmentById(Number(id));
   const { mutateAsync: createQuantityAdjustment, isPending: loadingCreate } = useCreateQuantityAdjustment();
-  const { data: stockInventories } = useGetStockInventory({
-    pageNumber: 1,
-    pageSize: 10000,
-  });
-  console.log(stockInventories);
+  const { data: wareHouses } = useGetAllWareHouses();
+  const [wareHouseName, setWareHousesName] = useState("");
+  const [availableQuantity, setAvailableQuantity] = useState<number>();
+  const { data: stockInventories } = useGetStockInventory(
+    {
+      pageNumber: 1,
+      pageSize: 10000,
+      search: wareHouseName,
+    },
+    {
+      enabled: !!wareHouseName,
+    },
+  );
+  useEffect(() => {
+    if (!wareHouseName && wareHouses && wareHouses?.length > 0) {
+      setWareHousesName(wareHouses[0].warehouseName);
+    }
+  }, [wareHouses, wareHouseName]);
   const { mutateAsync: updateQuantityAdjustment, isPending: loadingUpdate } = useUpdateQuantityAdjustment();
 
   const isLoading = loadingCreate || loadingUpdate;
@@ -89,6 +104,7 @@ export default function AddQuantityAdjustment() {
             };
           }) ?? [],
       });
+      setAvailableQuantity(Number(stockInventory?.items[0].quantity) - stockInventory?.items[0].quantityChanged);
     }
   }, [id, stockInventory, stockInventories, form]);
 
@@ -166,12 +182,33 @@ export default function AddQuantityAdjustment() {
           <div className="bg-white dark:bg-transparent p-6 rounded-sm border border-gray-200 dark:border-gray-800">
             <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-6">{t("basic_data")}</h2>
 
-            <div className="grid grid-cols-1 gap-6">
-              <Field>
-                <FieldLabel>{t("date")}</FieldLabel>
-                <Input value={new Date().toLocaleString("en-GB").replace(",", "")} readOnly className="cursor-not-allowed text-center" />
-              </Field>
-
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4 items-center">
+                <Field>
+                  <FieldLabel>{t("date")}</FieldLabel>
+                  <Input value={new Date().toLocaleString("en-GB").replace(",", "")} readOnly className="cursor-not-allowed text-center" />
+                </Field>
+                <Field className="relative">
+                  <FieldLabel className="">المخازن</FieldLabel>
+                  <Select
+                    value={wareHouseName}
+                    onValueChange={(value) => {
+                      setWareHousesName(value);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={"اختر المخزن"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {wareHouses?.map((c) => (
+                        <SelectItem key={c.id} value={String(c.warehouseName)}>
+                          {c.warehouseName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
               <Controller
                 name="notes"
                 control={form.control}
@@ -223,6 +260,7 @@ export default function AddQuantityAdjustment() {
                                 if (isView) return;
                                 const product = inventoryMap[Number(val)];
                                 if (product) field.onChange(Number(val));
+                                setAvailableQuantity(product?.quantityAvailable);
                               }}
                             />
 
@@ -242,7 +280,7 @@ export default function AddQuantityAdjustment() {
 
                       <div>
                         <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("available_quantity")}</FieldLabel>
-                        <Input value={selectedProduct?.quantityAvailable ?? ""} readOnly className="text-center  cursor-not-allowed" />
+                        <Input value={availableQuantity ?? ""} readOnly className="text-center  cursor-not-allowed" />
                       </div>
 
                       <Controller

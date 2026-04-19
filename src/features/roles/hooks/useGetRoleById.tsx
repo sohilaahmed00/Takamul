@@ -6,9 +6,9 @@ import { rolesKeys } from "../keys/roles.keys";
 import { getRoleById } from "../services/roles";
 import { Role } from "../types/roles.types";
 
-export const useGetRoleById = (id: number) =>
+export const useGetRoleById = (id: number | string) =>
   useQuery<Role>({
     queryKey: rolesKeys.detail(id),
-    queryFn: () => getRoleById(id),
+    queryFn: () => getRoleById(id as number | string),
     enabled: !!id,
   });

@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { PlusCircle, Search, Trash2, Edit, Image as ImageIcon } from "lucide-react";
-import Pagination from "@/components/Pagination";
 import AddCategoryModal from "@/components/modals/AddCategoryModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCategories, type Category } from "@/context/CategoriesContext";
 import { cn } from "@/lib/utils";
-import MobileDataCard from "@/components/MobileDataCard";
 
 import { Input } from "@/components/ui/input";
 
@@ -153,38 +151,6 @@ const Categories = () => {
           </div>
 
           {/* Mobile View */}
-          <div className="md:hidden space-y-4">
-            {paginatedCategories?.length === 0 ? (
-              <div className="p-8 text-center text-[var(--text-muted)] italic bg-[var(--bg-main)] rounded-xl border border-dashed border-[var(--border)]">{t("no_data_in_table")}</div>
-            ) : (
-              paginatedCategories?.map((category) => (
-                <MobileDataCard
-                  key={`mobile-${category.id}`}
-                  title={category.name}
-                  subtitle={category.code}
-                  fields={[
-                    { label: "Slug", value: category.slug },
-                    { label: t("main_category"), value: category.mainCategory || "-" },
-                  ]}
-                  actions={
-                    <div className="flex flex-wrap justify-end gap-2">
-                      <button onClick={() => handleEdit(category)} className="btn-secondary !px-3 !py-1.5 !text-xs">
-                        <Edit size={14} />
-                        {t("edit")}
-                      </button>
-                      <button onClick={() => handleDeleteCategory(category.id)} className="btn-danger !px-3 !py-1.5 !text-xs">
-                        <Trash2 size={14} />
-                        {t("delete")}
-                      </button>
-                    </div>
-                  }
-                />
-              ))
-            )}
-          </div>
-
-          {/* Pagination Section */}
-          <Pagination currentPage={currentPage} totalPages={Math.ceil(filteredCategories.length / itemsPerPage)} totalItems={filteredCategories.length} itemsPerPage={itemsPerPage} onPageChange={setCurrentPage} />
         </div>
       </div>
 

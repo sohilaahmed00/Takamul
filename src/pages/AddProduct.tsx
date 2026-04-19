@@ -49,8 +49,8 @@ export const createProductSchema = z.object({
   CategoryId: z.number().min(1, "التصنيف مطلوب"),
   CostPrice: z.number().min(0, "سعر التكلفة يجب أن يكون أكبر من أو يساوي صفر").default(0),
   SellingPrice: z.number({ required_error: "سعر البيع مطلوب" }).min(0, "سعر البيع يجب أن يكون أكبر من أو يساوي صفر"),
-  MinStockLevel: z.number().min(1, "الحد الأدنى للمخزون غير صحيح").optional(),
-  TaxId: z.number().min(1, "الضريبة مطلوبة"),
+  MinStockLevel: z.number().min(1, "الحد الأدنى للمخزون غير صحيح").nullable().optional(),
+  TaxId: z.number().min(1, "الضريبة المطبقة مطلوبة"),
   TaxCalculation: z.number().min(1, "طريقة حساب الضريبة مطلوبة"),
   Image: z.union([z.instanceof(File), z.string()]).optional(),
   BaseUnitId: z
@@ -69,6 +69,7 @@ export const createBranchedProductSchema = createProductSchema
     TaxCalculation: true,
     CostPrice: true,
     SellingPrice: true,
+    BaseUnitId: true,
   })
   .extend({
     ChildrenIds: z.array(z.number()).min(1, "يجب اختيار صنف أم مباشر واحد على الأقل"),
@@ -273,19 +274,19 @@ export default function AddProduct() {
       case "Direct": {
         if (!productDataDirect) return;
         setProductType("Direct");
-        setMainCategoryId(productDataDirect.parentCategoryId);
         reset({
           ProductNameAr: productDataDirect.productNameAr,
           ProductNameEn: productDataDirect.productNameEn,
           ProductNameUr: productDataDirect.productNameUr,
           Description: productDataDirect.description || "",
           Barcode: productDataDirect.barcode,
-          SellingPrice: productDataDirect?.sellingPrice == 2 ? productDataDirect.priceBeforeTax : productDataDirect.priceAfterTax,
+          SellingPrice: productDataDirect?.taxCalculation == 2 ? productDataDirect.priceAfterTax : productDataDirect.priceBeforeTax,
           CostPrice: productDataDirect.costPrice,
           MinStockLevel: productDataDirect.minStockLevel,
           TaxId: productDataDirect?.taxId,
           TaxCalculation: productDataDirect?.taxCalculation,
           CategoryId: productDataDirect?.parentCategoryId,
+          BaseUnitId: productDataDirect?.baseUnitId,
         });
         break;
       }
@@ -300,6 +301,7 @@ export default function AddProduct() {
           ProductNameUr: productDataBranched.productNameUr,
           Description: productDataBranched.description || "",
           ChildrenIds: productDataBranched.children?.map((c) => c?.id)?.filter((id): id is number => typeof id === "number") || [],
+          CategoryId: productDataDirect?.parentCategoryId,
         });
         break;
       }
@@ -372,6 +374,8 @@ export default function AddProduct() {
 
       Object.entries(data).forEach(([key, value]) => {
         if (skipKeys.has(key) || value === undefined || value === null) return;
+        // console.log(key);
+        // console.log(value);
         formData.append(key, String(value));
       });
 

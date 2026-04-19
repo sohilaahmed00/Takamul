@@ -80,7 +80,6 @@ export default function Additions() {
             value={filteredAdditions}
             totalRecords={filteredAdditions?.length}
             loading={!additions}
-            rowsPerPageOptions={[5, 10, 20, 50]}
             lazy
             paginator
             rows={entriesPerPage}

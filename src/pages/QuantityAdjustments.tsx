@@ -80,7 +80,6 @@ export default function QuantityAdjustments() {
       <CardContent>
         <DataTable
           value={adjustments?.items || []}
-          rowsPerPageOptions={[5, 10, 20, 50]}
           lazy
           paginator
           rows={entriesPerPage}

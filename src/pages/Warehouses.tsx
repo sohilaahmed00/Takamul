@@ -3,7 +3,6 @@ import { useLanguage } from "../context/LanguageContext";
 import { useWarehouses, type Warehouse } from "@/context/WarehousesContext";
 import { Plus, Trash2, Edit2, X, ChevronRight, ChevronLeft, Building, Camera, Square } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import MobileDataCard from "../components/MobileDataCard";
 import ComboboxField from "@/components/ui/ComboboxField";
 
 import { Input } from "@/components/ui/input";
@@ -181,35 +180,7 @@ const Warehouses: React.FC = () => {
           </div>
 
           {/* Mobile Card View */}
-          <div className="md:hidden space-y-4">
-            {filteredWarehouses.length === 0 ? (
-              <div className="p-8 text-center text-[var(--text-muted)] bg-[var(--bg-main)]/30 rounded-xl">{t("no_data_in_table")}</div>
-            ) : (
-              filteredWarehouses.map((w) => (
-                <MobileDataCard
-                  key={`mobile-${w.id}`}
-                  title={w.name}
-                  subtitle={w.code}
-                  fields={[
-                    { label: t("pricing_group_label"), value: w.pricingGroup },
-                    { label: t("phone"), value: w.phone },
-                    { label: t("email_address"), value: w.email },
-                    { label: t("address"), value: w.address },
-                  ]}
-                  actions={
-                    <div className="flex items-center gap-2">
-                      <button onClick={() => handleOpenModal(w)} className="p-2 text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-colors">
-                        <Edit2 size={18} />
-                      </button>
-                      <button onClick={() => deleteWarehouse(w.id)} className="p-2 text-[var(--primary)] hover:bg-[var(--primary)]/10 rounded-lg transition-colors">
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  }
-                />
-              ))
-            )}
-          </div>
+        
 
           <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
             <div className="text-sm text-[var(--text-muted)]">

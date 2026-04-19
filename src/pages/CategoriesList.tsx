@@ -4,9 +4,7 @@ import { User, Search, Edit2, Trash2, Plus, FileText, ChevronRight, ChevronLeft,
 import { useLanguage } from "@/context/LanguageContext";
 import { useCustomers, type Customer } from "@/context/CustomersContext";
 import { motion, AnimatePresence } from "framer-motion";
-import Pagination from "@/components/Pagination";
 import { cn } from "@/lib/utils";
-import MobileDataCard from "@/components/MobileDataCard";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import AddCustomerModal from "@/components/modals/AddParnterModal";
 import EditCustomerModal from "@/components/modals/EditCustomerModal";
@@ -40,7 +38,6 @@ export default function CategoriesList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | undefined>();
-  const { notifyError, notifySuccess } = useToast();
   const { mutateAsync: deleteCategory } = useDeleteCategory();
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [filters, setFilters] = useState<DataTableFilterMeta>({
@@ -89,8 +86,6 @@ export default function CategoriesList() {
             value={categories}
             totalRecords={categories?.length}
             loading={!categories}
-            rowsPerPageOptions={[5, 10, 20, 50]}
-            lazy
             paginator
             rows={entriesPerPage}
             first={(currentPage - 1) * entriesPerPage}

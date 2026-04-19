@@ -76,6 +76,7 @@ export const Permissions = {
     all: "الأدوار.الكل",
     view: "الأدوار.عرض",
     add: "الأدوار.إضافة",
+    edit: "الأدوار.تعديل",
     delete: "الأدوار.حذف",
     viewPermissions: "الأدوار.عرض الصلاحيات",
   },

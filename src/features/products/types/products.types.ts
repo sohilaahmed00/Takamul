@@ -41,6 +41,7 @@ export type ProductDirect = {
   minStockLevel: number;
   imageUrl: string;
   taxName: string;
+  baseUnitId: number;
   taxAmount: number;
   taxId: number;
   taxCalculation: number;

@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 
 export default function ProductsList() {
   const { direction, t } = useLanguage();
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   type ProductType = "Direct" | "Branched" | "Prepared" | "RawMatrial";
@@ -195,7 +195,6 @@ export default function ProductsList() {
             value={currentTableData.items}
             totalRecords={currentTableData.total}
             loading={currentTableData.loading}
-            rowsPerPageOptions={[5, 10, 20, 50]}
             lazy
             paginator
             rows={entriesPerPage}
