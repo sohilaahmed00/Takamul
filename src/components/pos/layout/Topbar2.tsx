@@ -184,12 +184,14 @@ export default function Topbar2() {
       </div>
       <AddParnterModal isOpen={openDialog} onClose={() => setOpenDialog(false)} />
       {showKeyboard && (
-        <Keyboard
-          onChange={(val) => setInput(val)}
-          onKeyPress={(btn) => {
-            if (btn === "{enter}") setShowKeyboard(false);
-          }}
-        />
+        <div className="fixed bottom-0 left-0 right-0 z-50 ">
+          <Keyboard
+            onChange={(val) => setInput(val)}
+            onKeyPress={(btn) => {
+              if (btn === "{enter}") setShowKeyboard(false);
+            }}
+          />
+        </div>
       )}
     </>
   );
