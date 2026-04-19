@@ -17,6 +17,7 @@ import AddGiftCardModal from "@/components/modals/AddGiftCardModal";
 
 import { Input } from "@/components/ui/input";
 
+
 export default function GiftCards() {
   const { direction, t } = useLanguage();
 
@@ -68,7 +69,6 @@ export default function GiftCards() {
         <CardContent>
           <DataTable
             value={giftCards?.items || []}
-            rowsPerPageOptions={[5, 10, 20, 50]}
             lazy
             paginator
             rows={entriesPerPage}

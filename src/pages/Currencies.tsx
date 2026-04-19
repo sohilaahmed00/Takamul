@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { Coins, Search, Edit2, Trash2, Plus } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { useCurrencies, type Currency,  } from "@/context/CurrenciesContext";
+import { useCurrencies, type Currency } from "@/context/CurrenciesContext";
 import { cn } from "@/lib/utils";
-import MobileDataCard from "@/components/MobileDataCard";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import AddCurrencyModal from "@/components/modals/AddCurrencyModal";
 
@@ -132,35 +131,7 @@ export default function Currencies() {
           </div>
 
           {/* Mobile View */}
-          <div className="md:hidden space-y-4">
-            {paginatedCurrencies.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 italic bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">{t("no_data_in_table")}</div>
-            ) : (
-              paginatedCurrencies.map((currency) => (
-                <MobileDataCard
-                  key={`mobile-${currency.id}`}
-                  title={currency.name}
-                  fields={[
-                    { label: t("currency_code"), value: currency.code },
-                    { label: t("exchange_rate"), value: currency.exchangeRate },
-                    { label: t("symbol"), value: currency.symbol },
-                  ]}
-                  actions={
-                    <div className="flex flex-wrap justify-end gap-2">
-                      <button onClick={() => handleEditClick(currency)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-100 transition-colors flex items-center gap-1 text-xs font-bold">
-                        <Edit2 size={16} />
-                        {t("edit")}
-                      </button>
-                      <button onClick={() => setCurrencyToDelete(currency.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-100 transition-colors flex items-center gap-1 text-xs font-bold">
-                        <Trash2 size={16} />
-                        {t("delete")}
-                      </button>
-                    </div>
-                  }
-                />
-              ))
-            )}
-          </div>
+          <div className="md:hidden space-y-4"></div>
 
           {/* Pagination Section */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">

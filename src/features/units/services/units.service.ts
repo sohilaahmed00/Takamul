@@ -21,8 +21,8 @@ export const getUnitById = async (id: number): Promise<Unit> => {
   });
 };
 
-export const createUnit = async (payload: CreateUnitPayload): Promise<unknown> => {
-  return httpClient(BASE_URL, {
+export const createUnit = async (payload: CreateUnitPayload) => {
+  return httpClient<{ message: string }>(BASE_URL, {
     method: "POST",
     data: {
       name: payload.name,
@@ -31,8 +31,8 @@ export const createUnit = async (payload: CreateUnitPayload): Promise<unknown> =
   });
 };
 
-export const updateUnit = async ({ id, data }: { id: number; data: UpdateUnitPayload }): Promise<unknown> => {
-  return httpClient(BASE_URL, {
+export const updateUnit = async ({ id, data }: { id: number; data: UpdateUnitPayload }) => {
+  return httpClient<{ message: string }>(BASE_URL, {
     method: "PUT",
     params: {
       id: id,

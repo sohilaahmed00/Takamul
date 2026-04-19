@@ -3,7 +3,6 @@ import { useLanguage } from '../context/LanguageContext';
 import { useDelegates } from '../context/DelegatesContext';
 import { Plus, Trash2, Edit2, X, ChevronRight, ChevronLeft, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import MobileDataCard from '../components/MobileDataCard';
 
 import { Input } from "@/components/ui/input";
 
@@ -144,39 +143,7 @@ const Delegates: React.FC = () => {
 
           {/* Mobile Card View */}
           <div className="md:hidden space-y-4">
-            {filteredDelegates.length === 0 ? (
-              <div className="p-8 text-center text-[var(--text-muted)] bg-[var(--bg-main)]/30 rounded-xl">
-                {t('no_data_in_table')}
-              </div>
-            ) : (
-              filteredDelegates.map((d) => (
-                <MobileDataCard
-                  key={`mobile-${d.id}`}
-                  title={d.name}
-                  subtitle={d.code}
-                  fields={[
-                    { label: t('phone'), value: d.phone },
-                    { label: t('region'), value: d.region }
-                  ]}
-                  actions={
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleOpenModal(d)}
-                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      <button
-                        onClick={() => deleteDelegate(d.id)}
-                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  }
-                />
-              ))
-            )}
+         
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">

@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { UserPlus } from "lucide-react";
+import { Barcode, UserPlus } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useLanguage } from "@/context/LanguageContext";
@@ -16,6 +16,7 @@ import { CreateGiftCardPayload, GiftCard, UpdateGiftCardPayload } from "@/featur
 import { useCreateGiftCard } from "@/features/gift-cards/hooks/useCreateGiftCard";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 import { useUpdateGiftCard } from "@/features/gift-cards/hooks/useUpdateGiftCard";
+import { file } from "zod";
 
 interface AddGiftCardModalProps {
   isOpen: boolean;
@@ -34,9 +35,13 @@ export const createGiftCardSchema = (t: (key: string) => string) =>
 
 export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftCardModalProps) {
   const { t, direction } = useLanguage();
-  const { mutateAsync: createGiftCard } = useCreateGiftCard();
-  const { mutateAsync: updateGiftCard } = useUpdateGiftCard();
+  const { mutateAsync: createGiftCard, isPending: createPending } = useCreateGiftCard();
+  const { mutateAsync: updateGiftCard, isPending: updatePeding } = useUpdateGiftCard();
+  const isLoading = createPending || updatePeding;
   const { data: customers } = useGetAllCustomers();
+  function generateRandomCode() {
+    return Math.floor(10000000 + Math.random() * 90000000).toString();
+  }
 
   const schema = createGiftCardSchema(t);
 
@@ -50,6 +55,7 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
       notes: "",
     },
   });
+  const { control, watch, setValue, reset } = form;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -119,8 +125,23 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>الكود *</FieldLabel>
-                  <Input {...field} placeholder={"ادخل الكود"} />
+                  <FieldLabel>الكود <span className="text-red-500">*</span></FieldLabel>
+                  <div className="flex gap-2">
+                    <Input {...field} placeholder={"ادخل الكود"} />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon-xl"
+                      className="shrink-0 px-3"
+                      onClick={() =>
+                        setValue("code", generateRandomCode(), {
+                          shouldValidate: true,
+                        })
+                      }
+                    >
+                      <Barcode size={16} />
+                    </Button>
+                  </div>
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
@@ -131,7 +152,7 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>العميل *</FieldLabel>
+                  <FieldLabel>العميل</FieldLabel>
                   <Select
                     value={field.value ? String(field.value) : ""}
                     onValueChange={(value) => {
@@ -172,7 +193,7 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel> تاريخ الصلاحية </FieldLabel>
+                  <FieldLabel> تاريخ الصلاحية  <span className="text-red-500">*</span></FieldLabel>
                   <Input {...field} type="date" placeholder={"ادخل تاريخ الصلاحية"} />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
@@ -182,7 +203,7 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
         </form>
 
         <DialogFooter>
-          <Button form="addPartnerForm" className="h-12 px-6 text-base" type="submit">
+          <Button loading={isLoading} form="addPartnerForm" className="h-12 px-6 text-base" type="submit">
             حفظ البيانات
           </Button>
         </DialogFooter>

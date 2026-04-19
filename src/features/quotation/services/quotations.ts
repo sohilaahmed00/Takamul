@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import type { CreateQuotation, GetAllQuotationsResponse } from "../types/quotations.types";
+import type { CreateQuotation, GetAllQuotationsResponse, Quotation } from "../types/quotations.types";
 
 // ===================
 // GET
@@ -19,11 +19,15 @@ export const createQuotation = (data: CreateQuotation) =>
     data,
   });
 
-// export const updateCategory = (id: number, data: CreateCategory) =>
-//   httpClient<CreateResponse>(`/blog/category/${id}`, {
-//     method: "PUT",
-//     data,
-//   });
+export const getQuotationById = (id: number) =>
+  httpClient<Quotation>(`/Quotation/${id}`, {
+    method: "GET",
+  });
+export const updateQuotation = (id: number, data: CreateQuotation) =>
+  httpClient<{ message: string }>(`/Quotation/${id}`, {
+    method: "PUT",
+    data,
+  });
 
 // export const deleteCategory = (id: number) =>
 //   httpClient<void>(`/blog/category/${id}`, {

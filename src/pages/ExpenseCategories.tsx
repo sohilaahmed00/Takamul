@@ -6,7 +6,6 @@ import AddExpenseCategoryModal from "@/components/modals/AddExpenseCategoryModal
 import ImportExpenseCategoryModal from "@/components/modals/ImportExpenseCategoryModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import { cn } from "@/lib/utils";
-import MobileDataCard from "@/components/MobileDataCard";
 import type { ExpenseCategory } from "@/types";
 
 import { Input } from "@/components/ui/input";
@@ -140,32 +139,7 @@ export default function ExpenseCategories() {
           </div>
 
           {/* Mobile View */}
-          <div className="md:hidden space-y-4">
-            {filteredCategories.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 italic bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-dashed border-gray-200 dark:border-gray-700">{t("no_data_in_table")}</div>
-            ) : (
-              filteredCategories.map((category) => (
-                <MobileDataCard
-                  key={`mobile-${category.id}`}
-                  title={category.name}
-                  subtitle={category.code}
-                  fields={[]}
-                  actions={
-                    <div className="flex flex-wrap justify-end gap-2">
-                      <button onClick={() => handleEdit(category)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-100 transition-colors flex items-center gap-1 text-xs font-bold">
-                        <Edit size={16} />
-                        {t("edit")}
-                      </button>
-                      <button onClick={() => handleDelete(category.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-100 transition-colors flex items-center gap-1 text-xs font-bold">
-                        <Trash2 size={16} />
-                        {t("delete")}
-                      </button>
-                    </div>
-                  }
-                />
-              ))
-            )}
-          </div>
+          <div className="md:hidden space-y-4"></div>
 
           {/* Pagination Section */}
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 pt-4">

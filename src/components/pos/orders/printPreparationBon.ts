@@ -1,5 +1,3 @@
-// printPreparationBon.ts — thermal 80mm — بون التحضير
-// لتجربة الطباعة: استدعي printPreparationBon(sampleBon) من أي مكان
 
 import { printKitchenPrinter } from "@/lib/qzService";
 

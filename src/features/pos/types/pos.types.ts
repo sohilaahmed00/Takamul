@@ -88,6 +88,7 @@ export interface OrderItem {
   discountPercentage: number;
   discountValue: number;
   lineTotal: number;
+  taxCalculation: number;
 }
 
 export interface OrderPayment {
@@ -107,17 +108,13 @@ export interface Order {
   createdBy: string;
   orderDate: string;
   warehouseName: string;
-
   subTotal: number;
   taxAmount: number;
   discountAmount: number;
   grandTotal: number;
-
   orderStatus: string;
   paymentStatus: string;
-
   notes: string;
-
   items: OrderItem[];
   payments: OrderPayment[];
 }

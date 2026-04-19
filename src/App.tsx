@@ -21,7 +21,7 @@ import QuantityAdjustments from "@/pages/QuantityAdjustments";
 import EditQuantityAdjustment from "@/pages/EditQuantityAdjustment";
 import AddQuantityAdjustment from "@/pages/AddQuantityAdjustment";
 import ImportQuantityAdjustment from "@/pages/ImportQuantityAdjustment";
-import Layout from "@/components/Layout";
+import Layout from "@/components/layout/Layout";
 import ReturnSale from "@/pages/ReturnSale";
 import POS from "@/pages/POS";
 import POSInvoices from "@/pages/POSInvoices";
@@ -236,7 +236,7 @@ function AppRoutes() {
           {/* العروض */}
           <Route path="/quotes" element={<QuotesList />} />
           <Route path="/quotes/create" element={<CreateQuote />} />
-          <Route path="/quotes/view/:id" element={<ViewQuote />} />
+          <Route path="/quotes/edit/:id" element={<CreateQuote />} />
 
           {/* الورديات */}
           <Route path="/shifts" element={<ShiftsList />} />

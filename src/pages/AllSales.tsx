@@ -16,12 +16,13 @@ export default function AllSales() {
   const navigate = useNavigate();
   const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
-  const { data: salesOrders } = useGetAllSales({ page: currentPage, limit: entriesPerPage });
   const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const { data: salesOrders } = useGetAllSales({ page: currentPage, limit: entriesPerPage, SearchTerm: globalFilterValue });
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setGlobalFilterValue(value);
+    console.log(value);
     setCurrentPage(1);
   };
   const renderHeader = () => {
@@ -44,18 +45,9 @@ export default function AllSales() {
   };
   return (
     <div className="space-y-4 pb-12" dir={direction}>
-      <div className="text-sm text-gray-500 flex items-center gap-1 font-medium px-2">
-        <span className="cursor-pointer hover:text-[var(--primary)]" onClick={() => navigate("/")}>
-          {t("home")}
-        </span>
-        <span>/</span>
-        <span className="text-gray-800">{t("sales")}</span>
-      </div>
-
       <Card>
         <CardHeader className="">
           <CardTitle>{t("sales_title")}</CardTitle>
-          <CardDescription>{t("manage_sales_desc")}</CardDescription>
           {/* <CardAction>
             <Button size="xl" variant={"default"} asChild>
               <Link to={"/sales/create"}>{t("add_sales_invoice")}</Link>
@@ -63,9 +55,27 @@ export default function AllSales() {
           </CardAction> */}
         </CardHeader>
         <CardContent>
+          {/* <DataTable
+            value={salesOrders?.items || []}
+            lazy
+            paginator
+            rows={entriesPerPage}
+            first={(currentPage - 1) * entriesPerPage}
+            totalRecords={salesOrders?.totalCount || 0}
+            onPage={(e: DataTablePageEvent) => {
+              if (e.page === undefined) return;
+              setCurrentPage(e.page + 1);
+              setEntriesPerPage(e.rows);
+            }}
+            loading={!salesOrders?.items}
+            header={header}
+            responsiveLayout="stack"
+            className="custom-green-table custom-compact-table"
+            dataKey="id"
+            stripedRows={false}
+          > */}
           <DataTable
             value={salesOrders?.items || []}
-            rowsPerPageOptions={[5, 10, 20, 50]}
             lazy
             paginator
             rows={entriesPerPage}
@@ -84,7 +94,7 @@ export default function AllSales() {
             stripedRows={false}
           >
             <Column header={t("invoice_number")} sortable field="orderNumber" />
-            <Column header={t("date")} sortable field="orderDate" body={(row) => formatDate(row.orderDat)} />
+            <Column header={t("date")} sortable field="orderDate" body={(row) => formatDate(row.orderDate)} />
             <Column header={t("customer_name")} sortable field="customerName" />
             <Column header={t("cashier")} sortable field="createdBy" />
             <Column header={t("invoice_status")} sortable body={(rawData) => statusBodyTemplate(rawData)} field="orderStatus" />

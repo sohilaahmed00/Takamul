@@ -1,12 +1,29 @@
-// hooks/useToast.js
-import { toast } from "react-toastify";
+// hooks/useToast.ts
+import { toast, TypeOptions } from "react-toastify";
+
+const TOAST_ID = "global-toast";
 
 const useToast = () => {
-  const notifySuccess = (message: string) => toast.success(message);
-  const notifyError = (message: string) => toast.error(message);
-  const notifyInfo = (message: string) => toast.info(message);
-  const notifyWarning = (message: string) => toast.warn(message);
-  // Add more customized functions as needed
+  const showToast = (type: TypeOptions, message: string) => {
+    if (toast.isActive(TOAST_ID)) {
+      toast.update(TOAST_ID, {
+        render: message,
+        type,
+        autoClose: 3000,
+      });
+    } else {
+      toast(message, {
+        toastId: TOAST_ID,
+        type,
+        autoClose: 3000,
+      });
+    }
+  };
+
+  const notifySuccess = (message: string) => showToast("success", message);
+  const notifyError = (message: string) => showToast("error", message);
+  const notifyInfo = (message: string) => showToast("info", message);
+  const notifyWarning = (message: string) => showToast("warning", message);
 
   return { notifySuccess, notifyError, notifyInfo, notifyWarning };
 };

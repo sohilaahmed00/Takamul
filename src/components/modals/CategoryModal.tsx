@@ -40,7 +40,6 @@ const CategorySchema = z.object({
   CategoryNameAr: z.string().min(3, "الاسم يجب أن يكون 3 أحرف على الأقل"),
   CategoryNameEn: z.string().optional(),
   CategoryNameUr: z.string().optional(),
-  ParentCategoryId: z.number().optional(),
   description: z.string().optional(),
   Image: z.union([z.instanceof(File), z.string()]).optional(),
 });
@@ -62,7 +61,6 @@ export default function CategoryModal({ isOpen, onClose, category }: CategoryMod
       CategoryNameUr: "",
       description: "",
       Image: undefined,
-      ParentCategoryId: undefined,
     },
   });
   useEffect(() => {
@@ -96,8 +94,6 @@ export default function CategoryModal({ isOpen, onClose, category }: CategoryMod
       if (data.CategoryNameEn) formData.append("CategoryNameEn", data.CategoryNameEn);
 
       if (data.CategoryNameUr) formData.append("CategoryNameUr", data.CategoryNameUr);
-
-      if (data.ParentCategoryId !== undefined) formData.append("ParentCategoryId", String(data.ParentCategoryId));
 
       if (data.description) formData.append("description", data.description);
       // console.log([...formData.entries()]);
@@ -155,42 +151,20 @@ export default function CategoryModal({ isOpen, onClose, category }: CategoryMod
                   </Field>
                 )}
               />
-              <Controller
-                name="CategoryNameUr"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel>اسم التصنيف (باللغة الاوردو)</FieldLabel>
+              <div className="col-span-2">
+                <Controller
+                  name="CategoryNameUr"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>اسم التصنيف (باللغة الاوردو)</FieldLabel>
 
-                    <Input {...field} placeholder="أدخل اسم التصنيف..." />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
-              <Controller
-                name="ParentCategoryId"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel className="gap-x-0">الصنف الرئيسي</FieldLabel>
-                    <Select value={field.value ? String(field.value) : ""} onValueChange={(val) => field.onChange(Number(val))}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="اختر الصنف الرئيسي" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {categoriesData?.map((cat) => (
-                            <SelectItem key={cat.id} value={String(cat.id)}>
-                              {cat.categoryNameAr}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                  </Field>
-                )}
-              />
+                      <Input {...field} placeholder="أدخل اسم التصنيف..." />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+              </div>
             </div>
           </form>
 

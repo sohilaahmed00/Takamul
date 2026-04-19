@@ -24,7 +24,7 @@ import { Input } from "@/components/ui/input";
 
 export default function ProductsList() {
   const { direction, t } = useLanguage();
-  const [entriesPerPage, setEntriesPerPage] = useState(10);
+  const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   type ProductType = "Direct" | "Branched" | "Prepared" | "RawMatrial";
@@ -195,7 +195,6 @@ export default function ProductsList() {
             value={currentTableData.items}
             totalRecords={currentTableData.total}
             loading={currentTableData.loading}
-            rowsPerPageOptions={[5, 10, 20, 50]}
             lazy
             paginator
             rows={entriesPerPage}
@@ -215,26 +214,7 @@ export default function ProductsList() {
             <Column field="balance" sortable header={"الكمية"} />
             <Column field="barcode" sortable header={"الباركود"} />
             <Column field="costPrice" sortable header={"سعر الشراء"} />
-            <Column
-              header="قيمة الضريبة"
-              body={(row: Product) => {
-                const qty = row.balance > 0 ? row.balance : 1;
-                const price = row.sellingPrice * qty;
-                const rate = row.taxAmount / 100;
-
-                let tax = 0;
-
-                if (row.taxCalculation === 1) {
-                  tax = 0;
-                } else if (row.taxCalculation === 2) {
-                  tax = price - price / (1 + rate);
-                } else if (row.taxCalculation === 3) {
-                  tax = price * rate;
-                }
-
-                return tax.toFixed(2);
-              }}
-            />
+         
             <Column field="sellingPrice" sortable header={"سعر البيع"} />
 
             {activeTab == "allProducts" && (

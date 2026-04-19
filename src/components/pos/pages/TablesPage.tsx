@@ -182,7 +182,6 @@ export default function TablesPage() {
                           })),
                         );
                         setDineInMode("add-items");
-                        // setSelectedOrderId(detailsOrder.id);
                         setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
                         setOrderType("dine-in");
                         setSelectedTable2(String(selectedTable));

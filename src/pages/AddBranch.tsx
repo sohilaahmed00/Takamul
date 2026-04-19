@@ -360,12 +360,11 @@ export default function AddBranch() {
 
               {!isViewMode && (
                 <div className="flex items-center justify-end gap-3 pb-6">
-                  <Button type="button" variant="outline" asChild>
+                  <Button size="2xl" type="button" variant="outline" asChild>
                     <Link to="/branches">{t("cancel") || "إلغاء"}</Link>
                   </Button>
-                  <Button size="2xl" type="submit" form="branchForm" disabled={isPending} className="min-w-[140px]">
-                    {isPending && <Loader2 size={15} className="animate-spin me-1" />}
-                    {isPending ? t("saving") || "جارٍ الحفظ..." : isEditMode ? t("save_changes") || "حفظ التعديلات" : t("add_branch") || "إضافة الفرع"}
+                  <Button size="2xl" type="submit" form="branchForm" loading={isPending} >
+                    {isEditMode ? t("save_changes") || "حفظ التعديلات" : t("add_branch") || "إضافة الفرع"}
                   </Button>
                 </div>
               )}

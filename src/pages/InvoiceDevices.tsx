@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Search, LayoutGrid, ChevronRight, ChevronLeft, Monitor, Edit, Trash2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/context/LanguageContext";
-import MobileDataCard from "@/components/MobileDataCard";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 
 import { Input } from "@/components/ui/input";
@@ -146,38 +145,7 @@ export default function InvoiceDevices() {
         </div>
 
         {/* Mobile View */}
-        <div className="md:hidden p-4 space-y-4">
-          {filteredDevices.length > 0 ? (
-            filteredDevices.map((device) => (
-              <MobileDataCard
-                key={`mobile-${device.id}`}
-                title={`#${device.id}`}
-                fields={[
-                  { label: t("activity_name"), value: device.activityName, isBold: true },
-                  { label: t("tax_number"), value: device.taxNumber },
-                  { label: t("additional_id") || "المعرف الإضافي", value: device.additionalId },
-                  { label: t("address"), value: device.address },
-                ]}
-                actions={
-                  <div className="flex items-center gap-2">
-                    <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-100 transition-colors flex items-center gap-1 text-xs font-bold">
-                      <Edit size={16} />
-                      {t("edit")}
-                    </button>
-                    <button onClick={() => handleDelete(device.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-100 transition-colors flex items-center gap-1 text-xs font-bold">
-                      <Trash2 size={16} />
-                      {t("delete")}
-                    </button>
-                  </div>
-                }
-              />
-            ))
-          ) : (
-            <div className="p-12 text-center text-[var(--text-muted)] bg-[var(--bg-main)]/30 rounded-xl">
-              <p className="text-lg font-medium">{t("no_data_in_table")}</p>
-            </div>
-          )}
-        </div>
+        <div className="md:hidden p-4 space-y-4"></div>
 
         {/* Pagination */}
         <div className="p-4 border-t border-[var(--border)] flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[var(--bg-main)]/50">

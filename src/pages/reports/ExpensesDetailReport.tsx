@@ -45,7 +45,11 @@ export default function ExpensesDetailReport() {
 
   const { data: branches = [] } = useGetAllBranches();
   const { data: treasuries = [] } = useGetAllTreasurys();
+<<<<<<< HEAD
   const { data: itemsRes } = useGetItems();
+=======
+  const { data: itemsRes } = useGetItems(); 
+>>>>>>> fc77f36f61f599ab1965cb03da9312cccdcb633d
 
   const itemsList = useMemo(() => {
     const data = Array.isArray(itemsRes) ? itemsRes : itemsRes?.items || [];

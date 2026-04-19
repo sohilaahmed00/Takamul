@@ -7,12 +7,7 @@ import { saveAs } from "file-saver";
 // =============================================
 // PDF Export - للتقارير (جداول وكشوفات)
 // =============================================
-export const exportCustomPDF = async (
-  title: string,
-  htmlString: string,
-  orientation: "portrait" | "landscape" = "portrait",
-  width: number = 794
-) => {
+export const exportCustomPDF = async (title: string, htmlString: string, orientation: "portrait" | "landscape" = "portrait", width: number = 794) => {
   const iframe = document.createElement("iframe");
   Object.assign(iframe.style, {
     position: "fixed",
@@ -105,15 +100,44 @@ export const printVoucher = (htmlString: string) => {
     }
   `;
 
-  const injected = htmlString.includes("</head>")
-    ? htmlString.replace("</head>", `<style>${printCSS}</style></head>`)
-    : `<style>${printCSS}</style>` + htmlString;
+  const injected = htmlString.includes("</head>") ? htmlString.replace("</head>", `<style>${printCSS}</style></head>`) : `<style>${printCSS}</style>` + htmlString;
 
   win.document.open();
   win.document.write(injected);
   win.document.close();
 
+<<<<<<< HEAD
   win.document.fonts.ready.then(() => {
+=======
+  // ← التغيير الأساسي: عرض حقيقي بدل صفر حتى يحسب المتصفح الـ layout صح
+  Object.assign(iframe.style, {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    width: "210mm",
+    height: "297mm",
+    border: "none",
+    opacity: "0", // مخفي بصرياً لكن له layout
+    zIndex: "-9999",
+    pointerEvents: "none",
+  });
+
+  document.body.appendChild(iframe);
+
+  iframe.onload = async () => {
+    const doc = iframe.contentDocument!;
+    await doc.fonts.ready;
+    // انتظر تحميل الخط من Google Fonts
+    await new Promise((r) => setTimeout(r, 800));
+
+    // force layout recalc قبل الطباعة
+    iframe.contentDocument!.body.getBoundingClientRect();
+
+    iframe.contentWindow!.focus();
+    iframe.contentWindow!.print();
+
+    // إزالة الـ iframe بعد الطباعة
+>>>>>>> fc77f36f61f599ab1965cb03da9312cccdcb633d
     setTimeout(() => {
       win.focus();
       win.print();
@@ -148,7 +172,7 @@ export const exportVoucherPDF = (title: string, htmlString: string) => {
         }, 800);
       });
     </script>
-    </body>`
+    </body>`,
   );
 
   document.body.appendChild(iframe);
@@ -250,9 +274,7 @@ export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any, l
   const isReceipt = type === "receipt";
   const arTitle = isReceipt ? t("receipt_bond", "سند قبض") : t("payment_bond", "سند صرف");
   const enTitle = isReceipt ? "RECEIPT VOUCHER" : "PAYMENT VOUCHER";
-  const arPartyLabel = isReceipt
-    ? t("received_from", "استلمنا من السيد / السادة :")
-    : t("to_mrs", "يصرف للسيد / السادة :");
+  const arPartyLabel = isReceipt ? t("received_from", "استلمنا من السيد / السادة :") : t("to_mrs", "يصرف للسيد / السادة :");
   const enPartyLabel = isReceipt ? "Received From M/s." : "Pay To M/s.";
   const amountStr = Number(data.amount || 0).toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -504,22 +526,24 @@ export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any, l
 // Treasury Statement
 // =============================================
 export const getTreasuryHTML = (title: string, filtersInfo: string, data: any[], columns: any[], t: any, direction: "rtl" | "ltr" = "rtl") => {
-  const tableRows = data.map((row, i) => {
-    return `
+  const tableRows = data
+    .map((row, i) => {
+      return `
       <tr>
         <td>${i + 1}</td>
         <td>${row.type || "-"}</td>
         <td>${row.date ? new Date(row.date).toLocaleDateString("en-GB") : "-"}</td>
         <td>${row.number || "-"}</td>
         <td>${row.partyName || "-"}</td>
-        <td style="color:#d97706;font-weight:700;">${row.debit > 0 ? Number(row.debit).toLocaleString() : (row.credit > 0 ? Number(row.credit).toLocaleString() : "-")}</td>
+        <td style="color:#d97706;font-weight:700;">${row.debit > 0 ? Number(row.debit).toLocaleString() : row.credit > 0 ? Number(row.credit).toLocaleString() : "-"}</td>
         <td style="font-weight:bold;color:#059669;">
           ${row.balance > 0 ? '<span style="color:#1d4ed8;">↑</span>' : '<span style="color:#dc2626;">↓</span>'}
           ${Number(row.balance).toLocaleString()}
         </td>
       </tr>
     `;
-  }).join("");
+    })
+    .join("");
 
   return `
     <!DOCTYPE html>
@@ -538,13 +562,13 @@ export const getTreasuryHTML = (title: string, filtersInfo: string, data: any[],
       <table>
         <thead>
           <tr>
-            <th>${t("serial","م")}</th>
-            <th>${t("movement_type","نوع الحركة")}</th>
-            <th>${t("date","التاريخ")}</th>
-            <th>${t("document_number","رقم المستند")}</th>
-            <th>${t("party_name","اسم الجهة")}</th>
-            <th>${t("amount","المبلغ")}</th>
-            <th>${t("balance","الرصيد")}</th>
+            <th>${t("serial", "م")}</th>
+            <th>${t("movement_type", "نوع الحركة")}</th>
+            <th>${t("date", "التاريخ")}</th>
+            <th>${t("document_number", "رقم المستند")}</th>
+            <th>${t("party_name", "اسم الجهة")}</th>
+            <th>${t("amount", "المبلغ")}</th>
+            <th>${t("balance", "الرصيد")}</th>
           </tr>
         </thead>
         <tbody>${tableRows}</tbody>
@@ -557,16 +581,10 @@ export const getTreasuryHTML = (title: string, filtersInfo: string, data: any[],
 // =============================================
 // Account Statement
 // =============================================
-export const getAccountStatementHTML = (
-  title: string,
-  partyInfo: { name: string; label: string },
-  filtersInfo: string,
-  summary: { total1: number; label1: string; total2: number; label2: string; total3: number; label3: string; tableCol1?: string; tableCol2?: string },
-  data: any[],
-  t: any,
-  direction: "rtl" | "ltr" = "rtl"
-) => {
-  const tableRows = data.map((row, i) => `
+export const getAccountStatementHTML = (title: string, partyInfo: { name: string; label: string }, filtersInfo: string, summary: { total1: number; label1: string; total2: number; label2: string; total3: number; label3: string; tableCol1?: string; tableCol2?: string }, data: any[], t: any, direction: "rtl" | "ltr" = "rtl") => {
+  const tableRows = data
+    .map(
+      (row, i) => `
     <tr>
       <td>${i + 1}</td>
       <td>${row.date ? new Date(row.date).toLocaleDateString("en-GB") : "-"}</td>
@@ -574,7 +592,9 @@ export const getAccountStatementHTML = (
       <td style="color:#dc2626;font-weight:600;">${row.debit > 0 ? Number(row.debit).toLocaleString() : "-"}</td>
       <td style="color:#059669;font-weight:600;">${row.credit > 0 ? Number(row.credit).toLocaleString() : "-"}</td>
     </tr>
-  `).join("");
+  `,
+    )
+    .join("");
 
   return `
     <!DOCTYPE html>
@@ -628,7 +648,7 @@ export const getAccountStatementHTML = (
           </td>
           <td style="width:34%;border:none;text-align:center;vertical-align:top;">
             <h2 style="font-size:24px;font-weight:800;color:#0f172a;margin-bottom:5px;margin-top:0;">${title}</h2>
-            <p style="font-size:14px;color:#475569;font-weight:600;margin:0;">${t("account_statement","Account Statement")}</p>
+            <p style="font-size:14px;color:#475569;font-weight:600;margin:0;">${t("account_statement", "Account Statement")}</p>
           </td>
           <td style="width:33%;border:none;text-align:left;vertical-align:top;">
             <div style="background:#f8fafc !important;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;text-align:right;direction:${direction};display:inline-block;">
@@ -651,9 +671,9 @@ export const getAccountStatementHTML = (
       <table>
         <thead>
           <tr>
-            <th>${t("serial","م")}</th>
-            <th>${t("date","التاريخ")}</th>
-            <th>${t("type","النوع")}</th>
+            <th>${t("serial", "م")}</th>
+            <th>${t("date", "التاريخ")}</th>
+            <th>${t("type", "النوع")}</th>
             <th>${summary.tableCol1 || summary.label1}</th>
             <th>${summary.tableCol2 || summary.label2}</th>
           </tr>
@@ -669,13 +689,10 @@ export const getAccountStatementHTML = (
 // Quantity Adjustments
 // =============================================
 export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direction: "rtl" | "ltr" = "rtl") => {
-  const tableRows = lines.map((row, i) => {
-    const typeTranslated = row.type === "IN"
-      ? t("in", "إضافة")
-      : row.type === "OUT"
-      ? t("out", "خصم")
-      : t(row.type?.toLowerCase() || "", row.type || "-");
-    return `
+  const tableRows = lines
+    .map((row, i) => {
+      const typeTranslated = row.type === "IN" ? t("in", "إضافة") : row.type === "OUT" ? t("out", "خصم") : t(row.type?.toLowerCase() || "", row.type || "-");
+      return `
       <tr>
         <td>${i + 1}</td>
         <td>${row.productName || "-"} <span style="color:#666;font-size:11px;margin:0 5px;">${row.barcode ? `(${row.barcode})` : ""}</span></td>
@@ -683,7 +700,8 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
         <td style="font-weight:700;">${Number(row.quantity || 0).toLocaleString()}</td>
       </tr>
     `;
-  }).join("");
+    })
+    .join("");
 
   const totalQty = lines.reduce((s, r) => s + Number(r.quantity || 0), 0);
 
@@ -708,21 +726,21 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
     </head>
     <body>
       <div style="text-align:center;margin-bottom:40px;">
-        <h2 style="font-size:20px;font-weight:800;">${t("quantity_adjustments","تعديلات كمية")}</h2>
+        <h2 style="font-size:20px;font-weight:800;">${t("quantity_adjustments", "تعديلات كمية")}</h2>
       </div>
       <div class="header-boxes">
         <div class="h-box">
-          <div class="title">${t("warehouse","المخزن")}</div>
+          <div class="title">${t("warehouse", "المخزن")}</div>
           <div class="value">${data.warehouseName || "-"}</div>
         </div>
       </div>
       <table>
         <thead>
           <tr>
-            <th>${t("serial","م")}</th>
+            <th>${t("serial", "م")}</th>
             <th>${direction === "ltr" ? "Barcode / Name" : "باركود / اسم"}</th>
-            <th>${t("type","نوع")}</th>
-            <th>${t("quantity","كمية")}</th>
+            <th>${t("type", "نوع")}</th>
+            <th>${t("quantity", "كمية")}</th>
           </tr>
         </thead>
         <tbody>${tableRows}</tbody>
@@ -730,17 +748,18 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
       <div class="footer-info">
         <div class="summary-total">
           <div>${totalQty}</div>
-          <div>${t("total_quantities","إجمالي الكميات")}</div>
+          <div>${t("total_quantities", "إجمالي الكميات")}</div>
         </div>
         <div style="margin-top:20px;font-size:14px;color:#333;">
-          <div>${t("data_entry","مدخل البيانات")} : ${data.performedBy || "-"}</div>
-          <div>${t("date","التاريخ")} : ${data.operationDate ? new Date(data.operationDate).toLocaleDateString("en-GB") : "-"}</div>
+          <div>${t("data_entry", "مدخل البيانات")} : ${data.performedBy || "-"}</div>
+          <div>${t("date", "التاريخ")} : ${data.operationDate ? new Date(data.operationDate).toLocaleDateString("en-GB") : "-"}</div>
         </div>
       </div>
     </body>
     </html>
   `;
 };
+<<<<<<< HEAD
 
 // =============================================
 // Standardized Report HTML Template
@@ -989,3 +1008,5 @@ export const exportToExcel = (
   });
   saveAs(blob, `${fileName}_${Date.now()}.xlsx`);
 };
+=======
+>>>>>>> fc77f36f61f599ab1965cb03da9312cccdcb633d

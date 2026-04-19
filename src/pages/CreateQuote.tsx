@@ -14,9 +14,11 @@ import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHou
 import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import type { CreateQuotation } from "@/features/quotation/types/quotations.types";
 import { useCreateQuotation } from "@/features/quotation/hooks/useCreateQuotation";
+import { Customer } from "@/features/customers/types/customers.types";
+import { useGetQuotationById } from "@/features/quotation/hooks/useGetQuotationById";
 
 const QuoteSchema = (t: (key: string) => string) =>
   z.object({
@@ -278,15 +280,22 @@ const CreateQuote: React.FC = () => {
     },
   });
 
-  const { control } = form;
+  const { control, setValue } = form;
 
   const { data: customersResponse } = useGetAllCustomers();
-  const customers = Array.isArray(customersResponse?.items) ? customersResponse.items : Array.isArray(customersResponse) ? customersResponse : [];
+  let customers: Customer[] = [];
+
+  if (Array.isArray(customersResponse?.items)) {
+    customers = customersResponse.items;
+  } else if (Array.isArray(customersResponse)) {
+    customers = customersResponse;
+  }
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { mutateAsync: createQuotations, isPending } = useCreateQuotation();
-
+  const { id } = useParams();
+  const { data: quotation } = useGetQuotationById(id);
   const { fields: itemFields, append: appendItem, remove: removeItem } = useFieldArray({ control: form.control, name: "items" });
   const items = useWatch({ control: form.control, name: "items" });
   const shippingCost = Number(useWatch({ control, name: "shippingCost" })) || 0;
@@ -294,6 +303,23 @@ const CreateQuote: React.FC = () => {
   const discType = useWatch({ control, name: "quotationDiscountType" }) || "fixed";
   const discValue = Number(useWatch({ control, name: "quotationDiscountValue" })) || 0;
 
+  useEffect(() => {
+    setValue("customerId", customers[0]?.id);
+  }, [setValue]);
+
+  useEffect(() => {
+    if (quotation) {
+      form.reset({
+        validUntil: quotation?.validUntil,
+        items: quotation?.items.map((quote) => ({
+          productId: quote?.productId,
+          quantity: quote?.quantity,
+          unitPrice: quote?.unitPrice,
+          
+        })),
+      });
+    }
+  }, [form.reset, quotation]);
   const calcSummary = () => {
     let subtotal = 0,
       totalTax = 0,
@@ -361,7 +387,6 @@ const CreateQuote: React.FC = () => {
 
         <CardContent>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            {/* البيانات الأساسية */}
             <div className=" p-6 rounded-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800 mb-6">{t("basic_data")}</h2>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -370,19 +395,9 @@ const CreateQuote: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("date")} <span className="text-red-500">*</span></FieldLabel>
-                      <Input type="date" {...field} />
-                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                    </Field>
-                  )}
-                />
-
-                <Controller
-                  name="validUntil"
-                  control={form.control}
-                  render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("valid_until")} <span className="text-red-500">*</span></FieldLabel>
+                      <FieldLabel>
+                        {t("date")} <span className="text-red-500">*</span>
+                      </FieldLabel>
                       <Input type="date" {...field} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -394,7 +409,9 @@ const CreateQuote: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("customer")} <span className="text-red-500">*</span></FieldLabel>
+                      <FieldLabel>
+                        {t("customer")} <span className="text-red-500">*</span>
+                      </FieldLabel>
                       <ComboboxField field={field} items={customers} valueKey="id" labelKey="customerName" placeholder={t("choose_customer")} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -429,7 +446,6 @@ const CreateQuote: React.FC = () => {
               </div>
             </div>
 
-            {/* تفاصيل الفاتورة */}
             <div className="bg-white dark:bg-transparent p-6 rounded-sm border border-gray-100 dark:border-gray-800">
               <div className="border-b border-zinc-200 dark:border-zinc-800 pb-8 min-w-0">
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-white mb-6">{t("invoice_details")}</h2>
@@ -507,21 +523,15 @@ const CreateQuote: React.FC = () => {
                                 control={form.control}
                                 name={`items.${index}.unitId`}
                                 render={({ field, fieldState }) => (
-                                    <Field className="relative">
-                                      <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("unit")}</FieldLabel>
-                                      <ComboboxField
-                                        field={field}
-                                        items={units?.items}
-                                        valueKey="id"
-                                        labelKey="name"
-                                        placeholder={t("unit")}
-                                      />
-                                      {fieldState.invalid && (
-                                        <div className="absolute top-full mt-1 right-0 z-10 w-full">
-                                          <FieldError errors={[fieldState.error]} />
-                                        </div>
-                                      )}
-                                    </Field>
+                                  <Field className="relative">
+                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("unit")}</FieldLabel>
+                                    <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder={t("unit")} />
+                                    {fieldState.invalid && (
+                                      <div className="absolute top-full mt-1 right-0 z-10 w-full">
+                                        <FieldError errors={[fieldState.error]} />
+                                      </div>
+                                    )}
+                                  </Field>
                                 )}
                               />
 
@@ -565,17 +575,17 @@ const CreateQuote: React.FC = () => {
                                   control={form.control}
                                   name={`items.${index}.discountType`}
                                   render={({ field }) => (
-                                  <Field>
-                                    <FieldLabel className="text-xs text-zinc-500">{t("discount_type")}</FieldLabel>
-                                    <ComboboxField
-                                      field={field}
-                                      items={[
-                                        { label: t("value"), value: "fixed" },
-                                        { label: `${t("percentage")} %`, value: "percentage" }
-                                      ]}
-                                      placeholder={t("type")}
-                                    />
-                                  </Field>
+                                    <Field>
+                                      <FieldLabel className="text-xs text-zinc-500">{t("discount_type")}</FieldLabel>
+                                      <ComboboxField
+                                        field={field}
+                                        items={[
+                                          { label: t("value"), value: "fixed" },
+                                          { label: `${t("percentage")} %`, value: "percentage" },
+                                        ]}
+                                        placeholder={t("type")}
+                                      />
+                                    </Field>
                                   )}
                                 />
                                 <Controller

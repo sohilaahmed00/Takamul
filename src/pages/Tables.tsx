@@ -3,7 +3,6 @@ import { useLanguage } from '../context/LanguageContext';
 import { useTables } from '../context/TablesContext';
 import { Plus, Trash2, Edit2, X, ChevronRight, ChevronLeft, LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import MobileDataCard from '../components/MobileDataCard';
 import ComboboxField from '@/components/ui/ComboboxField';
 
 import { Input } from "@/components/ui/input";
@@ -143,41 +142,7 @@ const Tables: React.FC = () => {
             </table>
           </div>
 
-          {/* Mobile Card View */}
-          <div className="md:hidden space-y-4">
-            {filteredTables.length === 0 ? (
-              <div className="p-8 text-center text-[var(--text-muted)] bg-[var(--bg-main)]/30 rounded-xl">
-                {t('no_data_in_table')}
-              </div>
-            ) : (
-              filteredTables.map((table) => (
-                <MobileDataCard
-                  key={`mobile-${table.id}`}
-                  title={table.name}
-                  subtitle={table.code}
-                  fields={[
-                    { label: t('branch'), value: table.branch }
-                  ]}
-                  actions={
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => handleOpenModal(table)}
-                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                      >
-                        <Edit2 size={18} />
-                      </button>
-                      <button 
-                        onClick={() => deleteTable(table.id)}
-                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  }
-                />
-              ))
-            )}
-          </div>
+     
 
           <div className="flex items-center justify-between pt-4 border-t border-[var(--border)]">
             <div className="text-sm text-[var(--text-muted)]">
