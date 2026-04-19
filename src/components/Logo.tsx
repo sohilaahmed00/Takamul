@@ -5,11 +5,12 @@ import { cn } from '@/lib/utils';
 
 interface LogoProps {
   className?: string;
+  style?: React.CSSProperties;
   showText?: boolean;
   onClick?: () => void;
 }
 
-export default function Logo({ className = "", onClick }: LogoProps) {
+export default function Logo({ className = "", style, onClick }: LogoProps) {
   const { language } = useLanguage();
   const { theme } = useTheme();
   const navigate = useNavigate();
@@ -31,12 +32,12 @@ export default function Logo({ className = "", onClick }: LogoProps) {
         "flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 w-full",
         className
       )}
+      style={style}
     >
       <img
         src={logoSrc}
         alt="Takamul logo"
-        className="h-20 w-auto object-contain"
-        style={{ maxWidth: '270px' }}
+        className="h-full w-auto object-contain"
       />
     </div>
   );
