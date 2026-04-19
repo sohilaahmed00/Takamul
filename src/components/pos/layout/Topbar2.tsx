@@ -13,7 +13,9 @@ import { usePos } from "@/context/PosContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { Link } from "react-router-dom";
 import AddParnterModal from "@/components/modals/AddParnterModal";
-import Keyboard from "react-simple-keyboard";
+import { KeyboardReact as Keyboard } from "react-simple-keyboard";
+import "react-simple-keyboard/build/css/index.css";
+
 export default function Topbar2() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [warehouse, setWarehouse] = useState("");
