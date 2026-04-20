@@ -488,7 +488,7 @@ export default function CartPanel() {
                   {theme === "dark" && <Check className="h-3.5 w-3.5 ml-auto" />}
                 </DropdownMenuItem>
 
-                {/* <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
 
                 {[
                   { value: "red", color: "bg-red-500", label: t("red_theme") },
@@ -501,7 +501,7 @@ export default function CartPanel() {
                     {item.label}
                     {theme === item.value && <Check className="h-3.5 w-3.5 ml-auto" />}
                   </DropdownMenuItem>
-                ))} */}
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
