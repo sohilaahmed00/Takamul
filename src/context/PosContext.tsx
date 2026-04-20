@@ -201,15 +201,12 @@ export function PosProvider({ children }: { children: ReactNode }) {
       const sampleBon: BonData = {
         institutionName: "بون التحضير",
         invoiceNumber: "5000",
-        invoiceDate: "2025-01-15 08:42",
-        customerName: "Ahmed Mohamed",
-        items: [
-          { productName: "بيتزا كبير", quantity: 1 },
-          { productName: "برجر لحم", quantity: 5 },
-          { productName: "شاي أخضر", quantity: 6 },
-          { productName: "قهوة تركي", quantity: 1 },
-          { productName: "عصير برتقال", quantity: 3 },
-        ],
+        invoiceDate: formatDate(new Date()),
+        customerName: selectedCustomer?.customerName,
+        items: cart?.map((cart) => ({
+          productName: cart?.name,
+          quantity: cart?.qty,
+        })),
       };
 
       printPreparationBon(sampleBon);

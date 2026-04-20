@@ -421,7 +421,14 @@ export default function CartPanel() {
   const hasOrderDiscount = discount > 0;
   const navigate = useNavigate();
   const { data: freeTables } = useGetAllTables();
-
+  const themeLabels = {
+    light: t("light_mode"),
+    dark: t("dark_mode"),
+    red: t("red_theme"),
+    blue: t("blue_theme"),
+    yellow: t("yellow_theme"),
+    "high-contrast": t("high_contrast"),
+  };
   const GRID = "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_45px_50px_85px] gap-2 px-2";
   return (
     <>
@@ -449,7 +456,7 @@ export default function CartPanel() {
                 </svg>
               </button>
             </div>
-            {/* <DropdownMenu>
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 px-2 text-xs gap-1.5">
                   <Globe className="h-3.5 w-3.5" />
@@ -467,7 +474,7 @@ export default function CartPanel() {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 px-2 text-xs gap-1.5">
                   <ThemeIcon theme={theme} />
-                  {t(`${theme}_theme` as any) ?? t("theme")}
+                  {themeLabels[theme] || t("theme")}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align={direction === "rtl" ? "start" : "end"}>
@@ -498,7 +505,7 @@ export default function CartPanel() {
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
-            </DropdownMenu> */}
+            </DropdownMenu>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Select

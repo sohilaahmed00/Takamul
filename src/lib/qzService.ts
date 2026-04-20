@@ -6,7 +6,7 @@ qz.api.setSha256Type((data: any) => sha256(data));
 qz.api.setPromiseType((resolver: any) => new Promise(resolver));
 
 qz.security.setCertificatePromise((resolve, reject) => {
-  fetch("/qz2/certificate.pem")
+  fetch("/qz/certificate.pem")
     .then((res) => res.text())
     .then((cert) => resolve(cert.trim()))
     .catch(reject);
