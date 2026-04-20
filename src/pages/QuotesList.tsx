@@ -19,6 +19,7 @@ import { useGetAllQuotations } from "@/features/quotation/hooks/useGetAllQuotati
 import formatDate from "@/lib/formatDate";
 
 import { Input } from "@/components/ui/input";
+import { useDeleteQuotation } from "@/features/quotation/hooks/useDeleteQuotation";
 
 export default function QuotesList() {
   const { t, direction } = useLanguage();
@@ -33,6 +34,7 @@ export default function QuotesList() {
   const [showAddModal, setShowAddModal] = useState(false);
   const { data: quotations } = useGetAllQuotations();
   const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const { mutate: deleteQuotation } = useDeleteQuotation();
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -108,7 +110,12 @@ export default function QuotesList() {
                 <Link to={`/quotes/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
                   <Edit2 size={16} />
                 </Link>
-                <button onClick={() => {}} className="btn-minimal-action btn-compact-action text-red-500">
+                <button
+                  onClick={() => {
+                    deleteQuotation(row?.id);
+                  }}
+                  className="btn-minimal-action btn-compact-action text-red-500"
+                >
                   <Trash2 size={16} />
                 </button>
               </div>

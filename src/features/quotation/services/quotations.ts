@@ -29,10 +29,10 @@ export const updateQuotation = (id: number, data: CreateQuotation) =>
     data,
   });
 
-// export const deleteCategory = (id: number) =>
-//   httpClient<void>(`/blog/category/${id}`, {
-//     method: "DELETE",
-//   });
+export const deleteQuotation = (id: number) =>
+  httpClient<{ message: string }>(`/Quotation/${id}`, {
+    method: "DELETE",
+  });
 
 // export function getCategoryById(id: string | number) {
 //   return httpClient<Category>(`/blog/category/${id}`);

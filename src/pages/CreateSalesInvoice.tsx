@@ -29,7 +29,7 @@ const SalesInvoiceSchema = (t: (key: string) => string) =>
       .array(
         z.object({
           productId: z.number().min(1, t("choose_product")),
-          unitId: z.number().min(1, t("choose_product_unit")),
+          unitName: z.string().optional(),
           quantity: z.number().min(1, t("quantity_must_be_greater_than_zero")),
           price: z.number().min(0, t("price_must_be_gte_zero")),
           discountType: z.enum(["percentage", "fixed"]).default("fixed"),
@@ -88,7 +88,7 @@ const CreateSalesInvoice: React.FC = () => {
       items: [
         {
           productId: 0,
-          unitId: 0,
+          unitName: "",
           quantity: 1,
           price: 0,
           discountType: "fixed",
@@ -197,44 +197,42 @@ const CreateSalesInvoice: React.FC = () => {
   const invoiceTotal = useMemo(() => {
     return (
       items?.reduce((total, item) => {
+        const product = products?.items?.find((p) => p.id === Number(item.productId));
+        const taxRate = product?.taxAmount || 0;
+        const taxCalc = product?.taxCalculation ?? 1;
+
         const qty = item.quantity || 0;
         const price = item.price || 0;
         const gross = qty * price;
 
-        let discount = 0;
-        if (item.discountType === "fixed") {
-          discount = item.discountValue || 0;
-        } else {
-          discount = gross * ((item.discountValue || 0) / 100);
-        }
+        const beforeTaxNoDisc = taxCalc === 1 ? gross : gross / (1 + taxRate / 100);
+        const disc = item.discountType === "fixed" ? item.discountValue || 0 : beforeTaxNoDisc * ((item.discountValue || 0) / 100);
+        const beforeTax = Math.max(0, beforeTaxNoDisc - disc);
+        const vatAmount = calcVat(beforeTax, taxRate, taxCalc);
 
-        const itemTotal = Math.max(0, gross - discount);
+        const itemTotal = taxCalc === 3 ? beforeTax : beforeTax + vatAmount;
+
         return total + itemTotal;
       }, 0) || 0
     );
-  }, [items]);
+  }, [items, products]);
 
   const totalVat = useMemo(() => {
     return (
       items?.reduce((total, item) => {
+        const product = products?.items?.find((p) => p.id === Number(item.productId));
+        const taxRate = product?.taxAmount || 0;
+        const taxCalc = product?.taxCalculation ?? 1;
+
         const qty = item.quantity || 0;
         const price = item.price || 0;
         const gross = qty * price;
 
-        let discount = 0;
-        if (item.discountType === "fixed") {
-          discount = item.discountValue || 0;
-        } else {
-          discount = gross * ((item.discountValue || 0) / 100);
-        }
-
-        const beforeTax = Math.max(0, gross - discount);
-
-        const product = products?.items?.find((p) => p.id === Number(item.productId));
-        const taxRate = product?.taxAmount || 0;
-        const taxCalc = product?.taxCalculation ?? 3;
-
+        const beforeTaxNoDisc = taxCalc === 1 ? gross : gross / (1 + taxRate / 100);
+        const disc = item.discountType === "fixed" ? item.discountValue || 0 : beforeTaxNoDisc * ((item.discountValue || 0) / 100);
+        const beforeTax = Math.max(0, beforeTaxNoDisc - disc);
         const vat = calcVat(beforeTax, taxRate, taxCalc);
+
         return total + vat;
       }, 0) || 0
     );
@@ -261,7 +259,7 @@ const CreateSalesInvoice: React.FC = () => {
   const handleAddItem = () => {
     appendItem({
       productId: 0,
-      unitId: 0,
+      unitName: "",
       quantity: 1,
       price: 0,
       discountType: "fixed",
@@ -287,7 +285,6 @@ const CreateSalesInvoice: React.FC = () => {
       globalDiscountValue: data.invoiceDiscountType === "fixed" ? (data.invoiceDiscountValue ?? 0) : 0,
       items: data.items.map((item) => ({
         productId: item.productId,
-        unitId: item.unitId,
         quantity: item.quantity,
         unitPrice: item.price,
         discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
@@ -450,6 +447,8 @@ const CreateSalesInvoice: React.FC = () => {
                                           const selectedProduct = products?.items?.find((p) => p.id === Number(val));
                                           if (selectedProduct) {
                                             form.setValue(`items.${index}.price`, selectedProduct.sellingPrice);
+                                            const unitProduct = units?.items?.find((unit) => unit?.id == selectedProduct?.baseUnitId);
+                                            form.setValue(`items.${index}.unitName`, unitProduct?.name);
                                           }
                                         }}
                                       />
@@ -460,11 +459,11 @@ const CreateSalesInvoice: React.FC = () => {
 
                                 <Controller
                                   control={form.control}
-                                  name={`items.${index}.unitId`}
-                                  render={({ field, fieldState }) => (
+                                  name={`items.${index}.unitName`}
+                                  render={({ field }) => (
                                     <Field>
-                                      <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder={t("unit")} />
-                                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                      <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("unit")}</FieldLabel>
+                                      <span className="block text-center py-2 px-3 bg-gray-100 rounded-md">{field.value || "-"}</span>{" "}
                                     </Field>
                                   )}
                                 />
@@ -574,7 +573,7 @@ const CreateSalesInvoice: React.FC = () => {
                           name={`payments.${index}.amount`}
                           render={({ field, fieldState }) => (
                             <Field className="relative" data-invalid={fieldState.invalid}>
-                              <Input type="number" placeholder="0.00" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="" />
+                              <Input step="any" type="number" placeholder="0.00" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="" />
                               {fieldState.invalid && (
                                 <div className="absolute top-full mt-1 right-0 z-10 w-full">
                                   <FieldError errors={[fieldState.error]} />

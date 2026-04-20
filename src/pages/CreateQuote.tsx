@@ -21,6 +21,7 @@ import { Customer } from "@/features/customers/types/customers.types";
 import { useGetQuotationById } from "@/features/quotation/hooks/useGetQuotationById";
 import { calcVat } from "@/utils/calcVat";
 import { Product } from "@/features/products/types/products.types";
+import { useUpdateQuotation } from "@/features/quotation/hooks/useUpdateQuotation";
 
 const QuoteSchema = (t: (key: string) => string) =>
   z.object({
@@ -295,7 +296,9 @@ const CreateQuote: React.FC = () => {
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { mutateAsync: createQuotations, isPending } = useCreateQuotation();
+  const { mutateAsync: updateQuotation } = useUpdateQuotation();
   const { id } = useParams();
+  const isEditMode = !!id;
   const { data: quotation } = useGetQuotationById(id);
   const { fields: itemFields, append: appendItem, remove: removeItem } = useFieldArray({ control: form.control, name: "items" });
   const items = useWatch({ control: form.control, name: "items" });
@@ -374,7 +377,11 @@ const CreateQuote: React.FC = () => {
         discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
       })),
     };
-    await createQuotations(payload);
+    if (isEditMode) {
+      await updateQuotation({ id: Number(id), data: payload });
+    } else {
+      await createQuotations(payload);
+    }
     navigate("/quotes");
   };
 

@@ -55,7 +55,6 @@ export type CreateSalesOrder = {
   globalDiscountValue: number;
   items: {
     productId: number;
-    unitId: number;
     quantity: number;
     discountPercentage: number;
     discountValue: number;
