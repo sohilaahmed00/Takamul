@@ -342,7 +342,7 @@ const CreatePurchaseInvoice: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-transparent p-6 rounded-sm border border-gray-100 dark:border-gray-800">
+          <div className=" p-6 rounded-sm border border-gray-100 dark:border-gray-800">
             <div className="col-span-3 border-b border-zinc-200 dark:border-gray-800 pb-8 min-w-0">
               <h2 className="text-lg font-bold text-zinc-900 dark:text-white mb-6">{t("invoice_details")}</h2>
 
@@ -350,7 +350,6 @@ const CreatePurchaseInvoice: React.FC = () => {
                 <h2 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h2>
 
                 <div className="w-full overflow-x-auto pb-4">
-                  <div>
                     <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
                       <div>{t("product_name_code")}</div>
                       <div>{t("unit")}</div>
@@ -382,7 +381,7 @@ const CreatePurchaseInvoice: React.FC = () => {
 
                         return (
                           <div key={item.id}>
-                            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-start group">
+                            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-3 p-4 md:p-2 rounded-xl md:rounded-none border md:border-none border-zinc-100 items-start group">
                               <Controller
                                 control={form.control}
                                 name={`items.${index}.productId`}
@@ -519,7 +518,6 @@ const CreatePurchaseInvoice: React.FC = () => {
 
                       {(form.formState.errors.items?.root?.message || form.formState.errors.items?.message) && <p className="text-red-500 text-sm text-center py-2">{form.formState.errors.items?.root?.message || form.formState.errors.items?.message}</p>}
                     </div>
-                  </div>
                 </div>
 
                 <button type="button" onClick={handleAddItem} className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">
