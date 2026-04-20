@@ -468,7 +468,7 @@ export default function CartPanel() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 px-2 text-xs gap-1.5">
                   <ThemeIcon theme={theme} />
@@ -503,7 +503,7 @@ export default function CartPanel() {
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Select
