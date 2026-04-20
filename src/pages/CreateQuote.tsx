@@ -14,19 +14,19 @@ import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHou
 import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import type { CreateQuotation } from "@/features/quotation/types/quotations.types";
 import { useCreateQuotation } from "@/features/quotation/hooks/useCreateQuotation";
 import { Customer } from "@/features/customers/types/customers.types";
 import { useGetQuotationById } from "@/features/quotation/hooks/useGetQuotationById";
+import { calcVat } from "@/utils/calcVat";
+import { Product } from "@/features/products/types/products.types";
 
 const QuoteSchema = (t: (key: string) => string) =>
   z.object({
     customerId: z.number().min(1, t("customer_required")),
     quotationDate: z.string().min(1, t("date_required")),
-    validUntil: z.string().min(1, t("date_required")),
-    discountAmount: z.number().min(0, t("price_must_be_gte_zero")),
-    shippingCost: z.number().min(0, t("price_must_be_gte_zero")),
+    discountAmount: z.number().min(0, t("price_must_be_gte_zero")).optional(),
     notes: z.string().optional(),
     quotationDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
     quotationDiscountValue: z.number().min(0).default(0),
@@ -35,9 +35,8 @@ const QuoteSchema = (t: (key: string) => string) =>
         z.object({
           productId: z.number().min(1, t("choose_product_validation")),
           quantity: z.number().min(1, t("quantity_must_be_greater_than_zero")),
-          unitName: z.string(),
-          unitPrice: z.number().min(0, t("price_must_be_gte_zero")),
-          taxPercentage: z.number().min(0, t("price_must_be_gte_zero")),
+          unitName: z.string().optional(),
+          unitPrice: z.number(),
           discountType: z.enum(["percentage", "fixed"]).default("fixed"),
           discountValue: z.number().min(0).default(0),
         }),
@@ -47,7 +46,7 @@ const QuoteSchema = (t: (key: string) => string) =>
 
 type SalesInvoiceType = z.input<ReturnType<typeof QuoteSchema>>;
 
-const fmt = (n: number) => new Intl.NumberFormat("ar-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+const fmt = (n: number) => new Intl.NumberFormat("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
 
 // ─── SRow ─────────────────────────────────────────────────────────────────────
 const SRow: React.FC<{ label: string; value: string; bold?: boolean; color?: string }> = ({ label, value, bold, color }) => (
@@ -61,15 +60,13 @@ const SRow: React.FC<{ label: string; value: string; bold?: boolean; color?: str
 const QuoteSummaryContent: React.FC<{
   control: any;
   customers?: { id: number; customerName: string }[];
-  products?: { id: number; productNameAr: string; taxAmount?: number }[];
+  products?: Product[];
   units?: { id: number; name: string }[];
   t: (key: string) => string;
 }> = ({ control, customers = [], products = [], units = [], t }) => {
   const customerId = useWatch({ control, name: "customerId" });
   const quotationDate = useWatch({ control, name: "quotationDate" });
-  const validUntil = useWatch({ control, name: "validUntil" });
   const notes = useWatch({ control, name: "notes" });
-  const shippingCost = Number(useWatch({ control, name: "shippingCost" })) || 0;
   const discountAmount = Number(useWatch({ control, name: "discountAmount" })) || 0;
   const discType = useWatch({ control, name: "quotationDiscountType" }) || "fixed";
   const discValue = Number(useWatch({ control, name: "quotationDiscountValue" })) || 0;
@@ -90,22 +87,25 @@ const QuoteSummaryContent: React.FC<{
     const product = products.find((p) => p.id === Number(item.productId));
     const unitName = units.find((u) => u.id === Number(item.unitId))?.name || "";
     const name = product?.productNameAr || "";
-    const taxRate = (product?.taxAmount || 0) / 100;
+    const taxRate = product?.taxAmount || 0;
     const qty = Number(item.quantity) || 0;
     const price = Number(item.unitPrice) || 0;
     const dType = item.discountType || "fixed";
     const dVal = Number(item.discountValue) || 0;
     const gross = qty * price;
     const disc = dType === "fixed" ? dVal : gross * (dVal / 100);
-    const beforeTax = Math.max(0, gross - disc);
-    const tax = beforeTax * taxRate;
+    const afterTax = Math.max(0, gross - disc);
+    const taxCalc = product?.taxCalculation ?? 1;
+    const tax = calcVat(afterTax, taxRate, taxCalc);
+    const beforeTax = afterTax - tax;
+
     return { name, unitName, qty, price, disc, beforeTax, tax, total: beforeTax + tax };
   });
 
   const subtotal = calcedItems.reduce((s, i) => s + i.beforeTax, 0);
   const totalTax = calcedItems.reduce((s, i) => s + i.tax, 0);
   const globalDisc = discType === "fixed" ? discValue : subtotal * (discValue / 100);
-  const grandTotal = Math.max(0, subtotal + totalTax - globalDisc - discountAmount + shippingCost);
+  const grandTotal = Math.max(0, subtotal + totalTax - globalDisc - discountAmount);
   const activeItems = calcedItems.filter((i) => i.name);
 
   return (
@@ -115,7 +115,6 @@ const QuoteSummaryContent: React.FC<{
         <div className="space-y-2">
           <SRow label={t("customer")} value={customerName} bold />
           <SRow label={t("issue_date")} value={formatDate(quotationDate)} />
-          <SRow label={t("valid_until")} value={formatDate(validUntil)} />
         </div>
       </div>
       <div className="border-t border-zinc-100" />
@@ -162,7 +161,6 @@ const QuoteSummaryContent: React.FC<{
           <SRow label={t("total")} value={fmt(subtotal)} />
           {totalTax > 0 && <SRow label={t("tax")} value={`+ ${fmt(totalTax)}`} color="text-amber-500" />}
           {globalDisc + discountAmount > 0 && <SRow label={t("discount")} value={`- ${fmt(globalDisc + discountAmount)}`} color="text-emerald-600" />}
-          {shippingCost > 0 && <SRow label={t("shipping")} value={`+ ${fmt(shippingCost)}`} />}
         </div>
         <div className="border-t border-dashed border-zinc-200 mt-3 pt-3 flex justify-between items-baseline">
           <span className="text-xs text-zinc-500">{t("final_total")}</span>
@@ -186,7 +184,7 @@ const QuoteSummaryContent: React.FC<{
 const FloatingSummary: React.FC<{
   control: any;
   customers?: { id: number; customerName: string }[];
-  products?: { id: number; productNameAr: string; taxAmount?: number }[];
+  products?: Product[];
   units?: { id: number; name: string }[];
   grandTotal: number;
   itemCount: number;
@@ -282,6 +280,9 @@ const CreateQuote: React.FC = () => {
 
   const { control, setValue } = form;
 
+  const getBaseUnitNameWithId = (id: number) => {
+    return units.items?.find((unit) => unit?.id == id).name;
+  };
   const { data: customersResponse } = useGetAllCustomers();
   let customers: Customer[] = [];
 
@@ -298,10 +299,10 @@ const CreateQuote: React.FC = () => {
   const { data: quotation } = useGetQuotationById(id);
   const { fields: itemFields, append: appendItem, remove: removeItem } = useFieldArray({ control: form.control, name: "items" });
   const items = useWatch({ control: form.control, name: "items" });
-  const shippingCost = Number(useWatch({ control, name: "shippingCost" })) || 0;
   const discAmt = Number(useWatch({ control, name: "discountAmount" })) || 0;
   const discType = useWatch({ control, name: "quotationDiscountType" }) || "fixed";
   const discValue = Number(useWatch({ control, name: "quotationDiscountValue" })) || 0;
+  const navigate = useNavigate();
 
   useEffect(() => {
     setValue("customerId", customers[0]?.id);
@@ -310,11 +311,11 @@ const CreateQuote: React.FC = () => {
   useEffect(() => {
     if (quotation) {
       form.reset({
-        validUntil: quotation?.validUntil,
         items: quotation?.items.map((quote) => ({
           productId: quote?.productId,
           quantity: quote?.quantity,
-          unitPrice: quote?.unitPrice,
+          unitPrice: products?.items.find((pro) => pro?.id == quote?.productId).sellingPrice,
+          // unitName: getBaseUnitNameWithId(1),
         })),
       });
     }
@@ -323,39 +324,47 @@ const CreateQuote: React.FC = () => {
     let subtotal = 0,
       totalTax = 0,
       count = 0;
-    (items || []).forEach((item: any) => {
+
+    (items || []).forEach((item) => {
       const product = products?.items?.find((p) => p.id === Number(item.productId));
       if (!product) return;
+
       count++;
-      const taxRate = (product.taxAmount || 0) / 100;
       const qty = Number(item.quantity) || 0;
       const price = Number(item.unitPrice) || 0;
       const dType = item.discountType || "fixed";
       const dVal = Number(item.discountValue) || 0;
       const gross = qty * price;
       const disc = dType === "fixed" ? dVal : gross * (dVal / 100);
-      const beforeTax = Math.max(0, gross - disc);
-      subtotal += beforeTax;
-      totalTax += beforeTax * taxRate;
-    });
-    const globalDisc = discType === "fixed" ? discValue : subtotal * (discValue / 100);
-    return { grandTotal: Math.max(0, subtotal + totalTax - globalDisc - discAmt + shippingCost), count };
-  };
+      const afterTax = Math.max(0, gross - disc);
+      const taxCalc = product?.taxCalculation ?? 1;
+      const vatAmount = calcVat(afterTax, product.taxAmount || 0, taxCalc);
+      const beforeTax = afterTax - vatAmount;
+      const total = taxCalc === 3 ? afterTax + vatAmount : afterTax;
 
+      subtotal += beforeTax;
+      totalTax += vatAmount;
+    });
+
+    const globalDisc = discType === "fixed" ? discValue : subtotal * (discValue / 100);
+
+    return {
+      grandTotal: Math.max(0, subtotal + totalTax - globalDisc - discAmt),
+      count,
+    };
+  };
   const { grandTotal, count } = calcSummary();
 
-  const handleAddItem = () => appendItem({ productId: 0, quantity: 1, unitName: "", unitPrice: 0, taxPercentage: 0, discountType: "fixed", discountValue: 0 });
+  const handleAddItem = () => appendItem({ productId: 0, quantity: 1, unitName: "", unitPrice: 0, discountType: "fixed", discountValue: 0 });
 
   const handleSubmit = async (data: SalesInvoiceType) => {
     const payload: CreateQuotation = {
       customerId: data.customerId,
       quotationDate: data.quotationDate,
-      validUntil: data.validUntil,
       discountAmount: 0,
       notes: data.notes || "",
       globalDiscountPercentage: data.quotationDiscountType === "percentage" ? (data.quotationDiscountValue ?? 0) : 0,
       globalDiscountValue: data.quotationDiscountType === "fixed" ? (data.quotationDiscountValue ?? 0) : 0,
-      shippingCost: data.shippingCost,
       items: data.items.map((item) => ({
         productId: item.productId,
         taxPercentage: 0,
@@ -366,6 +375,7 @@ const CreateQuote: React.FC = () => {
       })),
     };
     await createQuotations(payload);
+    navigate("/quotes");
   };
 
   return (
@@ -384,7 +394,7 @@ const CreateQuote: React.FC = () => {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(handleSubmit, (errors) => console.log(errors))} className="space-y-6">
             <div className=" p-6 rounded-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800 mb-6">{t("basic_data")}</h2>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -450,13 +460,14 @@ const CreateQuote: React.FC = () => {
                 <section className="mb-4">
                   <h2 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h2>
                   <div className="w-full overflow-x-auto pb-4">
-                    <div className="hidden md:grid md:grid-cols-[2fr_0.8fr_1fr_1fr_1fr_1.2fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
-                      <div>{t("product_name_code")}</div>
-                      <div>{t("quantity")}</div>
+                    <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
+                      <div>{t("product_name")}</div>
                       <div>{t("unit")}</div>
-                      <div>{t("price_before_tax")}</div>
-                      <div className="text-center">{t("vat")}</div>
-                      <div className="text-center">{t("total_including_tax")}</div>
+                      <div>{t("unit_price")}</div>
+                      <div>{t("quantity")}</div>
+                      <div>{t("subtotal_before_tax")}</div>
+                      <div>{t("vat")}</div>
+                      <div>{t("grand_total")}</div>
                       <div></div>
                     </div>
 
@@ -468,17 +479,19 @@ const CreateQuote: React.FC = () => {
                         const dVal = form.watch(`items.${index}.discountValue`) || 0;
                         const productId = form.watch(`items.${index}.productId`);
                         const product = products?.items?.find((p) => p.id === Number(productId));
-                        const taxRate = (product?.taxAmount || 0) / 100;
+                        const taxRate = product?.taxAmount || 0;
+                        const taxCalc = product?.taxCalculation ?? 1;
                         const gross = qty * price;
-                        const disc = dType === "fixed" ? dVal : gross * (dVal / 100);
-                        const beforeTax = gross - disc;
-                        const taxAmount = beforeTax * taxRate;
-                        const afterTax = beforeTax + taxAmount;
+                        const beforeTaxNoDisc = taxCalc === 1 ? gross : gross / (1 + taxRate / 100);
+                        const disc = dType === "fixed" ? dVal : beforeTaxNoDisc * (dVal / 100);
+                        const beforeTax = Math.max(0, beforeTaxNoDisc - disc);
+                        const taxAmount = calcVat(beforeTax, taxRate, taxCalc);
+                        const total = beforeTax + taxAmount;
                         const isDiscOpen = !!discountOpen[index];
 
                         return (
                           <div key={item.id}>
-                            <div className="grid grid-cols-1 md:grid-cols-[2fr_0.8fr_1fr_1fr_1fr_1.2fr_60px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group">
+                            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group">
                               <Controller
                                 control={form.control}
                                 name={`items.${index}.productId`}
@@ -509,18 +522,6 @@ const CreateQuote: React.FC = () => {
 
                               <Controller
                                 control={form.control}
-                                name={`items.${index}.quantity`}
-                                render={({ field, fieldState }) => (
-                                  <Field data-invalid={fieldState.invalid}>
-                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("quantity")}</FieldLabel>
-                                    <Input type="number" min={1} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
-                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                                  </Field>
-                                )}
-                              />
-
-                              <Controller
-                                control={form.control}
                                 name={`items.${index}.unitName`}
                                 render={({ field }) => (
                                   <Field>
@@ -536,21 +537,43 @@ const CreateQuote: React.FC = () => {
                                 render={({ field, fieldState }) => (
                                   <Field className="relative" data-invalid={fieldState.invalid}>
                                     <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("price_before_tax")}</FieldLabel>
-                                    <Input type="number" min={0} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                                    <Input type="number" value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
                                     <div className="absolute top-full mt-1 right-0 z-10 w-full">
                                       <FieldError errors={[fieldState.error]} />
                                     </div>
                                   </Field>
                                 )}
                               />
-
+                              <Controller
+                                control={form.control}
+                                name={`items.${index}.quantity`}
+                                render={({ field, fieldState }) => (
+                                  <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("quantity")}</FieldLabel>
+                                    <Input type="number" min={1} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                  </Field>
+                                )}
+                              />
+                              <div className="text-center font-medium">
+                                {beforeTax.toLocaleString("en-EG", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </div>
                               <div className="flex items-center md:justify-center font-medium text-amber-600 mt-2 md:mt-0 px-2 h-9">
                                 <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("vat")}:</FieldLabel>
-                                {Math.max(0, taxAmount).toLocaleString()}
+                                {taxAmount.toLocaleString("en-EG", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
                               </div>
                               <div className="flex items-center md:justify-center font-medium text-green-700 mt-2 md:mt-0 px-2 h-9">
                                 <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("total_including_tax")}:</FieldLabel>
-                                {Math.max(0, afterTax).toLocaleString()}
+                                {total.toLocaleString("en-EG", {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
                               </div>
 
                               <div className="flex items-center justify-center gap-2">
@@ -574,6 +597,8 @@ const CreateQuote: React.FC = () => {
                                       <FieldLabel className="text-xs text-zinc-500">{t("discount_type")}</FieldLabel>
                                       <ComboboxField
                                         field={field}
+                                        valueKey="value"
+                                        labelKey="label"
                                         items={[
                                           { label: t("value"), value: "fixed" },
                                           { label: `${t("percentage")} %`, value: "percentage" },

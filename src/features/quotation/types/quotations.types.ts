@@ -31,9 +31,7 @@ export type Quotation = {
 export type CreateQuotation = {
   customerId: number;
   quotationDate: string;
-  validUntil: string;
   discountAmount: number;
-  shippingCost: number;
   notes: string;
   globalDiscountValue: number;
   globalDiscountPercentage: number;

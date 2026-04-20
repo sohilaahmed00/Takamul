@@ -332,7 +332,9 @@ const CreateSalesInvoice: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("date")} <span className="text-red-500">*</span></FieldLabel>
+                      <FieldLabel>
+                        {t("date")} <span className="text-red-500">*</span>
+                      </FieldLabel>
                       <Input type="date" {...field} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -344,7 +346,9 @@ const CreateSalesInvoice: React.FC = () => {
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("warehouse")} <span className="text-red-500">*</span></FieldLabel>
+                      <FieldLabel>
+                        {t("warehouse")} <span className="text-red-500">*</span>
+                      </FieldLabel>
                       <ComboboxField field={field} items={wareHouses} valueKey="id" labelKey="warehouseName" placeholder={t("choose_warehouse")} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -358,7 +362,9 @@ const CreateSalesInvoice: React.FC = () => {
                       control={form.control}
                       render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>{t("customer")} <span className="text-red-500">*</span></FieldLabel>
+                          <FieldLabel>
+                            {t("customer")} <span className="text-red-500">*</span>
+                          </FieldLabel>
                           <ComboboxField field={field} items={customers} valueKey="id" labelKey="customerName" placeholder={t("choose_customer")} />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
@@ -414,18 +420,16 @@ const CreateSalesInvoice: React.FC = () => {
                           const price = Number(form.watch(`items.${index}.price`) || 0);
                           const discType = form.watch(`items.${index}.discountType`) || "fixed";
                           const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
-
                           const productId = form.watch(`items.${index}.productId`);
                           const product = products?.items?.find((p) => p.id === Number(productId));
                           const taxRate = product?.taxAmount || 0;
                           const taxCalc = product?.taxCalculation ?? 1;
-
                           const gross = qty * price;
-                          const discount = discType === "fixed" ? discValue : gross * (discValue / 100);
-                          const beforeTax = Math.max(0, gross - discount);
+                          const beforeTaxNoDisc = taxCalc === 1 ? gross : gross / (1 + taxRate / 100);
+                          const discount = discType === "fixed" ? discValue : beforeTaxNoDisc * (discValue / 100);
+                          const beforeTax = Math.max(0, beforeTaxNoDisc - discount);
                           const vatAmount = calcVat(beforeTax, taxRate, taxCalc);
                           const afterTax = beforeTax + vatAmount;
-
                           const isDiscOpen = !!discountOpen[index];
 
                           return (
@@ -444,9 +448,8 @@ const CreateSalesInvoice: React.FC = () => {
                                         placeholder={t("choose_product")}
                                         onValueChange={(val) => {
                                           const selectedProduct = products?.items?.find((p) => p.id === Number(val));
-
                                           if (selectedProduct) {
-                                            form.setValue(`items.${index}.price`, selectedProduct.sellingPrice ?? 0);
+                                            form.setValue(`items.${index}.price`, selectedProduct.sellingPrice);
                                           }
                                         }}
                                       />
@@ -497,12 +500,14 @@ const CreateSalesInvoice: React.FC = () => {
                                 <div className="text-center text-orange-600 font-medium">
                                   {vatAmount.toLocaleString("en-EG", {
                                     minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
                                   })}
                                 </div>
 
                                 <div className="text-center text-green-600 font-bold">
                                   {afterTax.toLocaleString("en-EG", {
                                     minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
                                   })}
                                 </div>
 
@@ -535,7 +540,6 @@ const CreateSalesInvoice: React.FC = () => {
                                       />
                                     )}
                                   />
-
 
                                   <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} />} />
                                 </div>

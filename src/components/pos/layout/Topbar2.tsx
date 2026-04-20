@@ -15,18 +15,21 @@ import { Link } from "react-router-dom";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { KeyboardReact as Keyboard } from "react-simple-keyboard";
 import "react-simple-keyboard/build/css/index.css";
+import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHouses";
+import { Warehouse } from "@/features/Warehouses/types/Warehouses.types";
+import { WareHouse } from "@/features/wareHouse/types/wareHouse.types";
 
 export default function Topbar2() {
   const [deliveryDate, setDeliveryDate] = useState("");
-  const [warehouse, setWarehouse] = useState("");
   const [employee, setEmployee] = useState("");
   const [notes, setNotes] = useState("");
   const { data: customers } = useGetAllCustomers({ page: 1, limit: 10000 });
-  const { data: treasurys } = useGetAllTreasurys();
   const { selectedCustomer, setSelectedCustomer } = usePos();
   const [openDialog, setOpenDialog] = useState(false);
   const [balanceSelectedCustomer, setBalanceSelectedCustomer] = useState<number | null>(null);
   const [showKeyboard, setShowKeyboard] = useState(false);
+  const { data: wareHouses } = useGetAllWareHouses();
+  const [selectedWarehouse, setSelectedWarehouse] = useState<string>(String(wareHouses?.[0]?.id ?? ""));
   const [input, setInput] = useState("");
   const { t } = useLanguage();
   useEffect(() => {
@@ -35,6 +38,12 @@ export default function Topbar2() {
       setBalanceSelectedCustomer(customers?.items[0].balance);
     }
   }, [customers]);
+
+  useEffect(() => {
+    if (wareHouses && wareHouses?.length > 0) {
+      setSelectedWarehouse(String(wareHouses[0]?.id));
+    }
+  }, [wareHouses]);
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
@@ -62,9 +71,9 @@ export default function Topbar2() {
                     <Home size={13} />
                   </Link>
                 </Button>
-                <Button onClick={() => setShowKeyboard(!showKeyboard)} variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="لوحة المفاتيح">
+                {/* <Button onClick={() => setShowKeyboard(!showKeyboard)} variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="لوحة المفاتيح">
                   <KeyboardIcon size={13} />
-                </Button>
+                </Button> */}
                 <Button onClick={toggleFullScreen} variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white transition-colors duration-200" title="ملء الشاشة">
                   <Maximize size={13} />
                 </Button>
@@ -106,11 +115,9 @@ export default function Topbar2() {
             </div>
           </div>
 
-          {/* ══ فاصل ══ */}
           <div className="h-px bg-gray-100" />
 
           <div className="grid grid-cols-2 sm:grid-cols-4  lg:grid-cols-[minmax(0,1fr)_150px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-3 items-end">
-            {/* اختر العميل */}
             <div className="flex items-end gap-2">
               <Button size="icon-lg" className="border-[#000052] hover:bg-[#000052]/10 text-[#000052]!" variant="outline" onClick={() => setOpenDialog(true)}>
                 <Plus size={14} />
@@ -137,30 +144,27 @@ export default function Topbar2() {
               <Input value={balanceSelectedCustomer} readOnly={true} className="text-center cursor-not-allowed text-[11px] bg-white border-[#000052] text-[#000052]" />
             </div>
 
-            {/* وقت وتاريخ الاستلام */}
             <div className="flex flex-col gap-1">
               <Label className="text-[10px] text-[#000052]">وقت وتاريخ الاستلام</Label>
               <Input type="datetime-local" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} className=" text-[11px] bg-white border-[#000052] text-[#000052]" />
             </div>
 
-            {/* المخزن */}
             <div className="flex flex-col gap-1">
               <Label className="text-[10px] text-[#000052]">المخزن</Label>
-              <Select value={warehouse} onValueChange={setWarehouse}>
+              <Select value={selectedWarehouse} onValueChange={setSelectedWarehouse}>
                 <SelectTrigger className="w-full text-[11px] bg-white border-[#000052] text-blue-900 rounded-sm">
                   <SelectValue placeholder="اختر..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {treasurys?.map((treasury: Treasury) => (
-                    <SelectItem key={treasury.id} value={String(treasury.id)}>
-                      {treasury.name}
+                  {wareHouses?.map((ww: WareHouse) => (
+                    <SelectItem key={ww.id} value={String(ww.id)}>
+                      {ww.warehouseName}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
-            {/* موظف الخدمة */}
             <div className="flex flex-col gap-1">
               <Label className="text-[10px] text-[#000052]">موظف الخدمة</Label>
               <Select value={employee} onValueChange={setEmployee}>

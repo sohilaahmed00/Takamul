@@ -17,7 +17,6 @@ import { useQuotes } from "@/context/QuotesContext";
 import { useSettings } from "@/context/SettingsContext";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import MobileDataCard from "@/components/MobileDataCard";
 
 import { Input } from "@/components/ui/input";
 

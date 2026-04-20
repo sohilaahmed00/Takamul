@@ -24,6 +24,7 @@ import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { Treasury } from "@/features/treasurys/types/treasurys.types";
+import { UnifiedPaymentDialog } from "../modals/UnifiedPaymentDialog";
 
 const TABS = ["add", "discount", "coupon", "note"] as const;
 
@@ -332,8 +333,6 @@ export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyCha
             <Numpad onKey={handleKey} />
           </div>
         )}
-
-        {/* ✅ زرار واحد "تم" بيبعت كل حاجة */}
         <div className="grid grid-cols-2 gap-2 px-3 pb-4 pt-2">
           <Button size="2xl" variant="outline" className="flex-1" onClick={() => onOpenChange(false)}>
             إلغاء
@@ -1053,7 +1052,7 @@ export default function CartPanel() {
         </div>
       </div>
 
-      <CashierDialog open={cashierOpen} onOpenChange={setCashierOpen} onCancel={() => setCashierOpen(false)} />
+      <UnifiedPaymentDialog open={cashierOpen} onOpenChange={setCashierOpen} mode="cashier" onCancel={() => setCashierOpen(false)} />
       <AddParnterModal isOpen={openDialog} onClose={() => setOpenDialog(false)} />
 
       <ItemNumPadDialog

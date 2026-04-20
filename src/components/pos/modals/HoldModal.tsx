@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 interface HoldModalProps {
   open: boolean;
   onClose: () => void;
-  onConfirm: (note: string) => void;
+  onConfirm?: (note: string) => void;
 }
 
 export default function HoldModal({ open, onClose, onConfirm }: HoldModalProps) {

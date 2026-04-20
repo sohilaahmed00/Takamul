@@ -95,17 +95,17 @@ export default function QuotesList() {
           dataKey="id"
           stripedRows={false}
         >
-          <Column header={t("invoice_number")} sortable field="quotationNumber" />
+          <Column header={"رقم عرض السعر"} sortable field="quotationNumber" />
           <Column header={t("date")} sortable field="quotationDate" body={(row) => formatDate(row.quotationDate)} />
           <Column header={t("customer_name")} sortable field="customerName" />
-          <Column header={t("cashier")} sortable field="createdBy" />
+          <Column header={"اسم المستخدم"} sortable field="createdBy" />
           <Column header={t("discount_amount")} sortable field="discountAmount" />
           <Column header={t("total_amount")} sortable field="grandTotal" />
           <Column
             header={t("actions")}
             body={(row) => (
               <div className="flex gap-2">
-                <Link to={`/quotes/edit/${row?.id}`}  className="btn-minimal-action btn-compact-action">
+                <Link to={`/quotes/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
                   <Edit2 size={16} />
                 </Link>
                 <button onClick={() => {}} className="btn-minimal-action btn-compact-action text-red-500">

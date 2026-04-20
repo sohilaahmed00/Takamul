@@ -21,38 +21,13 @@ import { HoldListPage } from "../pages/Holdlistpage";
 import { PlaceholderPage } from "../pages/PlaceholderPage";
 import { ToastContainer } from "react-toastify";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import HomePage2 from "../pages/HomePage2";
 import RightPanel2 from "./RightPanel2";
 import Topbar2 from "./Topbar2";
 import { initQZ } from "@/lib/qzService";
-
-function PageContent() {
-  const { screen } = usePos();
-
-  switch (screen) {
-    case "home":
-      return <HomePage2 />;
-    case "cashier":
-      return <CashierPage />;
-
-    case "tables":
-      return <TablesPage />;
-    case "orders":
-      return <OrdersPage />;
-
-    case "success":
-      return <SuccessPage />;
-    case "hold-list":
-      return <HoldListPage />;
-    case "reports":
-      return <PlaceholderPage label="Reports" />;
-    case "settings":
-      return <PlaceholderPage label="Settings" />;
-    default:
-      return <PlaceholderPage label="Coming Soon" />;
-  }
-}
+import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHouses";
+import CartPanel2 from "../cart/CartPanel2";
 
 export default function AppLayout2() {
   const { showHoldModal, setShowHoldModal, confirmHold } = usePos();
@@ -71,18 +46,14 @@ export default function AppLayout2() {
     <div className="relative flex h-screen bg-gray-100 overflow-hidden rounded-xl border border-gray-200" style={{ minHeight: 600 }}>
       <ToastContainer pauseOnHover={false} />
 
-      {showHoldModal && <HoldModal onClose={() => setShowHoldModal(false)} onConfirm={confirmHold} />}
+      {showHoldModal && <HoldModal open={showHoldModal} onClose={() => setShowHoldModal(false)} onConfirm={confirmHold} />}
 
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         <Topbar2 />
 
         <TooltipProvider>
           <div className="flex flex-1 flex-col overflow-hidden p-4  space-y-5">
-            {" "}
-            {/* ← flex-col مش flex-row */}
-            {/* Page — full width */}
-            <div className="  min-w-0  ">{/* <PageContent /> */}</div>
-            <RightPanel2 />
+            <CartPanel2 />
           </div>
         </TooltipProvider>
       </div>

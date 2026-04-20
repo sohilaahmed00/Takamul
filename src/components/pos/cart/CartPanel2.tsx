@@ -20,6 +20,8 @@ import { useGetAllQuotations } from "@/features/quotation/hooks/useGetAllQuotati
 import { Quotation } from "@/features/quotation/types/quotations.types";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { Treasury } from "@/features/treasurys/types/treasurys.types";
+import { UnifiedPaymentDialog } from "../modals/UnifiedPaymentDialog";
+import { Switch } from "@/components/ui/switch";
 
 function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   const [open, setOpen] = useState(false);
@@ -77,15 +79,6 @@ function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
 
 export type SaveAction = "pdf" | "whatsapp" | "email" | "save_only" | "save_print";
 
-const VAULTS = ["الخزنة الرئيسية", "خزنة الفرع", "خزنة المدير"];
-const METHODS = ["نقدي", "بطاقة", "تحويل بنكي"];
-
-interface Split {
-  id: string;
-  vaultId: number;
-  raw: string;
-}
-
 interface InvoicesDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -116,28 +109,6 @@ const STATUS_BADGE: Record<SalesOrder["orderStatus"], { label: string; cls: stri
   Canceled: { label: "ملغية", cls: "bg-gray-100 text-gray-600" },
   UnConfirmed: { label: "غير مدفوعة", cls: "bg-red-100 text-red-600" },
 };
-
-function FmtDate({ d }: { d: Date | null }) {
-  if (!d) return <span className="text-gray-300">لا يوجد</span>;
-
-  const dateStr = d.toLocaleDateString("ar-EG", {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-
-  const timeStr = d.toLocaleTimeString("ar-EG", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-
-  return (
-    <span>
-      {dateStr}، {timeStr}
-    </span>
-  );
-}
 
 interface InvoicesDialogProps {
   open: boolean;
@@ -346,279 +317,7 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
     </Dialog>
   );
 }
-interface PaymentDialogProps {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  total: number;
-  onSave?: (opts: { vault: Treasury; method: string; action: SaveAction }) => void;
-}
 
-function VaultChips({ value, onChange, treasurys }: { value: number; onChange: (id: number) => void; treasurys: Treasury[] }) {
-  return (
-    <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" } as React.CSSProperties} onClick={(e) => e.stopPropagation()}>
-      {treasurys.map((v) => {
-        const active = value === v.id;
-        return (
-          <button
-            key={v.id}
-            onClick={() => onChange(v.id)}
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border-2 transition-all flex-shrink-0
-              ${active ? "border-green-500 bg-green-50" : "border-gray-200 bg-white hover:border-gray-300"}`}
-          >
-            <Vault size={10} className={active ? "text-green-600" : "text-gray-400"} />
-            <span className={`text-xs font-bold whitespace-nowrap ${active ? "text-green-700" : "text-gray-500"}`}>{v.name}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-export function PaymentDialog({ open, onOpenChange, total, onSave }: PaymentDialogProps) {
-  const { data: treasurys } = useGetAllTreasurys();
-  const { setPaidAmount, setSelectedVaultId, handleConfirmPayment } = usePos();
-  const { t } = useLanguage();
-
-  const [vaultId, setVaultId] = useState<number | null>(null);
-  const activeVault = vaultId ?? treasurys?.[0]?.id ?? null;
-
-  const [npRaw, setNpRaw] = useState(() => String(Math.round(total * 100)));
-  const [isSplit, setIsSplit] = useState(false);
-  const [splits, setSplits] = useState<Split[]>([]);
-  const [activeId, _setActiveId] = useState("s1");
-  const [justActivated, setJustActivated] = useState(false);
-
-  const setActiveId = (id: string) => {
-    _setActiveId(id);
-    setJustActivated(true);
-  };
-
-  useEffect(() => {
-    if (treasurys?.length && vaultId === null) {
-      setVaultId(treasurys[0].id);
-      setSelectedVaultId(treasurys[0].id);
-    }
-  }, [treasurys]);
-
-  useEffect(() => {
-    if (!isSplit) {
-      setNpRaw(String(Math.round(total * 100)));
-    }
-  }, [total, isSplit]);
-
-  const rawToFloat = (r: string) => parseInt(r || "0") / 100;
-  const fmtFloat = (n: number) => n.toFixed(2);
-
-  const pushKey = (k: string) => {
-    if (k === "cancel") return;
-
-    const transform = (prev: string) => {
-      if (k === "del") return prev.length > 1 ? prev.slice(0, -1) : "0";
-      if (k === "00") return prev === "0" ? "0" : prev + "00";
-      if (k === ".") return prev.includes(".") ? prev : prev + ".";
-      return prev === "0" ? k : prev + k;
-    };
-
-    if (!isSplit) {
-      setNpRaw((p) => transform(p));
-    } else {
-      setSplits((prev) => {
-        const shouldClear = justActivated && k !== "del" && k !== ".";
-        const updated = prev.map((s) => {
-          if (s.id !== activeId) return s;
-          const base = shouldClear ? "0" : s.raw;
-          return { ...s, raw: transform(base) };
-        });
-        const otherIds = prev.map((s) => s.id).filter((id) => id !== activeId);
-        if (otherIds.length === 1) {
-          const activePaid = updated.find((s) => s.id === activeId)!;
-          const remaining = total - rawToFloat(activePaid.raw);
-          const remainRaw = remaining > 0 ? String(Math.round(remaining * 100)) : "0";
-          return updated.map((s) => (s.id === otherIds[0] ? { ...s, raw: remainRaw } : s));
-        }
-        return updated;
-      });
-      if (justActivated) setJustActivated(false);
-    }
-  };
-
-  const toggleSplit = () => {
-    setIsSplit((v) => {
-      if (!v) {
-        setSplits([
-          { id: "s1", vaultId: treasurys?.[0]?.id ?? 0, raw: String(Math.round(total * 100)) },
-          { id: "s2", vaultId: treasurys?.[0]?.id ?? 0, raw: "0" },
-        ]);
-        setActiveId("s1");
-      }
-      return !v;
-    });
-  };
-
-  const singlePaid = rawToFloat(npRaw);
-  const splitPaid = splits.reduce((sum, s) => sum + rawToFloat(s.raw), 0);
-  const paid = isSplit ? splitPaid : singlePaid;
-  const change = parseFloat((paid - total).toFixed(2));
-
-  useEffect(() => {
-    setPaidAmount(paid);
-  }, [paid]);
-
-  const handleAction = (action: SaveAction) => {
-    const selectedVault = treasurys?.find((v) => v.id === vaultId);
-    // onSave({ vault: selectedVault, action });
-    onOpenChange(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="max-w-md p-0 gap-0 overflow-hidden">
-        {/* ── Header ── */}
-        <div className="flex items-center justify-between px-4 py-3 text-white" style={{ background: "#000052" }}>
-          <DialogTitle className="text-[14px] font-medium text-white">إتمام عملية الدفع</DialogTitle>
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] text-white/50">{t("payable_amount")}</span>
-              <span className="text-[18px] font-black text-green-400">{total.toFixed(2)}</span>
-            </div>
-            <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded flex items-center justify-center bg-white/15 hover:bg-white/25 transition-colors">
-              <X size={14} />
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4 p-4 overflow-y-auto max-h-[80vh]">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-semibold text-gray-500">{isSplit ? t("split_between_vaults") : t("destination_vault")}</label>
-              <button
-                onClick={toggleSplit}
-                className={`text-[11px] px-3 py-1 rounded-full font-semibold border transition-colors
-                  ${isSplit ? "border-green-500 text-green-600 bg-green-50" : "border-gray-200 text-gray-500 hover:border-green-300 hover:text-green-600"}`}
-              >
-                {isSplit ? t("split_on") : t("split_payment")}
-              </button>
-            </div>
-
-            {!isSplit && (
-              <VaultChips
-                value={activeVault ?? 0}
-                onChange={(id) => {
-                  setVaultId(id);
-                  setSelectedVaultId(id);
-                }}
-                treasurys={treasurys ?? []}
-              />
-            )}
-          </div>
-
-          {/* ── Split cards ── */}
-          {isSplit && (
-            <div className="flex flex-col gap-3">
-              {splits.map((sp, idx) => {
-                const isActive = activeId === sp.id;
-                const cardActive = idx === 0 ? "border-green-500 bg-green-50/60" : "border-blue-400 bg-blue-50/60";
-                const pillActive = idx === 0 ? "bg-green-500 text-white" : "bg-blue-400 text-white";
-                const amtActive = idx === 0 ? "text-green-700" : "text-blue-700";
-
-                return (
-                  <div
-                    key={sp.id}
-                    onClick={() => setActiveId(sp.id)}
-                    className={`rounded-xl border-2 cursor-pointer transition-all
-                      ${isActive ? cardActive + " shadow-sm" : "border-gray-200 bg-white hover:border-gray-300"}`}
-                  >
-                    <div className="flex items-center justify-between px-3 pt-3 pb-2">
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full
-                        ${isActive ? pillActive : "bg-gray-100 text-gray-400"}`}
-                      >
-                        {isActive ? t("active") : t("tap")}
-                      </span>
-                      <div
-                        className={`text-xl font-black tracking-tight
-                        ${isActive ? amtActive : "text-gray-500"}`}
-                      >
-                        ${rawToFloat(sp.raw).toFixed(2)}
-                      </div>
-                    </div>
-                    <div className="px-3 pb-3">
-                      <VaultChips value={sp.vaultId} onChange={(vid) => setSplits((p) => p.map((s) => (s.id === sp.id ? { ...s, vaultId: vid } : s)))} treasurys={treasurys ?? []} />
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* ── Split summary ── */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 flex flex-col gap-0.5">
-                  <span className="text-[10px] text-gray-400 font-semibold">{t("total_entered")}</span>
-                  <span className="text-lg font-black text-gray-800">${fmtFloat(splitPaid)}</span>
-                </div>
-                <div
-                  className={`rounded-xl border px-4 py-3 flex flex-col gap-0.5
-                  ${change >= 0 ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50"}`}
-                >
-                  <span className={`text-[10px] font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
-                  <span className={`text-lg font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>${fmtFloat(Math.abs(change))}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── Numpad ── */}
-          <Numpad onKey={pushKey} />
-
-          {/* ── Single paid/change ── */}
-          {!isSplit && (
-            <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 flex flex-col gap-0.5">
-                <span className="text-[10px] text-gray-400 font-semibold">{t("tendered")}</span>
-                <span className="text-xl font-black text-gray-800">${fmtFloat(singlePaid)}</span>
-              </div>
-              <div
-                className={`rounded-xl border px-4 py-3 flex flex-col gap-0.5
-                ${change >= 0 ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50"}`}
-              >
-                <span className={`text-[10px] font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
-                <span className={`text-xl font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>${fmtFloat(Math.abs(change))}</span>
-              </div>
-            </div>
-          )}
-
-          <hr className="border-gray-100" />
-
-          {/* ── Actions ── */}
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { action: "pdf", label: "طباعة PDF", Icon: FileText },
-              { action: "whatsapp", label: "إرسال واتساب", Icon: MessageCircle },
-              { action: "email", label: "إرسال إيميل", Icon: Mail },
-              { action: "save_only", label: "حفظ فقط", Icon: Save },
-            ].map(({ action, label, Icon }) => (
-              <Button key={action} variant="outline" size="sm" onClick={() => handleAction(action as SaveAction)} className="h-10 text-[12px] gap-1.5">
-                <Icon size={13} />
-                {label}
-              </Button>
-            ))}
-
-            <Button
-              onClick={() => {
-                handleConfirmPayment("Cash", total.toFixed(2), false);
-                onOpenChange(false);
-              }}
-              size="sm"
-              className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white"
-            >
-              <Printer size={13} />
-              حفظ وطباعة فاتورة
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
 interface QuotationDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -766,7 +465,7 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
   );
 }
 
-export default function CartPanel() {
+export default function CartPanel2() {
   const { t } = useLanguage();
   const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
   const [quotationOpen, setQuotationOpen] = useState(false);
@@ -821,46 +520,43 @@ export default function CartPanel() {
     [products],
   );
 
-useEffect(() => {
-  let buffer = "";
-  let timer: ReturnType<typeof setTimeout>;
-  let lastKeyTime = 0;
+  useEffect(() => {
+    let buffer = "";
+    let timer: ReturnType<typeof setTimeout>;
+    let lastKeyTime = 0;
 
-  const handleKeyDown = (e: KeyboardEvent) => {
-    const activeEl = document.activeElement;
-    const isTyping =
-      activeEl instanceof HTMLInputElement ||
-      activeEl instanceof HTMLTextAreaElement ||
-      activeEl instanceof HTMLSelectElement;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      const isTyping = activeEl instanceof HTMLInputElement || activeEl instanceof HTMLTextAreaElement || activeEl instanceof HTMLSelectElement;
 
-    const now = Date.now();
-    const timeDiff = now - lastKeyTime;
-    lastKeyTime = now;
+      const now = Date.now();
+      const timeDiff = now - lastKeyTime;
+      lastKeyTime = now;
 
-    if (e.key === "Enter") {
-      if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer); // ✅ بس لو مش معلم
-      buffer = "";
+      if (e.key === "Enter") {
+        if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer); // ✅ بس لو مش معلم
+        buffer = "";
+        clearTimeout(timer);
+        return;
+      }
+
+      const isPartOfScan = timeDiff < 50 || buffer.length > 0;
+      if (!isPartOfScan) {
+        buffer = e.key;
+      } else {
+        buffer += e.key;
+      }
+
       clearTimeout(timer);
-      return;
-    }
+      timer = setTimeout(() => {
+        if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer); // ✅ بس لو مش معلم
+        buffer = "";
+      }, 300);
+    };
 
-    const isPartOfScan = timeDiff < 50 || buffer.length > 0;
-    if (!isPartOfScan) {
-      buffer = e.key;
-    } else {
-      buffer += e.key;
-    }
-
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer); // ✅ بس لو مش معلم
-      buffer = "";
-    }, 300);
-  };
-
-  window.addEventListener("keydown", handleKeyDown);
-  return () => window.removeEventListener("keydown", handleKeyDown);
-}, [handleBarcodeScanned]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleBarcodeScanned]);
 
   const handlePayment = ({ vault, method, action }: { vault: Treasury; method: string; action: SaveAction }) => {
     switch (action) {
@@ -974,19 +670,31 @@ useEffect(() => {
                   </td>
 
                   <td className="whitespace-nowrap">
-                    {/* Custom Split Switch */}
                     <div className="flex items-center gap-1.5 justify-center">
-                      {/* Split Toggle */}
-                      <div className="flex rounded-md overflow-hidden border border-gray-300 text-[10px] font-bold">
-                        <button onClick={() => setCart((prev) => prev.map((it, i) => (i === idx ? { ...it, itemDiscount: { type: "flat", value: it.itemDiscount?.value ?? 0 } } : it)))} className={`px-2 py-1 transition-colors ${(item.itemDiscount?.type ?? "flat") === "flat" ? "bg-[#000052] text-white" : "bg-white text-gray-500 hover:bg-gray-100"}`}>
-                          ر.س
-                        </button>
-                        <button onClick={() => setCart((prev) => prev.map((it, i) => (i === idx ? { ...it, itemDiscount: { type: "pct", value: it.itemDiscount?.value ?? 0 } } : it)))} className={`px-2 py-1 transition-colors border-r border-gray-300 ${item.itemDiscount?.type === "pct" ? "bg-[#000052] text-white" : "bg-white text-gray-500 hover:bg-gray-100"}`}>
-                          %
-                        </button>
+                      <div className="flex items-center gap-1 text-[10px] font-bold">
+                        <span className={`transition-colors ${(item.itemDiscount?.type ?? "flat") === "pct" ? "text-gray-400" : "text-[#000052]"}`}>ر.س</span>
+                        <Switch
+                          className="data-[state=unchecked]:bg-[#000052] data-[state=checked]:bg-[#000052]"
+                          checked={item.itemDiscount?.type === "pct"}
+                          onCheckedChange={(checked) =>
+                            setCart((prev) =>
+                              prev.map((it, i) =>
+                                i === idx
+                                  ? {
+                                      ...it,
+                                      itemDiscount: {
+                                        type: checked ? "pct" : "flat",
+                                        value: it.itemDiscount?.value ?? 0,
+                                      },
+                                    }
+                                  : it,
+                              ),
+                            )
+                          }
+                        />
+                        <span className={`transition-colors ${item.itemDiscount?.type === "pct" ? "text-[#000052]" : "text-gray-400"}`}>%</span>
                       </div>
 
-                      {/* Input */}
                       <Input
                         type="number"
                         min={0}
@@ -1188,7 +896,8 @@ useEffect(() => {
           </div>
         </div>
       </div>
-      <PaymentDialog
+      <UnifiedPaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} mode="payment" total={total} />
+      {/* <PaymentDialog
         open={paymentOpen}
         onOpenChange={setPaymentOpen}
         total={total}
@@ -1199,7 +908,7 @@ useEffect(() => {
         //   if (action === "whatsapp")
         //   if (action === "email")
         // }}
-      />{" "}
+      />{" "} */}
       <InvoicesDialog
         open={invoicesOpen}
         onOpenChange={setInvoicesOpen}
