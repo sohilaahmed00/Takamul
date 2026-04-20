@@ -237,7 +237,7 @@ export default function Sidebar() {
   return (
     <>
       <div
-        className="w-16 bg-sidebar border-e border-border flex flex-col items-center py-3 gap-0.5 shrink-0
+        className="w-16 bg-sidebar  flex flex-col items-center py-3 gap-0.5 shrink-0
   [.light_&]:bg-[#000052]
   [.dark_&]:bg-[#000052]
 "
