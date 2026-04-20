@@ -317,7 +317,7 @@ const CreateQuote: React.FC = () => {
         items: quotation?.items.map((quote) => ({
           productId: quote?.productId,
           quantity: quote?.quantity,
-          unitPrice: products?.items.find((pro) => pro?.id == quote?.productId).sellingPrice,
+          unitPrice: quote.unitPrice,
           // unitName: getBaseUnitNameWithId(1),
         })),
       });

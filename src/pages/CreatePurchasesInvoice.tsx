@@ -21,6 +21,7 @@ import { useGetAllTaxes } from "@/features/taxes/hooks/useGetAllTaxes";
 import { useGetPurchaseOrderById } from "@/features/purchases/hooks/useGetPurchaseOrderById";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import z from "zod/v3";
+import { calcVat } from "@/utils/calcVat";
 
 const createPurchasesInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -32,7 +33,7 @@ const createPurchasesInvoiceSchema = (t: (key: string) => string) =>
       .array(
         z.object({
           productId: z.number().min(1, t("choose_product")),
-          unitId: z.coerce.number().min(1, t("choose_product_unit")),
+          unitName: z.string().optional(),
           quantity: z.number().min(1, t("quantity_must_be_greater_than_zero")),
           unitPrice: z.number({ required_error: t("unit_cost_required") }).min(0, t("price_must_be_greater_or_equal_zero")),
           discountType: z.enum(["percentage", "fixed"]).default("fixed"),
@@ -81,9 +82,9 @@ const CreatePurchaseInvoice: React.FC = () => {
       items: [
         {
           productId: 0,
-          unitId: 0,
-          quantity: undefined,
-          unitPrice: undefined as unknown as number,
+          unitName: "",
+          quantity: 1,
+          unitPrice: undefined,
           discountType: "fixed",
           discountValue: 0,
           taxType: "fixed",
@@ -104,6 +105,18 @@ const CreatePurchaseInvoice: React.FC = () => {
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { data: taxes } = useGetAllTaxes();
+  useEffect(() => {
+    if (wareHouses && wareHouses.length > 0 && wareHouses[0]?.id) {
+      form.setValue("warehouseId", wareHouses[0].id);
+    }
+  }, [wareHouses]);
+
+  useEffect(() => {
+    const supplierId = suppliers?.items[0]?.id;
+    if (supplierId) {
+      form.setValue("supplierId", supplierId);
+    }
+  }, [suppliers]);
   const {
     fields: itemFields,
     append: appendItem,
@@ -159,7 +172,7 @@ const CreatePurchaseInvoice: React.FC = () => {
   const handleAddItem = () => {
     appendItem({
       productId: 0,
-      unitId: 0,
+      unitName: "",
       quantity: 1,
       unitPrice: 0,
       discountType: "fixed",
@@ -177,7 +190,6 @@ const CreatePurchaseInvoice: React.FC = () => {
       notes: data.notes || "",
       items: data.items.map((item) => ({
         productId: item.productId,
-        unitId: Number(item.unitId),
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
@@ -198,7 +210,7 @@ const CreatePurchaseInvoice: React.FC = () => {
         warehouseId: 0,
         supplierId: 0,
         notes: "",
-        items: [{ productId: 0, unitId: 0, quantity: undefined, unitPrice: undefined, discountType: "fixed", discountValue: 0, taxId: 0 }],
+        items: [{ productId: 0, unitName: "", quantity: undefined, unitPrice: undefined, discountType: "fixed", discountValue: 0, taxId: 0 }],
         payments: [{ amount: undefined, treasuryId: 0 }],
       });
     } else {
@@ -211,22 +223,23 @@ const CreatePurchaseInvoice: React.FC = () => {
     let totalVat = 0;
 
     items?.forEach((item) => {
+      const product = products?.items?.find((p) => p.id === Number(item.productId));
       const qty = item.quantity || 0;
       const price = item.unitPrice || 0;
       const discType = item.discountType || "fixed";
       const discValue = item.discountValue || 0;
-
       const tax = taxes?.find((taxItem) => taxItem.id === Number(item.taxId));
       const taxRate = tax?.amount || 0;
-
+      const taxCalc = product?.taxCalculation ?? 1;
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
-
-      const beforeTax = Math.max(0, gross - discount);
-      const vat = beforeTax * (taxRate / 100);
+      const afterTax = Math.max(0, gross - discount);
+      const vatAmount = calcVat(afterTax, product?.taxAmount || 0, taxCalc);
+      const beforeTax = afterTax - vatAmount;
+      const total = taxCalc === 3 ? afterTax + vatAmount : afterTax;
 
       beforeTaxTotal += beforeTax;
-      totalVat += vat;
+      totalVat += vatAmount;
     });
 
     const finalTotal = beforeTaxTotal + totalVat;
@@ -360,12 +373,11 @@ const CreatePurchaseInvoice: React.FC = () => {
                         const taxId = form.watch(`items.${index}.taxId`);
                         const tax = taxes?.find((taxItem) => taxItem.id === Number(taxId));
                         const taxRate = tax?.amount || 0;
-
                         const gross = qty * price;
                         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
-                        const beforeTax = Math.max(0, gross - discount);
-                        const vatAmount = beforeTax * (taxRate / 100);
-                        const afterTax = beforeTax + vatAmount;
+                        const afterTax = Math.max(0, gross - discount);
+                        const vatAmount = calcVat(afterTax, taxRate || 0, 3);
+                        const beforeTax = afterTax - vatAmount;
                         const isDiscOpen = !!discountOpen[index];
 
                         return (
@@ -396,7 +408,7 @@ const CreatePurchaseInvoice: React.FC = () => {
 
                               <Controller
                                 control={form.control}
-                                name={`items.${index}.unitId`}
+                                name={`items.${index}.unitName`}
                                 render={({ field, fieldState }) => (
                                   <Field>
                                     <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder={t("unit")} />
@@ -421,7 +433,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 name={`items.${index}.quantity`}
                                 render={({ field, fieldState }) => (
                                   <Field>
-                                    <Input type="number" min={1} value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                                    <Input type="number" value={field.value ? field.value : ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} className="text-center" />
                                     {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                                   </Field>
                                 )}

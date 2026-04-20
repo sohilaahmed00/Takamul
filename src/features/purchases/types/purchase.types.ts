@@ -36,9 +36,7 @@ export type CreatePurchaseOrder = {
   notes: string;
   items: {
     productId: number;
-    unitId: number;
     quantity: number;
-    unitPrice: number;
     discountPercentage: number;
     discountValue: number;
   }[];
