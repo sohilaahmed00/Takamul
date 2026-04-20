@@ -359,7 +359,7 @@ const CreateQuote: React.FC = () => {
   };
   const { grandTotal, count } = calcSummary();
 
-  const handleAddItem = () => appendItem({ productId: 0, quantity: 1, unitName: "", unitPrice: 0, discountType: "fixed", discountValue: 0 });
+  const handleAddItem = () => appendItem({ productId: 0, quantity: 1, unitName: "", unitPrice: 0, discountType: "fixed", discountValue: undefined });
 
   const handleSubmit = async (data: SalesInvoiceType) => {
     const payload: CreateQuotation = {
@@ -622,7 +622,7 @@ const CreateQuote: React.FC = () => {
                                   render={({ field }) => (
                                     <Field>
                                       <FieldLabel className="text-xs text-zinc-500">{t("discount_value")}</FieldLabel>
-                                      <Input type="number" min={0} value={field.value || 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center bg-white" />
+                                      <Input type="number" min={0} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value == "" ? undefined : Number(e.target.value))} className="text-center bg-white" />
                                     </Field>
                                   )}
                                 />
