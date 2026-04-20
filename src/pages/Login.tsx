@@ -255,9 +255,9 @@ export default function Login() {
         </div>
       </main>
 
-      <footer className={`relative z-10 text-center font-black tracking-[0.4em] uppercase py-8 opacity-40 ${isDark ? "text-slate-400" : "text-slate-500"}`} style={{ fontSize: 9 }}>
+      {/* <footer className={`relative z-10 text-center font-black tracking-[0.4em] uppercase py-8 opacity-40 ${isDark ? "text-slate-400" : "text-slate-500"}`} style={{ fontSize: 9 }}>
         © {new Date().getFullYear()} Takamul Data Systems • Excellence & Integration
-      </footer>
+      </footer> */}
     </div>
   );
 }
