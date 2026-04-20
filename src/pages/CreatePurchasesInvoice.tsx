@@ -83,7 +83,7 @@ const CreatePurchaseInvoice: React.FC = () => {
         {
           productId: 0,
           unitName: "",
-          quantity: 1,
+          quantity: undefined,
           unitPrice: undefined,
           discountType: "fixed",
           discountValue: 0,
@@ -234,7 +234,7 @@ const CreatePurchaseInvoice: React.FC = () => {
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
       const afterTax = Math.max(0, gross - discount);
-      const vatAmount = calcVat(afterTax, product?.taxAmount || 0, taxCalc);
+      const vatAmount = calcVat(afterTax, taxRate || 0, taxCalc);
       const beforeTax = afterTax - vatAmount;
       const total = taxCalc === 3 ? afterTax + vatAmount : afterTax;
 
@@ -398,6 +398,8 @@ const CreatePurchaseInvoice: React.FC = () => {
                                         const product = products?.items?.find((p) => p.id === Number(val));
                                         if (product) {
                                           form.setValue(`items.${index}.unitPrice`, product.sellingPrice);
+                                          const unitProduct = units?.items?.find((unit) => unit?.id == product?.baseUnitId);
+                                          form.setValue(`items.${index}.unitName`, unitProduct?.name);
                                         }
                                       }}
                                     />
@@ -409,10 +411,10 @@ const CreatePurchaseInvoice: React.FC = () => {
                               <Controller
                                 control={form.control}
                                 name={`items.${index}.unitName`}
-                                render={({ field, fieldState }) => (
+                                render={({ field }) => (
                                   <Field>
-                                    <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder={t("unit")} />
-                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("unit")}</FieldLabel>
+                                    <span className="block text-center py-2 px-3 bg-gray-100 rounded-md">{field.value || "-"}</span>{" "}
                                   </Field>
                                 )}
                               />
@@ -433,7 +435,16 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 name={`items.${index}.quantity`}
                                 render={({ field, fieldState }) => (
                                   <Field>
-                                    <Input type="number" value={field.value ? field.value : ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} className="text-center" />
+                                    <Controller
+                                      control={form.control}
+                                      name={`items.${index}.quantity`}
+                                      render={({ field, fieldState }) => (
+                                        <Field>
+                                          <Input type="number" value={field.value === undefined ? "" : field.value} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} className="text-center" />
+                                          {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                        </Field>
+                                      )}
+                                    />{" "}
                                     {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                                   </Field>
                                 )}
@@ -442,6 +453,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                               <div className="self-start pt-2 text-center font-medium">
                                 {beforeTax.toLocaleString("en-EG", {
                                   minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
                                 })}
                               </div>
 
@@ -573,6 +585,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                   <span className="font-semibold text-zinc-900 dark:text-white">
                     {summary.beforeTaxTotal.toLocaleString("en-EG", {
                       minimumFractionDigits: 2,
+                      maximumSignificantDigits: 2,
                     })}
                   </span>
                 </div>
@@ -582,6 +595,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                   <span className="font-semibold text-orange-600">
                     {summary.totalVat.toLocaleString("en-EG", {
                       minimumFractionDigits: 2,
+                      maximumSignificantDigits: 2,
                     })}
                   </span>
                 </div>
