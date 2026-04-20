@@ -30,7 +30,7 @@ interface PosContextValue {
 
   // Payment success
   successInfo: { method: string; amount: string };
-  handleConfirmPayment: (params: { printKitchenBon?: boolean; isHolding?: boolean }) => void;
+  handleConfirmPayment: (params?: { printKitchenBon?: boolean; isHolding?: boolean }) => void;
   // Order type
   orderType: OrderType;
   setOrderType: (t: OrderType) => void;
