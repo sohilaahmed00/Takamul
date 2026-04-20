@@ -52,6 +52,7 @@ export default function Layout() {
   const location = useLocation();
 
   const { theme, setTheme } = useTheme();
+  const isDark = theme === "dark";
   const { language, direction, setLanguage, t } = useLanguage();
   const { systemSettings } = useSettings();
 
@@ -180,7 +181,13 @@ export default function Layout() {
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--border)]">
-          <div className={cn("flex items-center overflow-hidden flex-1")}>{showSidebarContent ? <Logo onClick={closeAllMenus} /> : <Logo showText={false} onClick={closeAllMenus} />}</div>
+          <div className={cn("flex items-center justify-center overflow-hidden flex-1")}>
+            {showSidebarContent ? (
+              <Logo className={isDark ? "h-24" : "h-20"} onClick={closeAllMenus} />
+            ) : (
+              <Logo showText={false} className={isDark ? "h-24" : "h-20"} onClick={closeAllMenus} />
+            )}
+          </div>
 
           {isMobile && (
             <button onClick={() => setIsMobileMenuOpen(false)} className="text-[var(--text-muted)] hover:text-red-500 transition-colors p-1">
