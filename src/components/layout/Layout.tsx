@@ -505,7 +505,7 @@ export default function Layout() {
                       {theme === "dark" && <Check size={16} className="text-[var(--primary)]" />}
                     </button>
 
-                    <button onClick={() => handleThemeChange("red")} className="w-full text-right px-4 py-2 text-sm text-[var(--text-main)] hover:bg-[var(--bg-main)] flex items-center justify-between">
+                    {/* <button onClick={() => handleThemeChange("red")} className="w-full text-right px-4 py-2 text-sm text-[var(--text-main)] hover:bg-[var(--bg-main)] flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded-full bg-red-500" />
                         <span>{t("red_theme")}</span>
@@ -535,7 +535,7 @@ export default function Layout() {
                         <span>{t("high_contrast")}</span>
                       </div>
                       {theme === "high-contrast" && <Check size={16} className="text-[var(--primary)]" />}
-                    </button>
+                    </button> */}
                   </motion.div>
                 )}
               </AnimatePresence>

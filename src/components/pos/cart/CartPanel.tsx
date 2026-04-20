@@ -22,8 +22,6 @@ import { cn } from "@/lib/utils";
 import { Numpad } from "../cashier/CashierPanel";
 import { useNavigate } from "react-router-dom";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
-import { Treasury } from "@/features/treasurys/types/treasurys.types";
 import { UnifiedPaymentDialog } from "../modals/UnifiedPaymentDialog";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Globe, Sun, Moon, Monitor } from "lucide-react";
@@ -337,7 +335,7 @@ function ExtrasGrid({ additions, selectedIds, onToggle }: { additions: Addition[
 export default function CartPanel() {
   const { language, direction, setLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
-  const { cart, setCart, setSelectedTable, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
+  const { cart, setCart, setSelectedTable, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [discInput, setDiscInput] = useState("");
@@ -739,7 +737,29 @@ export default function CartPanel() {
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button size={"2xl"} onClick={handleHold} className="flex-1" variant="outline">
+                <Button
+                  onClick={async () => {
+                    if (cart.length === 0) {
+                      notifyError(t("add_items_to_invoice"));
+                      return;
+                    }
+
+                    if (orderType === "dine-in") {
+                      if (dineInMode === "add-items") {
+                        await handleAddItemsToExistingOrder();
+                      } else if (dineInMode === "checkout") {
+                        setCashierOpen(true);
+                      } else {
+                        await handleCreateDineInOrder(true);
+                      }
+                    } else {
+                      handleConfirmPayment({ isHolding: true });
+                    }
+                  }}
+                  size={"2xl"}
+                  className="flex-1"
+                  variant="outline"
+                >
                   {t("hold_cart")} <Pause />
                 </Button>
                 <Button

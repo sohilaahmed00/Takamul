@@ -14,9 +14,8 @@ export function useCreateDeliveryOrder() {
     mutationFn: (data: CreateDeliveryOrder) => createDeliveryOrder(data),
     onSuccess: (response) => {
       console.log(response);
-      queryClient.invalidateQueries({
-        queryKey: [...salesKeys.all, ...posKeys.all],
-      });
+      queryClient.invalidateQueries({ queryKey: salesKeys.all });
+      queryClient.invalidateQueries({ queryKey: posKeys.all });
       handleApiSuccess(response?.message, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),

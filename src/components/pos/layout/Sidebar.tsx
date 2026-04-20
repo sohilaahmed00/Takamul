@@ -37,7 +37,7 @@ const STATUS_MAP: Record<OrderStatusType, string | null> = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
-  const { setSelectedOrderId, selectedCustomer } = usePos();
+  const { selectedCustomer, setCart } = usePos();
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
   const { t } = useLanguage();
 
@@ -71,10 +71,6 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
   // useEffect(() => {
   //   setCurrentPage(1);
   // }, [activeStatus, search]);
-
-  const handleSelect = (order: SalesOrder) => {
-    setSelectedOrderId(order.id);
-  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -131,7 +127,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                 const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus;
 
                 return (
-                  <button key={order.id} onClick={() => handleSelect(order)} className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors text-right w-full">
+                  <div key={order.id} className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors text-right w-full">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
                       <FileText size={14} />
                     </div>
@@ -164,51 +160,72 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                       </span>
                     </div>
 
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        const invoiceData: InvoiceData = {
-                          logoUrl: LOGO_URL,
-                          invoiceNumber: `—`,
-                          institutionName: INSTITUTION_NAME,
-                          institutionTaxNumber: INSTITUTION_TAX_NO,
-                          invoiceDate: formatDate(new Date()),
-                          institutionAddress: INSTITUTION_ADDRESS,
-                          institutionPhone: INSTITUTION_PHONE,
-                          customerName: selectedCustomer?.customerName ?? undefined,
-                          customerPhone: undefined,
-                          items: order?.items.map((item) => {
-                            const tt: CartItem = {
-                              price: item?.unitPrice,
+                    {order?.orderStatus == "Confirmed" ? (
+                      <button
+                        onClick={async (e) => {
+                          const invoiceData: InvoiceData = {
+                            logoUrl: LOGO_URL,
+                            invoiceNumber: `—`,
+                            institutionName: INSTITUTION_NAME,
+                            institutionTaxNumber: INSTITUTION_TAX_NO,
+                            invoiceDate: formatDate(new Date()),
+                            institutionAddress: INSTITUTION_ADDRESS,
+                            institutionPhone: INSTITUTION_PHONE,
+                            customerName: selectedCustomer?.customerName ?? undefined,
+                            customerPhone: undefined,
+                            items: order?.items.map((item) => {
+                              const tt: CartItem = {
+                                price: item?.unitPrice,
+                                qty: item?.quantity,
+                                taxamount: item?.taxAmount,
+                                taxCalculation: item?.taxCalculation,
+                                productId: item?.id,
+                                op: null,
+                              };
+                              const base = itemBasePrice(tt);
+                              const tax = calcItemTax(tt);
+                              return {
+                                productName: tt.name,
+                                quantity: tt.qty,
+                                unitPrice: Number(base.toFixed(2)),
+                                taxAmount: Number(tax.toFixed(2)),
+                                total: Number((base + tax).toFixed(2)),
+                              };
+                            }),
+                            subTotal: Number(order?.subTotal.toFixed(2)),
+                            discountAmount: Number(order?.discountAmount.toFixed(2)),
+                            taxAmount: order?.taxAmount,
+                            grandTotal: order?.grandTotal,
+                            notes: INSTITUTION_NOTES,
+                          };
+                          await printInvoice(invoiceData);
+                        }}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                      >
+                        <Printer size={13} />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={async (e) => {
+                          setCart(
+                            order.items.map((item) => ({
+                              price: item?.unitPrice ?? 0,
                               qty: item?.quantity,
                               taxamount: item?.taxAmount,
-                              taxCalculation: item?.taxCalculation,
-                              productId: item?.id,
-                              op: null,
-                            };
-                            const base = itemBasePrice(tt);
-                            const tax = calcItemTax(tt);
-                            return {
-                              productName: tt.name,
-                              quantity: tt.qty,
-                              unitPrice: Number(base.toFixed(2)),
-                              taxAmount: Number(tax.toFixed(2)),
-                              total: Number((base + tax).toFixed(2)),
-                            };
-                          }),
-                          subTotal: Number(order?.subTotal.toFixed(2)),
-                          discountAmount: Number(order?.discountAmount.toFixed(2)),
-                          taxAmount: order?.taxAmount,
-                          grandTotal: order?.grandTotal,
-                          notes: INSTITUTION_NOTES,
-                        };
-                        await printInvoice(invoiceData);
-                      }}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
-                    >
-                      {order?.orderStatus == "Confirmed" ? <Printer size={13} /> : <Eye size={13} />}
-                    </button>
-                  </button>
+                              taxCalculation: item.taxCalculation,
+                              name: item?.productName,
+                              productId: item?.productId,
+                            })),
+                          );
+                          onOpenChange(false);
+                          // await printInvoice(invoiceData);
+                        }}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                      >
+                        <Eye size={13} />
+                      </button>
+                    )}
+                  </div>
                 );
               })}
             </div>

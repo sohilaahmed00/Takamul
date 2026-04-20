@@ -27,17 +27,10 @@ interface PosContextValue {
   setDiscount: React.Dispatch<React.SetStateAction<number>>;
 
   // Hold
-  heldCarts: HeldCart[];
-  showHoldModal: boolean;
-  setShowHoldModal: (v: boolean) => void;
-  handleHold: () => void;
-  confirmHold: (note: string) => void;
-  restoreHold: (idx: number) => void;
 
   // Payment success
   successInfo: { method: string; amount: string };
-  handleConfirmPayment: (method: string, amount: string, printKitchenBon?: boolean) => void;
-
+  handleConfirmPayment: (params: { printKitchenBon?: boolean; isHolding?: boolean }) => void;
   // Order type
   orderType: OrderType;
   setOrderType: (t: OrderType) => void;
@@ -62,7 +55,7 @@ interface PosContextValue {
   // Network
   networkSpeed: NetworkSpeed;
 
-  handleCreateDineInOrder: () => Promise<void>;
+  handleCreateDineInOrder: (isHolding?: boolean) => Promise<void>;
 
   selectedOrderId: number | null;
   setSelectedOrderId: (id: number | null) => void;
@@ -94,7 +87,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const { notifyError, notifySuccess } = useToast();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [discount, setDiscount] = useState(0);
-  const [heldCarts, setHeldCarts] = useState<HeldCart[]>([]);
   const [showHoldModal, setShowHoldModal] = useState(false);
   const [successInfo, setSuccessInfo] = useState({ method: "Cash", amount: "0.00" });
   const [orderType, setOrderType] = useState<OrderType>("takeaway");
@@ -131,29 +123,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
   const handleHold = () => setShowHoldModal(true);
 
-  const confirmHold = (note: string) => {
-    const { total } = calcTotals(cart, discount);
-    setHeldCarts((prev) => [
-      ...prev,
-      {
-        note,
-        items: [...cart],
-        total,
-        time: new Date().toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
-      },
-    ]);
-    setCart([]);
-    setDiscount(0);
-    setShowHoldModal(false);
-    setScreen("hold-list");
-  };
-
-  const restoreHold = (idx: number) => {
-    setCart([...heldCarts[idx].items]);
-    setHeldCarts((prev) => prev.filter((_, i) => i !== idx));
-    setDiscount(0);
-    setScreen("home");
-  };
   const addToCart = (item: { id: number; productNameAr: string; sellingPrice: number; taxAmount: number; taxCalculation: number }) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.productId === item.id);
@@ -176,49 +145,57 @@ export function PosProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const handleCreateDineInOrder = useCallback(async () => {
-    const items = cart.map((c) => ({
-      productId: c.productId,
-      quantity: c.qty,
-      discountValue: c.itemDiscount?.type === "flat" ? c.itemDiscount.value : 0,
-      discountPercentage: c.itemDiscount?.type === "pct" ? c.itemDiscount.value : 0,
-    }));
+  const handleCreateDineInOrder = useCallback(
+    async (isHolding = false) => {
+      const items = cart.map((c) => ({
+        productId: c.productId,
+        quantity: c.qty,
+        discountValue: c.itemDiscount?.type === "flat" ? c.itemDiscount.value : 0,
+        discountPercentage: c.itemDiscount?.type === "pct" ? c.itemDiscount.value : 0,
+      }));
 
-    const payload = {
-      customerId: selectedCustomer?.id,
-      warehouseId: 1,
-      notes: "",
-      globalDiscountValue: 0,
-      globalDiscountPercentage: discount,
-      giftCardId: selectedGiftCardId,
-      additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
-      tableId: Number(selectedTable),
-      items,
-    };
-
-    try {
-      await createDineInOrderyOrder(payload);
-      const sampleBon: BonData = {
-        institutionName: "بون التحضير",
-        invoiceNumber: "5000",
-        invoiceDate: formatDate(new Date()),
-        customerName: selectedCustomer?.customerName,
-        items: cart?.map((cart) => ({
-          productName: cart?.name,
-          quantity: cart?.qty,
-        })),
+      const payload = {
+        customerId: selectedCustomer?.id,
+        warehouseId: 1,
+        notes: "",
+        globalDiscountValue: 0,
+        globalDiscountPercentage: discount,
+        giftCardId: selectedGiftCardId,
+        additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
+        tableId: Number(selectedTable),
+        items,
+        isHolding,
       };
 
-      printPreparationBon(sampleBon);
-      setCart([]);
-      setDineInMode(null);
-      setDiscount(0);
-      setSelectedCustomer(null);
-      setScreen("home");
-    } catch {
-      // notifyError("حدث خطأ أثناء إنشاء الأوردر");
-    }
-  }, [cart, discount, selectedCustomer, selectedTable, selectedGiftCardId]);
+      try {
+        await createDineInOrderyOrder(payload);
+
+        if (!isHolding) {
+          const sampleBon: BonData = {
+            institutionName: "بون التحضير",
+            invoiceNumber: "5000",
+            invoiceDate: formatDate(new Date()),
+            customerName: selectedCustomer?.customerName,
+            items: cart.map((c) => ({
+              productName: c.name,
+              quantity: c.qty,
+            })),
+          };
+          printPreparationBon(sampleBon);
+        }
+
+        setCart([]);
+        setDineInMode(null);
+        setDiscount(0);
+        setSelectedCustomer(null);
+        setScreen("home");
+      } catch {
+        // notifyError("حدث خطأ أثناء إنشاء الأوردر");
+      }
+    },
+    [cart, discount, selectedCustomer, selectedTable, selectedGiftCardId],
+  );
+
   const handleAddItemsToExistingOrder = async () => {
     const payload = {
       orderId: selectedOrderId,
@@ -241,11 +218,13 @@ export function PosProvider({ children }: { children: ReactNode }) {
       setScreen("home");
     } catch {}
   };
-  const handleConfirmPayment = async (method: string, amount: string, printKitchenBon = true) => {
-    if (orderType !== "dine-in") {
-      if (!selectedVaultId) {
-        notifyError("اختر الخزنة");
-        return;
+  const handleConfirmPayment = async ({ printKitchenBon = true, isHolding = false }) => {
+    if (!isHolding) {
+      if (orderType !== "dine-in") {
+        if (!selectedVaultId) {
+          notifyError("اختر الخزنة");
+          return;
+        }
       }
     }
 
@@ -274,6 +253,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
       items,
       payments,
+      isHolding,
     };
 
     try {
@@ -298,64 +278,64 @@ export function PosProvider({ children }: { children: ReactNode }) {
         await createDeliveryOrder(basePayload);
       }
 
-      const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
-      const totals = calcTotals(cart, hasItemDiscounts ? 0 : discount);
-      const discountAmount = hasItemDiscounts
-        ? cart.reduce((acc, item) => {
-            const raw = itemBasePriceRaw(item);
-            const afterDisc = itemBasePrice(item);
-            return acc + (raw - afterDisc);
-          }, 0)
-        : discount;
+      if (!isHolding) {
+        const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
+        const totals = calcTotals(cart, hasItemDiscounts ? 0 : discount);
+        const discountAmount = hasItemDiscounts
+          ? cart.reduce((acc, item) => {
+              const raw = itemBasePriceRaw(item);
+              const afterDisc = itemBasePrice(item);
+              return acc + (raw - afterDisc);
+            }, 0)
+          : discount;
 
-      const invoiceData: InvoiceData = {
-        logoUrl: LOGO_URL,
-        invoiceNumber: `—`,
-        institutionName: INSTITUTION_NAME,
-        institutionTaxNumber: INSTITUTION_TAX_NO,
-        invoiceDate: formatDate(new Date()),
-        institutionAddress: INSTITUTION_ADDRESS,
-        institutionPhone: INSTITUTION_PHONE,
-        customerName: selectedCustomer?.customerName ?? undefined,
-        customerPhone: undefined,
+        const invoiceData: InvoiceData = {
+          logoUrl: LOGO_URL,
+          invoiceNumber: `—`,
+          institutionName: INSTITUTION_NAME,
+          institutionTaxNumber: INSTITUTION_TAX_NO,
+          invoiceDate: formatDate(new Date()),
+          institutionAddress: INSTITUTION_ADDRESS,
+          institutionPhone: INSTITUTION_PHONE,
+          customerName: selectedCustomer?.customerName ?? undefined,
+          customerPhone: undefined,
+          items: cart.map((item) => {
+            const base = itemBasePrice(item);
+            const tax = calcItemTax(item);
+            return {
+              productName: item.name,
+              quantity: item.qty,
+              unitPrice: Number(base.toFixed(2)),
+              taxAmount: Number(tax.toFixed(2)),
+              total: Number((base + tax).toFixed(2)),
+            };
+          }),
+          subTotal: Number(totals.sub.toFixed(2)),
+          discountAmount: Number(discountAmount.toFixed(2)),
+          taxAmount: totals.originalTax,
+          grandTotal: totals.total,
+          notes: INSTITUTION_NOTES,
+        };
 
-        items: cart.map((item) => {
-          const base = itemBasePrice(item);
-          const tax = calcItemTax(item);
-          return {
-            productName: item.name,
-            quantity: item.qty,
-            unitPrice: Number(base.toFixed(2)),
-            taxAmount: Number(tax.toFixed(2)),
-            total: Number((base + tax).toFixed(2)),
-          };
-        }),
+        const sampleBon: BonData = {
+          institutionName: "بون التحضير",
+          invoiceNumber: "5000",
+          invoiceDate: formatDate(new Date()),
+          customerName: selectedCustomer?.customerName,
+          items: cart.map((c) => ({
+            productName: c.name,
+            quantity: c.qty,
+          })),
+        };
 
-        subTotal: Number(totals.sub.toFixed(2)),
-        discountAmount: Number(discountAmount.toFixed(2)),
-        taxAmount: totals.originalTax,
-        grandTotal: totals.total,
-        notes: INSTITUTION_NOTES,
-      };
+        await printInvoice(invoiceData);
+        if (printKitchenBon && orderType !== "dine-in") {
+          await printPreparationBon(sampleBon);
+        }
 
-      const sampleBon: BonData = {
-        institutionName: "بون التحضير",
-        invoiceNumber: "5000",
-        invoiceDate: formatDate(new Date()),
-        customerName: selectedCustomer?.customerName,
-        items: cart?.map((cart) => ({
-          productName: cart?.name,
-          quantity: cart?.qty,
-        })),
-      };
-
-      await printInvoice(invoiceData);
-      // await sleep(1500);
-      if (printKitchenBon == true) {
-        await printPreparationBon(sampleBon);
+        // setSuccessInfo({ method, amount });
       }
 
-      setSuccessInfo({ method, amount });
       setCart([]);
       setDiscount(0);
       setSelectedCustomer(null);
@@ -394,12 +374,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
         setCart,
         discount,
         setDiscount,
-        heldCarts,
-        showHoldModal,
-        setShowHoldModal,
-        handleHold,
-        confirmHold,
-        restoreHold,
         successInfo,
         handleConfirmPayment,
         orderType,
