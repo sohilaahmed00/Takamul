@@ -29,7 +29,7 @@ export default function Logo({ className = "", style, onClick }: LogoProps) {
     <div
       onClick={handleClick}
       className={cn(
-        "flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 w-full",
+        "flex items-center justify-center cursor-pointer transition-opacity hover:opacity-80 w-auto h-10",
         className
       )}
       style={style}

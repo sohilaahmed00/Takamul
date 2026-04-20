@@ -283,14 +283,19 @@ export default function Login() {
         {/* ══ BRAND SIDE ══ */}
         <div className="hidden lg:flex flex-col items-center justify-center gap-4 mb-12 flex-1 shrink-0">
 
-          {/* Logo — compact height */}
-          <Logo style={{ height: 280, width: "auto", maxWidth: "100%" }} />
-
-          {/* zakat image — compact */}
+          {/* Outer Branding Logo — decoupled from Logo component */}
           <img
-            src="/zakat.jpeg"
+            src={`/logo_${lang === "ar" ? "ar" : "en"}_${isDark ? "dark" : "light"}.png`}
+            alt="Takamul logo"
+            className="object-contain drop-shadow-2xl transition-all duration-500"
+            style={{ height: isDark ? 320 : 280, width: "auto", maxWidth: "100%" }}
+          />
+
+          {/* ZATCA image — theme specific */}
+          <img
+            src={isDark ? "/zakat_en_dark.png" : "/zakat_en_light.png"}
             alt="هيئة الزكاة والضريبة والجمارك"
-            className="object-contain drop-shadow-xl"
+            className="object-contain drop-shadow-xl transition-all duration-500"
             style={{ height: 90, width: "auto", maxWidth: "100%" }}
           />
 
@@ -299,32 +304,36 @@ export default function Login() {
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
               {t.download}
             </p>
-            <div className="flex flex-wrap gap-3 justify-center">
+            <div className="flex flex-wrap gap-3 justify-center items-center">
               <a href="#" className="hover:scale-105 transition-transform">
                 <img
                   src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
                   alt="Google Play"
-                  className="rounded shadow"
-                  style={{ height: 38, width: "auto" }}
+                  className="rounded shadow-lg"
+                  style={{ height: 40, width: "auto" }}
                 />
               </a>
               <a href="#" className="hover:scale-105 transition-transform">
                 <img
                   src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
                   alt="App Store"
-                  className="rounded shadow"
-                  style={{ height: 38, width: "auto" }}
+                  className="rounded shadow-lg"
+                  style={{ height: 40, width: "auto" }}
                 />
               </a>
               <a
                 href="#"
-                className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg font-black shadow hover:bg-slate-800 transition-colors border border-slate-700"
-                style={{ height: 38 }}
+                className="flex items-center gap-2.5 bg-black text-white px-4 py-1 rounded-[6px] border border-white/5 hover:bg-neutral-900 transition-all shadow-lg hover:scale-105 group"
+                style={{ height: 40 }}
               >
-                <span className="text-sky-400 text-xl font-normal">⊞</span>
-                <div className="text-left leading-tight">
-                  <p className="opacity-60" style={{ fontSize: 8 }}>Download for</p>
-                  <p className="uppercase tracking-wide" style={{ fontSize: 10 }}>Windows</p>
+                <img 
+                  src="https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg" 
+                  alt="Windows" 
+                  className="w-4 h-4"
+                />
+                <div className="flex flex-col text-left leading-none">
+                  <span className="text-[7px] font-medium opacity-60 uppercase tracking-tighter">Download for</span>
+                  <span className="text-[14px] font-semibold tracking-tight">Windows</span>
                 </div>
               </a>
             </div>
