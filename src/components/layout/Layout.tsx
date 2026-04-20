@@ -183,7 +183,7 @@ export default function Layout() {
         <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--border)]">
           <div className={cn("flex items-center justify-center overflow-hidden flex-1")}>
             {showSidebarContent ? (
-              <Logo className={isDark ? "h-24" : "h-20"} onClick={closeAllMenus} />
+              <Logo className={isDark ? "h-15" : "h-15"} onClick={closeAllMenus} />
             ) : (
               <Logo showText={false} className={isDark ? "h-24" : "h-20"} onClick={closeAllMenus} />
             )}
