@@ -29,10 +29,10 @@ function VaultChips({ value, onChange, treasurys }: { value: number; onChange: (
             key={v.id}
             onClick={() => onChange(v.id)}
             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border-2 transition-all flex-shrink-0
-              ${active ? "border-green-500 bg-green-50" : "border-gray-200 bg-white hover:border-gray-300"}`}
+    ${active ? "border-primary bg-primary/10" : "border-border bg-card hover:border-border/80"}`}
           >
-            <Vault size={10} className={active ? "text-green-600" : "text-gray-400"} />
-            <span className={`text-xs font-bold whitespace-nowrap ${active ? "text-green-700" : "text-gray-500"}`}>{v.name}</span>
+            <Vault size={10} className={active ? "text-primary" : "text-muted-foreground"} />
+            <span className={`text-xs font-bold whitespace-nowrap ${active ? "text-primary" : "text-muted-foreground"}`}>{v.name}</span>
           </button>
         );
       })}
@@ -55,8 +55,8 @@ export function Numpad({ onKey }: { onKey: (k: string) => void }) {
       {ROWS.map((row, ri) => (
         <div key={ri} className="grid gap-1.5" style={{ gridTemplateColumns: row.length === 2 ? "1fr 2fr" : "repeat(3,1fr)" }}>
           {row.map((k) => (
-            <button key={k} onClick={() => onKey(k)} className="rounded-xl border border-gray-100 bg-gray-50 hover:bg-gray-100 active:scale-95 transition-all text-sm font-semibold text-gray-700" style={{ minHeight: 48 }}>
-              {k === "del" ? <Delete size={15} className="mx-auto text-gray-500" /> : k === "cancel" ? t("cancel") : k}
+            <button key={k} onClick={() => onKey(k)} className="rounded-xl border border-border bg-muted/50 hover:bg-muted active:scale-95 transition-all text-sm font-semibold text-foreground" style={{ minHeight: 48 }}>
+              {k === "del" ? <Delete size={15} className="mx-auto text-muted-foreground" /> : k === "cancel" ? t("cancel") : k}
             </button>
           ))}
         </div>
@@ -160,46 +160,43 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
   }, [paid]);
 
   return (
-    <div style={{ width: 550 }} className="border-l border-gray-100 flex flex-col h-full bg-gray-50/40">
-      {/* ── Top: scrollable info ── */}
+    <div style={{ width: 550 }} className="border-l border-border flex flex-col h-full bg-muted/20">
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 min-h-0">
-        {/* ── Header card ── */}
-        <Card className="bg-white shadow-xs border-0">
+        {/* Header card */}
+        <Card className="bg-card shadow-xs border-0">
           <CardHeader>
             <CardTitle>
-              <div>
-                <div className="text-xs text-gray-400 mb-0.5">{t("payable_amount")}</div>
-                <div className="text-2xl font-black text-green-600">${total.toFixed(2)}</div>
-              </div>
+              <div className="text-xs text-muted-foreground mb-0.5">{t("payable_amount")}</div>
+              <div className="text-2xl font-black text-primary">${total.toFixed(2)}</div>
             </CardTitle>
             <CardAction>
               {selectedCustomer ? (
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center text-xs font-black text-green-700">{selectedCustomer.customerName.slice(0, 2).toUpperCase()}</div>
+                  <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-black text-primary">{selectedCustomer.customerName.slice(0, 2).toUpperCase()}</div>
                   <div>
-                    <div className="text-xs font-bold text-gray-800">{selectedCustomer.customerName}</div>
-                    <div className="text-xs text-gray-400">#{selectedCustomer.id}</div>
+                    <div className="text-xs font-bold text-foreground">{selectedCustomer.customerName}</div>
+                    <div className="text-xs text-muted-foreground">#{selectedCustomer.id}</div>
                   </div>
-                  <button onClick={() => setSelectedCustomer(null)} className="text-gray-300 hover:text-red-400 transition-colors">
+                  <button onClick={() => setSelectedCustomer(null)} className="text-muted-foreground/50 hover:text-destructive transition-colors">
                     <Trash2 size={14} />
                   </button>
                 </div>
               ) : (
-                <div className="text-xs text-gray-400 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">{t("no_customer_selected")}</div>
+                <div className="text-xs text-muted-foreground bg-muted border border-border rounded-xl px-3 py-2">{t("no_customer_selected")}</div>
               )}
             </CardAction>
           </CardHeader>
         </Card>
 
-        {/* ── Payment card ── */}
-        <Card className="bg-white border-0 shadow-xs">
+        {/* Payment card */}
+        <Card className="bg-card border-0 shadow-xs">
           <CardHeader>
-            <span className="text-xs font-semibold text-gray-500">{isSplit ? t("split_between_vaults") : t("destination_vault")}</span>
+            <span className="text-xs font-semibold text-muted-foreground">{isSplit ? t("split_between_vaults") : t("destination_vault")}</span>
             <CardAction>
               <button
                 onClick={toggleSplit}
                 className={`text-xs px-3 py-1 rounded-full font-semibold border transition-colors
-                  ${isSplit ? "border-green-500 text-green-600 bg-green-50" : "border-gray-200 text-gray-500 hover:border-green-300"}`}
+              ${isSplit ? "border-primary text-primary bg-primary/10" : "border-border text-muted-foreground hover:border-primary/50"}`}
               >
                 {isSplit ? t("split_on") : t("split_payment")}
               </button>
@@ -217,14 +214,14 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
                   }}
                   treasurys={treasurys ?? []}
                 />
-                <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 flex items-center justify-between">
+                <div className="rounded-xl border border-border bg-muted/50 px-4 py-3 flex items-center justify-between">
                   <div>
-                    <div className="text-xs text-gray-400">{t("tendered")}</div>
-                    <div className="text-2xl font-black text-gray-800">{fmtFloat(singlePaid)}</div>
+                    <div className="text-xs text-muted-foreground">{t("tendered")}</div>
+                    <div className="text-2xl font-black text-foreground">{fmtFloat(singlePaid)}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-gray-400">{change >= 0 ? t("change") : t("remaining")}</div>
-                    <div className={`text-lg font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>{fmtFloat(Math.abs(change))}</div>
+                    <div className="text-xs text-muted-foreground">{change >= 0 ? t("change") : t("remaining")}</div>
+                    <div className={`text-lg font-black ${change >= 0 ? "text-primary" : "text-destructive"}`}>{fmtFloat(Math.abs(change))}</div>
                   </div>
                 </div>
               </>
@@ -232,7 +229,6 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
 
             {isSplit && (
               <div className="flex flex-col gap-3">
-                {/* Two split cards in a row */}
                 <div className="grid grid-cols-2 gap-2">
                   {splits.map((sp) => {
                     const isActive = activeId === sp.id;
@@ -241,25 +237,20 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
                         key={sp.id}
                         onClick={() => setActiveId(sp.id)}
                         className={`rounded-xl border-2 p-3 cursor-pointer transition-all
-                          ${isActive ? "border-green-500 bg-green-50/40 shadow-sm" : "border-gray-200 bg-white hover:border-gray-300"}`}
+                      ${isActive ? "border-primary bg-primary/5 shadow-sm" : "border-border bg-card hover:border-border/80"}`}
                       >
-                        {/* Active indicator */}
                         <div className="flex items-center justify-between mb-2">
                           <span
                             className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full
-                            ${isActive ? "bg-green-500 text-white" : "bg-gray-100 text-gray-400"}`}
+                        ${isActive ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"}`}
                           >
                             {isActive ? t("active") : t("tap")}
                           </span>
                         </div>
-
-                        {/* Vault chips */}
                         <VaultChips value={sp.vaultId} onChange={(vid) => setSplits((p) => p.map((s) => (s.id === sp.id ? { ...s, vaultId: vid } : s)))} treasurys={treasurys ?? []} />
-
-                        {/* Amount */}
                         <div
                           className={`mt-2 rounded-lg px-2 py-2 text-center text-lg font-black
-                          ${isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"}`}
+                      ${isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"}`}
                         >
                           {fmtRaw(sp.raw)}
                         </div>
@@ -268,18 +259,17 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
                   })}
                 </div>
 
-                {/* Summary row */}
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="rounded-xl bg-gray-50 border border-gray-100 px-3 py-2.5 flex flex-col">
-                    <span className="text-[10px] text-gray-400 font-semibold">{t("total_entered")}</span>
-                    <span className="text-base font-black text-gray-800">{fmtFloat(splitPaid)}</span>
+                  <div className="rounded-xl bg-muted/50 border border-border px-3 py-2.5 flex flex-col">
+                    <span className="text-[10px] text-muted-foreground font-semibold">{t("total_entered")}</span>
+                    <span className="text-base font-black text-foreground">{fmtFloat(splitPaid)}</span>
                   </div>
                   <div
                     className={`rounded-xl px-3 py-2.5 flex flex-col border
-                    ${change >= 0 ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"}`}
+                ${change >= 0 ? "bg-primary/10 border-primary/20" : "bg-destructive/10 border-destructive/20"}`}
                   >
-                    <span className={`text-[10px] font-semibold ${change >= 0 ? "text-green-500" : "text-red-400"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
-                    <span className={`text-base font-black ${change >= 0 ? "text-green-600" : "text-red-500"}`}>{fmtFloat(Math.abs(change))}</span>
+                    <span className={`text-[10px] font-semibold ${change >= 0 ? "text-primary" : "text-destructive"}`}>{change >= 0 ? t("change") : t("remaining")}</span>
+                    <span className={`text-base font-black ${change >= 0 ? "text-primary" : "text-destructive"}`}>{fmtFloat(Math.abs(change))}</span>
                   </div>
                 </div>
               </div>
@@ -288,8 +278,6 @@ export default function CashierPanel({ onCancel }: { onCancel?: () => void }) {
           </CardContent>
         </Card>
       </div>
-
-      {/* ── Numpad: always visible at bottom ── */}
     </div>
   );
 }

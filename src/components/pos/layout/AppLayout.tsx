@@ -56,23 +56,26 @@ export default function AppLayout() {
     init();
   }, []);
   return (
-    <div className="relative flex h-screen overflow-hidden py-2 bg-[#000052]">
+    <div
+      className="relative flex h-screen overflow-hidden py-2 bg-sidebar
+  [.light_&]:bg-[#000052] 
+  [.dark_&]:bg-[#000052]
+"
+    >
+      {" "}
       <ToastContainer pauseOnHover={false} />
-
       {/* Modal */}
       {showHoldModal && <HoldModal open={showHoldModal} onClose={() => setShowHoldModal(false)} onConfirm={confirmHold} />}
-
       {/* Sidebar */}
       <Sidebar />
-
-      <div className="flex flex-1 flex-col overflow-hidden min-w-0 bg-white rounded-tr-[28px] rounded-lg">
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0 bg-sidebar rounded-tr-[28px] rounded-lg">
         <div className="flex flex-1 overflow-hidden">
           <TooltipProvider>
-            {/* Page + Topbar */}
-            <div className="flex-1 overflow-y-auto min-w-0 bg-white flex flex-col">
-              <div className="rounded-tr-[28px] overflow-hidden bg-white">
+            <div className="flex-1 overflow-y-auto min-w-0 flex flex-col bg-[var(--bg-main)]">
+              <div className="rounded-tr-[28px] overflow-hidden bg-[var(--bg-main)]">
                 <Topbar />
               </div>
+
               <PageContent />
             </div>
 

@@ -705,27 +705,42 @@ export default function AddProduct() {
                     />
 
                     {/* Price summary card */}
-                    <div className="lg:col-span-2">
-                      <div className="w-full bg-[#FFFCF2] dark:bg-amber-950/20 border border-[#F3E2B4] dark:border-amber-800/40 rounded-xl p-5">
-                        <div className="flex flex-col space-y-3.5">
-                          <div className="flex justify-between items-center">
-                            <span className="text-slate-500 dark:text-slate-400 text-[15px]">السعر قبل الضريبة</span>
-                            <span className="text-slate-500 dark:text-slate-400 text-[15px]">{summary.basePrice}</span>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-[#D97706] dark:text-amber-500 text-[15px]">
-                              ضريبة ({summary.taxPercentage}%) {summary.taxName}
-                            </span>
-                            <span className="text-[#D97706] dark:text-amber-500 text-[15px]">{summary.taxAmount} +</span>
-                          </div>
-                          <div className="border-t border-[#E8D49E] dark:border-amber-800/60 my-0.5" />
-                          <div className="flex justify-between items-center pt-1">
-                            <span className="text-[#8B4513] dark:text-amber-400 font-bold text-lg">السعر النهائي</span>
-                            <span className="text-[#8B4513] dark:text-amber-400 font-bold text-lg">{summary.finalPrice}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                   <div className="lg:col-span-2">
+  <div className="w-full bg-card border border-border rounded-xl p-5">
+    <div className="flex flex-col space-y-3.5">
+      
+      <div className="flex justify-between items-center">
+        <span className="text-muted-foreground text-[15px]">
+          السعر قبل الضريبة
+        </span>
+        <span className="text-muted-foreground text-[15px]">
+          {summary.basePrice}
+        </span>
+      </div>
+
+      <div className="flex justify-between items-center">
+        <span className="text-primary text-[15px]">
+          ضريبة ({summary.taxPercentage}%) {summary.taxName}
+        </span>
+        <span className="text-primary text-[15px]">
+          {summary.taxAmount} +
+        </span>
+      </div>
+
+      <div className="border-t border-border my-0.5" />
+
+      <div className="flex justify-between items-center pt-1">
+        <span className="text-foreground font-bold text-lg">
+          السعر النهائي
+        </span>
+        <span className="text-foreground font-bold text-lg">
+          {summary.finalPrice}
+        </span>
+      </div>
+
+    </div>
+  </div>
+</div>
                   </>
                 )}
 

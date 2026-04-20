@@ -294,7 +294,7 @@ export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyCha
           })}
         </div>
 
-        <div className="bg-muted/30 px-4 py-3 border-b border-border">
+        <div className="bg-muted/50 px-4 py-3 border-b border-border">
           {activeTab === "qty" && (
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">الكمية</span>
@@ -364,262 +364,6 @@ function ExtrasGrid({ additions, selectedIds, onToggle }: { additions: Addition[
         );
       })}
     </div>
-  );
-}
-
-function VaultChips({ value, onChange, treasurys }: { value: number; onChange: (id: number) => void; treasurys: Treasury[] }) {
-  return (
-    <div className="flex gap-1.5 overflow-x-auto" style={{ scrollbarWidth: "none" } as React.CSSProperties} onClick={(e) => e.stopPropagation()}>
-      {treasurys.map((v) => {
-        const active = value === v.id;
-        return (
-          <button
-            key={v.id}
-            onClick={() => onChange(v.id)}
-            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border-2 transition-all flex-shrink-0
-              ${active ? "border-green-500 bg-green-50" : "border-gray-200 bg-white hover:border-gray-300"}`}
-          >
-            <Vault size={10} className={active ? "text-green-600" : "text-gray-400"} />
-            <span className={`text-xs font-bold whitespace-nowrap ${active ? "text-green-700" : "text-gray-500"}`}>{v.name}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-interface Split {
-  id: string;
-  vaultId: number;
-  raw: string;
-}
-export function CashierDialog({ open, onOpenChange, onCancel }: { open: boolean; onOpenChange: (v: boolean) => void; onCancel?: () => void }) {
-  const { t } = useLanguage();
-  const { data: treasurys } = useGetAllTreasurys();
-  const { selectedCustomer, setSelectedCustomer, cart, discount, setPaidAmount, setSelectedVaultId, handleConfirmPayment } = usePos();
-  const { total } = calcTotals(cart, discount);
-
-  const [vaultId, setVaultId] = useState<number | null>(null);
-  const activeVault = vaultId ?? treasurys?.[0]?.id ?? null;
-
-  const [isSplit, setIsSplit] = useState(false);
-  const [singleRaw, setSingleRaw] = useState("0");
-  const [splits, setSplits] = useState<Split[]>([]);
-  const [activeId, _setActiveId] = useState("s0");
-  const [justActivated, setJustActivated] = useState(false);
-
-  useEffect(() => {
-    if (!isSplit) setSingleRaw(String(Math.round(total * 100)));
-  }, [total, isSplit]);
-
-  useEffect(() => {
-    if (treasurys?.length && vaultId === null) {
-      setVaultId(treasurys[0].id);
-      setSelectedVaultId(treasurys[0].id);
-    }
-  }, [treasurys]);
-
-  const setActiveId = (id: string) => {
-    _setActiveId(id);
-    setJustActivated(true);
-  };
-
-  const rawToFloat = (r: string) => parseInt(r || "0") / 100;
-  const fmtFloat = (n: number) => n.toFixed(2);
-
-  const transform = (prev: string, k: string): string => {
-    if (k === "del") return prev.length > 1 ? prev.slice(0, -1) : "0";
-    if (k === "00") return prev === "0" ? "0" : prev + "00";
-    if (k === ".") return prev.includes(".") ? prev : prev + ".";
-    return prev === "0" ? k : prev + k;
-  };
-
-  const pushKey = (k: string) => {
-    if (k === "cancel") {
-      onCancel?.();
-      return;
-    }
-
-    if (!isSplit) {
-      setSingleRaw((p) => transform(p, k));
-      return;
-    }
-
-    setSplits((prev) => {
-      const shouldClear = justActivated && k !== "del" && k !== ".";
-      const updated = prev.map((s) => {
-        if (s.id !== activeId) return s;
-        const base = shouldClear ? "0" : s.raw;
-        return { ...s, raw: transform(base, k) };
-      });
-
-      const others = updated.filter((s) => s.id !== activeId);
-      if (others.length === 1) {
-        const activePaid = rawToFloat(updated.find((s) => s.id === activeId)!.raw);
-        const remaining = total - activePaid;
-        const remainRaw = remaining > 0 ? String(Math.round(remaining * 100)) : "0";
-        return updated.map((s) => (s.id === others[0].id ? { ...s, raw: remainRaw } : s));
-      }
-      return updated;
-    });
-
-    if (justActivated) setJustActivated(false);
-  };
-
-  const toggleSplit = () => {
-    setIsSplit((v) => {
-      if (!v) {
-        setSplits(
-          (treasurys ?? []).map((t, i) => ({
-            id: `s${i}`,
-            vaultId: t.id,
-            raw: "0",
-          })),
-        );
-        setActiveId("s0");
-      } else {
-        setSingleRaw(String(Math.round(total * 100)));
-      }
-      return !v;
-    });
-  };
-
-  const singlePaid = rawToFloat(singleRaw);
-  const splitPaid = splits.reduce((sum, s) => sum + rawToFloat(s.raw), 0);
-  const paid = isSplit ? splitPaid : singlePaid;
-  const change = parseFloat((paid - total).toFixed(2));
-
-  useEffect(() => {
-    setPaidAmount(paid);
-  }, [paid]);
-
-  const DiffCard = ({ change, large }: { change: number; large?: boolean }) => (
-    <div className={cn("rounded-xl border px-4 py-3 flex flex-col gap-0.5", change >= 0 ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50")}>
-      <span className={cn("text-[10px] font-semibold", change >= 0 ? "text-green-500" : "text-red-400")}>{change >= 0 ? t("change") : t("remaining")}</span>
-      <span className={cn("font-black", large ? "text-xl" : "text-lg", change >= 0 ? "text-green-600" : "text-red-500")}>${fmtFloat(Math.abs(change))}</span>
-    </div>
-  );
-
-  const splitCount = splits.length;
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="max-w-md p-0 gap-0 overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 text-white" style={{ background: "#000052" }}>
-          <div className="flex flex-col">
-            <DialogTitle className="text-[14px] font-medium text-white">إتمام عملية الدفع</DialogTitle>
-            {selectedCustomer && <span className="text-[11px] text-white/60 mt-0.5">{selectedCustomer.customerName}</span>}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] text-white/50">{t("payable_amount")}</span>
-              <span className="text-[18px] font-black text-green-400">${total.toFixed(2)}</span>
-            </div>
-            <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded flex items-center justify-center bg-white/15 hover:bg-white/25 transition-colors">
-              <X size={14} />
-            </button>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-4 p-4 overflow-y-auto max-h-[80vh]">
-          {/* Vault / Split toggle row */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-semibold text-gray-500">{isSplit ? t("split_between_vaults") : t("destination_vault")}</label>
-              <button onClick={toggleSplit} className={cn("text-[11px] px-3 py-1 rounded-full font-semibold border transition-colors", isSplit ? "border-green-500 text-green-600 bg-green-50" : "border-gray-200 text-gray-500 hover:border-green-300 hover:text-green-600")}>
-                {isSplit ? t("split_on") : t("split_payment")}
-              </button>
-            </div>
-
-            {/* Single vault chips */}
-            {!isSplit && (
-              <VaultChips
-                value={activeVault ?? 0}
-                onChange={(id) => {
-                  setVaultId(id);
-                  setSelectedVaultId(id);
-                }}
-                treasurys={treasurys ?? []}
-              />
-            )}
-          </div>
-
-          {/* Split cards */}
-          {isSplit && (
-            <div className="flex flex-col gap-3">
-              <div className={cn("grid gap-2", splitCount === 1 && "grid-cols-1", splitCount === 2 && "grid-cols-2", splitCount === 3 && "grid-cols-3")}>
-                {splits.map((sp) => {
-                  const isActive = activeId === sp.id;
-                  const vault = treasurys?.find((t) => t.id === sp.vaultId);
-                  return (
-                    <div key={sp.id} onClick={() => setActiveId(sp.id)} className={cn("rounded-xl border-2 p-3 cursor-pointer transition-all flex flex-col gap-2", isActive ? "border-[#000052] bg-blue-50/60" : "border-gray-200 bg-white hover:border-gray-300")}>
-                      <div className="flex items-center justify-between gap-1">
-                        <span className={cn("text-[10px] font-semibold truncate", isActive ? "text-[#000052]" : "text-gray-400")}>{vault?.name ?? `خزنة ${sp.id}`}</span>
-                        <span className={cn("w-2 h-2 rounded-full flex-shrink-0", isActive ? "bg-[#000052]" : "bg-gray-200")} />
-                      </div>
-
-                      <div className={cn("rounded-lg px-2 py-2 text-center font-black text-base tracking-tight", isActive ? "bg-blue-100 text-[#000052]" : "bg-gray-100 text-gray-400")}>${rawToFloat(sp.raw).toFixed(2)}</div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Split summary */}
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 flex flex-col gap-0.5">
-                  <span className="text-[10px] text-gray-400 font-semibold">{t("total_entered")}</span>
-                  <span className="text-lg font-black text-gray-800">${fmtFloat(splitPaid)}</span>
-                </div>
-                <DiffCard change={change} />
-              </div>
-            </div>
-          )}
-
-          {/* Numpad */}
-          <Numpad onKey={pushKey} />
-
-          {/* Single summary */}
-          {!isSplit && (
-            <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 flex flex-col gap-0.5">
-                <span className="text-[10px] text-gray-400 font-semibold">{t("tendered")}</span>
-                <span className="text-xl font-black text-gray-800">${fmtFloat(singlePaid)}</span>
-              </div>
-              <DiffCard change={change} large />
-            </div>
-          )}
-
-          <hr className="border-gray-100" />
-
-          {/* Actions */}
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { action: "pdf", label: "طباعة PDF", Icon: FileText },
-              { action: "whatsapp", label: "إرسال واتساب", Icon: MessageCircle },
-              { action: "email", label: "إرسال إيميل", Icon: Mail },
-              { action: "save_only", label: "حفظ فقط", Icon: Save },
-            ].map(({ action, label, Icon }) => (
-              <Button key={action} variant="outline" size="sm" className="h-10 text-[12px] gap-1.5">
-                <Icon size={13} />
-                {label}
-              </Button>
-            ))}
-
-            <Button
-              onClick={() => {
-                handleConfirmPayment("Cash", total.toFixed(2));
-                onOpenChange(false);
-              }}
-              size="sm"
-              className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white"
-            >
-              <Printer size={13} />
-              حفظ وطباعة فاتورة
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
   );
 }
 
@@ -703,8 +447,8 @@ export default function CartPanel() {
   const GRID = "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_45px_50px_85px] gap-2 px-2";
   return (
     <>
-      <div className="flex flex-col border-r border-gray-300" style={{ width: 550, flexShrink: 0 }}>
-        <div className="px-3  border-b border-gray-300 flex items-center justify-between  py-3 shrink-0">
+      <div className="flex  flex-col border-r border-border" style={{ width: 550, flexShrink: 0 }}>
+        <div className="px-3  border-b border-border flex items-center justify-between  py-3 shrink-0">
           <div className="flex items-center gap-4 ">
             {/* Home */}
             <button onClick={() => navigate("/dashboard")} className="text-gray-400 hover:text-gray-600 transition-colors">
@@ -779,7 +523,7 @@ export default function CartPanel() {
             )}
           </div>
         </div>{" "}
-        <div className="px-3 py-[14.75px]  border-b border-gray-300 flex items-center gap-2">
+        <div className="px-3 py-[14.75px]  border-b border-border flex items-center gap-2">
           {!selectedCustomer ? (
             <div className="w-full">
               <ComboboxField
@@ -814,11 +558,11 @@ export default function CartPanel() {
           ) : (
             <>
               {/* Table header */}
-              <div className={`${GRID} py-1.5 border-b border-gray-100 text-[10px] font-semibold text-gray-400 uppercase`}>
+              <div className={`${GRID} py-1.5 border-b border-border text-[10px] font-semibold text-gray-400 uppercase`}>
                 <span>#</span>
                 <span>{t("item")}</span>
                 <span className="text-center">{t("quantity_label")}</span>
-                <span className="px-2 border-r border-gray-100 text-right flex items-center justify-end gap-1">
+                <span className="px-2 border-r border-border text-right flex items-center justify-end gap-1">
                   {t("price")}
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -846,13 +590,13 @@ export default function CartPanel() {
                       setItemNumPadDialog(true);
                     }}
                     key={idx}
-                    className={`${GRID} py-2 items-center border-b border-gray-50 ${idx % 2 === 0 ? "bg-white" : "bg-[#f6f6f6]"}`}
+                    className={`${GRID} py-2 items-center border-b border-border ${idx % 2 === 0 ? "bg-card" : "bg-muted/40"}`}
                   >
                     {/* # */}
                     <span className="text-xs text-gray-400 font-medium">{idx + 1}</span>
                     {/* الاسم */}
                     <div className="min-w-0 overflow-hidden">
-                      <div className="text-xs font-bold text-gray-800 ">{item?.name}</div>
+                      <div className="text-xs font-bold text-foreground ">{item?.name}</div>
                       {(item.extras ?? []).length > 0 && <div className="text-[10px] text-gray-400">+ {item.extras!.map((e) => e.name).join("، ")}</div>}
                       {hasDisc && <div className="text-[10px] text-primary font-semibold">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% ${t("off")}` : `-${item.itemDiscount!.value.toFixed(2)}`}</div>}
                     </div>
@@ -869,7 +613,7 @@ export default function CartPanel() {
                     </div>
                     {/* الإجمالي */}
                     <div className="text-right">
-                      <div className="text-xs font-bold text-gray-800">{(itemBasePrice(item) + calcItemTax(item)).toFixed(2)}</div>{" "}
+                      <div className="text-xs font-bold text-foreground">{(itemBasePrice(item) + calcItemTax(item)).toFixed(2)}</div>{" "}
                     </div>
                     {/* عمليات */}
                     <div className="flex items-center justify-center gap-1">
@@ -891,7 +635,7 @@ export default function CartPanel() {
                           e.stopPropagation();
                           removeItem(idx);
                         }}
-                        className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-red-100 flex items-center justify-center transition-colors cursor-pointer"
+                        className="w-7 h-7 rounded-lg bg-muted hover:bg-destructive/10 flex items-center justify-center transition-colors cursor-pointer"
                       >
                         <Trash2 size={13} className="text-gray-400 hover:text-red-500" />
                       </div>
@@ -903,8 +647,8 @@ export default function CartPanel() {
           )}
         </div>
         {/* Footer */}
-        <div className="border-t border-gray-300 flex-shrink-0">
-          <div className="flex px-3 border-b border-gray-300">
+        <div className="border-t border-border flex-shrink-0">
+          <div className="flex px-3 border-b border-border">
             {TABS.map((tab) => {
               const label = tab === "add" ? t("add_permission") || "Add" : tab === "discount" ? t("discount") || "Discount" : tab === "coupon" ? t("coupon_code") || "Coupon Code" : t("note") || "Note";
 
@@ -930,7 +674,7 @@ export default function CartPanel() {
               <div className="flex justify-between text-xs mb-1.5 items-center">
                 <span className={discount > 0 || itemDiscountsTotal > 0 ? "text-primary font-semibold" : "text-gray-500"}>{t("discount_label")}</span>
                 <div className="flex items-center gap-1">
-                  <span className={`font-semibold ${discount > 0 || itemDiscountsTotal > 0 ? "text-gray-800" : "text-gray-400"}`}>-{discount > 0 ? `${discount.toFixed(2)}` : `${itemDiscountsTotal.toFixed(2)}`}</span>
+                  <span className={`font-semibold ${discount > 0 || itemDiscountsTotal > 0 ? "text-foreground" : "text-gray-400"}`}>-{discount > 0 ? `${discount.toFixed(2)}` : `${itemDiscountsTotal.toFixed(2)}`}</span>
                   {discount > 0 && (
                     <button onClick={() => setDiscount(0)} className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-300 leading-none">
                       ×
@@ -942,18 +686,18 @@ export default function CartPanel() {
                 <span>{t("subtotal")}</span>
                 <div className="flex items-center gap-1.5">
                   {discount > 0 && <span className="text-gray-300 line-through text-[10px]">{sub?.toFixed(2)}</span>}
-                  <span className="font-semibold text-gray-800">{subAfterDiscount.toFixed(2)}</span>
+                  <span className="font-semibold text-foreground">{subAfterDiscount.toFixed(2)}</span>
                 </div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                 <span>{t("tax_label")}</span>
                 <div className="flex items-center gap-1.5">
                   {discount > 0 && <span className="text-gray-300 line-through text-[10px]">{originalTax.toFixed(2)}</span>}
-                  <span className="font-semibold text-gray-800">{taxAfterDiscount.toFixed(2)}</span>
+                  <span className="font-semibold text-foreground">{taxAfterDiscount.toFixed(2)}</span>
                 </div>
               </div>
 
-              <div className="flex justify-between text-sm font-black text-gray-800 mt-2 pt-1 border-t border-gray-300 mb-3">
+              <div className="flex justify-between text-sm font-black text-foreground mt-2 pt-1 border-t border-border mb-3">
                 <span>{t("payable_amount")}</span>
                 <div className="flex items-center gap-1.5">
                   {discount > 0 && <span className="text-gray-300 line-through text-xs font-normal">{(sub + originalTax).toFixed(2)}</span>}
@@ -994,7 +738,7 @@ export default function CartPanel() {
 
           {activeTab === "discount" && (
             <div className="p-3">
-              <div className="text-sm font-bold text-gray-800 mb-3">{t("order_discount")}</div>
+              <div className="text-sm font-bold text-foreground mb-3">{t("order_discount")}</div>
               <div className="flex gap-2 mb-3 items-center">
                 <button onClick={() => setDiscType("flat")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "flat" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>
                   $

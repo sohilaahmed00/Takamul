@@ -3,6 +3,7 @@ import { calcItemTax, calcTotals, itemBasePrice, NAV_ITEMS } from "@/constants/d
 import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL, usePos } from "@/context/PosContext";
 import type { CartItem, Screen } from "@/constants/data";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { useLanguage } from "@/context/LanguageContext";
 import { SalesOrder } from "@/features/sales/types/sales.types";
 import { useEffect, useMemo, useState } from "react";
 import formatDate from "@/lib/formatDate";
@@ -27,12 +28,6 @@ const fallbackBadge = { label: "", cls: "bg-sky-100 text-sky-600" };
 
 type OrderStatusType = "الكل" | "مكتملة" | "معلقة";
 
-const STATUS_TABS: { key: OrderStatusType; label: string }[] = [
-  { key: "الكل", label: "الكل" },
-  { key: "مكتملة", label: "الفواتير" },
-  { key: "معلقة", label: "الفواتير المعلقة" },
-];
-
 const STATUS_MAP: Record<OrderStatusType, string | null> = {
   الكل: null,
   مكتملة: "Confirmed",
@@ -44,6 +39,17 @@ const STATUS_MAP: Record<OrderStatusType, string | null> = {
 export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
   const { setSelectedOrderId, selectedCustomer } = usePos();
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
+  const { t } = useLanguage();
+
+  const STATUS_TABS: { key: OrderStatusType; label: string }[] = useMemo(
+    () => [
+      { key: "الكل", label: t("all") },
+      { key: "مكتملة", label: t("invoices") },
+      { key: "معلقة", label: t("pending_invoices") },
+    ],
+    [t],
+  );
+
   const [search, setSearch] = useState("");
   const { data: orders } = useGetAllSales({
     page: 1,
@@ -72,21 +78,12 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        className="p-0 overflow-hidden gap-0 flex flex-col"
-        style={{
-          maxWidth: 580,
-          width: "95vw",
-          maxHeight: "88vh",
-          direction: "rtl",
-        }}
-      >
+      <DialogContent showCloseButton={false} className="p-0 overflow-hidden gap-0 flex flex-col" style={{ maxWidth: 580, width: "95vw", maxHeight: "88vh" }}>
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-4 py-3 text-white shrink-0" style={{ background: "#000052" }}>
+        <div className="flex items-center justify-between px-4 py-3 text-white shrink-0 bg-sidebar">
           <div className="flex items-center gap-2">
             <FileText size={15} />
-            <DialogTitle className="text-[14px] font-medium text-white">الطلبات</DialogTitle>
+            <DialogTitle className="text-[14px] font-medium text-white">{t("orders")}</DialogTitle>
           </div>
           <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded flex items-center justify-center bg-white/15 hover:bg-white/25 transition-colors">
             <X size={14} />
@@ -94,73 +91,74 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
         </div>
 
         {/* ── Status Tabs ── */}
-        <div className="flex items-center gap-1.5 px-4 py-3 flex-wrap shrink-0 border-b border-gray-100 bg-white">
+        <div className="flex items-center gap-1.5 px-4 py-3 flex-wrap shrink-0 border-b border-border bg-card">
           {STATUS_TABS.map((tab) => (
-            <button key={tab.key} onClick={() => setActiveStatus(tab.key)} className={`text-[11px] font-medium px-3 py-1.5 rounded-full border transition-all ${activeStatus === tab.key ? "bg-[#000052] text-white border-[#000052]" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}>
+            <button key={tab.key} onClick={() => setActiveStatus(tab.key)} className={`text-[11px] font-medium px-3 py-1.5 rounded-full border transition-all ${activeStatus === tab.key ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:bg-muted"}`}>
               {tab.label}
             </button>
           ))}
         </div>
 
         {/* ── Search ── */}
-        <div className="flex items-center gap-2 px-4 py-2.5 shrink-0 border-b border-gray-100 bg-white">
+        <div className="flex items-center gap-2 px-4 py-2.5 shrink-0 border-b border-border bg-card">
           <div className="flex-1 relative">
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث برقم الطلب / العميل / الحالة" className="w-full h-8 text-[11px] border border-gray-200 rounded-lg pr-3 pl-3 outline-none focus:border-blue-400 bg-gray-50 placeholder:text-gray-300" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("search_orders_placeholder")} className="w-full h-8 text-[11px] border border-border rounded-lg pr-3 pl-3 outline-none focus:border-primary bg-input text-foreground placeholder:text-muted-foreground" />
           </div>
-          <button className="h-8 w-8 flex items-center justify-center bg-[#000052] rounded-lg text-white hover:bg-blue-900 transition-colors">
+          <button className="h-8 w-8 flex items-center justify-center bg-primary hover:bg-primary/80 rounded-lg text-primary-foreground transition-colors">
             <Search size={13} />
           </button>
         </div>
 
         {/* ── Count ── */}
-        <div className="px-4 py-1.5 bg-white border-b border-gray-100 shrink-0">
-          <span className="text-[11px] text-gray-400">{filtered.length} طلب</span>
+        <div className="px-4 py-1.5 bg-card border-b border-border shrink-0">
+          <span className="text-[11px] text-muted-foreground">
+            {filtered.length} {t("order")}
+          </span>
         </div>
 
         {/* ── List ── */}
-        <div className="flex-1 overflow-auto bg-gray-50">
+        <div className="flex-1 overflow-auto bg-background">
           {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-2">
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
               <FileText size={32} className="opacity-30" />
-              <p className="text-sm">لا توجد طلبات</p>
+              <p className="text-sm">{t("no_orders_found")}</p>
             </div>
           ) : (
-            <div className="flex flex-col divide-y divide-gray-100">
+            <div className="flex flex-col divide-y divide-border">
               {filtered.map((order: SalesOrder) => {
-                const badge = STATUS_BADGE[order.orderStatus] ?? fallbackBadge;
+                const badgeCls = order.orderStatus?.toLowerCase() === "confirmed" ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400" : order.orderStatus?.toLowerCase() === "unconfirmed" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400" : order.orderStatus?.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400" : fallbackBadge.cls;
+
+                const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus;
+
                 return (
-                  <button
-                    key={order.id}
-                  
-                    className="flex items-center gap-3 px-4 py-3 bg-white hover:bg-blue-50 transition-colors text-right w-full"
-                  >
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${badge.cls || "bg-sky-100 text-sky-600"}`}>
+                  <button key={order.id} onClick={() => handleSelect(order)} className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors text-right w-full">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
                       <FileText size={14} />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-[#000052] text-[12px] truncate">{order.orderNumber}</span>
-                        {badge.label && <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${badge.cls}`}>{badge.label}</span>}
+                        <span className="font-semibold text-primary text-[12px] truncate">{order.orderNumber}</span>
+                        {translatedStatus && <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${badgeCls}`}>{translatedStatus}</span>}
                       </div>
                       <div className="flex items-center gap-3 mt-0.5">
-                        <span className="flex items-center gap-1 text-[11px] text-gray-500">
+                        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
                           <User size={10} />
                           {order.customerName ?? "—"}
                         </span>
-                        <span className="flex items-center gap-1 text-[11px] text-gray-400">
+                        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
                           <Tag size={10} />
-                          {order.orderStatus}
+                          {translatedStatus}
                         </span>
                       </div>
                     </div>
 
                     <div className="flex flex-col items-end shrink-0 gap-0.5">
-                      <span className="flex items-center gap-1 text-[12px] font-bold text-gray-800">
+                      <span className="flex items-center gap-1 text-[12px] font-bold text-foreground">
                         {order.grandTotal.toFixed(2)}
                         <SaudiRiyal size={11} />
                       </span>
-                      <span className="flex items-center gap-1 text-[10px] text-gray-400">
+                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
                         <Clock size={9} />
                         {formatDate(order.orderDate)}
                       </span>
@@ -179,7 +177,6 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                           institutionPhone: INSTITUTION_PHONE,
                           customerName: selectedCustomer?.customerName ?? undefined,
                           customerPhone: undefined,
-
                           items: order?.items.map((item) => {
                             const tt: CartItem = {
                               price: item?.unitPrice,
@@ -199,7 +196,6 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                               total: Number((base + tax).toFixed(2)),
                             };
                           }),
-
                           subTotal: Number(order?.subTotal.toFixed(2)),
                           discountAmount: Number(order?.discountAmount.toFixed(2)),
                           taxAmount: order?.taxAmount,
@@ -208,7 +204,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         };
                         await printInvoice(invoiceData);
                       }}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg border border-gray-200 hover:border-blue-400 hover:text-blue-500 text-gray-400 transition-colors shrink-0"
+                      className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
                     >
                       {order?.orderStatus == "Confirmed" ? <Printer size={13} /> : <Eye size={13} />}
                     </button>
@@ -220,10 +216,12 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
         </div>
 
         {/* ── Footer ── */}
-        <div className="px-4 py-2.5 border-t border-gray-100 bg-white shrink-0 flex items-center justify-between">
-          <span className="text-[11px] text-gray-400">{filtered.length} طلب</span>
-          <button onClick={() => onOpenChange(false)} className="text-[11px] text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 transition-colors">
-            إغلاق
+        <div className="px-4 py-2.5 border-t border-border bg-card shrink-0 flex items-center justify-between">
+          <span className="text-[11px] text-muted-foreground">
+            {filtered.length} {t("order")}
+          </span>
+          <button onClick={() => onOpenChange(false)} className="text-[11px] text-muted-foreground hover:text-foreground px-3 py-1.5 rounded border border-border hover:bg-muted transition-colors">
+            {t("close")}
           </button>
         </div>
       </DialogContent>
@@ -234,12 +232,18 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
 export default function Sidebar() {
   const { screen, setScreen } = usePos();
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <>
-      <div className="w-16 bg-[#000052] border-r border-gray-100 flex flex-col items-center py-3 gap-0.5 shrink-0">
+      <div
+        className="w-16 bg-sidebar border-e border-border flex flex-col items-center py-3 gap-0.5 shrink-0
+  [.light_&]:bg-[#000052]
+  [.dark_&]:bg-[#000052]
+"
+      >
+        {" "}
         <div className="flex-1" />
-
         {NAV_ITEMS.map(({ id, icon: Icon, label }) => (
           <button
             key={id}
@@ -256,11 +260,10 @@ export default function Sidebar() {
           >
             <Icon size={18} strokeWidth={screen === id ? 2.5 : 1.8} className={`transition-colors duration-200 ${screen === id ? "text-primary" : "text-white"}`} />
             <span className={`transition-colors duration-200 ${screen === id ? "text-primary font-bold" : "text-white"}`} style={{ fontSize: 9 }}>
-              {label}
+              {t(label.toLowerCase())}
             </span>
           </button>
         ))}
-
         <div className="flex-1" />
       </div>
       <OrdersDialog open={open} onOpenChange={setOpen} />

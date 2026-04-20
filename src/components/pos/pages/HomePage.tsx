@@ -159,7 +159,7 @@ export default function HomePage() {
 
       clearTimeout(timer);
       timer = setTimeout(() => {
-        if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer); 
+        if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer);
         buffer = "";
       }, 300);
     };
@@ -183,11 +183,11 @@ export default function HomePage() {
   }, [mainCategories]);
 
   return (
-    <div className="flex-1  overflow-y-auto h-full">
-      <div className="border-b border-b-gray-300 p-3">
+    <div className="flex-1 overflow-y-auto h-full">
+      <div className="border-b border-border p-3">
         <div className="flex items-center gap-2">
-          <button onClick={() => scroll("left")} className={`shrink-0 w-8 h-8 rounded-full border border-gray-200 bg-white hover:border-primary/40 flex items-center justify-center transition-all `}>
-            <ChevronRight size={15} className="text-gray-500" />
+          <button onClick={() => scroll("left")} className="shrink-0 w-8 h-8 rounded-full border border-border bg-card hover:border-primary/40 flex items-center justify-center transition-all">
+            <ChevronRight size={15} className="text-muted-foreground" />
           </button>
 
           <div ref={scrollRef} className="flex gap-1.5 overflow-x-auto scroll-smooth" style={{ scrollbarWidth: "none" } as React.CSSProperties}>
@@ -199,41 +199,38 @@ export default function HomePage() {
                   setCurrentSubCat(null);
                 }}
                 className={`px-9.5 py-3 rounded-full text-sm border transition-colors shrink-0
-            ${c.id === currentCat ? "bg-primary text-white border-primary font-semibold" : "bg-white text-gray-500 border-gray-200 hover:border-primary/40"}`}
+              ${c.id === currentCat ? "bg-primary text-primary-foreground border-primary font-semibold" : "bg-card text-muted-foreground border-border hover:border-primary/40"}`}
               >
                 {getCategoryName(c)}
               </button>
             ))}
           </div>
 
-          <button onClick={() => scroll("right")} className={`shrink-0 w-8 h-8 rounded-full border border-gray-200 bg-white hover:border-primary/40 flex items-center justify-center transition-all `}>
-            <ChevronLeft size={15} className="text-gray-500" />
+          <button onClick={() => scroll("right")} className="shrink-0 w-8 h-8 rounded-full border border-border bg-card hover:border-primary/40 flex items-center justify-center transition-all">
+            <ChevronLeft size={15} className="text-muted-foreground" />
           </button>
         </div>
       </div>
 
       {/* Menu grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3  xl:grid-cols-4 2xl:grid-cols-5 gap-2 p-3 py-2.5">
-        {" "}
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 p-3 py-2.5">
         {filteredProducts?.map((item, i) => (
-          <>
-            <div key={i} onClick={() => handleMenuClick(item)} className="bg-white rounded-xl overflow-hidden pt-1 pb-2.5 px-0 text-center border border-primary/40 cursor-pointer hover:shadow-sm  transition-all">
-              <div className="w-full px-2 max-w-full h-16 rounded-lg   mx-auto mb-2 flex items-center justify-center overflow-hidden">{item.imageUrl ? <img src={item.imageUrl} alt={getProductName(item)} className="w-full h-full object-contain " /> : <span className="text-2xl"></span>}</div>
-              <div className="text-xs font-semibold text-gray-700 mb-0.5 leading-tight">{getProductName(item)}</div>
-              <div className="text-xs font-bold text-primary flex items-center justify-center flex-row-reverse gap-x-1">
-                <SaudiRiyal size={14} />
-                {item?.taxCalculation == 3 ? item.priceBeforeTax : item.sellingPrice}.00
-              </div>
+          <div key={i} onClick={() => handleMenuClick(item)} className="bg-card rounded-xl overflow-hidden pt-1 pb-2.5 px-0 text-center border border-primary/40 cursor-pointer hover:shadow-sm transition-all">
+            <div className="w-full px-2 max-w-full h-16 rounded-lg mx-auto mb-2 flex items-center justify-center overflow-hidden">{item.imageUrl ? <img src={item.imageUrl} alt={getProductName(item)} className="w-full h-full object-contain" /> : <span className="text-2xl"></span>}</div>
+            <div className="text-xs font-semibold text-foreground mb-0.5 leading-tight">{getProductName(item)}</div>
+            <div className="text-xs font-bold text-primary flex items-center justify-center flex-row-reverse gap-x-1">
+              <SaudiRiyal size={14} />
+              {item?.taxCalculation == 3 ? item.priceBeforeTax : item.sellingPrice}.00
             </div>
-          </>
+          </div>
         ))}
       </div>
 
       {/* Children variant modal */}
       {childrenModal && (
         <div className="absolute inset-0 bg-black/35 flex items-center justify-center z-50 rounded-xl">
-          <div className="bg-white rounded-2xl p-5 w-72">
-            <div className="text-sm font-black text-gray-800 mb-4">{modalTitle}</div>
+          <div className="bg-card rounded-2xl p-5 w-72 border border-border">
+            <div className="text-sm font-black text-foreground mb-4">{modalTitle}</div>
             <div className="space-y-2">
               {childrenModal.map((child: ProductBranch["children"][number] | any, i: number) => (
                 <button
@@ -251,14 +248,14 @@ export default function HomePage() {
                     addToCart(pro);
                     setChildrenModal(null);
                   }}
-                  className="w-full flex justify-between items-center px-3 py-2.5 border border-gray-200 rounded-lg hover:border-primary/40 hover:bg-primary/5 transition-colors"
+                  className="w-full flex justify-between items-center px-3 py-2.5 border border-border rounded-lg hover:border-primary/40 hover:bg-primary/5 transition-colors"
                 >
-                  <span className="text-sm font-semibold text-gray-700">{getProductName(child)}</span>
+                  <span className="text-sm font-semibold text-foreground">{getProductName(child)}</span>
                   <span className="text-sm font-bold text-primary">${child.sellingPrice}.00</span>
                 </button>
               ))}
             </div>
-            <button onClick={() => setChildrenModal(null)} className="w-full mt-3 py-2 text-xs text-gray-400 hover:text-gray-600">
+            <button onClick={() => setChildrenModal(null)} className="w-full mt-3 py-2 text-xs text-muted-foreground hover:text-foreground">
               {t("cancel") || "إلغاء"}
             </button>
           </div>

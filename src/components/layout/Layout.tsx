@@ -50,12 +50,10 @@ const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarO
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
-
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
   const { language, direction, setLanguage, t } = useLanguage();
   const { systemSettings } = useSettings();
-
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);

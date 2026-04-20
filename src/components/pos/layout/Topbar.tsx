@@ -22,7 +22,7 @@ export default function Topbar() {
       : [];
 
   return (
-    <div className="bg-white border-b border-gray-300 px-3 md:px-5 py-3">
+    <div className="bg-card border-b border-border px-3 md:px-5 py-3">
       <Popover open={open && filteredProducts.length > 0} onOpenChange={setOpen}>
         <PopoverAnchor asChild>
           <div className="relative w-full">

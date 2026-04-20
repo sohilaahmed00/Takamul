@@ -18,15 +18,10 @@ interface UnifiedPaymentDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
 
-  // cashier mode: بيجيب الـ total من usePos داخلياً
-  // payment mode: بيستقبل الـ total من برا
   mode?: PaymentMode;
-  total?: number; // مطلوب في payment mode
+  total?: number; 
 
-  // cashier only
   onCancel?: () => void;
-
-  // payment only
   onSave?: (opts: { vault: Treasury; method: string; action: SaveAction }) => void;
 }
 interface Split {
@@ -44,10 +39,10 @@ function VaultChips({ value, onChange, treasurys }: { value: number; onChange: (
             key={v.id}
             onClick={() => onChange(v.id)}
             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border-2 transition-all flex-shrink-0
-              ${active ? "border-green-500 bg-green-50" : "border-gray-200 bg-white hover:border-gray-300"}`}
+    ${active ? "border-primary bg-primary/10" : "border-border bg-card hover:border-border/80"}`}
           >
-            <Vault size={10} className={active ? "text-green-600" : "text-gray-400"} />
-            <span className={`text-xs font-bold whitespace-nowrap ${active ? "text-green-700" : "text-gray-500"}`}>{v.name}</span>
+            <Vault size={10} className={active ? "text-primary" : "text-muted-foreground"} />
+            <span className={`text-xs font-bold whitespace-nowrap ${active ? "text-primary" : "text-muted-foreground"}`}>{v.name}</span>
           </button>
         );
       })}
@@ -171,117 +166,138 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="max-w-md p-0 gap-0 overflow-hidden">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 text-white" style={{ background: "#000052" }}>
-          <div className="flex flex-col">
-            <DialogTitle className="text-[14px] font-medium text-white">إتمام عملية الدفع</DialogTitle>
-            {mode === "cashier" && selectedCustomer && <span className="text-[11px] text-white/60 mt-0.5">{selectedCustomer.customerName}</span>}
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] text-white/50">{t("payable_amount")}</span>
-              <span className="text-[18px] font-black text-green-400">${total.toFixed(2)}</span>
-            </div>
-            <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded flex items-center justify-center bg-white/15 hover:bg-white/25 transition-colors">
-              <X size={14} />
-            </button>
-          </div>
+   <Dialog open={open} onOpenChange={onOpenChange}>
+  <DialogContent showCloseButton={false} className="max-w-md p-0 gap-0 overflow-hidden">
+
+    {/* Header — branded, intentional */}
+    <div className="flex items-center justify-between px-4 py-3 text-white" style={{ background: "#000052" }}>
+      <div className="flex flex-col">
+        <DialogTitle className="text-[14px] font-medium text-white">{t("payment_completion")}</DialogTitle>
+        {mode === "cashier" && selectedCustomer && (
+          <span className="text-[11px] text-white/60 mt-0.5">{selectedCustomer.customerName}</span>
+        )}
+      </div>
+      <div className="flex items-center gap-2">
+        <div className="flex flex-col items-end">
+          <span className="text-[10px] text-white/50">{t("payable_amount")}</span>
+          <span className="text-[18px] font-black text-green-400">${total.toFixed(2)}</span>
         </div>
+        <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded flex items-center justify-center bg-white/15 hover:bg-white/25 transition-colors">
+          <X size={14} />
+        </button>
+      </div>
+    </div>
 
-        <div className="flex flex-col gap-4 p-4 overflow-y-auto max-h-[80vh]">
-          {/* Vault / Split toggle */}
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-semibold text-gray-500">{isSplit ? t("split_between_vaults") : t("destination_vault")}</label>
-              <button onClick={toggleSplit} className={cn("text-[11px] px-3 py-1 rounded-full font-semibold border transition-colors", isSplit ? "border-green-500 text-green-600 bg-green-50" : "border-gray-200 text-gray-500 hover:border-green-300 hover:text-green-600")}>
-                {isSplit ? t("split_on") : t("split_payment")}
-              </button>
-            </div>
+    <div className="flex flex-col gap-4 p-4 overflow-y-auto max-h-[80vh]">
 
-            {!isSplit && (
-              <VaultChips
-                value={activeVault ?? 0}
-                onChange={(id) => {
-                  setVaultId(id);
-                  setSelectedVaultId(id);
-                }}
-                treasurys={treasurys ?? []}
-              />
+      {/* Vault / Split toggle */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <label className="text-[11px] font-semibold text-muted-foreground">
+            {isSplit ? t("split_between_vaults") : t("destination_vault")}
+          </label>
+          <button
+            onClick={toggleSplit}
+            className={cn("text-[11px] px-3 py-1 rounded-full font-semibold border transition-colors",
+              isSplit
+                ? "border-primary text-primary bg-primary/10"
+                : "border-border text-muted-foreground hover:border-primary/50 hover:text-primary"
             )}
+          >
+            {isSplit ? t("split_on") : t("split_payment")}
+          </button>
+        </div>
+        {!isSplit && (
+          <VaultChips value={activeVault ?? 0} onChange={(id) => { setVaultId(id); setSelectedVaultId(id); }} treasurys={treasurys ?? []} />
+        )}
+      </div>
+
+      {/* Split cards */}
+      {isSplit && (
+        <div className="flex flex-col gap-3">
+          <div className={cn("grid gap-2",
+            splits.length === 1 && "grid-cols-1",
+            splits.length === 2 && "grid-cols-2",
+            splits.length >= 3 && "grid-cols-3"
+          )}>
+            {splits.map((sp, idx) => {
+              const isActive = activeId === sp.id;
+              const vault = treasurys?.find((t) => t.id === sp.vaultId);
+              return (
+                <div
+                  key={sp.id}
+                  onClick={() => setActiveId(sp.id)}
+                  className={cn("rounded-xl border-2 p-3 cursor-pointer transition-all flex flex-col gap-2",
+                    isActive ? "border-primary bg-primary/5" : "border-border bg-card hover:border-border/80"
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-1">
+                    <span className={cn("text-[10px] font-semibold truncate",
+                      isActive ? "text-primary" : "text-muted-foreground"
+                    )}>
+                      {vault?.name ?? `${t("vault")} ${idx + 1}`}
+                    </span>
+                    <span className={cn("w-2 h-2 rounded-full flex-shrink-0",
+                      isActive ? "bg-primary" : "bg-muted"
+                    )} />
+                  </div>
+                  <div className={cn("rounded-lg px-2 py-2 text-center font-black text-base tracking-tight",
+                    isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+                  )}>
+                    ${rawToFloat(sp.raw).toFixed(2)}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
-          {/* Split cards */}
-          {isSplit && (
-            <div className="flex flex-col gap-3">
-              <div className={cn("grid gap-2", splits.length === 1 && "grid-cols-1", splits.length === 2 && "grid-cols-2", splits.length >= 3 && "grid-cols-3")}>
-                {splits.map((sp, idx) => {
-                  const isActive = activeId === sp.id;
-                  const vault = treasurys?.find((t) => t.id === sp.vaultId);
-
-                  return (
-                    <div key={sp.id} onClick={() => setActiveId(sp.id)} className={cn("rounded-xl border-2 p-3 cursor-pointer transition-all flex flex-col gap-2", isActive ? "border-[#000052] bg-blue-50/60" : "border-gray-200 bg-white hover:border-gray-300")}>
-                      <div className="flex items-center justify-between gap-1">
-                        <span className={cn("text-[10px] font-semibold truncate", isActive ? "text-[#000052]" : "text-gray-400")}>{vault?.name ?? `خزنة ${idx + 1}`}</span>
-                        <span className={cn("w-2 h-2 rounded-full flex-shrink-0", isActive ? "bg-[#000052]" : "bg-gray-200")} />
-                      </div>
-                      <div className={cn("rounded-lg px-2 py-2 text-center font-black text-base tracking-tight", isActive ? "bg-blue-100 text-[#000052]" : "bg-gray-100 text-gray-400")}>${rawToFloat(sp.raw).toFixed(2)}</div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div className="rounded-xl bg-gray-50 border border-gray-100 px-4 py-3 flex flex-col gap-0.5">
-                  <span className="text-[10px] text-gray-400 font-semibold">{t("total_entered")}</span>
-                  <span className="text-lg font-black text-gray-800">${fmtFloat(splitPaid)}</span>
-                </div>
-                <DiffCard change={change} />
-              </div>
-            </div>
-          )}
-
-          <Numpad onKey={pushKey} />
-
-          {!isSplit && (
-            <div className="grid grid-cols-2 gap-2">
-              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 flex flex-col gap-0.5">
-                <span className="text-[10px] text-gray-400 font-semibold">{t("tendered")}</span>
-                <span className="text-xl font-black text-gray-800">${fmtFloat(singlePaid)}</span>
-              </div>
-              <DiffCard change={change} large />
-            </div>
-          )}
-
-          <hr className="border-gray-100" />
-
-          {/* Actions */}
           <div className="grid grid-cols-2 gap-2">
-            {[
-              { action: "pdf", label: "طباعة PDF", Icon: FileText },
-              { action: "whatsapp", label: "إرسال واتساب", Icon: MessageCircle },
-              { action: "email", label: "إرسال إيميل", Icon: Mail },
-              { action: "save_only", label: "حفظ فقط", Icon: Save },
-            ].map(({ action, label, Icon }) => (
-              <Button key={action} variant="outline" size="sm" onClick={() => handleAction(action as SaveAction)} className="h-10 text-[12px] gap-1.5">
-                <Icon size={13} /> {label}
-              </Button>
-            ))}
-
-            <Button
-              onClick={() => {
-                handleConfirmPayment("Cash", total.toFixed(2), mode === "payment");
-                onOpenChange(false);
-              }}
-              size="sm"
-              className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white"
-            >
-              <Printer size={13} /> حفظ وطباعة فاتورة
-            </Button>
+            <div className="rounded-xl bg-muted/50 border border-border px-4 py-3 flex flex-col gap-0.5">
+              <span className="text-[10px] text-muted-foreground font-semibold">{t("total_entered")}</span>
+              <span className="text-lg font-black text-foreground">${fmtFloat(splitPaid)}</span>
+            </div>
+            <DiffCard change={change} />
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      )}
+
+      <Numpad onKey={pushKey} />
+
+      {!isSplit && (
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-xl border border-border bg-muted/50 px-4 py-3 flex flex-col gap-0.5">
+            <span className="text-[10px] text-muted-foreground font-semibold">{t("tendered")}</span>
+            <span className="text-xl font-black text-foreground">${fmtFloat(singlePaid)}</span>
+          </div>
+          <DiffCard change={change} large />
+        </div>
+      )}
+
+      <hr className="border-border" />
+
+      {/* Actions */}
+      <div className="grid grid-cols-2 gap-2">
+        {[
+          { action: "pdf",       label: t("print_pdf"),      Icon: FileText     },
+          { action: "whatsapp",  label: t("send_whatsapp"),  Icon: MessageCircle },
+          { action: "email",     label: t("send_email"),     Icon: Mail         },
+          { action: "save_only", label: t("save_only"),      Icon: Save         },
+        ].map(({ action, label, Icon }) => (
+          <Button key={action} variant="outline" size="sm" onClick={() => handleAction(action as SaveAction)} className="h-10 text-[12px] gap-1.5">
+            <Icon size={13} /> {label}
+          </Button>
+        ))}
+
+        <Button
+          onClick={() => { handleConfirmPayment("Cash", total.toFixed(2), mode === "payment"); onOpenChange(false); }}
+          size="sm"
+          className="col-span-2 h-10 text-[12px] gap-1.5 bg-[#000052] hover:bg-blue-900 text-white"
+        >
+          <Printer size={13} /> {t("save_and_print_invoice")}
+        </Button>
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
   );
 }
