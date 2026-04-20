@@ -449,7 +449,7 @@ export default function CartPanel() {
                 </svg>
               </button>
             </div>
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 px-2 text-xs gap-1.5">
                   <Globe className="h-3.5 w-3.5" />
@@ -498,7 +498,7 @@ export default function CartPanel() {
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Select

@@ -1,13 +1,12 @@
 import * as qz from "qz-tray";
 import { sha256 } from "js-sha256";
 import { KJUR, KEYUTIL, hextob64 } from "jsrsasign";
-
 /* ───────── إعداد QZ ───────── */
 qz.api.setSha256Type((data: any) => sha256(data));
 qz.api.setPromiseType((resolver: any) => new Promise(resolver));
 
 qz.security.setCertificatePromise((resolve, reject) => {
-  fetch("/qz/certificate.pem")
+  fetch("/qz2/certificate.pem")
     .then((res) => res.text())
     .then((cert) => resolve(cert.trim()))
     .catch(reject);
