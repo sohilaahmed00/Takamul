@@ -468,7 +468,7 @@ export default function CartPanel() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* <DropdownMenu>
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 px-2 text-xs gap-1.5">
                   <ThemeIcon theme={theme} />
@@ -488,7 +488,7 @@ export default function CartPanel() {
                   {theme === "dark" && <Check className="h-3.5 w-3.5 ml-auto" />}
                 </DropdownMenuItem>
 
-                <DropdownMenuSeparator />
+                {/* <DropdownMenuSeparator />
 
                 {[
                   { value: "red", color: "bg-red-500", label: t("red_theme") },
@@ -501,9 +501,9 @@ export default function CartPanel() {
                     {item.label}
                     {theme === item.value && <Check className="h-3.5 w-3.5 ml-auto" />}
                   </DropdownMenuItem>
-                ))}
+                ))} */}
               </DropdownMenuContent>
-            </DropdownMenu> */}
+            </DropdownMenu>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Select
