@@ -318,6 +318,7 @@ const CreateQuote: React.FC = () => {
           productId: quote?.productId,
           quantity: quote?.quantity,
           unitPrice: quote.unitPrice,
+          discountValue: quote?.discountAmount ? quote?.discountAmount : quote?.discountPercentage,
           // unitName: getBaseUnitNameWithId(1),
         })),
       });
