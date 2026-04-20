@@ -25,44 +25,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { Treasury } from "@/features/treasurys/types/treasurys.types";
 import { UnifiedPaymentDialog } from "../modals/UnifiedPaymentDialog";
-
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Globe, Sun, Moon, Monitor } from "lucide-react";
+import { useTheme } from "@/context/ThemeContext";
 const TABS = ["add", "discount", "coupon", "note"] as const;
-
-// ── Extras combobox for a single cart item ────────────────────────────────────
-function ExtrasCombobox({ selectedIds, onToggle, additions }: { selectedIds: number[]; onToggle: (id: number, name: string) => void; additions: Addition[] }) {
-  const [open, setOpen] = useState(false);
-  const { t } = useLanguage();
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button className="w-full flex items-center justify-between px-2.5 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-500 hover:border-primary/40 bg-white focus:outline-none">
-          <span>{selectedIds.length > 0 ? `${selectedIds.length} ${t("selected_additions")}` : t("choose_additions")}</span>
-          <ChevronsUpDown size={12} className="text-gray-400" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-52 p-3" align="end" side="top">
-        <Command>
-          <CommandInput placeholder={t("search") || "ابحث..."} className="text-xs h-8" />
-          <CommandList>
-            <CommandEmpty className="text-xs text-center py-3 text-gray-400">{t("no_results") || "لا توجد نتائج"}</CommandEmpty>
-            <CommandGroup>
-              {additions.map((a) => {
-                const isSelected = selectedIds.includes(a.id);
-                return (
-                  <CommandItem key={a.id} value={a.additionNameAr} onSelect={() => onToggle(a.id, a.additionNameAr)} className="text-xs flex items-center gap-2 cursor-pointer">
-                    <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-primary border-primary" : "border-gray-300"}`}>{isSelected && <Check size={10} className="text-white" />}</div>
-                    {a.additionNameAr}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
 
 interface CouponTabProps {
   code: string;
@@ -369,7 +335,8 @@ function ExtrasGrid({ additions, selectedIds, onToggle }: { additions: Addition[
 
 // ── Main CartPanel ────────────────────────────────────────────────────────────
 export default function CartPanel() {
-  const { t } = useLanguage();
+  const { language, direction, setLanguage, t } = useLanguage();
+  const { theme, setTheme } = useTheme();
   const { cart, setCart, setSelectedTable, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
@@ -388,6 +355,17 @@ export default function CartPanel() {
   const [appliedCard, setAppliedCard] = useState<GiftCard | null>(null);
   const [orderNote, setOrderNote] = useState("");
   const [noteInput, setNoteInput] = useState("");
+  function ThemeIcon({ theme }: { theme: string }) {
+    if (theme === "dark") return <Moon className="h-3.5 w-3.5" />;
+    if (theme === "light") return <Sun className="h-3.5 w-3.5" />;
+    const colors: Record<string, string> = {
+      red: "bg-red-500",
+      blue: "bg-blue-500",
+      yellow: "bg-yellow-500",
+      "high-contrast": "bg-black border border-white",
+    };
+    return <div className={`h-3.5 w-3.5 rounded-full ${colors[theme] ?? "bg-gray-400"}`} />;
+  }
   useEffect(() => {
     if (customers) {
       setSelectedCustomer(customers?.items[0]);
@@ -471,8 +449,57 @@ export default function CartPanel() {
                 </svg>
               </button>
             </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 px-2 text-xs gap-1.5">
+                  <Globe className="h-3.5 w-3.5" />
+                  {language.toUpperCase()}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => setLanguage("en")}>🇺🇸 English</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage("ar")}>🇸🇦 العربية</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLanguage("ur")}>🇵🇰 اردو</DropdownMenuItem>{" "}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 px-2 text-xs gap-1.5">
+                  <ThemeIcon theme={theme} />
+                  {t(`${theme}_theme` as any) ?? t("theme")}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align={direction === "rtl" ? "start" : "end"}>
+                <DropdownMenuItem onClick={() => setTheme("light")}>
+                  <Sun className="h-3.5 w-3.5 mr-2" />
+                  {t("light_mode")}
+                  {theme === "light" && <Check className="h-3.5 w-3.5 ml-auto" />}
+                </DropdownMenuItem>
+
+                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                  <Moon className="h-3.5 w-3.5 mr-2" />
+                  {t("dark_mode")}
+                  {theme === "dark" && <Check className="h-3.5 w-3.5 ml-auto" />}
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                {[
+                  { value: "red", color: "bg-red-500", label: t("red_theme") },
+                  { value: "blue", color: "bg-blue-500", label: t("blue_theme") },
+                  { value: "yellow", color: "bg-yellow-500", label: t("yellow_theme") },
+                  { value: "high-contrast", color: "bg-black border border-white", label: t("high_contrast") },
+                ].map((item) => (
+                  <DropdownMenuItem key={item.value} onClick={() => setTheme(item.value as any)}>
+                    <div className={`h-3.5 w-3.5 rounded-full mr-2 ${item.color}`} />
+                    {item.label}
+                    {theme === item.value && <Check className="h-3.5 w-3.5 ml-auto" />}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-          {/* Order Type */}
           <div className="flex items-center gap-2 shrink-0">
             <Select
               value={orderType}

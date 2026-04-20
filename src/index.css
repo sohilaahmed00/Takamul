@@ -625,25 +625,21 @@ body {
   text-align: center !important;
 }
 
-.dark .p-datatable-tbody > tr,
-.red .p-datatable-tbody > tr {
+.dark .p-datatable-tbody > tr {
   background-color: var(--bg-card) !important;
 }
 
-.dark .p-datatable-tbody > tr:nth-child(even),
-.red .p-datatable-tbody > tr:nth-child(even) {
+.dark .p-datatable-tbody > tr:nth-child(even) {
   background-color: var(--bg-main) !important;
 }
 
-.dark .p-paginator,
-.red .p-paginator {
+.dark .p-paginator {
   background-color: var(--bg-card) !important;
   color: var(--text-main) !important;
   border-color: var(--border) !important;
 }
 
-.dark .p-paginator .p-dropdown,
-.red .p-paginator .p-dropdown {
+.dark .p-paginator .p-dropdown {
   background-color: var(--input-bg) !important;
   color: var(--text-main) !important;
   border-color: var(--border) !important;
@@ -653,21 +649,13 @@ body {
 .dark .p-paginator .p-paginator-next,
 .dark .p-paginator .p-paginator-last,
 .dark .p-paginator .p-paginator-first,
-.dark .p-paginator .p-paginator-prev,
-
-.red .p-paginator .p-paginator-page,
-.red .p-paginator .p-paginator-next,
-.red .p-paginator .p-paginator-last,
-.red .p-paginator .p-paginator-first,
-.red .p-paginator .p-paginator-prev{
+.dark .p-paginator .p-paginator-prev {
   background: transparent !important;
   color: var(--text-main) !important;
 }
 
 .dark .p-paginator .p-paginator-page.p-highlight,
-.dark .custom-compact-table .p-paginator .p-paginator-page.p-highlight,
-.red .p-paginator .p-paginator-page.p-highlight,
-.red .custom-compact-table .p-paginator .p-paginator-page.p-highlight {
+.dark .custom-compact-table .p-paginator .p-paginator-page.p-highlight {
   background: var(--primary) !important;
   color: white !important;
 }
@@ -816,9 +804,9 @@ input[type="number"] {
 }
 
 /* تغيير خلفية اليوم المختار */
-.react-datepicker__day--selected,
+.react-datepicker__day--selected, 
 .react-datepicker__day--keyboard-selected {
-  background-color: #2ecc71 !important;
+  background-color: #2ECC71 !important;
   color: white !important;
   border-radius: 0.375rem; /* لجعل الزوايا متناسقة مع التصميم */
 }
@@ -831,7 +819,7 @@ input[type="number"] {
 /* تغيير لون النقاط الصغيرة أو التحديد في حالة النطاق (اختياري) */
 .react-datepicker__day--in-range {
   background-color: rgba(46, 204, 113, 0.1) !important;
-  color: #2ecc71 !important;
+  color: #2ECC71 !important;
 }
 .react-datepicker-popper {
   z-index: 9999 !important;
