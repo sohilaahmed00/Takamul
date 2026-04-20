@@ -50,7 +50,7 @@ function CouponTab({ code, setCode, status, setStatus, appliedCard, setAppliedCa
 
     const total = sub + tax;
     const deduct = Math.min(card.remainingAmount, total);
-    setDiscount(deduct);
+    setDiscount({ type: "flat", value: deduct });
     setAppliedCard(card);
     setSelectedGiftCardId(card.id);
     setStatus("valid");
@@ -60,7 +60,7 @@ function CouponTab({ code, setCode, status, setStatus, appliedCard, setAppliedCa
     setCode("");
     setStatus("idle");
     setAppliedCard(null);
-    setDiscount(0);
+    setDiscount({ type: "pct", value: 0 });
     setSelectedGiftCardId(null);
   };
 
@@ -343,7 +343,7 @@ export default function CartPanel() {
   const [itemNumPadDialog, setItemNumPadDialog] = useState(false);
   const { data: customers, isLoading: loadingCustomers } = useGetAllCustomers({ page: 1, limit: 100 });
   const { data: additions } = useGetAllAdditions();
-  const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax, itemDiscountsTotal } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
+  const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax, itemDiscountsTotal, discountAmount } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const { notifyError, notifySuccess } = useToast();
   const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
@@ -411,12 +411,12 @@ export default function CartPanel() {
 
     const val = parseFloat(discInput) || 0;
     const base = sub + taxAfterDiscount;
-    setDiscount(discType === "pct" ? (base * val) / 100 : val);
+    setDiscount({ type: discType, value: val });
     setActiveTab("add");
   };
 
   const hasItemDiscount = useMemo(() => cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0), [cart]);
-  const hasOrderDiscount = discount > 0;
+  const hasOrderDiscount = discount.value > 0;
   const navigate = useNavigate();
   const { data: freeTables } = useGetAllTables();
   const themeLabels = {
@@ -525,7 +525,7 @@ export default function CartPanel() {
             </Select>
 
             {orderType === "dine-in" && (
-              <Select value={selectedTable ?? ""} onValueChange={setSelectedTable}>
+              <Select value={String(selectedTable) ?? ""} onValueChange={(value) => setSelectedTable(Number(value))}>
                 <SelectTrigger className="h-8 text-xs w-28">
                   <SelectValue placeholder={t("choose_table")} />
                 </SelectTrigger>
@@ -704,11 +704,11 @@ export default function CartPanel() {
           {activeTab === "add" && (
             <div className="px-3 pt-2.5 pb-3">
               <div className="flex justify-between text-xs mb-1.5 items-center">
-                <span className={discount > 0 || itemDiscountsTotal > 0 ? "text-primary font-semibold" : "text-gray-500"}>{t("discount_label")}</span>
+                <span className={discount.value > 0 || itemDiscountsTotal > 0 ? "text-primary font-semibold" : "text-gray-500"}>{t("discount_label")}</span>
                 <div className="flex items-center gap-1">
-                  <span className={`font-semibold ${discount > 0 || itemDiscountsTotal > 0 ? "text-foreground" : "text-gray-400"}`}>-{discount > 0 ? `${discount.toFixed(2)}` : `${itemDiscountsTotal.toFixed(2)}`}</span>
-                  {discount > 0 && (
-                    <button onClick={() => setDiscount(0)} className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-300 leading-none">
+                  <span className={`font-semibold ${discount.value > 0 || itemDiscountsTotal > 0 ? "text-foreground" : "text-gray-400"}`}>-{discount.value > 0 ? discountAmount.toFixed(2) : itemDiscountsTotal.toFixed(2)}</span>{" "}
+                  {discount.value > 0 && (
+                    <button onClick={() => setDiscount({ type: "pct", value: 0 })} className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-300 leading-none">
                       ×
                     </button>
                   )}
@@ -717,14 +717,14 @@ export default function CartPanel() {
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                 <span>{t("subtotal")}</span>
                 <div className="flex items-center gap-1.5">
-                  {discount > 0 && <span className="text-gray-300 line-through text-[10px]">{sub?.toFixed(2)}</span>}
+                  {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{sub?.toFixed(2)}</span>}
                   <span className="font-semibold text-foreground">{subAfterDiscount.toFixed(2)}</span>
                 </div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                 <span>{t("tax_label")}</span>
                 <div className="flex items-center gap-1.5">
-                  {discount > 0 && <span className="text-gray-300 line-through text-[10px]">{originalTax.toFixed(2)}</span>}
+                  {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{originalTax.toFixed(2)}</span>}
                   <span className="font-semibold text-foreground">{taxAfterDiscount.toFixed(2)}</span>
                 </div>
               </div>
@@ -732,7 +732,7 @@ export default function CartPanel() {
               <div className="flex justify-between text-sm font-black text-foreground mt-2 pt-1 border-t border-border mb-3">
                 <span>{t("payable_amount")}</span>
                 <div className="flex items-center gap-1.5">
-                  {discount > 0 && <span className="text-gray-300 line-through text-xs font-normal">{(sub + originalTax).toFixed(2)}</span>}
+                  {discount.value > 0 && <span className="text-gray-300 line-through text-xs font-normal">{(sub + originalTax).toFixed(2)}</span>}
                   <span>{total.toFixed(2)}</span>
                 </div>
               </div>
@@ -750,7 +750,7 @@ export default function CartPanel() {
                       } else if (dineInMode === "checkout") {
                         setCashierOpen(true);
                       } else {
-                        await handleCreateDineInOrder(true);
+                        await handleCreateDineInOrder();
                       }
                     } else {
                       handleConfirmPayment({ isHolding: true });

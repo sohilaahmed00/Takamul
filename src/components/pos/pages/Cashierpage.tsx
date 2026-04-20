@@ -88,10 +88,10 @@ export default function CashierPage() {
                 </div>
               </div>
 
-              <Button size="2xl" variant="outline" onClick={() => handleConfirmPayment("Cash", total.toFixed(2))}>
-                {/* <CreditCard size={16} strokeWidth={2} /> */}
+              {/* <Button size="2xl" variant="outline" onClick={() => handleConfirmPayment("Cash", total.toFixed(2))}>
+                <CreditCard size={16} strokeWidth={2} />
                 {t("confirm_payment")}
-              </Button>
+              </Button> */}
             </div>
           </CardContent>
           {/* <CardFooter>

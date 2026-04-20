@@ -23,19 +23,18 @@ interface PosContextValue {
   // Cart
   cart: CartItem[];
   setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
-  discount: number;
-  setDiscount: React.Dispatch<React.SetStateAction<number>>;
+  discount: { type: "pct" | "flat"; value: number };
+  setDiscount: React.Dispatch<React.SetStateAction<{ type: "pct" | "flat"; value: number }>>;
 
   // Hold
 
   // Payment success
-  successInfo: { method: string; amount: string };
   handleConfirmPayment: (params?: { printKitchenBon?: boolean; isHolding?: boolean }) => void;
   // Order type
   orderType: OrderType;
   setOrderType: (t: OrderType) => void;
-  selectedTable: string | null;
-  setSelectedTable: (t: string | null) => void;
+  selectedTable: number | null;
+  setSelectedTable: (t: number | null) => void;
   selectedDelivery: string | null;
   setSelectedDelivery: (d: string | null) => void;
 
@@ -55,7 +54,7 @@ interface PosContextValue {
   // Network
   networkSpeed: NetworkSpeed;
 
-  handleCreateDineInOrder: (isHolding?: boolean) => Promise<void>;
+  handleCreateDineInOrder: () => Promise<void>;
 
   selectedOrderId: number | null;
   setSelectedOrderId: (id: number | null) => void;
@@ -86,11 +85,13 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const { notifyError, notifySuccess } = useToast();
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [discount, setDiscount] = useState(0);
+  const [discount, setDiscount] = useState<{
+    type: "pct" | "flat";
+    value: number;
+  }>({ type: "pct", value: 0 });
   const [showHoldModal, setShowHoldModal] = useState(false);
-  const [successInfo, setSuccessInfo] = useState({ method: "Cash", amount: "0.00" });
   const [orderType, setOrderType] = useState<OrderType>("takeaway");
-  const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [selectedDelivery, setSelectedDelivery] = useState<string | null>(null);
   const [networkSpeed, setNetworkSpeed] = useState<NetworkSpeed>("fast");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -145,56 +146,49 @@ export function PosProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const handleCreateDineInOrder = useCallback(
-    async (isHolding = false) => {
-      const items = cart.map((c) => ({
-        productId: c.productId,
-        quantity: c.qty,
-        discountValue: c.itemDiscount?.type === "flat" ? c.itemDiscount.value : 0,
-        discountPercentage: c.itemDiscount?.type === "pct" ? c.itemDiscount.value : 0,
-      }));
+  const handleCreateDineInOrder = useCallback(async () => {
+    const items = cart.map((c) => ({
+      productId: c.productId,
+      quantity: c.qty,
+      discountValue: c.itemDiscount?.type === "flat" ? c.itemDiscount.value : 0,
+      discountPercentage: c.itemDiscount?.type === "pct" ? c.itemDiscount.value : 0,
+    }));
 
-      const payload = {
-        customerId: selectedCustomer?.id,
-        warehouseId: 1,
-        notes: "",
-        globalDiscountValue: 0,
-        globalDiscountPercentage: discount,
-        giftCardId: selectedGiftCardId,
-        additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
-        tableId: Number(selectedTable),
-        items,
-        isHolding,
+    const payload = {
+      customerId: selectedCustomer?.id,
+      warehouseId: 1,
+      notes: "",
+      globalDiscountValue: 0,
+      globalDiscountPercentage: discount,
+      giftCardId: selectedGiftCardId,
+      additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
+      tableId: Number(selectedTable),
+      items,
+    };
+
+    try {
+      await createDineInOrderyOrder(payload);
+
+      const sampleBon: BonData = {
+        institutionName: "بون التحضير",
+        invoiceNumber: "5000",
+        invoiceDate: formatDate(new Date()),
+        customerName: selectedCustomer?.customerName,
+        items: cart.map((c) => ({
+          productName: c.name,
+          quantity: c.qty,
+        })),
       };
-
-      try {
-        await createDineInOrderyOrder(payload);
-
-        if (!isHolding) {
-          const sampleBon: BonData = {
-            institutionName: "بون التحضير",
-            invoiceNumber: "5000",
-            invoiceDate: formatDate(new Date()),
-            customerName: selectedCustomer?.customerName,
-            items: cart.map((c) => ({
-              productName: c.name,
-              quantity: c.qty,
-            })),
-          };
-          printPreparationBon(sampleBon);
-        }
-
-        setCart([]);
-        setDineInMode(null);
-        setDiscount(0);
-        setSelectedCustomer(null);
-        setScreen("home");
-      } catch {
-        // notifyError("حدث خطأ أثناء إنشاء الأوردر");
-      }
-    },
-    [cart, discount, selectedCustomer, selectedTable, selectedGiftCardId],
-  );
+      printPreparationBon(sampleBon);
+      setCart([]);
+      setDineInMode(null);
+      setDiscount({ value: 0, type: "pct" });
+      setSelectedCustomer(null);
+      setScreen("home");
+    } catch {
+      // notifyError("حدث خطأ أثناء إنشاء الأوردر");
+    }
+  }, [cart, discount, selectedCustomer, selectedTable, selectedGiftCardId]);
 
   const handleAddItemsToExistingOrder = async () => {
     const payload = {
@@ -212,7 +206,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
     try {
       await addItemsToOrder({ data: payload, id: selectedOrderId });
       setCart([]);
-      setDiscount(0);
+      setDiscount({ value: 0, type: "pct" });
       setSelectedOrderId(null);
       setSelectedCustomer(null);
       setScreen("home");
@@ -247,8 +241,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
       customerId: selectedCustomer?.id,
       warehouseId: 1,
       notes: "zzz",
-      globalDiscountValue: 0,
-      globalDiscountPercentage: discount,
+      globalDiscountValue: discount.type === "flat" ? discount.value : 0,
+      globalDiscountPercentage: discount.type === "pct" ? discount.value : 0,
       giftCardId: selectedGiftCardId,
       additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
       items,
@@ -258,12 +252,12 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
     try {
       if (orderType === "takeaway") {
-        await createTakwayOrder(basePayload as CreateTakeawayOrder);
+        await createTakwayOrder(basePayload);
       } else if (orderType === "dine-in") {
         await checkoutDineInOrder({
           tableId: Number(selectedTable),
-          globalDiscountValue: 0,
-          globalDiscountPercentage: discount,
+          globalDiscountValue: discount.type === "flat" ? discount.value : 0,
+          globalDiscountPercentage: discount.type === "pct" ? discount.value : 0,
           giftCardId: selectedGiftCardId,
           payments: [
             {
@@ -280,14 +274,14 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
       if (!isHolding) {
         const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
-        const totals = calcTotals(cart, hasItemDiscounts ? 0 : discount);
+        const totals = calcTotals(cart, hasItemDiscounts ? { type: "pct", value: 0 } : discount);
         const discountAmount = hasItemDiscounts
           ? cart.reduce((acc, item) => {
               const raw = itemBasePriceRaw(item);
               const afterDisc = itemBasePrice(item);
               return acc + (raw - afterDisc);
             }, 0)
-          : discount;
+          : totals.discountAmount;
 
         const invoiceData: InvoiceData = {
           logoUrl: LOGO_URL,
@@ -311,7 +305,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
             };
           }),
           subTotal: Number(totals.sub.toFixed(2)),
-          discountAmount: Number(discountAmount.toFixed(2)),
+          discountAmount: Number(discountAmount),
           taxAmount: totals.originalTax,
           grandTotal: totals.total,
           notes: INSTITUTION_NOTES,
@@ -337,7 +331,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       }
 
       setCart([]);
-      setDiscount(0);
+      setDiscount({ type: "pct", value: 0 });
       setSelectedCustomer(null);
       setSelectedGiftCardId(null);
       setSelectedVaultId(null);
@@ -374,7 +368,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
         setCart,
         discount,
         setDiscount,
-        successInfo,
         handleConfirmPayment,
         orderType,
         setOrderType,

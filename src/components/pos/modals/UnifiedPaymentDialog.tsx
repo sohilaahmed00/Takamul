@@ -263,7 +263,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
 
             <Button
               onClick={() => {
-                handleConfirmPayment();
+                handleConfirmPayment({ isHolding: false });
                 onOpenChange(false);
               }}
               size="sm"

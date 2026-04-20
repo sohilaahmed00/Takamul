@@ -173,7 +173,7 @@ export default function TablesPage() {
                         setDineInMode("add-items");
                         setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
                         setOrderType("dine-in");
-                        setSelectedTable2(String(selectedTable));
+                        setSelectedTable2(selectedTable);
                         setScreen("home");
                       }}
                     >
@@ -202,7 +202,7 @@ export default function TablesPage() {
                         // setSelectedOrderId(detailsOrder.id);
                         setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
                         setOrderType("dine-in");
-                        setSelectedTable2(String(selectedTable));
+                        setSelectedTable2(selectedTable);
                         setScreen("home");
                       }}
                     >
@@ -217,7 +217,7 @@ export default function TablesPage() {
                       setDineInMode("new-order");
                       setSelectedOrderId(null);
                       setOrderType("dine-in");
-                      setSelectedTable2(String(selectedTable));
+                      setSelectedTable2(selectedTable);
                       setScreen("home");
                     }}
                   >

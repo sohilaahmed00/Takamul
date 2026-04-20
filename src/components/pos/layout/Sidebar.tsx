@@ -1,4 +1,4 @@
-import { Clock, Eye, FileText, LogOut, Printer, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
+import { Clock, CreditCard, Eye, FileText, LogOut, Plus, Printer, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
 import { calcItemTax, calcTotals, itemBasePrice, NAV_ITEMS } from "@/constants/data";
 import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL, usePos } from "@/context/PosContext";
 import type { CartItem, Screen } from "@/constants/data";
@@ -26,18 +26,19 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
 
 const fallbackBadge = { label: "", cls: "bg-sky-100 text-sky-600" };
 
-type OrderStatusType = "الكل" | "مكتملة" | "معلقة";
+type OrderStatusType = "الكل" | "مكتملة" | "معلقة" | "قيد التجهيز";
 
 const STATUS_MAP: Record<OrderStatusType, string | null> = {
   الكل: null,
   مكتملة: "Confirmed",
   معلقة: "UnConfirmed",
+  "قيد التجهيز": "InProgress",
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
-  const { selectedCustomer, setCart } = usePos();
+  const { selectedCustomer, setCart, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable } = usePos();
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
   const { t } = useLanguage();
 
@@ -124,8 +125,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
               {filtered.map((order: SalesOrder) => {
                 const badgeCls = order.orderStatus?.toLowerCase() === "confirmed" ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400" : order.orderStatus?.toLowerCase() === "unconfirmed" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400" : order.orderStatus?.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400" : fallbackBadge.cls;
 
-                const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus;
-
+                const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus?.toLowerCase() === "inprogress" ? t("قيد التجهيز") : order.orderStatus;
                 return (
                   <div key={order.id} className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors text-right w-full">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
@@ -205,25 +205,59 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         <Printer size={13} />
                       </button>
                     ) : (
-                      <button
-                        onClick={async (e) => {
-                          setCart(
-                            order.items.map((item) => ({
-                              price: item?.unitPrice ?? 0,
-                              qty: item?.quantity,
-                              taxamount: item?.taxAmount,
-                              taxCalculation: item.taxCalculation,
-                              name: item?.productName,
-                              productId: item?.productId,
-                            })),
-                          );
-                          onOpenChange(false);
-                          // await printInvoice(invoiceData);
-                        }}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
-                      >
-                        <Eye size={13} />
-                      </button>
+                      <div className="flex items-center gap-x-4">
+                        <button
+                          title="إضافة عناصر"
+                          onClick={async (e) => {
+                            setCart(
+                              order.items.map((item) => ({
+                                price: item?.unitPrice ?? 0,
+                                qty: item?.quantity,
+                                taxamount: item?.taxAmount,
+                                taxCalculation: item.taxCalculation,
+                                name: item?.productName,
+                                productId: item?.productId,
+                              })),
+                            );
+                            onOpenChange(false);
+                            if (order.orderStatus == "InProgress") {
+                              setOrderType("dine-in");
+                              setDineInMode("add-items");
+                              setSelectedOrderId(order?.id);
+                            }
+                            // await printInvoice(invoiceData);
+                          }}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                        >
+                          <Plus size={13} />
+                        </button>
+                        <button
+                          title="استكمال الدفع"
+                          onClick={async (e) => {
+                            setCart(
+                              order.items.map((item) => ({
+                                price: item?.unitPrice ?? 0,
+                                qty: item?.quantity,
+                                taxamount: item?.taxAmount,
+                                taxCalculation: item.taxCalculation,
+                                name: item?.productName,
+                                productId: item?.productId,
+                              })),
+                            );
+                            onOpenChange(false);
+                            if (order.orderStatus == "InProgress") {
+                              setOrderType("dine-in");
+                              setDineInMode("checkout");
+                              setSelectedOrderId(order?.id);
+                              setSelectedTable(order?.tableId);
+                            }
+                            // await printInvoice(invoiceData);
+                          }}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                        >
+                          <CreditCard size={13} />
+                        </button>
+                      </div>
                     )}
                   </div>
                 );

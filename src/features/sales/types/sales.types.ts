@@ -33,6 +33,7 @@ export interface SalesOrder {
   customerId: number;
   createdBy: string;
   orderDate: string;
+  tableId: number;
   warehouseName: string;
   subTotal: number;
   taxAmount: number;
