@@ -19,9 +19,10 @@ export const getEmployeeById = (id: number) =>
   httpClient<Employee>(`/employees/${id}`, {
     method: "GET",
   });
-export const updateEmployee = (id: number) =>
+export const updateEmployee = ({ data, id }: { data: CreateEmployee; id: number }) =>
   httpClient<{ message: string }>(`/employees/${id}`, {
     method: "PUT",
+    data,
   });
 export const deleteEmployee = (id: number) =>
   httpClient<{ message: string }>(`/employees/${id}`, {

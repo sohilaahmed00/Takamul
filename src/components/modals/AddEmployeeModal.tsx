@@ -11,6 +11,7 @@ import { useCreateEmployee } from "@/features/employees/hooks/useCreateEmployee"
 import z from "zod/v3";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Employee } from "@/features/employees/types/employees.types";
+import { useEditEmployee } from "@/features/employees/hooks/useUpdateEmployee";
 
 interface AddEmployeeModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export default function AddEmployeeModal({ isOpen, onClose, employee }: AddEmplo
   const { direction } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
   const { mutateAsync: createEmployee, isPending } = useCreateEmployee();
+  const { mutateAsync: updateEmployee } = useEditEmployee();
 
   const {
     control,
@@ -62,7 +64,11 @@ export default function AddEmployeeModal({ isOpen, onClose, employee }: AddEmplo
         mobile: data.mobile,
       };
 
-      await createEmployee(payload);
+      if (employee) {
+        updateEmployee({ data: payload, id: employee?.id });
+      } else {
+        await createEmployee(payload);
+      }
       reset();
       onClose();
     } catch (err) {}
@@ -79,7 +85,6 @@ export default function AddEmployeeModal({ isOpen, onClose, employee }: AddEmplo
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
-          {/* اسم الموظف */}
           <Controller
             name="firstName"
             control={control}
