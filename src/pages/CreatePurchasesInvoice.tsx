@@ -349,7 +349,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                 </div>
               </Field>
 
-              <div className="lg:col-span-3 col-span-1">
+              <div className="lg:col-span-4 col-span-1">
                 <Controller
                   name="notes"
                   control={form.control}
