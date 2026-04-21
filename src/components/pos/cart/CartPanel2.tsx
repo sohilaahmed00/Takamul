@@ -486,7 +486,6 @@ export default function CartPanel2() {
 
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
   const changeQty = (idx: number, d: number) => setCart((p) => p.map((item, i) => (i === idx ? { ...item, qty: Math.max(1, item.qty + d) } : item)));
-  const [searchOpen, setSearchOpen] = useState(false);
 
   const handleBarcodeScanned = useCallback(
     (barcode: string) => {

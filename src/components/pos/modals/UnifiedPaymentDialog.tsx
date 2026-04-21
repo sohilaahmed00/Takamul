@@ -263,7 +263,11 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
 
             <Button
               onClick={() => {
-                handleConfirmPayment({ isHolding: false });
+                if (mode == "cashier") {
+                  handleConfirmPayment({ isHolding: false, });
+                } else {
+                  handleConfirmPayment({ isHolding: false, printKitchenBon: false });
+                }
                 onOpenChange(false);
               }}
               size="sm"
