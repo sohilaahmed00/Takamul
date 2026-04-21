@@ -232,6 +232,11 @@ const CreateSalesInvoice: React.FC = () => {
       form.setValue(`payments.0.amount`, Number(finalTotal.toFixed(2)));
     }
   }, [finalTotal]);
+    useEffect(() => {
+    if (treasurys && treasurys.length > 0) {
+      form.setValue(`payments.0.paymentMethod`, Number(treasurys[0]?.id));
+    }
+  }, [treasurys]);
 
   const handleAddItem = () => {
     appendItem({
