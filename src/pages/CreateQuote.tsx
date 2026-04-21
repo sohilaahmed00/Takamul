@@ -281,9 +281,6 @@ const CreateQuote: React.FC = () => {
 
   const { control, setValue } = form;
 
-  const getBaseUnitNameWithId = (id: number) => {
-    return units.items?.find((unit) => unit?.id == id).name;
-  };
   const { data: customersResponse } = useGetAllCustomers();
   let customers: Customer[] = [];
 
@@ -306,19 +303,22 @@ const CreateQuote: React.FC = () => {
   const discType = useWatch({ control, name: "quotationDiscountType" }) || "fixed";
   const discValue = Number(useWatch({ control, name: "quotationDiscountValue" })) || 0;
   const navigate = useNavigate();
-
   useEffect(() => {
-    setValue("customerId", customers[0]?.id);
-  }, [setValue]);
+    if (customers?.[0]?.id && !isEditMode) {
+      form.setValue("customerId", customers[0].id);
+    }
+  }, [customers, isEditMode]);
 
   useEffect(() => {
     if (quotation) {
       form.reset({
+        customerId: quotation?.customerid,
         items: quotation?.items.map((quote) => ({
           productId: quote?.productId,
           quantity: quote?.quantity,
           unitPrice: quote.unitPrice,
           discountValue: quote?.discountAmount ? quote?.discountAmount : quote?.discountPercentage,
+
           // unitName: getBaseUnitNameWithId(1),
         })),
       });

@@ -16,7 +16,6 @@ import { CreateGiftCardPayload, GiftCard, UpdateGiftCardPayload } from "@/featur
 import { useCreateGiftCard } from "@/features/gift-cards/hooks/useCreateGiftCard";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 import { useUpdateGiftCard } from "@/features/gift-cards/hooks/useUpdateGiftCard";
-import { file } from "zod";
 
 interface AddGiftCardModalProps {
   isOpen: boolean;
@@ -56,6 +55,10 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
     },
   });
   const { control, watch, setValue, reset } = form;
+
+  useEffect(() => {
+    if (customers && customers?.items?.length > 0) setValue("customerId", customers?.items[0]?.id);
+  }, [customers]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -125,7 +128,9 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>الكود <span className="text-red-500">*</span></FieldLabel>
+                  <FieldLabel>
+                    الكود <span className="text-red-500">*</span>
+                  </FieldLabel>
                   <div className="flex gap-2">
                     <Input {...field} placeholder={"ادخل الكود"} />
                     <Button
@@ -193,7 +198,10 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel> تاريخ الصلاحية  <span className="text-red-500">*</span></FieldLabel>
+                  <FieldLabel>
+                    {" "}
+                    تاريخ الصلاحية <span className="text-red-500">*</span>
+                  </FieldLabel>
                   <Input {...field} type="date" placeholder={"ادخل تاريخ الصلاحية"} />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>

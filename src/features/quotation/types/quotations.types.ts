@@ -3,6 +3,7 @@ import type { PaginationMeta } from "@/types";
 export type Quotation = {
   id: number;
   quotationNumber: string;
+  customerid: number;
   customerName: string;
   quotationDate: string;
   validUntil: string;
