@@ -68,7 +68,6 @@ export default function PurchasesList() {
           value={purchases?.items}
           totalRecords={purchases?.totalCount}
           loading={!purchases?.items}
-          rowsPerPageOptions={[5, 10, 20, 50]}
           lazy
           paginator
           rows={entriesPerPage}

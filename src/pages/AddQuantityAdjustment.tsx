@@ -54,7 +54,6 @@ export default function AddQuantityAdjustment() {
   const { mutateAsync: createQuantityAdjustment, isPending: loadingCreate } = useCreateQuantityAdjustment();
   const { data: wareHouses } = useGetAllWareHouses();
   const [wareHouseName, setWareHousesName] = useState("");
-  const [availableQuantity, setAvailableQuantity] = useState<number>();
   const { data: stockInventories } = useGetStockInventory(
     {
       pageNumber: 1,
@@ -104,7 +103,6 @@ export default function AddQuantityAdjustment() {
             };
           }) ?? [],
       });
-      setAvailableQuantity(Number(stockInventory?.items[0].quantity) - stockInventory?.items[0].quantityChanged);
     }
   }, [id, stockInventory, stockInventories, form]);
 
@@ -260,7 +258,6 @@ export default function AddQuantityAdjustment() {
                                 if (isView) return;
                                 const product = inventoryMap[Number(val)];
                                 if (product) field.onChange(Number(val));
-                                setAvailableQuantity(product?.quantityAvailable);
                               }}
                             />
 
@@ -280,7 +277,7 @@ export default function AddQuantityAdjustment() {
 
                       <div>
                         <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("available_quantity")}</FieldLabel>
-                        <Input value={availableQuantity ?? ""} readOnly className="text-center  cursor-not-allowed" />
+                        <Input value={selectedProduct?.quantityAvailable ?? ""} readOnly className="text-center cursor-not-allowed" />{" "}
                       </div>
 
                       <Controller

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { UserPlus } from "lucide-react";
 import * as z from "zod";
@@ -170,10 +170,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
   const { mutateAsync: updateSupplier } = useUpdateSupplier();
   const { mutateAsync: createSupplier } = useCreateSupplier();
   const { mutateAsync: updateCustomer } = useUpdateCustomer();
-  const { notifySuccess, notifyError } = useToast();
 
   const isSupplier = type === "supplier";
-  const schema = createPartnerSchema(t);
+  const schema = useMemo(() => createPartnerSchema(t), [t]);
 
   const { data: countriesData } = useGetAllCountries();
 
@@ -257,16 +256,15 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
   const countryId = form.watch("countryId");
   const cityId = form.watch("cityId");
   const isTaxable = form.watch("isTaxable");
-
+  const stateId = form.watch("stateId");
   const { data: citiesData } = useGetCityWithCountryId(countryId);
   const { data: statesData } = useGetStatesWithCityId(cityId);
+  const selectedCountry = useMemo(() => countriesData?.find((c) => c.id === countryId), [countriesData, countryId]);
+  const selectedCity = useMemo(() => citiesData?.find((c) => c.id === cityId), [citiesData, cityId]);
+  const selectedState = useMemo(() => statesData?.find((s) => s.id === form.getValues("stateId")), [statesData, stateId]);
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
     try {
-      const selectedCountry = countriesData?.find((c) => c.id === data.countryId);
-      const selectedCity = citiesData?.find((c) => c.id === data.cityId);
-      const selectedState = statesData?.find((s) => s.id === data.stateId);
-
       type CreatePartnerPayload = createCustomer | createSupplier;
       let payload: CreatePartnerPayload;
 
@@ -294,6 +292,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
           country: selectedCountry?.countryName ?? "",
           city: selectedCity?.cityName ?? "",
           state: selectedState?.statesName ?? "",
+          additionalNumber: data?.additionalNumber,
+          buildingNumber: data?.buildingNumber,
+          commercialRegister: data?.commercialRegister,
         };
       }
 
@@ -313,9 +314,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
 
       form.reset();
       onClose();
-    } catch (error: any) {
-      notifyError(error?.response?.data?.message || error?.message || t("save_error"));
-    }
+    } catch (error) {}
   };
 
   return (
@@ -335,7 +334,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>{isSupplier ? t("supplier_name") : t("customer_name")} <span className="text-red-500">*</span></FieldLabel>
+                  <FieldLabel>
+                    {isSupplier ? t("supplier_name") : t("customer_name")} <span className="text-red-500">*</span>
+                  </FieldLabel>
                   <Input {...field} placeholder={isSupplier ? t("enter_supplier_name") : t("enter_customer_name")} />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
@@ -347,7 +348,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>{t("mobile")} <span className="text-red-500">*</span></FieldLabel>
+                  <FieldLabel>
+                    {t("mobile")} <span className="text-red-500">*</span>
+                  </FieldLabel>
                   <Input {...field} type="number" placeholder={t("enter_mobile")} />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
@@ -371,7 +374,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>{t("tax_number")} <span className="text-red-500">*</span></FieldLabel>
+                        <FieldLabel>
+                          {t("tax_number")} <span className="text-red-500">*</span>
+                        </FieldLabel>
                         <Input {...field} placeholder={t("enter_tax_number")} />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
@@ -382,7 +387,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                     control={form.control}
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel>{t("commercial_register")} <span className="text-red-500">*</span></FieldLabel>
+                        <FieldLabel>
+                          {t("commercial_register")} <span className="text-red-500">*</span>
+                        </FieldLabel>
                         <Input {...field} type="number" placeholder={t("enter_commercial_register")} />
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
@@ -399,7 +406,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("country")} <span className="text-red-500">*</span></FieldLabel>
+                      <FieldLabel>
+                        {t("country")} <span className="text-red-500">*</span>
+                      </FieldLabel>
                       <Select
                         value={field.value ? String(field.value) : ""}
                         onValueChange={(value) => {
@@ -431,7 +440,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("region")} <span className="text-red-500">*</span></FieldLabel>
+                      <FieldLabel>
+                        {t("region")} <span className="text-red-500">*</span>
+                      </FieldLabel>
                       <Select
                         value={field.value ? String(field.value) : ""}
                         onValueChange={(value) => {
@@ -462,7 +473,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("city")} <span className="text-red-500">*</span></FieldLabel>
+                      <FieldLabel>
+                        {t("city")} <span className="text-red-500">*</span>
+                      </FieldLabel>
                       <Select value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder={t("select_city")} />
@@ -487,7 +500,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("district")} <span className="text-red-500">*</span></FieldLabel>
+                      <FieldLabel>
+                        {t("district")} <span className="text-red-500">*</span>
+                      </FieldLabel>
                       <Input {...field} placeholder={t("enter_district")} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -499,7 +514,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("street_name")} <span className="text-red-500">*</span></FieldLabel>
+                      <FieldLabel>
+                        {t("street_name")} <span className="text-red-500">*</span>
+                      </FieldLabel>
                       <Input {...field} placeholder={t("enter_street_name")} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -511,7 +528,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("additional_number")} <span className="text-red-500">*</span></FieldLabel>
+                      <FieldLabel>
+                        {t("additional_number")} <span className="text-red-500">*</span>
+                      </FieldLabel>
                       <Input {...field} placeholder={t("enter_additional_number")} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -523,7 +542,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("building_number")} <span className="text-red-500">*</span></FieldLabel>
+                      <FieldLabel>
+                        {t("building_number")} <span className="text-red-500">*</span>
+                      </FieldLabel>
                       <Input {...field} placeholder={t("enter_building_number")} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
@@ -535,7 +556,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel>{t("postal_code")} <span className="text-red-500">*</span></FieldLabel>
+                      <FieldLabel>
+                        {t("postal_code")} <span className="text-red-500">*</span>
+                      </FieldLabel>
                       <Input {...field} placeholder={t("enter_postal_code")} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>

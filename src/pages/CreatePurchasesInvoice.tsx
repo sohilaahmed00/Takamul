@@ -200,6 +200,7 @@ const CreatePurchaseInvoice: React.FC = () => {
       payments: data.payments.map((payment) => ({
         amount: payment.amount,
         treasuryId: payment.treasuryId,
+        paymentType: "Cash",
         notes: "",
       })),
     };

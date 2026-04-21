@@ -114,7 +114,7 @@ const CreateSalesInvoice: React.FC = () => {
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { data: treasurys } = useGetAllTreasurys();
-  const filterProducts = products?.items.filter((pro) => pro?.productType == "Direct" || pro?.productType == "Prepared");
+  const filterProducts = useMemo(() => products?.items.filter((pro) => pro?.productType == "Direct" || pro?.productType == "Prepared"), [products]);
   const { mutateAsync: createSalesOrders } = useCreateSalesOrders();
 
   const customers = customersResponse?.items ?? [];
@@ -124,9 +124,8 @@ const CreateSalesInvoice: React.FC = () => {
     }
   }, [wareHouses, form]);
   useEffect(() => {
-    const customerId = customers[0]?.id;
-    if (customerId) {
-      form.setValue("customerId", customerId);
+    if (customers[0]?.id && !form.getValues("customerId")) {
+      form.setValue("customerId", customers[0].id);
     }
   }, [customers]);
 
@@ -167,9 +166,9 @@ const CreateSalesInvoice: React.FC = () => {
   });
   const selectedCustomer = customers?.find((customer) => customer?.id == customerId);
 
-  const invoiceTotal = useMemo(() => {
-    return (
-      items?.reduce((total, item) => {
+  const { invoiceTotal, totalVat } = useMemo(() => {
+    const result = items?.reduce(
+      (acc, item) => {
         const product = products?.items?.find((p) => p.id === Number(item.productId));
         const taxRate = product?.taxAmount || 0;
         const taxCalc = product?.taxCalculation ?? 1;
@@ -182,33 +181,17 @@ const CreateSalesInvoice: React.FC = () => {
         const disc = item.discountType === "fixed" ? item.discountValue || 0 : beforeTaxNoDisc * ((item.discountValue || 0) / 100);
         const beforeTax = Math.max(0, beforeTaxNoDisc - disc);
         const vatAmount = calcVat(beforeTax, taxRate, taxCalc);
-
         const itemTotal = taxCalc === 3 ? beforeTax : beforeTax + vatAmount;
 
-        return total + itemTotal;
-      }, 0) || 0
+        return {
+          invoiceTotal: acc.invoiceTotal + itemTotal,
+          totalVat: acc.totalVat + vatAmount,
+        };
+      },
+      { invoiceTotal: 0, totalVat: 0 },
     );
-  }, [items, products]);
 
-  const totalVat = useMemo(() => {
-    return (
-      items?.reduce((total, item) => {
-        const product = products?.items?.find((p) => p.id === Number(item.productId));
-        const taxRate = product?.taxAmount || 0;
-        const taxCalc = product?.taxCalculation ?? 1;
-
-        const qty = item.quantity || 0;
-        const price = item.price || 0;
-        const gross = qty * price;
-
-        const beforeTaxNoDisc = taxCalc === 1 ? gross : gross / (1 + taxRate / 100);
-        const disc = item.discountType === "fixed" ? item.discountValue || 0 : beforeTaxNoDisc * ((item.discountValue || 0) / 100);
-        const beforeTax = Math.max(0, beforeTaxNoDisc - disc);
-        const vat = calcVat(beforeTax, taxRate, taxCalc);
-
-        return total + vat;
-      }, 0) || 0
-    );
+    return result ?? { invoiceTotal: 0, totalVat: 0 };
   }, [items, products]);
 
   const totalPaid = useMemo(() => {
@@ -409,8 +392,8 @@ const CreateSalesInvoice: React.FC = () => {
 
                       <div className="space-y-3 mt-3">
                         {itemFields.map((item, index) => {
-                          const qty = Number(form.watch(`items.${index}.quantity`) || 0);
-                          const price = Number(form.watch(`items.${index}.price`) || 0);
+                          const qty = Number(items[index]?.quantity || 0);
+                          const price = Number(items[index]?.price || 0);
                           const discType = form.watch(`items.${index}.discountType`) || "fixed";
                           const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
                           const productId = form.watch(`items.${index}.productId`);
