@@ -77,12 +77,14 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="p-0 overflow-hidden gap-0 flex flex-col" style={{ maxWidth: 580, width: "95vw", maxHeight: "88vh" }}>
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-4 py-3 text-white shrink-0 bg-sidebar">
+        <div className="flex items-center justify-between px-4 py-3 shrink-0 bg-sidebar border-b border-sidebar-foreground/10">
           <div className="flex items-center gap-2">
-            <FileText size={15} />
-            <DialogTitle className="text-[14px] font-medium text-white">{t("orders")}</DialogTitle>
+            <div className="w-7 h-7 rounded-lg bg-sidebar-foreground/10 flex items-center justify-center">
+              <FileText size={14} className="text-sidebar-foreground" />
+            </div>
+            <DialogTitle className="text-[14px] font-semibold text-sidebar-foreground">{t("orders")}</DialogTitle>
           </div>
-          <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded flex items-center justify-center bg-white/15 hover:bg-white/25 transition-colors">
+          <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded-lg flex items-center justify-center bg-sidebar-foreground/10 hover:bg-sidebar-foreground/20 transition-colors text-sidebar-foreground">
             <X size={14} />
           </button>
         </div>
