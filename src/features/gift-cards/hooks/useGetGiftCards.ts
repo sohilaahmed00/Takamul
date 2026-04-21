@@ -11,6 +11,7 @@ export function useGetGiftCards(params: { limit: number; page: number; SearchTer
       try {
         return await getGiftCards(params);
       } catch (err) {
+        console.log("2222")
         return handleEmptyResponse(err, params);
       }
     },

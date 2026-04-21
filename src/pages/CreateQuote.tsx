@@ -462,7 +462,7 @@ const CreateQuote: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-transparent p-6 rounded-sm border border-gray-100 dark:border-gray-800">
+            <div className=" p-6 rounded-sm border border-gray-100 dark:border-gray-800">
               <div className="border-b border-zinc-200 dark:border-zinc-800 pb-8 min-w-0">
                 <h2 className="text-lg font-bold text-zinc-900 dark:text-white mb-6">{t("invoice_details")}</h2>
                 <section className="mb-4">
@@ -499,7 +499,7 @@ const CreateQuote: React.FC = () => {
 
                         return (
                           <div key={item.id}>
-                            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-zinc-50 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group">
+                            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2  md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 items-center group">
                               <Controller
                                 control={form.control}
                                 name={`items.${index}.productId`}
@@ -634,7 +634,7 @@ const CreateQuote: React.FC = () => {
                     </div>
                   </div>
 
-                  <button type="button" onClick={handleAddItem} className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">
+                  <button type="button" onClick={handleAddItem} className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-500 transition-colors">
                     <Plus size={16} strokeWidth={2} /> {t("add_new_item")}
                   </button>
                 </section>
@@ -642,11 +642,11 @@ const CreateQuote: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div className="flex flex-col-reverse lg:flex-row justify-between gap-3   py-4 border-t border-gray-100 bg-gray-50/50 mt-8">
+            <div className="flex flex-col-reverse lg:flex-row justify-between gap-3   py-4 border-t border-gray-100  mt-8">
               <Button size="lg" variant="destructive" type="button" className="w-full lg:w-auto px-8 h-12">
                 {t("cancel")}
               </Button>
-              <div className="flex flex-col lg:flex-row items-center gap-3 w-full lg:w-auto">
+              <div className="flex flex-col-reverse lg:flex-row items-center gap-3 w-full lg:w-auto">
                 <Button variant="outline" size="lg" type="button" className="w-full lg:w-auto px-8 h-12 text-base">
                   {t("save_and_add_another")}
                 </Button>
