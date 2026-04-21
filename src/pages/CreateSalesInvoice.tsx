@@ -395,9 +395,10 @@ const CreateSalesInvoice: React.FC = () => {
 
                   <div className="w-full overflow-x-auto pb-4">
                     <div>
-                      <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-widest items-center">
+                      <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-widest items-center">
                         <div>{t("product_name")}</div>
                         <div>{t("unit")}</div>
+                        <div>{t("balance")}</div>
                         <div>{t("unit_price")}</div>
                         <div>{t("quantity")}</div>
                         <div>{t("subtotal_before_tax")}</div>
@@ -426,7 +427,7 @@ const CreateSalesInvoice: React.FC = () => {
 
                           return (
                             <div key={item.id}>
-                              <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group">
+                              <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group">
                                 <Controller
                                   control={form.control}
                                   name={`items.${index}.productId`}
@@ -458,11 +459,13 @@ const CreateSalesInvoice: React.FC = () => {
                                   render={({ field }) => (
                                     <Field>
                                       <FieldLabel className="md:hidden text-xs mb-1.5 text-muted-foreground">{t("unit")}</FieldLabel>
-                                      <span className="block text-center py-2 px-3 bg-muted rounded-md text-foreground">{field.value || "-"}</span>
+                                      <span className="block text-center py-2.5 px-3 bg-muted rounded-md text-foreground">{field.value || "-"}</span>
                                     </Field>
                                   )}
                                 />
-
+                                <div className="text-center bg-muted py-2.5 px-3 rounded-md">
+                                  <span className={`font-medium  ${(product?.balance ?? 0) <= 0 ? "text-red-500" : "text-emerald-500"}`}>{product?.balance?.toLocaleString("en-EG", { minimumFractionDigits: 2 }) ?? "—"}</span>
+                                </div>
                                 <Controller
                                   control={form.control}
                                   name={`items.${index}.price`}
