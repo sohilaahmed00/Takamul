@@ -56,11 +56,11 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
   });
   const { control, watch, setValue, reset } = form;
 
-useEffect(() => {
-  if (customers?.items?.length > 0 && !giftCard) {
-    setValue("customerId", 1);
-  }
-}, [customers?.items]);
+  useEffect(() => {
+    if (customers?.items?.length > 0 && !giftCard) {
+      setValue("customerId", customers.items[0].id);
+    }
+  }, [customers]);
 
   useEffect(() => {
     if (!isOpen) return;
