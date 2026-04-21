@@ -102,6 +102,7 @@ const CreatePurchaseInvoice: React.FC = () => {
 
   const { data: suppliers } = useGetAllSuppliers();
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
+  const filterProducts = products?.items?.filter((pro) => pro.productType == "Direct" || pro?.productType == "RawMatrial");
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { data: taxes } = useGetAllTaxes();
@@ -389,12 +390,12 @@ const CreatePurchaseInvoice: React.FC = () => {
                                 <Field>
                                   <ComboboxField
                                     field={field}
-                                    items={products?.items}
+                                    items={filterProducts}
                                     valueKey="id"
                                     labelKey="productNameAr"
                                     placeholder={t("choose_product")}
                                     onValueChange={(val) => {
-                                      const product = products?.items?.find((p) => p.id === Number(val));
+                                      const product = filterProducts?.find((p) => p.id === Number(val));
                                       if (product) {
                                         form.setValue(`items.${index}.unitPrice`, product.sellingPrice);
                                         const unitProduct = units?.items?.find((unit) => unit?.id == product?.baseUnitId);
