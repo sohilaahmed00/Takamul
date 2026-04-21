@@ -61,6 +61,7 @@ export default function AddEmployeeModal({ isOpen, onClose, employee }: AddEmplo
     try {
       const payload = {
         firstName: data.firstName,
+        lastName: "",
         mobile: data.mobile,
       };
 
@@ -84,7 +85,7 @@ export default function AddEmployeeModal({ isOpen, onClose, employee }: AddEmplo
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
+        <form id="formEmployee" onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
           <Controller
             name="firstName"
             control={control}
@@ -114,7 +115,7 @@ export default function AddEmployeeModal({ isOpen, onClose, employee }: AddEmplo
         </form>
 
         <DialogFooter>
-          <Button size="2xl" onClick={handleSubmit(onSubmit)} loading={isPending}>
+          <Button form="formEmployee" size="2xl" type="submit" loading={isPending}>
             إضافة موظف
           </Button>
         </DialogFooter>

@@ -73,7 +73,7 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
       const payload: CreateUser = {
         employee: {
           firstName: data?.userName,
-          lastName: "",
+          lastName: " ",
           branchId: data?.branchId,
           mobile: data?.mobile,
         },

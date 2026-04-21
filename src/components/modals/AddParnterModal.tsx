@@ -47,7 +47,7 @@ export const createPartnerSchema = (t: (key: string) => string) =>
           message: t("validation_numbers_only"),
         }),
 
-      commercialRegister: z.string().min(1, t("validation_commercial_register_required")).regex(/^\d+$/, t("validation_numbers_only")),
+      commercialRegister: z.string().optional(),
 
       isTaxable: z.boolean(),
 
@@ -77,6 +77,19 @@ export const createPartnerSchema = (t: (key: string) => string) =>
     })
     .superRefine((data, ctx) => {
       if (data.isTaxable) {
+        if (!data?.commercialRegister) {
+          ctx.addIssue({
+            path: ["commercialRegister"],
+            message: t("validation_commercial_register_required"),
+            code: z.ZodIssueCode.custom,
+          });
+        } else if (!/^\d+$/.test(data.commercialRegister)) {
+          ctx.addIssue({
+            path: ["commercialRegister"],
+            message: t("validation_numbers_only"),
+            code: z.ZodIssueCode.custom,
+          });
+        }
         if (!data.taxNumber) {
           ctx.addIssue({
             path: ["taxNumber"],
