@@ -119,10 +119,8 @@ export default function TablesPage() {
           </TabsList>
         </Tabs>
       </div>
-
       {/* Table grid */}
-      <div className="grid grid-cols-5 gap-3 gap-y-5 px-4 mt-4 flex-1 overflow-y-auto pb-4">{filtered.length === 0 ? <div className="col-span-5 flex items-center justify-center text-muted-foreground text-sm py-12">{t("no_tables_found")}</div> : filtered?.map((t) => <TableCard key={t.id} table={t} selected={selectedTable === t.id} onClick={() => setSelectedTable(selectedTable === t.id ? null : t.id)} />)}</div>
-      {/* Footer */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 px-4 mt-4 flex-1 overflow-y-auto pb-4">{filtered.length === 0 ? <div className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-5 flex items-center justify-center text-muted-foreground text-sm py-12">{t("no_tables_found")}</div> : filtered?.map((t) => <TableCard key={t.id} table={t} selected={selectedTable === t.id} onClick={() => setSelectedTable(selectedTable === t.id ? null : t.id)} />)}</div> {/* Footer */}
       <div className="bg-background border-t border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           {(
