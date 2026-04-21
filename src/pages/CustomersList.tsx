@@ -46,10 +46,6 @@ export default function CustomersList() {
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
   return (
     <div className="p-4 space-y-4" dir={direction}>
-      <div className="text-sm text-[var(--text-muted)] flex items-center gap-1">
-        <span>{t("home")}</span> / <span className="text-[var(--text-main)] font-medium">{t("customers")}</span>
-      </div>
-
       <Card>
         <CardHeader className="">
           <CardTitle> {t("customers")}</CardTitle>
@@ -101,12 +97,10 @@ export default function CustomersList() {
                   </button>
                   <button
                     onClick={async () => {
-                      if (confirm(t("confirm_delete"))) {
-                        try {
-                          await deleteCustomer(customer.id);
-                        } catch (error: any) {
-                          notifyError(error?.message || t("delete_customer_error"));
-                        }
+                      try {
+                        await deleteCustomer(customer.id);
+                      } catch (error: any) {
+                        notifyError(error?.message || t("delete_customer_error"));
                       }
                     }}
                     className="btn-minimal-action"
