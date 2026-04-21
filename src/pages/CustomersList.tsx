@@ -95,16 +95,7 @@ export default function CustomersList() {
                   >
                     <Edit2 size={16} />
                   </button>
-                  <button
-                    onClick={async () => {
-                      try {
-                        await deleteCustomer(customer.id);
-                      } catch (error: any) {
-                        notifyError(error?.message || t("delete_customer_error"));
-                      }
-                    }}
-                    className="btn-minimal-action"
-                  >
+                  <button onClick={async () => await deleteCustomer(customer.id)} className="btn-minimal-action">
                     <Trash2 size={16} />
                   </button>
                 </div>
