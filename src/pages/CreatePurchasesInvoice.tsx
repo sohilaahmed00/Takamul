@@ -251,10 +251,23 @@ const CreatePurchaseInvoice: React.FC = () => {
       finalTotal,
     };
   }, [items, taxes]);
+  useEffect(() => {
+    if (paymentFields.length > 0) {
+      form.setValue(`payments.0.amount`, Number(summary.finalTotal.toFixed(2)));
+    }
+  }, [summary.finalTotal]);
+  useEffect(() => {
+    if (treasurys && treasurys.length > 0) {
+      form.setValue(`payments.0.treasuryId`, Number(treasurys[0]?.id));
+    }
+  }, [treasurys]);
 
   const handleAddPayment = () => {
     appendPayment({ amount: 0, treasuryId: 0 });
   };
+
+  const supplierId = useWatch({ name: "supplierId", control: form.control });
+  const selectedSupplier = suppliers?.items?.find((supplier) => supplier?.id === supplierId);
 
   return (
     <Card dir={direction}>
@@ -280,7 +293,7 @@ const CreatePurchaseInvoice: React.FC = () => {
           <div className=" p-6 rounded-sm border border-gray-100">
             <h2 className="text-lg font-bold text-gray-800 mb-6">{t("basic_data")}</h2>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               <Controller
                 name="orderDate"
                 control={form.control}
@@ -326,6 +339,15 @@ const CreatePurchaseInvoice: React.FC = () => {
                   );
                 }}
               />
+              <Field>
+                <FieldLabel>رصيد العميل</FieldLabel>
+                <div className="relative">
+                  <Input readOnly value={selectedSupplier?.balance?.toLocaleString("en-EG", { minimumFractionDigits: 2 }) ?? ""} placeholder="—" className={`cursor-default bg-muted/50 font-semibold pr-20 ${(selectedSupplier?.balance ?? 0) < 0 ? "text-red-500" : "text-emerald-500"}`} />
+                  <div className="absolute inset-y-0 right-0 flex items-center px-3 border-l border-border bg-muted/50 rounded-r-md">
+                    <span className="text-xs text-muted-foreground whitespace-nowrap">{(selectedSupplier?.balance ?? 0) < 0 ? t("debtor") : "دائن"}</span>
+                  </div>
+                </div>
+              </Field>
 
               <div className="lg:col-span-3 col-span-1">
                 <Controller
