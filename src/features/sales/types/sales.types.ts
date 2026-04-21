@@ -62,7 +62,8 @@ export type CreateSalesOrder = {
   }[];
   payments: {
     amount: number;
-    paymentMethod: number;
+    paymentMethod: string;
+    treasuryId: number;
     notes: string;
   }[];
 };

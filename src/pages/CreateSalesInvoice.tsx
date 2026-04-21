@@ -43,7 +43,7 @@ const SalesInvoiceSchema = (t: (key: string) => string) =>
       .array(
         z.object({
           amount: z.number().min(1, t("amount_must_be_greater_than_zero")),
-          paymentMethod: z.number({ required_error: t("choose_payment_method") }).min(1, t("choose_payment_method")),
+          treasuryId: z.number({ required_error: t("choose_payment_method") }).min(1, t("choose_payment_method")),
         }),
       )
       .min(1, t("must_add_at_least_one_payment")),
@@ -98,7 +98,7 @@ const CreateSalesInvoice: React.FC = () => {
       payments: [
         {
           amount: 0,
-          paymentMethod: undefined,
+          treasuryId: undefined,
         },
       ],
       invoiceDiscountType: "fixed",
@@ -147,6 +147,7 @@ const CreateSalesInvoice: React.FC = () => {
     control: form.control,
     name: "payments",
   });
+  const customerId = useWatch({ name: "customerId", control: form.control });
 
   const invoiceDiscountType = useWatch({
     control: form.control,
@@ -164,6 +165,7 @@ const CreateSalesInvoice: React.FC = () => {
     control: form.control,
     name: "items",
   });
+  const selectedCustomer = customers?.find((customer) => customer?.id == customerId);
 
   const invoiceTotal = useMemo(() => {
     return (
@@ -232,9 +234,9 @@ const CreateSalesInvoice: React.FC = () => {
       form.setValue(`payments.0.amount`, Number(finalTotal.toFixed(2)));
     }
   }, [finalTotal]);
-    useEffect(() => {
+  useEffect(() => {
     if (treasurys && treasurys.length > 0) {
-      form.setValue(`payments.0.paymentMethod`, Number(treasurys[0]?.id));
+      form.setValue(`payments.0.treasuryId`, Number(treasurys[0]?.id));
     }
   }, [treasurys]);
 
@@ -252,7 +254,7 @@ const CreateSalesInvoice: React.FC = () => {
   const handleAddPayment = () => {
     appendPayment({
       amount: 0,
-      paymentMethod: undefined,
+      treasuryId: undefined,
     });
   };
 
@@ -274,7 +276,8 @@ const CreateSalesInvoice: React.FC = () => {
       })),
       payments: data.payments.map((p) => ({
         amount: p.amount,
-        paymentMethod: p.paymentMethod,
+        treasuryId: p.treasuryId,
+        paymentMethod: "Cash",
         notes: "",
       })),
     };
@@ -302,11 +305,9 @@ const CreateSalesInvoice: React.FC = () => {
 
         <CardContent>
           <form onSubmit={form.handleSubmit(handleSubmit, (errors) => console.log(errors))} className="space-y-6">
-            {/* Basic Data */}
             <div className="bg-background p-6 rounded-sm border border-border">
               <h2 className="text-lg font-bold text-foreground mb-6">{t("basic_data")}</h2>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <Controller
                   name="orderDate"
                   control={form.control}
@@ -358,7 +359,17 @@ const CreateSalesInvoice: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="lg:col-span-3 col-span-1">
+                <Field>
+                  <FieldLabel>رصيد العميل</FieldLabel>
+                  <div className="relative">
+                    <Input readOnly value={selectedCustomer?.balance?.toLocaleString("en-EG", { minimumFractionDigits: 2 }) ?? ""} placeholder="—" className={`cursor-default bg-muted/50 font-semibold pr-20 ${(selectedCustomer?.balance ?? 0) < 0 ? "text-red-500" : "text-emerald-500"}`} />
+                    <div className="absolute inset-y-0 right-0 flex items-center px-3 border-l border-border bg-muted/50 rounded-r-md">
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">{(selectedCustomer?.balance ?? 0) < 0 ? t("debtor") : t("creditor")}</span>
+                    </div>
+                  </div>
+                </Field>
+
+                <div className="lg:col-span-4  col-span-1">
                   <Controller
                     name="notes"
                     control={form.control}
@@ -556,7 +567,7 @@ const CreateSalesInvoice: React.FC = () => {
                         <label className="text-xs text-muted-foreground mb-1 block">{t("payment_method")}</label>
                         <Controller
                           control={form.control}
-                          name={`payments.${index}.paymentMethod`}
+                          name={`payments.${index}.treasuryId`}
                           render={({ field, fieldState }) => (
                             <Field>
                               <Select value={field.value?.toString()} onValueChange={(val) => field.onChange(Number(val))}>
