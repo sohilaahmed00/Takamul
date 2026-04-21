@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Plus, Trash2, ArrowLeft } from "lucide-react";
-import axios from "axios";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCreateQuantityAdjustment } from "@/features/quantity-adjustments/hooks/useCreateQuantityAdjustment";
 import { useGetStockInventory } from "@/features/quantity-adjustments/hooks/useGetStockInventory";
@@ -17,8 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUpdateQuantityAdjustment } from "@/features/quantity-adjustments/hooks/useUpdateQuantityAdjustment";
 import z from "zod/v3";
 import { useGetQuantityAdjustmentById } from "@/features/quantity-adjustments/hooks/useGetQuantityAdjustmentById";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHouses";
 
 const QuantityAdjustmentSchema = (t: (key: string) => string) =>
@@ -54,6 +52,7 @@ export default function AddQuantityAdjustment() {
   const { mutateAsync: createQuantityAdjustment, isPending: loadingCreate } = useCreateQuantityAdjustment();
   const { data: wareHouses } = useGetAllWareHouses();
   const [wareHouseName, setWareHousesName] = useState("");
+
   const { data: stockInventories } = useGetStockInventory(
     {
       pageNumber: 1,
@@ -64,14 +63,17 @@ export default function AddQuantityAdjustment() {
       enabled: !!wareHouseName,
     },
   );
+
   useEffect(() => {
     if (!wareHouseName && wareHouses && wareHouses?.length > 0) {
       setWareHousesName(wareHouses[0].warehouseName);
     }
   }, [wareHouses, wareHouseName]);
+
   const { mutateAsync: updateQuantityAdjustment, isPending: loadingUpdate } = useUpdateQuantityAdjustment();
 
   const isLoading = loadingCreate || loadingUpdate;
+
   const form = useForm<QuantityAdjustmentType>({
     resolver: zodResolver(QuantityAdjustmentSchema(t)),
     defaultValues: {
@@ -94,7 +96,6 @@ export default function AddQuantityAdjustment() {
         items:
           stockInventory.items?.map((item) => {
             const match = stockInventories.items.find((inv) => inv.productName === item.productName);
-
             return {
               stockInventoryId: Number(match?.id ?? 0),
               operationType: item.operationType,
@@ -187,7 +188,7 @@ export default function AddQuantityAdjustment() {
                   <Input value={new Date().toLocaleString("en-GB").replace(",", "")} readOnly className="cursor-not-allowed text-center" />
                 </Field>
                 <Field className="relative">
-                  <FieldLabel className="">المخازن</FieldLabel>
+                  <FieldLabel>المخازن</FieldLabel>
                   <Select
                     value={wareHouseName}
                     onValueChange={(value) => {
@@ -236,8 +237,17 @@ export default function AddQuantityAdjustment() {
 
               <div className="space-y-3 mt-3">
                 {itemFields.map((item, index) => {
-                  const selectedId = form.watch(`items.${index}.stockInventoryId`);
+                  const selectedId = items[index]?.stockInventoryId;
                   const selectedProduct = inventoryMap[selectedId];
+                  const currentQuantity = items[index]?.quantity || 0;
+                  const operationType = items[index]?.operationType;
+
+                  // حساب الكمية المتاحة بعد العملية
+                  const availableQuantity = selectedProduct
+                    ? operationType === "Add"
+                      ? (selectedProduct.quantityAvailable ?? 0) + currentQuantity
+                      : (selectedProduct.quantityAvailable ?? 0) - currentQuantity
+                    : "";
 
                   return (
                     <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 md:p-2 bg-zinc-50 dark:bg-zinc-900/30 md:bg-transparent dark:md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 dark:border-zinc-800 items-center group mb-8">
@@ -260,7 +270,6 @@ export default function AddQuantityAdjustment() {
                                 if (product) field.onChange(Number(val));
                               }}
                             />
-
                             {fieldState.invalid && (
                               <div className="absolute top-full mt-2 right-0 z-10 w-full">
                                 <FieldError errors={[fieldState.error]} />
@@ -272,12 +281,17 @@ export default function AddQuantityAdjustment() {
 
                       <div>
                         <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
-                        <Input value={selectedProduct?.barcode ?? ""} readOnly className="text-center   cursor-not-allowed" />
+                        <Input value={selectedProduct?.barcode ?? ""} readOnly className="text-center cursor-not-allowed" />
                       </div>
 
+                      {/* خانة الكمية المتاحة - بتتحدث real-time حسب العملية والكمية */}
                       <div>
                         <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("available_quantity")}</FieldLabel>
-                        <Input value={selectedProduct?.quantityAvailable ?? ""} readOnly className="text-center cursor-not-allowed" />{" "}
+                        <Input
+                          value={availableQuantity}
+                          readOnly
+                          className="text-center cursor-not-allowed"
+                        />
                       </div>
 
                       <Controller
@@ -290,13 +304,11 @@ export default function AddQuantityAdjustment() {
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder={t("choose_operation_type")} />
                               </SelectTrigger>
-
                               <SelectContent>
                                 <SelectItem value="Add">إضافة</SelectItem>
                                 <SelectItem value="Remove">حذف</SelectItem>
                               </SelectContent>
                             </Select>
-
                             {fieldState.invalid && (
                               <div className="absolute top-full mt-1 right-0 z-10 w-full">
                                 <FieldError errors={[fieldState.error]} />
@@ -308,7 +320,6 @@ export default function AddQuantityAdjustment() {
 
                       <div>
                         <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("quantity")}</FieldLabel>
-
                         <Controller
                           control={form.control}
                           name={`items.${index}.quantity`}
@@ -319,8 +330,7 @@ export default function AddQuantityAdjustment() {
                                 value={field.value == 0 ? "" : field.value}
                                 onChange={(e) => {
                                   if (!isView) {
-                                    const val = e.target.value;
-                                    field.onChange(Number(val));
+                                    field.onChange(Number(e.target.value));
                                   }
                                 }}
                                 readOnly={isView}
@@ -338,7 +348,12 @@ export default function AddQuantityAdjustment() {
 
                       {!isView && (
                         <div className="flex justify-end md:justify-center absolute top-4 left-4 md:static">
-                          <button type="button" onClick={() => removeItem(index)} disabled={items.length === 1} className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 dark:hover:text-red-400 rounded-md transition-colors disabled:opacity-30 ">
+                          <button
+                            type="button"
+                            onClick={() => removeItem(index)}
+                            disabled={items.length === 1}
+                            className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 dark:hover:text-red-400 rounded-md transition-colors disabled:opacity-30"
+                          >
                             <Trash2 size={18} strokeWidth={1.5} />
                           </button>
                         </div>
@@ -347,6 +362,7 @@ export default function AddQuantityAdjustment() {
                   );
                 })}
               </div>
+
               {!isView && (
                 <Button type="button" size="lg" variant="secondary" onClick={handleAddItem} className="text-sm font-medium px-4 rounded-lg transition-colors w-max">
                   <Plus size={16} strokeWidth={2} />

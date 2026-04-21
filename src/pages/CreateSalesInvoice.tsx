@@ -600,7 +600,7 @@ const CreateSalesInvoice: React.FC = () => {
 
                     <div className="flex justify-between items-center text-muted-foreground">
                       <span className="text-sm font-medium">{t("vat")}</span>
-                      <span className="font-semibold text-orange-500">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                      <span className="font-semibold text-orange-500">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-muted-foreground gap-3">
