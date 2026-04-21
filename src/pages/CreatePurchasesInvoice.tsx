@@ -76,8 +76,8 @@ const CreatePurchaseInvoice: React.FC = () => {
 
     defaultValues: {
       orderDate: new Date().toISOString().split("T")[0],
-      warehouseId: 0,
-      supplierId: 0,
+      warehouseId: undefined,
+      supplierId: undefined,
       notes: "",
       items: [
         {
@@ -107,7 +107,7 @@ const CreatePurchaseInvoice: React.FC = () => {
   const { data: taxes } = useGetAllTaxes();
   useEffect(() => {
     if (wareHouses && wareHouses.length > 0 && wareHouses[0]?.id) {
-      form.setValue("warehouseId", wareHouses[0].id);
+      form.setValue("warehouseId", wareHouses[0].id, { shouldValidate: true, shouldDirty: true });
     }
   }, [wareHouses]);
 
@@ -350,174 +350,174 @@ const CreatePurchaseInvoice: React.FC = () => {
                 <h2 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h2>
 
                 <div className="w-full overflow-x-auto pb-4">
-                    <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
-                      <div>{t("product_name_code")}</div>
-                      <div>{t("unit")}</div>
-                      <div>{t("unit_cost")}</div>
-                      <div>{t("quantity")}</div>
-                      <div>{t("total_before_tax")}</div>
-                      <div>{t("tax_rate")}</div>
-                      <div>{t("vat")}</div>
-                      <div>{t("final_total")}</div>
-                      <div></div>
-                    </div>
+                  <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
+                    <div>{t("product_name_code")}</div>
+                    <div>{t("unit")}</div>
+                    <div>{t("unit_cost")}</div>
+                    <div>{t("quantity")}</div>
+                    <div>{t("total_before_tax")}</div>
+                    <div>{t("tax_rate")}</div>
+                    <div>{t("vat")}</div>
+                    <div>{t("final_total")}</div>
+                    <div></div>
+                  </div>
 
-                    <div className="space-y-3 mt-3">
-                      {itemFields.map((item, index) => {
-                        const qty = Number(form.watch(`items.${index}.quantity`) || 0);
-                        const price = Number(form.watch(`items.${index}.unitPrice`) || 0);
-                        const discType = form.watch(`items.${index}.discountType`) || "fixed";
-                        const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
+                  <div className="space-y-3 mt-3">
+                    {itemFields.map((item, index) => {
+                      const qty = Number(form.watch(`items.${index}.quantity`) || 0);
+                      const price = Number(form.watch(`items.${index}.unitPrice`) || 0);
+                      const discType = form.watch(`items.${index}.discountType`) || "fixed";
+                      const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
 
-                        const taxId = form.watch(`items.${index}.taxId`);
-                        const tax = taxes?.find((taxItem) => taxItem.id === Number(taxId));
-                        const taxRate = tax?.amount || 0;
-                        const gross = qty * price;
-                        const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
-                        const afterTax = Math.max(0, gross - discount);
-                        const vatAmount = calcVat(afterTax, taxRate || 0, 3);
-                        const beforeTax = afterTax - vatAmount;
-                        const isDiscOpen = !!discountOpen[index];
+                      const taxId = form.watch(`items.${index}.taxId`);
+                      const tax = taxes?.find((taxItem) => taxItem.id === Number(taxId));
+                      const taxRate = tax?.amount || 0;
+                      const gross = qty * price;
+                      const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
+                      const afterTax = Math.max(0, gross - discount);
+                      const vatAmount = calcVat(afterTax, taxRate || 0, 3);
+                      const beforeTax = afterTax - vatAmount;
+                      const isDiscOpen = !!discountOpen[index];
 
-                        return (
-                          <div key={item.id}>
-                            <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-3 p-4 md:p-2 rounded-xl md:rounded-none border md:border-none border-zinc-100 items-start group">
-                              <Controller
-                                control={form.control}
-                                name={`items.${index}.productId`}
-                                render={({ field, fieldState }) => (
-                                  <Field>
-                                    <ComboboxField
-                                      field={field}
-                                      items={products?.items}
-                                      valueKey="id"
-                                      labelKey="productNameAr"
-                                      placeholder={t("choose_product")}
-                                      onValueChange={(val) => {
-                                        const product = products?.items?.find((p) => p.id === Number(val));
-                                        if (product) {
-                                          form.setValue(`items.${index}.unitPrice`, product.sellingPrice);
-                                          const unitProduct = units?.items?.find((unit) => unit?.id == product?.baseUnitId);
-                                          form.setValue(`items.${index}.unitName`, unitProduct?.name);
-                                        }
-                                      }}
-                                    />
-                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
-                                  </Field>
-                                )}
-                              />
+                      return (
+                        <div key={item.id}>
+                          <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_1fr_0.9fr_60px] gap-3 p-4 md:p-2 rounded-xl md:rounded-none border md:border-none border-zinc-100 items-start group">
+                            <Controller
+                              control={form.control}
+                              name={`items.${index}.productId`}
+                              render={({ field, fieldState }) => (
+                                <Field>
+                                  <ComboboxField
+                                    field={field}
+                                    items={products?.items}
+                                    valueKey="id"
+                                    labelKey="productNameAr"
+                                    placeholder={t("choose_product")}
+                                    onValueChange={(val) => {
+                                      const product = products?.items?.find((p) => p.id === Number(val));
+                                      if (product) {
+                                        form.setValue(`items.${index}.unitPrice`, product.sellingPrice);
+                                        const unitProduct = units?.items?.find((unit) => unit?.id == product?.baseUnitId);
+                                        form.setValue(`items.${index}.unitName`, unitProduct?.name);
+                                      }
+                                    }}
+                                  />
+                                  {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                              )}
+                            />
 
-                              <Controller
-                                control={form.control}
-                                name={`items.${index}.unitName`}
-                                render={({ field }) => (
-                                  <Field>
-                                    <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("unit")}</FieldLabel>
-                                    <span className="block text-center py-2 px-3 bg-gray-100 rounded-md">{field.value || "-"}</span>{" "}
-                                  </Field>
-                                )}
-                              />
+                            <Controller
+                              control={form.control}
+                              name={`items.${index}.unitName`}
+                              render={({ field }) => (
+                                <Field>
+                                  <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("unit")}</FieldLabel>
+                                  <span className="block text-center py-2 px-3 bg-gray-100 rounded-md">{field.value || "-"}</span>{" "}
+                                </Field>
+                              )}
+                            />
 
-                              <Controller
-                                control={form.control}
-                                name={`items.${index}.unitPrice`}
-                                render={({ field, fieldState }) => (
-                                  <Field>
-                                    <Input type="number" value={field.value === undefined ? "" : field.value} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} className="text-center" />
-                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
-                                  </Field>
-                                )}
-                              />
+                            <Controller
+                              control={form.control}
+                              name={`items.${index}.unitPrice`}
+                              render={({ field, fieldState }) => (
+                                <Field>
+                                  <Input type="number" value={field.value === undefined ? "" : field.value} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} className="text-center" />
+                                  {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                              )}
+                            />
 
-                              <Controller
-                                control={form.control}
-                                name={`items.${index}.quantity`}
-                                render={({ field, fieldState }) => (
-                                  <Field>
-                                    <Controller
-                                      control={form.control}
-                                      name={`items.${index}.quantity`}
-                                      render={({ field, fieldState }) => (
-                                        <Field>
-                                          <Input type="number" value={field.value === undefined ? "" : field.value} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} className="text-center" />
-                                          {fieldState?.error && <FieldError errors={[fieldState.error]} />}
-                                        </Field>
-                                      )}
-                                    />{" "}
-                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
-                                  </Field>
-                                )}
-                              />
+                            <Controller
+                              control={form.control}
+                              name={`items.${index}.quantity`}
+                              render={({ field, fieldState }) => (
+                                <Field>
+                                  <Controller
+                                    control={form.control}
+                                    name={`items.${index}.quantity`}
+                                    render={({ field, fieldState }) => (
+                                      <Field>
+                                        <Input type="number" value={field.value === undefined ? "" : field.value} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} className="text-center" />
+                                        {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                      </Field>
+                                    )}
+                                  />{" "}
+                                  {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                              )}
+                            />
 
-                              <div className="self-start pt-2 text-center font-medium">
-                                {beforeTax.toLocaleString("en-EG", {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2,
-                                })}
-                              </div>
-
-                              <Controller
-                                control={form.control}
-                                name={`items.${index}.taxId`}
-                                render={({ field, fieldState }) => (
-                                  <Field>
-                                    <ComboboxField field={field} items={taxes} valueKey="id" labelKey="name" placeholder={t("tax")} />
-                                    {fieldState?.error && <FieldError errors={[fieldState.error]} />}
-                                  </Field>
-                                )}
-                              />
-
-                              <div className="self-start pt-2 text-center text-orange-600 font-medium">
-                                {vatAmount.toLocaleString("en-EG", {
-                                  minimumFractionDigits: 2,
-                                })}
-                              </div>
-
-                              <div className="self-start pt-2 text-center text-green-600 font-bold">
-                                {afterTax.toLocaleString("en-EG", {
-                                  minimumFractionDigits: 2,
-                                })}
-                              </div>
-
-                              <div className="flex items-center justify-center gap-2">
-                                <button type="button" onClick={() => removeItem(index)} className="p-2 text-zinc-400 hover:text-red-500">
-                                  <Trash2 size={16} />
-                                </button>
-
-                                <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-600" : "text-zinc-400"}`}>
-                                  <Tag size={14} />
-                                </button>
-                              </div>
+                            <div className="self-start pt-2 text-center font-medium">
+                              {beforeTax.toLocaleString("en-EG", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
                             </div>
 
-                            {isDiscOpen && (
-                              <div className="grid grid-cols-2 gap-3 px-2 py-3 bg-emerald-50 border rounded-lg">
-                                <Controller
-                                  control={form.control}
-                                  name={`items.${index}.discountType`}
-                                  render={({ field }) => (
-                                    <ComboboxField
-                                      field={field}
-                                      items={[
-                                        { value: "fixed", label: t("fixed_value") },
-                                        { value: "percentage", label: t("percentage") },
-                                      ]}
-                                      valueKey="value"
-                                      labelKey="label"
-                                      className="w-full"
-                                    />
-                                  )}
-                                />
+                            <Controller
+                              control={form.control}
+                              name={`items.${index}.taxId`}
+                              render={({ field, fieldState }) => (
+                                <Field>
+                                  <ComboboxField field={field} items={taxes} valueKey="id" labelKey="name" placeholder={t("tax")} />
+                                  {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                              )}
+                            />
 
-                                <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} />} />
-                              </div>
-                            )}
+                            <div className="self-start pt-2 text-center text-orange-600 font-medium">
+                              {vatAmount.toLocaleString("en-EG", {
+                                minimumFractionDigits: 2,
+                              })}
+                            </div>
+
+                            <div className="self-start pt-2 text-center text-green-600 font-bold">
+                              {afterTax.toLocaleString("en-EG", {
+                                minimumFractionDigits: 2,
+                              })}
+                            </div>
+
+                            <div className="flex items-center justify-center gap-2">
+                              <button type="button" onClick={() => removeItem(index)} className="p-2 text-zinc-400 hover:text-red-500">
+                                <Trash2 size={16} />
+                              </button>
+
+                              <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-600" : "text-zinc-400"}`}>
+                                <Tag size={14} />
+                              </button>
+                            </div>
                           </div>
-                        );
-                      })}
 
-                      {(form.formState.errors.items?.root?.message || form.formState.errors.items?.message) && <p className="text-red-500 text-sm text-center py-2">{form.formState.errors.items?.root?.message || form.formState.errors.items?.message}</p>}
-                    </div>
+                          {isDiscOpen && (
+                            <div className="grid grid-cols-2 gap-3 px-2 py-3 bg-emerald-50 border rounded-lg">
+                              <Controller
+                                control={form.control}
+                                name={`items.${index}.discountType`}
+                                render={({ field }) => (
+                                  <ComboboxField
+                                    field={field}
+                                    items={[
+                                      { value: "fixed", label: t("fixed_value") },
+                                      { value: "percentage", label: t("percentage") },
+                                    ]}
+                                    valueKey="value"
+                                    labelKey="label"
+                                    className="w-full"
+                                  />
+                                )}
+                              />
+
+                              <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} />} />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {(form.formState.errors.items?.root?.message || form.formState.errors.items?.message) && <p className="text-red-500 text-sm text-center py-2">{form.formState.errors.items?.root?.message || form.formState.errors.items?.message}</p>}
+                  </div>
                 </div>
 
                 <button type="button" onClick={handleAddItem} className="mt-4 flex items-center gap-2 text-sm font-medium text-zinc-500 hover:text-zinc-900 transition-colors">

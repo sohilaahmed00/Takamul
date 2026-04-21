@@ -62,7 +62,7 @@ export type CreateSalesOrder = {
   }[];
   payments: {
     amount: number;
-    paymentMethod: "Cash" | "Visa" | "CreditCard" | "DebitCard" | "BankTransfer" | "Check" | "MobilePayment" | "OnlinePayment" | "Other";
+    paymentMethod: number;
     notes: string;
   }[];
 };

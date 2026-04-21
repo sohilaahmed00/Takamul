@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Plus, PlusCircle, Tag, Trash2 } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { z } from "zod";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
@@ -18,6 +17,9 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/componen
 import ComboboxField from "@/components/ui/ComboboxField";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AddParnterModal from "@/components/modals/AddParnterModal";
+import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import z from "zod/v3";
 
 const SalesInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -41,9 +43,7 @@ const SalesInvoiceSchema = (t: (key: string) => string) =>
       .array(
         z.object({
           amount: z.number().min(1, t("amount_must_be_greater_than_zero")),
-          paymentMethod: z.enum(["Cash", "CreditCard", "DebitCard", "BankTransfer", "Check", "MobilePayment", "OnlinePayment", "Other"], {
-            message: t("choose_payment_method"),
-          }),
+          paymentMethod: z.number({ required_error: t("choose_payment_method") }).min(1, t("choose_payment_method")),
         }),
       )
       .min(1, t("must_add_at_least_one_payment")),
@@ -98,7 +98,7 @@ const CreateSalesInvoice: React.FC = () => {
       payments: [
         {
           amount: 0,
-          paymentMethod: "Cash",
+          paymentMethod: undefined,
         },
       ],
       invoiceDiscountType: "fixed",
@@ -113,51 +113,22 @@ const CreateSalesInvoice: React.FC = () => {
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
-  // const { data: salesOrder } = useGetSalesOrderById(isEditMode ? Number(id) : undefined);
+  const { data: treasurys } = useGetAllTreasurys();
+  const filterProducts = products?.items.filter((pro) => pro?.productType == "Direct" || pro?.productType == "Prepared");
   const { mutateAsync: createSalesOrders } = useCreateSalesOrders();
 
   const customers = customersResponse?.items ?? [];
-
-  // useEffect(() => {
-  //   if (!salesOrder || !isEditMode) return;
-  //   if (!products?.items || !units?.items || !wareHouses) return;
-
-  //   const customer = customers.find((c) => c.customerName === salesOrder.customerName);
-  //   const warehouse = wareHouses.find((w) => w.warehouseName === salesOrder.warehouseName);
-
-  //   form.reset({
-  //     orderDate: salesOrder.orderDate?.split("T")[0] ?? new Date().toISOString().split("T")[0],
-  //     customerId: customer?.id ?? 0,
-  //     warehouseId: warehouse?.id ?? 0,
-  //     notes: (salesOrder as any).notes ?? "",
-  //     items: salesOrder.items.map((item) => {
-  //       const product = products.items.find((p) => p.id === item.productId);
-  //       console.log(salesOrder?.items);
-  //       return {
-  //         productId: item.productId,
-  //         unitId: item.unitId,
-  //         quantity: item.quantity,
-  //         price: (item as any).unitPrice ?? product?.sellingPrice ?? 0,
-  //         discountType: item.discountValue > 0 ? "fixed" : item.discountPercentage > 0 ? "percentage" : "fixed",
-  //         discountValue: item.discountValue > 0 ? item.discountValue : (item.discountPercentage ?? 0),
-  //       };
-  //     }),
-  //     payments:
-  //       salesOrder.payments?.length > 0
-  //         ? salesOrder.payments.map((p) => ({
-  //             amount: p.amount,
-  //             // paymentMethod: p.paymentMethod === "Visa" ? "CreditCard" : p.paymentMethod === "" ? "BankTransfer" : (p.paymentMethod as SalesInvoiceType["payments"][number]["paymentMethod"]),
-  //           }))
-  //         : [
-  //             {
-  //               amount: 0,
-  //               paymentMethod: "Cash",
-  //             },
-  //           ],
-  //     invoiceDiscountType: (salesOrder as any).globalDiscountValue > 0 ? "fixed" : "percentage",
-  //     invoiceDiscountValue: (salesOrder as any).globalDiscountValue > 0 ? (salesOrder as any).globalDiscountValue : ((salesOrder as any).globalDiscountPercentage ?? 0),
-  //   });
-  // }, [salesOrder, isEditMode, products, units, wareHouses, customers, form]);
+  useEffect(() => {
+    if (wareHouses && wareHouses.length > 0 && wareHouses[0]?.id) {
+      form.setValue("warehouseId", wareHouses[0].id, { shouldValidate: true, shouldDirty: true });
+    }
+  }, [wareHouses, form]);
+  useEffect(() => {
+    const customerId = customers[0]?.id;
+    if (customerId) {
+      form.setValue("customerId", customerId);
+    }
+  }, [customers]);
 
   const {
     fields: itemFields,
@@ -256,6 +227,12 @@ const CreateSalesInvoice: React.FC = () => {
 
   const remaining = finalTotal - totalPaid;
 
+  useEffect(() => {
+    if (paymentFields.length > 0) {
+      form.setValue(`payments.0.amount`, Number(finalTotal.toFixed(2)));
+    }
+  }, [finalTotal]);
+
   const handleAddItem = () => {
     appendItem({
       productId: 0,
@@ -270,7 +247,7 @@ const CreateSalesInvoice: React.FC = () => {
   const handleAddPayment = () => {
     appendPayment({
       amount: 0,
-      paymentMethod: "Cash",
+      paymentMethod: undefined,
     });
   };
 
@@ -318,390 +295,368 @@ const CreateSalesInvoice: React.FC = () => {
           </CardAction>
         </CardHeader>
 
-       <CardContent>
-  <form onSubmit={form.handleSubmit(handleSubmit, (errors) => console.log(errors))} className="space-y-6">
-    
-    {/* Basic Data */}
-    <div className="bg-background p-6 rounded-sm border border-border">
-      <h2 className="text-lg font-bold text-foreground mb-6">{t("basic_data")}</h2>
+        <CardContent>
+          <form onSubmit={form.handleSubmit(handleSubmit, (errors) => console.log(errors))} className="space-y-6">
+            {/* Basic Data */}
+            <div className="bg-background p-6 rounded-sm border border-border">
+              <h2 className="text-lg font-bold text-foreground mb-6">{t("basic_data")}</h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Controller
-          name="orderDate"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel>
-                {t("date")} <span className="text-red-500">*</span>
-              </FieldLabel>
-              <Input type="date" {...field} />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-
-        <Controller
-          name="warehouseId"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel>
-                {t("warehouse")} <span className="text-red-500">*</span>
-              </FieldLabel>
-              <ComboboxField field={field} items={wareHouses} valueKey="id" labelKey="warehouseName" placeholder={t("choose_warehouse")} />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-
-        <div className="flex items-start gap-3">
-          <div className="flex-1">
-            <Controller
-              name="customerId"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>
-                    {t("customer")} <span className="text-red-500">*</span>
-                  </FieldLabel>
-                  <ComboboxField field={field} items={customers} valueKey="id" labelKey="customerName" placeholder={t("choose_customer")} />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                </Field>
-              )}
-            />
-          </div>
-          <div className="mt-6">
-            <Button type="button" onClick={() => setIsAddCustomerModalOpen(true)} variant="outline" size="icon" className="h-10">
-              <Plus />
-            </Button>
-          </div>
-        </div>
-
-        <div className="lg:col-span-3 col-span-1">
-          <Controller
-            name="notes"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel>{t("notes")}</FieldLabel>
-                <Textarea {...field} placeholder={t("enter_notes")} />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-              </Field>
-            )}
-          />
-        </div>
-      </div>
-    </div>
-
-    {/* Invoice Details */}
-    <div className="bg-background p-6 rounded-sm border border-border">
-      <div className="col-span-3 border-b border-border pb-8 min-w-0">
-        <h2 className="text-lg font-bold text-foreground mb-6">{t("invoice_details")}</h2>
-
-        <section className="mb-4">
-          <h2 className="text-sm font-semibold text-muted-foreground mb-4">{t("items_list")}</h2>
-
-          <div className="w-full overflow-x-auto pb-4">
-            <div>
-              <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-widest items-center">
-                <div>{t("product_name")}</div>
-                <div>{t("unit")}</div>
-                <div>{t("unit_price")}</div>
-                <div>{t("quantity")}</div>
-                <div>{t("subtotal_before_tax")}</div>
-                <div>{t("vat")}</div>
-                <div>{t("grand_total")}</div>
-                <div></div>
-              </div>
-
-              <div className="space-y-3 mt-3">
-                {itemFields.map((item, index) => {
-                  const qty = Number(form.watch(`items.${index}.quantity`) || 0);
-                  const price = Number(form.watch(`items.${index}.price`) || 0);
-                  const discType = form.watch(`items.${index}.discountType`) || "fixed";
-                  const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
-                  const productId = form.watch(`items.${index}.productId`);
-                  const product = products?.items?.find((p) => p.id === Number(productId));
-                  const taxRate = product?.taxAmount || 0;
-                  const taxCalc = product?.taxCalculation ?? 1;
-                  const gross = qty * price;
-                  const beforeTaxNoDisc = taxCalc === 1 ? gross : gross / (1 + taxRate / 100);
-                  const discount = discType === "fixed" ? discValue : beforeTaxNoDisc * (discValue / 100);
-                  const beforeTax = Math.max(0, beforeTaxNoDisc - discount);
-                  const vatAmount = calcVat(beforeTax, taxRate, taxCalc);
-                  const afterTax = beforeTax + vatAmount;
-                  const isDiscOpen = !!discountOpen[index];
-
-                  return (
-                    <div key={item.id}>
-                      <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group">
-                        <Controller
-                          control={form.control}
-                          name={`items.${index}.productId`}
-                          render={({ field, fieldState }) => (
-                            <Field>
-                              <ComboboxField
-                                field={field}
-                                items={products?.items}
-                                valueKey="id"
-                                labelKey="productNameAr"
-                                placeholder={t("choose_product")}
-                                onValueChange={(val) => {
-                                  const selectedProduct = products?.items?.find((p) => p.id === Number(val));
-                                  if (selectedProduct) {
-                                    form.setValue(`items.${index}.price`, selectedProduct.sellingPrice);
-                                    const unitProduct = units?.items?.find((unit) => unit?.id == selectedProduct?.baseUnitId);
-                                    form.setValue(`items.${index}.unitName`, unitProduct?.name);
-                                  }
-                                }}
-                              />
-                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                            </Field>
-                          )}
-                        />
-
-                        <Controller
-                          control={form.control}
-                          name={`items.${index}.unitName`}
-                          render={({ field }) => (
-                            <Field>
-                              <FieldLabel className="md:hidden text-xs mb-1.5 text-muted-foreground">{t("unit")}</FieldLabel>
-                              <span className="block text-center py-2 px-3 bg-muted rounded-md text-foreground">{field.value || "-"}</span>
-                            </Field>
-                          )}
-                        />
-
-                        <Controller
-                          control={form.control}
-                          name={`items.${index}.price`}
-                          render={({ field, fieldState }) => (
-                            <Field>
-                              <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
-                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                            </Field>
-                          )}
-                        />
-
-                        <Controller
-                          control={form.control}
-                          name={`items.${index}.quantity`}
-                          render={({ field, fieldState }) => (
-                            <Field>
-                              <Input type="number" min={1} value={field.value ?? 1} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
-                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                            </Field>
-                          )}
-                        />
-
-                        <div className="text-center font-medium text-foreground">
-                          {beforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2 })}
-                        </div>
-
-                        <div className="text-center text-orange-500 font-medium">
-                          {vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </div>
-
-                        <div className="text-center text-green-500 font-bold">
-                          {afterTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </div>
-
-                        <div className="flex items-center justify-center gap-2">
-                          <button type="button" onClick={() => removeItem(index)} disabled={itemFields.length === 1} className="p-2 text-muted-foreground hover:text-red-500 disabled:opacity-30">
-                            <Trash2 size={16} />
-                          </button>
-                          <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-500" : "text-muted-foreground"}`}>
-                            <Tag size={14} />
-                          </button>
-                        </div>
-                      </div>
-
-                      {isDiscOpen && (
-                        <div className="grid grid-cols-2 gap-3 px-2 py-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-lg">
-                          <Controller
-                            control={form.control}
-                            name={`items.${index}.discountType`}
-                            render={({ field }) => (
-                              <ComboboxField
-                                field={field}
-                                items={[
-                                  { value: "fixed", label: t("fixed_value") },
-                                  { value: "percentage", label: t("percentage") + " %" },
-                                ]}
-                                valueKey="value"
-                                labelKey="label"
-                                className="w-full"
-                              />
-                            )}
-                          />
-                          <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} />} />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          <button type="button" onClick={handleAddItem} className="mt-4 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-            <Plus size={16} strokeWidth={2} />
-            {t("add_new_item")}
-          </button>
-        </section>
-      </div>
-    </div>
-
-    {/* Payments */}
-    <div className="bg-background p-6 rounded-xl border border-border col-span-3">
-      <h2 className="text-xl font-bold text-foreground mb-6">{t("payments")}</h2>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-        <div className="lg:col-span-2 space-y-4">
-          {paymentFields.map((payment, index) => (
-            <div key={payment.id} className="flex flex-col sm:flex-row gap-3 items-center bg-muted/30 p-3 rounded-lg border border-border">
-              <div className="w-full flex-1">
-                <label className="text-xs text-muted-foreground mb-1 block">{t("amount")}</label>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <Controller
+                  name="orderDate"
                   control={form.control}
-                  name={`payments.${index}.amount`}
-                  render={({ field, fieldState }) => (
-                    <Field className="relative" data-invalid={fieldState.invalid}>
-                      <Input step="any" type="number" placeholder="0.00" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} />
-                      {fieldState.invalid && (
-                        <div className="absolute top-full mt-1 right-0 z-10 w-full">
-                          <FieldError errors={[fieldState.error]} />
-                        </div>
-                      )}
-                    </Field>
-                  )}
-                />
-              </div>
-
-              <div className="w-full flex-1">
-                <label className="text-xs text-muted-foreground mb-1 block">{t("payment_method")}</label>
-                <Controller
-                  control={form.control}
-                  name={`payments.${index}.paymentMethod`}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <ComboboxField
-                        field={field}
-                        items={[
-                          { value: "Cash", label: t("cash") },
-                          { value: "CreditCard", label: t("visa") },
-                          { value: "DebitCard", label: t("debit_card") },
-                          { value: "BankTransfer", label: t("bank_transfer") },
-                          { value: "Check", label: t("check") },
-                          { value: "MobilePayment", label: t("mobile_payment") },
-                          { value: "OnlinePayment", label: t("online_payment") },
-                          { value: "Other", label: t("other") },
-                        ]}
-                        valueKey="value"
-                        labelKey="label"
-                        placeholder={t("choose")}
-                      />
+                      <FieldLabel>
+                        {t("date")} <span className="text-red-500">*</span>
+                      </FieldLabel>
+                      <Input type="date" {...field} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
                 />
-              </div>
 
-              <div className="pt-5 shrink-0">
-                <button type="button" onClick={() => removePayment(index)} disabled={paymentFields.length === 1} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-md disabled:opacity-30 transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-900" title={t("delete_payment")}>
-                  <Trash2 size={18} />
-                </button>
-              </div>
-            </div>
-          ))}
-
-          <Button type="button" size="lg" variant="secondary" onClick={handleAddPayment} className="text-sm font-medium px-4 rounded-lg transition-colors w-max">
-            <Plus size={16} strokeWidth={2} />
-            {t("add_another_payment")}
-          </Button>
-        </div>
-
-        {/* Invoice Summary */}
-        <div className="bg-muted/30 p-6 rounded-2xl border border-border">
-          <h3 className="text-base font-semibold text-foreground mb-5">{t("invoice_summary")}</h3>
-
-          <div className="space-y-4">
-            <div className="flex justify-between items-center text-muted-foreground">
-              <span className="text-sm font-medium">{t("subtotal_before_tax")}</span>
-              <span className="font-semibold text-foreground">
-                {invoiceTotal.toLocaleString("en-EG", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center text-muted-foreground">
-              <span className="text-sm font-medium">{t("vat")}</span>
-              <span className="font-semibold text-orange-500">
-                {totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center text-muted-foreground gap-3">
-              <span className="text-sm font-medium whitespace-nowrap">{t("discount")}</span>
-              <div className="flex gap-2 w-full max-w-[170px]">
-                <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" min={0} value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center flex-1" placeholder={t("value")} />} />
                 <Controller
+                  name="warehouseId"
                   control={form.control}
-                  name="invoiceDiscountType"
-                  render={({ field }) => (
-                    <ComboboxField
-                      field={field}
-                      items={[
-                        { value: "fixed", label: t("value") },
-                        { value: "percentage", label: t("percentage") },
-                      ]}
-                      valueKey="value"
-                      labelKey="label"
-                      placeholder={t("choose_discount_type")}
-                      className="w-[120px]"
-                    />
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>
+                        {t("warehouse")} <span className="text-red-500">*</span>
+                      </FieldLabel>
+                      <ComboboxField field={field} items={wareHouses} valueKey="id" labelKey="warehouseName" placeholder={t("choose_warehouse")} />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
                   )}
                 />
+
+                <div className="flex items-start gap-3">
+                  <div className="flex-1">
+                    <Controller
+                      name="customerId"
+                      control={form.control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>
+                            {t("customer")} <span className="text-red-500">*</span>
+                          </FieldLabel>
+                          <ComboboxField field={field} items={customers} valueKey="id" labelKey="customerName" placeholder={t("choose_customer")} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                  </div>
+                  <div className="mt-6">
+                    <Button type="button" onClick={() => setIsAddCustomerModalOpen(true)} variant="outline" size="icon" className="h-10">
+                      <Plus />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-3 col-span-1">
+                  <Controller
+                    name="notes"
+                    control={form.control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>{t("notes")}</FieldLabel>
+                        <Textarea {...field} placeholder={t("enter_notes")} />
+                        {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                      </Field>
+                    )}
+                  />
+                </div>
               </div>
             </div>
 
-            <hr className="border-border" />
+            {/* Invoice Details */}
+            <div className="bg-background p-6 rounded-sm border border-border">
+              <div className="col-span-3 border-b border-border pb-8 min-w-0">
+                <h2 className="text-lg font-bold text-foreground mb-6">{t("invoice_details")}</h2>
 
-            <div className="flex justify-between items-center">
-              <span className="font-bold text-foreground">{t("grand_total")}</span>
-              <span className="text-xl font-black text-foreground">
-                {finalTotal.toLocaleString("en-EG", { minimumFractionDigits: 2 })}
-              </span>
+                <section className="mb-4">
+                  <h2 className="text-sm font-semibold text-muted-foreground mb-4">{t("items_list")}</h2>
+
+                  <div className="w-full overflow-x-auto pb-4">
+                    <div>
+                      <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-widest items-center">
+                        <div>{t("product_name")}</div>
+                        <div>{t("unit")}</div>
+                        <div>{t("unit_price")}</div>
+                        <div>{t("quantity")}</div>
+                        <div>{t("subtotal_before_tax")}</div>
+                        <div>{t("vat")}</div>
+                        <div>{t("grand_total")}</div>
+                        <div></div>
+                      </div>
+
+                      <div className="space-y-3 mt-3">
+                        {itemFields.map((item, index) => {
+                          const qty = Number(form.watch(`items.${index}.quantity`) || 0);
+                          const price = Number(form.watch(`items.${index}.price`) || 0);
+                          const discType = form.watch(`items.${index}.discountType`) || "fixed";
+                          const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
+                          const productId = form.watch(`items.${index}.productId`);
+                          const product = products?.items?.find((p) => p.id === Number(productId));
+                          const taxRate = product?.taxAmount || 0;
+                          const taxCalc = product?.taxCalculation ?? 1;
+                          const gross = qty * price;
+                          const beforeTaxNoDisc = taxCalc === 1 ? gross : gross / (1 + taxRate / 100);
+                          const discount = discType === "fixed" ? discValue : beforeTaxNoDisc * (discValue / 100);
+                          const beforeTax = Math.max(0, beforeTaxNoDisc - discount);
+                          const vatAmount = calcVat(beforeTax, taxRate, taxCalc);
+                          const afterTax = beforeTax + vatAmount;
+                          const isDiscOpen = !!discountOpen[index];
+
+                          return (
+                            <div key={item.id}>
+                              <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group">
+                                <Controller
+                                  control={form.control}
+                                  name={`items.${index}.productId`}
+                                  render={({ field, fieldState }) => (
+                                    <Field>
+                                      <ComboboxField
+                                        field={field}
+                                        items={filterProducts}
+                                        valueKey="id"
+                                        labelKey="productNameAr"
+                                        placeholder={t("choose_product")}
+                                        onValueChange={(val) => {
+                                          const selectedProduct = filterProducts.find((p) => p.id === Number(val));
+                                          if (selectedProduct) {
+                                            form.setValue(`items.${index}.price`, selectedProduct.sellingPrice);
+                                            const unitProduct = units?.items?.find((unit) => unit?.id == selectedProduct?.baseUnitId);
+                                            form.setValue(`items.${index}.unitName`, unitProduct?.name);
+                                          }
+                                        }}
+                                      />
+                                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                    </Field>
+                                  )}
+                                />
+
+                                <Controller
+                                  control={form.control}
+                                  name={`items.${index}.unitName`}
+                                  render={({ field }) => (
+                                    <Field>
+                                      <FieldLabel className="md:hidden text-xs mb-1.5 text-muted-foreground">{t("unit")}</FieldLabel>
+                                      <span className="block text-center py-2 px-3 bg-muted rounded-md text-foreground">{field.value || "-"}</span>
+                                    </Field>
+                                  )}
+                                />
+
+                                <Controller
+                                  control={form.control}
+                                  name={`items.${index}.price`}
+                                  render={({ field, fieldState }) => (
+                                    <Field>
+                                      <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                    </Field>
+                                  )}
+                                />
+
+                                <Controller
+                                  control={form.control}
+                                  name={`items.${index}.quantity`}
+                                  render={({ field, fieldState }) => (
+                                    <Field>
+                                      <Input type="number" min={1} value={field.value ?? 1} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                    </Field>
+                                  )}
+                                />
+
+                                <div className="text-center font-medium text-foreground">{beforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</div>
+
+                                <div className="text-center text-orange-500 font-medium">{vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+
+                                <div className="text-center text-green-500 font-bold">{afterTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+
+                                <div className="flex items-center justify-center gap-2">
+                                  <button type="button" onClick={() => removeItem(index)} disabled={itemFields.length === 1} className="p-2 text-muted-foreground hover:text-red-500 disabled:opacity-30">
+                                    <Trash2 size={16} />
+                                  </button>
+                                  <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-500" : "text-muted-foreground"}`}>
+                                    <Tag size={14} />
+                                  </button>
+                                </div>
+                              </div>
+
+                              {isDiscOpen && (
+                                <div className="grid grid-cols-2 gap-3 px-2 py-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-lg">
+                                  <Controller
+                                    control={form.control}
+                                    name={`items.${index}.discountType`}
+                                    render={({ field }) => (
+                                      <ComboboxField
+                                        field={field}
+                                        items={[
+                                          { value: "fixed", label: t("fixed_value") },
+                                          { value: "percentage", label: t("percentage") + " %" },
+                                        ]}
+                                        valueKey="value"
+                                        labelKey="label"
+                                        className="w-full"
+                                      />
+                                    )}
+                                  />
+                                  <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} />} />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="button" onClick={handleAddItem} className="mt-4 flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                    <Plus size={16} strokeWidth={2} />
+                    {t("add_new_item")}
+                  </button>
+                </section>
+              </div>
             </div>
 
-            <div className="flex justify-between items-center text-muted-foreground pt-2">
-              <span className="text-sm">{t("total_paid")}</span>
-              <span className="font-semibold text-emerald-500">
-                {totalPaid.toLocaleString("en-EG", { minimumFractionDigits: 2 })}
-              </span>
+            {/* Payments */}
+            <div className="bg-background p-6 rounded-xl border border-border col-span-3">
+              <h2 className="text-xl font-bold text-foreground mb-6">{t("payments")}</h2>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-2 space-y-4">
+                  {paymentFields.map((payment, index) => (
+                    <div key={payment.id} className="flex flex-col sm:flex-row gap-3 items-center bg-muted/30 p-3 rounded-lg border border-border">
+                      <div className="w-full flex-1">
+                        <label className="text-xs text-muted-foreground mb-1 block">{t("amount")}</label>
+                        <Controller
+                          control={form.control}
+                          name={`payments.${index}.amount`}
+                          render={({ field, fieldState }) => (
+                            <Field className="relative" data-invalid={fieldState.invalid}>
+                              <Input step="any" type="number" placeholder="0.00" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} />
+                              {fieldState.invalid && (
+                                <div className="absolute top-full mt-1 right-0 z-10 w-full">
+                                  <FieldError errors={[fieldState.error]} />
+                                </div>
+                              )}
+                            </Field>
+                          )}
+                        />
+                      </div>
+
+                      <div className="w-full flex-1">
+                        <label className="text-xs text-muted-foreground mb-1 block">{t("payment_method")}</label>
+                        <Controller
+                          control={form.control}
+                          name={`payments.${index}.paymentMethod`}
+                          render={({ field, fieldState }) => (
+                            <Field>
+                              <Select value={field.value?.toString()} onValueChange={(val) => field.onChange(Number(val))}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={t("choose")} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {treasurys?.map((item) => (
+                                    <SelectItem key={item.id} value={item.id.toString()}>
+                                      {item.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                            </Field>
+                          )}
+                        />
+                      </div>
+
+                      <div className="pt-5 shrink-0">
+                        <button type="button" onClick={() => removePayment(index)} disabled={paymentFields.length === 1} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-md disabled:opacity-30 transition-colors border border-transparent hover:border-red-100 dark:hover:border-red-900" title={t("delete_payment")}>
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <Button type="button" size="lg" variant="secondary" onClick={handleAddPayment} className="text-sm font-medium px-4 rounded-lg transition-colors w-max">
+                    <Plus size={16} strokeWidth={2} />
+                    {t("add_another_payment")}
+                  </Button>
+                </div>
+
+                {/* Invoice Summary */}
+                <div className="bg-muted/30 p-6 rounded-2xl border border-border">
+                  <h3 className="text-base font-semibold text-foreground mb-5">{t("invoice_summary")}</h3>
+
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center text-muted-foreground">
+                      <span className="text-sm font-medium">{t("subtotal_before_tax")}</span>
+                      <span className="font-semibold text-foreground">{invoiceTotal.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-muted-foreground">
+                      <span className="text-sm font-medium">{t("vat")}</span>
+                      <span className="font-semibold text-orange-500">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-muted-foreground gap-3">
+                      <span className="text-sm font-medium whitespace-nowrap">{t("discount")}</span>
+                      <div className="flex gap-2 w-full max-w-[170px]">
+                        <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" min={0} value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center flex-1" placeholder={t("value")} />} />
+                        <Controller
+                          control={form.control}
+                          name="invoiceDiscountType"
+                          render={({ field }) => (
+                            <ComboboxField
+                              field={field}
+                              items={[
+                                { value: "fixed", label: t("value") },
+                                { value: "percentage", label: t("percentage") },
+                              ]}
+                              valueKey="value"
+                              labelKey="label"
+                              placeholder={t("choose_discount_type")}
+                              className="w-[120px]"
+                            />
+                          )}
+                        />
+                      </div>
+                    </div>
+
+                    <hr className="border-border" />
+
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-foreground">{t("grand_total")}</span>
+                      <span className="text-xl font-black text-foreground">{finalTotal.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-muted-foreground pt-2">
+                      <span className="text-sm">{t("total_paid")}</span>
+                      <span className="font-semibold text-emerald-500">{totalPaid.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center bg-background p-3 rounded-lg border border-border mt-2">
+                      <span className="text-sm font-bold text-foreground">{t("remaining_to_pay")}</span>
+                      <span className={`font-black text-lg ${remaining > 0 ? "text-red-500" : "text-muted-foreground"}`}>{remaining.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="flex justify-between items-center bg-background p-3 rounded-lg border border-border mt-2">
-              <span className="text-sm font-bold text-foreground">{t("remaining_to_pay")}</span>
-              <span className={`font-black text-lg ${remaining > 0 ? "text-red-500" : "text-muted-foreground"}`}>
-                {remaining.toLocaleString("en-EG", { minimumFractionDigits: 2 })}
-              </span>
+            {/* Actions */}
+            <div className="bg-background p-5 sm:p-6 rounded-sm border border-border flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+              <Button type="button" variant="destructive" className="h-12 px-4" onClick={() => navigate("/sales/all")}>
+                {t("cancel_and_return")}
+              </Button>
+              <Button type="submit" className="h-12 px-4">
+                {t("save_and_issue_invoice")}
+              </Button>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    {/* Actions */}
-    <div className="bg-background p-5 sm:p-6 rounded-sm border border-border flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
-      <Button type="button" variant="destructive" className="h-12 px-4" onClick={() => navigate("/sales/all")}>
-        {t("cancel_and_return")}
-      </Button>
-      <Button type="submit" className="h-12 px-4">
-        {t("save_and_issue_invoice")}
-      </Button>
-    </div>
-
-  </form>
-</CardContent>
+          </form>
+        </CardContent>
       </Card>
       <AddParnterModal
         isOpen={isAddCustomerModalOpen}
