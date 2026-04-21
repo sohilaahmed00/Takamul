@@ -277,7 +277,7 @@ export default function AddQuantityAdjustment() {
 
                       <div>
                         <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("available_quantity")}</FieldLabel>
-                        <Input value={selectedProduct ? (selectedProduct.quantityAvailable ?? 0) - (items[index]?.quantity || 0) : ""} readOnly className="text-center cursor-not-allowed" />{" "}
+                        <Input value={selectedProduct?.quantityAvailable ?? ""} readOnly className="text-center cursor-not-allowed" />{" "}
                       </div>
 
                       <Controller
