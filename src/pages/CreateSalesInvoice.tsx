@@ -189,16 +189,13 @@ const CreateSalesInvoice: React.FC = () => {
     });
 
     return {
-      invoiceTotal: beforeTaxTotal + totalVat,
+      invoiceTotal: beforeTaxTotal,
       totalVat,
     };
   }, [items, products]);
 
-  const totalPaid = useMemo(() => {
-    return payments?.reduce((total, p) => total + (p.amount || 0), 0) || 0;
-  }, [payments]);
-
   const finalTotal = useMemo(() => {
+    // invoiceTotal + totalVat = الإجمالي الكامل
     let total = invoiceTotal + totalVat;
 
     if (invoiceDiscountType === "fixed") {
@@ -209,6 +206,10 @@ const CreateSalesInvoice: React.FC = () => {
 
     return Math.max(0, total);
   }, [invoiceTotal, totalVat, invoiceDiscountType, invoiceDiscountValue]);
+
+  const totalPaid = useMemo(() => {
+    return payments?.reduce((total, p) => total + (p.amount || 0), 0) || 0;
+  }, [payments]);
 
   const remaining = finalTotal - totalPaid;
 
