@@ -30,7 +30,7 @@ const QuoteSchema = (t: (key: string) => string) =>
     discountAmount: z.number().min(0, t("price_must_be_gte_zero")).optional(),
     notes: z.string().optional(),
     quotationDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
-    quotationDiscountValue: z.number().min(0).default(0),
+    globalDiscountAmount: z.number().min(0).default(0),
     items: z
       .array(
         z.object({
@@ -301,7 +301,7 @@ const CreateQuote: React.FC = () => {
   const items = useWatch({ control: form.control, name: "items" });
   const discAmt = Number(useWatch({ control, name: "discountAmount" })) || 0;
   const discType = useWatch({ control, name: "quotationDiscountType" }) || "fixed";
-  const discValue = Number(useWatch({ control, name: "quotationDiscountValue" })) || 0;
+  const discValue = Number(useWatch({ control, name: "globalDiscountAmount" })) || 0;
   const navigate = useNavigate();
   useEffect(() => {
     if (customers?.[0]?.id && !isEditMode) {
@@ -365,10 +365,8 @@ const CreateQuote: React.FC = () => {
     const payload: CreateQuotation = {
       customerId: data.customerId,
       quotationDate: data.quotationDate,
-      discountAmount: 0,
       notes: data.notes || "",
-      globalDiscountPercentage: data.quotationDiscountType === "percentage" ? (data.quotationDiscountValue ?? 0) : 0,
-      globalDiscountValue: data.quotationDiscountType === "fixed" ? (data.quotationDiscountValue ?? 0) : 0,
+      globalDiscountAmount: data.globalDiscountAmount ?? 0,
       items: data.items.map((item) => ({
         productId: item.productId,
         taxPercentage: 0,
