@@ -59,6 +59,11 @@ import GroupPermissions from "@/pages/GroupPermissions";
 import ExternalTransfersList from "@/pages/ExternalTransfersList";
 import InternalTransfersList from "@/pages/InternalTransfersList";
 import SystemSettings from "@/pages/SystemSettings";
+import SiteSettings from "@/pages/settings/SiteSettings";
+import ItemsSettings from "@/pages/settings/ItemsSettings";
+import SalesSettings from "@/pages/settings/SalesSettings";
+import BarcodeSettings from "@/pages/settings/BarcodeSettings";
+import EmailSettings from "@/pages/settings/EmailSettings";
 import Promotions from "@/pages/Promotions";
 import PaymentCompanies from "@/pages/PaymentCompanies";
 import PaymentMethods from "@/pages/PaymentMethods";
@@ -276,6 +281,11 @@ function AppRoutes() {
           <Route path="/treasury/external-transfers" element={<ExternalTransfersList />} />
           <Route path="/treasury/internal-transfers" element={<InternalTransfersList />} />
           <Route path="/settings/system" element={<SystemSettings />} />
+          <Route path="/settings/site" element={<SiteSettings />} />
+          <Route path="/settings/items" element={<ItemsSettings />} />
+          <Route path="/settings/sales" element={<SalesSettings />} />
+          <Route path="/settings/barcode" element={<BarcodeSettings />} />
+          <Route path="/settings/email" element={<EmailSettings />} />
           <Route path="/promotions" element={<Promotions />} />
           <Route path="/settings/payment-companies" element={<PaymentCompanies />} />
           <Route path="/settings/payment-methods" element={<PaymentMethods />} />
