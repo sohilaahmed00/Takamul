@@ -159,7 +159,7 @@ const CreateSalesInvoice: React.FC = () => {
   });
   const selectedCustomer = customers?.find((customer) => customer?.id == customerId);
 
-  const { invoiceTotal, totalVat } = useMemo(() => {
+  const { beforeTaxTotal, totalVat } = useMemo(() => {
     let beforeTaxTotal = 0;
     let totalVat = 0;
 
@@ -181,15 +181,11 @@ const CreateSalesInvoice: React.FC = () => {
       totalVat += vatAmount;
     });
 
-    return {
-      invoiceTotal: beforeTaxTotal,
-      totalVat,
-    };
+    return { beforeTaxTotal, totalVat };
   }, [items, products]);
 
   const finalTotal = useMemo(() => {
-    // invoiceTotal + totalVat = الإجمالي الكامل
-    let total = invoiceTotal + totalVat;
+    let total = beforeTaxTotal + totalVat; // = مجموع afterTax لكل item
 
     if (invoiceDiscountType === "fixed") {
       total -= invoiceDiscountValue || 0;
@@ -198,7 +194,7 @@ const CreateSalesInvoice: React.FC = () => {
     }
 
     return Math.max(0, total);
-  }, [invoiceTotal, totalVat, invoiceDiscountType, invoiceDiscountValue]);
+  }, [beforeTaxTotal, totalVat, invoiceDiscountType, invoiceDiscountValue]);
 
   const totalPaid = useMemo(() => {
     return payments?.reduce((total, p) => total + (p.amount || 0), 0) || 0;
@@ -588,7 +584,7 @@ const CreateSalesInvoice: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center text-muted-foreground">
                       <span className="text-sm font-medium">{t("subtotal_before_tax")}</span>
-                      <span className="font-semibold text-foreground">{invoiceTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="font-semibold text-foreground">{beforeTaxTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-muted-foreground">
