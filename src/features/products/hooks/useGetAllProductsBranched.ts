@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery, type UseQueryOptions } from "@tanstack/reac
 import { productsKeys } from "../keys/products.keys";
 import { getAllProductsBranched } from "../services/products";
 import type { GetAllProductBranchedResponse } from "../types/products.types";
+import { handleEmptyResponse } from "@/lib/handleEmptyResponse";
 
 type Params = {
   page: number;
@@ -18,15 +19,7 @@ export const useGetAllProductsBranched = ({ page, limit, SearchTerm }: Params, o
       try {
         return await getAllProductsBranched(page, limit, SearchTerm);
       } catch (err) {
-        if (typeof err === "string" && err.includes("لا يوجد")) {
-          return {
-            items: [],
-            totalCount: 0,
-            pageNumber: page,
-            pageSize: limit,
-          };
-        }
-        throw err;
+        return handleEmptyResponse(err, { page, limit });
       }
     },
     placeholderData: keepPreviousData,

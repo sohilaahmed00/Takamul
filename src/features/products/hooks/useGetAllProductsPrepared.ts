@@ -19,7 +19,7 @@ export const useGetAllProductsPrepared = ({ page, limit, SearchTerm }: Params, o
       try {
         return await getAllProductsPrepared(page, limit, SearchTerm);
       } catch (err) {
-        handleEmptyResponse(err, { page, limit });
+        return handleEmptyResponse(err, { page, limit });
       }
     },
     placeholderData: keepPreviousData,
