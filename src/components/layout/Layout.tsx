@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation, Outlet } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check, ArrowUpRight, ArrowLeftRight, HandCoins, Calculator, Shield } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, FileText, Users, Settings, ChevronDown, ChevronLeft, Menu, X, LogOut, Bell, Search, Globe, List, LayoutGrid, PlusCircle, Tag, SlidersHorizontal, Factory, RefreshCcw, Gift, Share2, CornerUpLeft, Plus, DollarSign, RefreshCw, Monitor, User, Truck, Landmark, Banknote, Briefcase, Building, CreditCard, Store, Percent, Upload, Coins, Link, Folder, Wrench, Layers, Tags, Map, Grid3x3, Key, BarChart, Moon, Sun, Check, ArrowUpRight, ArrowLeftRight, HandCoins, Calculator, Shield, Barcode, Mail } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -347,6 +347,11 @@ export default function Layout() {
             {openSubmenu === "settings" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 <SubmenuItem label={t("system_settings")} icon={Settings} path="/settings/system" />
+                <SubmenuItem label={t("site_settings") || "إعدادات الموقع"} icon={Settings} path="/settings/site" />
+                <SubmenuItem label={t("items_settings") || "إعدادات الأصناف"} icon={Package} path="/settings/items" />
+                <SubmenuItem label={t("sales_settings") || "إعدادات المبيعات"} icon={ShoppingCart} path="/settings/sales" />
+                <SubmenuItem label={t("barcode_scale") || "ميزان الباركود"} icon={Barcode} path="/settings/barcode" />
+                <SubmenuItem label={t("email_settings") || "البريد الإلكتروني"} icon={Mail} path="/settings/email" />
                 <SubmenuItem label={t("payment_companies")} icon={CreditCard} path="/settings/payment-companies" />
                 <SubmenuItem label={t("payment_methods")} icon={CreditCard} path="/settings/payment-methods" />
                 <SubmenuItem label={t("pos_settings")} icon={Store} path="/settings/pos" />

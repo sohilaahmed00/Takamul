@@ -38,6 +38,8 @@ export interface SystemSettings {
     barcodeStandard: string;
     inventoryTransfer: string;
     enableSecondLangName: boolean;
+    enableThirdLangName: boolean;
+    showProductBalanceAtSale: boolean;
   };
   sales: {
     sellIfZero: boolean;
@@ -52,6 +54,9 @@ export interface SystemSettings {
     clearSearchFilters: boolean;
     enableMarketers: boolean;
     enableGlasses: boolean;
+    enableCursorOnAddProduct: boolean;
+    showServiceNumber: boolean;
+    showOrderDeviceNumber: boolean;
   };
   prefixes: {
     product: string;
@@ -226,6 +231,8 @@ const defaultSystemSettings: SystemSettings = {
     barcodeStandard: "صورة",
     inventoryTransfer: "تكلفة",
     enableSecondLangName: false,
+    enableThirdLangName: false,
+    showProductBalanceAtSale: true,
   },
   sales: {
     sellIfZero: false,
@@ -240,6 +247,9 @@ const defaultSystemSettings: SystemSettings = {
     clearSearchFilters: true,
     enableMarketers: false,
     enableGlasses: false,
+    enableCursorOnAddProduct: false,
+    showServiceNumber: false,
+    showOrderDeviceNumber: false,
   },
   prefixes: {
     product: "",
