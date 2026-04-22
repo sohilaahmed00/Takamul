@@ -398,7 +398,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                       const gross = qty * price;
                       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                       const afterTax = Math.max(0, gross - discount);
-                      const vatAmount = calcVat(afterTax, taxRate || 0, 2);
+                      const vatAmount = calcVat(afterTax, taxRate || 0, 3);
                       const beforeTax = afterTax - vatAmount;
                       const isDiscOpen = !!discountOpen[index];
 
