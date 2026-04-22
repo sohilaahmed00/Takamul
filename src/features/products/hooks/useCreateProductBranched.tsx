@@ -3,6 +3,7 @@ import { productsKeys } from "../keys/products.keys";
 import { createProductBranched } from "../services/products";
 import useToast from "@/hooks/useToast";
 import { handleApiError } from "@/lib/handleApiError";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 export function useCreateProductBranched() {
   const queryClient = useQueryClient();
@@ -13,7 +14,7 @@ export function useCreateProductBranched() {
       queryClient.invalidateQueries({
         queryKey: productsKeys.all,
       });
-      notifySuccess(response);
+      handleApiSuccess(response, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

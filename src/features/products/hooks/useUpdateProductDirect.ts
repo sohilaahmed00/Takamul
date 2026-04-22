@@ -4,6 +4,7 @@ import { updateProduct, updateProductBranched, updateProductDirect } from "../se
 import { productsKeys } from "../keys/products.keys";
 import { handleApiError } from "@/lib/handleApiError";
 import useToast from "@/hooks/useToast";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 type UpdateProductPayload = {
   id: number;
@@ -19,7 +20,7 @@ export function useUpdateProductDirect() {
       queryClient.invalidateQueries({
         queryKey: productsKeys.all,
       });
-      notifySuccess(response);
+      handleApiSuccess(response, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });
