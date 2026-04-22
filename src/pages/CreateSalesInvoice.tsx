@@ -36,7 +36,7 @@ const SalesInvoiceSchema = (t: (key: string) => string) =>
           quantity: z.number().min(1, t("quantity_must_be_greater_than_zero")),
           price: z.number().min(0, t("price_must_be_gte_zero")),
           discountType: z.enum(["percentage", "fixed"]).default("fixed"),
-          discountValue: z.number().min(0),
+          discountValue: z.number().positive().optional(),
         }),
       )
       .min(1, t("must_add_at_least_one_item")),
@@ -185,7 +185,7 @@ const CreateSalesInvoice: React.FC = () => {
   }, [items, products]);
 
   const finalTotal = useMemo(() => {
-    let total = beforeTaxTotal + totalVat; // = مجموع afterTax لكل item
+    let total = beforeTaxTotal + totalVat;
 
     if (invoiceDiscountType === "fixed") {
       total -= invoiceDiscountValue || 0;
