@@ -18,7 +18,6 @@ import { useGetAllTaxes } from "@/features/taxes/hooks/useGetAllTaxes";
 import { useCreateProductDirect } from "@/features/products/hooks/useCreateProductDirect";
 import ComboboxField from "@/components/ui/ComboboxField";
 import { useGetAllMainCategories } from "@/features/categories/hooks/useGetAllMainCategories";
-import { useGetAllSubCategoriesWidthParentId } from "@/features/categories/hooks/useGetAllSubCategoriesWidthParentId";
 import { useGetAllProductsDirect } from "@/features/products/hooks/useGetAllProductsDirect";
 import type { ProductDirect } from "@/features/products/types/products.types";
 import { useCreateProductBranched } from "@/features/products/hooks/useCreateProductBranched";
@@ -37,6 +36,7 @@ import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
 import z from "zod/v3";
 import useToast from "@/hooks/useToast";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUpdateProductRawMatrial } from "@/features/products/hooks/useUpdateProductRawMaterial";
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
@@ -139,7 +139,7 @@ export const baseDefaultValues: FormValues = {
   Image: undefined,
   ChildrenIds: [],
   RawMaterials: [{ rawMaterialId: 0, quantity: undefined as unknown as number, unitId: 0 }],
-  BaseUnitId: 0,
+  BaseUnitId: undefined,
   PurchaseUnitId: 0,
   ConversionFactor: undefined,
 };
@@ -166,8 +166,9 @@ export default function AddProduct() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { notifyError, notifySuccess } = useToast();
-  const [mainCategoryId, setMainCategoryId] = useState<number>();
   const [productType, setProductType] = useState<ProductType>("Direct");
+  const [submitType, setSubmitType] = useState<"save" | "saveAndNew">("save");
+
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const type = searchParams.get("type") as ProductType;
@@ -177,9 +178,18 @@ export default function AddProduct() {
   // ── Data hooks ──────────────────────────────────────────────────────────
   const { data: taxesData } = useGetAllTaxes();
   const { data: mainCategories } = useGetAllMainCategories();
-  const { data: subCategories } = useGetAllSubCategoriesWidthParentId(mainCategoryId as number);
-  const { data: productsDirect } = useGetAllProductsDirect({ page: 1, limit: 100 });
-  const { data: productRawMatrial } = useGetAllProductsRawMatrial({ page: 1, limit: 100 });
+  const { data: productsDirect } = useGetAllProductsDirect(
+    { page: 1, limit: 100 },
+    {
+      enabled: productType == "Branched",
+    },
+  );
+  const { data: productRawMatrial } = useGetAllProductsRawMatrial(
+    { page: 1, limit: 100 },
+    {
+      enabled: productType == "Prepared",
+    },
+  );
   const { data: units } = useGetAllUnits({ page: 1, size: 100 });
 
   // ── Edit data hooks ──────────────────────────────────────────────────────
@@ -204,6 +214,7 @@ export default function AddProduct() {
   const { mutateAsync: updateProductBranched } = useUpdateProductBranched();
   const { mutateAsync: updateProductDirect } = useUpdateProductDirect();
   const { mutateAsync: updateProductPrepared } = useUpdateProductPrepared();
+  const { mutateAsync: updateProductRawMatrial } = useUpdateProductRawMatrial();
 
   const isLoading = isDirectLoading || isBranchedLoading || isPreparedLoading || isRawLoading;
 
@@ -272,8 +283,9 @@ export default function AddProduct() {
     if (!id) return;
     switch (type) {
       case "Direct": {
-        if (!productDataDirect) return;
+        if (!productDataDirect || !units?.items?.length) return;
         setProductType("Direct");
+        console.log(productDataDirect?.baseUnitId);
         reset({
           ProductNameAr: productDataDirect.productNameAr,
           ProductNameEn: productDataDirect.productNameEn,
@@ -286,15 +298,15 @@ export default function AddProduct() {
           TaxId: productDataDirect?.taxId,
           TaxCalculation: productDataDirect?.taxCalculation,
           CategoryId: productDataDirect?.parentCategoryId,
-          BaseUnitId: productDataDirect?.baseUnitId,
+          BaseUnitId: productDataDirect.baseUnitId,
         });
+
         break;
       }
 
       case "Branched": {
         if (!productDataBranched) return;
         setProductType("Branched");
-        setMainCategoryId(productDataBranched.parentCategoryId);
         reset({
           ProductNameAr: productDataBranched.productNameAr,
           ProductNameEn: productDataBranched.productNameEn,
@@ -309,7 +321,6 @@ export default function AddProduct() {
       case "Prepared": {
         if (!productDataPrepared) return;
         setProductType("Prepared");
-        setMainCategoryId(productDataPrepared.parentCategoryId);
         reset({
           ProductNameAr: productDataPrepared.productNameAr,
           ProductNameEn: productDataPrepared.productNameEn,
@@ -339,6 +350,9 @@ export default function AddProduct() {
           ProductNameUr: productDataRawMaterial.productNameUr,
           Description: productDataRawMaterial.description || "",
           ConversionFactor: productDataRawMaterial.conversionFactor,
+          CostPrice: productDataRawMaterial?.costPrice,
+          PurchaseUnitId: productDataRawMaterial?.purchaseUnitId,
+          BaseUnitId: productDataRawMaterial?.baseUnitId,
         });
         break;
       }
@@ -348,43 +362,18 @@ export default function AddProduct() {
     }
   }, [id, type, reset, productDataDirect, productDataBranched, productDataPrepared, productDataRawMaterial]);
 
-  // ── Auto-set CategoryId after subCategories load ─────────────────────────
-  useEffect(() => {
-    if (!mainCategoryId || !subCategories?.length) return;
-
-    let categoryName: string | undefined;
-    if (type === "Branched") categoryName = productDataBranched?.categoryName;
-    else if (type === "Direct") categoryName = productDataDirect?.categoryName;
-    else if (type === "Prepared") categoryName = productDataPrepared?.categoryName;
-
-    if (!categoryName) return;
-
-    const category = subCategories.find((cat) => cat.categoryNameAr === categoryName);
-    if (category) {
-      setValue("CategoryId", category.id, { shouldValidate: true });
-    }
-  }, [subCategories, mainCategoryId, type, productDataBranched, productDataDirect, productDataPrepared, setValue]);
-
   // ── Submit ───────────────────────────────────────────────────────────────
   const buildFormData = useCallback(
     (data: FormValues): FormData => {
       const formData = new FormData();
-
       const skipKeys = new Set(["Image", "image", "ChildrenIds", "RawMaterials", "PurchaseUnitId", "ConversionFactor"]);
-
       Object.entries(data).forEach(([key, value]) => {
         if (skipKeys.has(key) || value === undefined || value === null) return;
-        // console.log(key);
-        // console.log(value);
         formData.append(key, String(value));
       });
-
-      // Branched children
       if (productType === "Branched" && Array.isArray(data.ChildrenIds)) {
         data.ChildrenIds.forEach((childId) => formData.append("ChildrenIds[]", String(childId)));
       }
-
-      // Prepared raw materials
       if (productType === "Prepared" && Array.isArray(data.RawMaterials)) {
         formData.append(
           "Components",
@@ -398,12 +387,6 @@ export default function AddProduct() {
         );
       }
 
-      // Raw material-specific fields
-      if (productType === "RawMatrial") {
-        if (data.PurchaseUnitId) formData.append("PurchaseUnitId", String(data.PurchaseUnitId));
-        if (data.ConversionFactor !== undefined) formData.append("ConversionFactor", String(data.ConversionFactor));
-      }
-
       // Image
       if (data.Image instanceof File) {
         formData.append("Image", data.Image);
@@ -414,43 +397,64 @@ export default function AddProduct() {
     [productType],
   );
 
+  const buildRawMaterialJson = useCallback(
+    (data: FormValues): Record<string, unknown> => ({
+      productNameAr: data.ProductNameAr,
+      productNameEn: data.ProductNameEn,
+      productNameUr: data.ProductNameUr,
+      costPrice: data.CostPrice,
+      baseUnitId: data.BaseUnitId,
+      purchaseUnitId: data.PurchaseUnitId,
+      conversionFactor: data.ConversionFactor,
+    }),
+    [],
+  );
+
   const onSubmit = async (data: FormValues) => {
-    const formData = buildFormData(data);
-
     try {
-      if (isEditMode) {
-        formData.append("Id", id);
-
-        switch (productType) {
-          case "Branched":
-            await updateProductBranched({ id: Number(id), data: formData });
-            break;
-          case "Direct":
-            await updateProductDirect({ id: Number(id), data: formData });
-            break;
-          case "Prepared":
-            await updateProductPrepared({ id: Number(id), data: formData });
-            break;
-          default:
-            notifyError(`نوع منتج غير معروف للتعديل: ${productType}`);
+      if (isEditMode && id) {
+        if (productType === "RawMatrial") {
+          const body = { ...buildRawMaterialJson(data), id: Number(id) };
+          await updateProductRawMatrial({ id: Number(id), data: body });
+        } else {
+          const formData = buildFormData(data);
+          formData.append("Id", id);
+          switch (productType) {
+            case "Branched":
+              await updateProductBranched({ id: Number(id), data: formData });
+              break;
+            case "Direct":
+              await updateProductDirect({ id: Number(id), data: formData });
+              break;
+            case "Prepared":
+              await updateProductPrepared({ id: Number(id), data: formData });
+              break;
+            default:
+              notifyError(`نوع منتج غير معروف للتعديل: ${productType}`);
+          }
         }
       } else {
-        switch (productType) {
-          case "RawMatrial":
-            await createRawMaterial(formData);
-            break;
-          case "Branched":
-            await createProductBranched(formData);
-            break;
-          case "Prepared":
-            await createProductPrepared(formData);
-            break;
-          default:
-            await createProductDirect(formData);
+        if (productType === "RawMatrial") {
+          await createRawMaterial(buildRawMaterialJson(data));
+        } else {
+          const formData = buildFormData(data);
+          switch (productType) {
+            case "Branched":
+              await createProductBranched(formData);
+              break;
+            case "Prepared":
+              await createProductPrepared(formData);
+              break;
+            default:
+              await createProductDirect(formData);
+          }
         }
       }
-
-      navigate("/products");
+      if (submitType == "save") {
+        navigate("/products");
+      } else {
+        reset();
+      }
     } catch (error) {}
   };
 
@@ -643,12 +647,7 @@ export default function AddProduct() {
                           <FieldLabel className="gap-x-0">
                             الوحدة <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <Select
-                            value={field.value ? String(field.value) : ""}
-                            onValueChange={(value) => {
-                              field.onChange(Number(value));
-                            }}
-                          >
+                          <Select key={field.value} value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder={"اختر الوحدة"} />
                             </SelectTrigger>
@@ -705,42 +704,30 @@ export default function AddProduct() {
                     />
 
                     {/* Price summary card */}
-                   <div className="lg:col-span-2">
-  <div className="w-full bg-card border border-border rounded-xl p-5">
-    <div className="flex flex-col space-y-3.5">
-      
-      <div className="flex justify-between items-center">
-        <span className="text-muted-foreground text-[15px]">
-          السعر قبل الضريبة
-        </span>
-        <span className="text-muted-foreground text-[15px]">
-          {summary.basePrice}
-        </span>
-      </div>
+                    <div className="lg:col-span-2">
+                      <div className="w-full bg-card border border-border rounded-xl p-5">
+                        <div className="flex flex-col space-y-3.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground text-[15px]">السعر قبل الضريبة</span>
+                            <span className="text-muted-foreground text-[15px]">{summary.basePrice}</span>
+                          </div>
 
-      <div className="flex justify-between items-center">
-        <span className="text-primary text-[15px]">
-          ضريبة ({summary.taxPercentage}%) {summary.taxName}
-        </span>
-        <span className="text-primary text-[15px]">
-          {summary.taxAmount} +
-        </span>
-      </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-primary text-[15px]">
+                              ضريبة ({summary.taxPercentage}%) {summary.taxName}
+                            </span>
+                            <span className="text-primary text-[15px]">{summary.taxAmount} +</span>
+                          </div>
 
-      <div className="border-t border-border my-0.5" />
+                          <div className="border-t border-border my-0.5" />
 
-      <div className="flex justify-between items-center pt-1">
-        <span className="text-foreground font-bold text-lg">
-          السعر النهائي
-        </span>
-        <span className="text-foreground font-bold text-lg">
-          {summary.finalPrice}
-        </span>
-      </div>
-
-    </div>
-  </div>
-</div>
+                          <div className="flex justify-between items-center pt-1">
+                            <span className="text-foreground font-bold text-lg">السعر النهائي</span>
+                            <span className="text-foreground font-bold text-lg">{summary.finalPrice}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </>
                 )}
 
@@ -889,10 +876,7 @@ export default function AddProduct() {
                     {rawMaterialFields.length === 0 && <div className="text-center py-4 text-gray-400 text-sm">لم يتم إضافة أي خامات بعد. اضغط على "إضافة خامة".</div>}
 
                     {rawMaterialFields.map((_field, index) => (
-                      <div
-                        key={_field.id} // FIX: use field.id not index for stable keys
-                        className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start border-b border-gray-100 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0"
-                      >
+                      <div key={_field.id} className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start border-b border-gray-100 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
                         <div className="lg:col-span-5">
                           <Controller
                             name={`RawMaterials.${index}.rawMaterialId`}
@@ -902,7 +886,21 @@ export default function AddProduct() {
                                 <FieldLabel>
                                   الخامة <span className="text-red-500">*</span>
                                 </FieldLabel>
-                                <ComboboxField field={field} items={productRawMatrial?.items} valueKey="id" labelKey="productNameAr" placeholder="اختر الخامة" />
+                                <ComboboxField
+                                  field={field}
+                                  items={productRawMatrial?.items}
+                                  valueKey="id"
+                                  labelKey="productNameAr"
+                                  placeholder="اختر الخامة"
+                                  onValueChange={(val) => {
+                                    const selected = productRawMatrial?.items?.find((item) => String(item.id) === String(val));
+                                    if (selected?.baseUnitId) {
+                                      setValue(`RawMaterials.${index}.unitId`, selected.baseUnitId, {
+                                        shouldValidate: true,
+                                      });
+                                    }
+                                  }}
+                                />{" "}
                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                               </Field>
                             )}
@@ -934,7 +932,7 @@ export default function AddProduct() {
                                 <FieldLabel>
                                   الوحدة <span className="text-red-500">*</span>
                                 </FieldLabel>
-                                <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder="الوحدة" />
+                                <ComboboxField disabled={true} field={field} items={units?.items} valueKey="id" labelKey="name" placeholder="الوحدة" />
                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                               </Field>
                             )}
@@ -1033,10 +1031,20 @@ export default function AddProduct() {
                   إلغاء
                 </Button>
                 <div className="flex flex-col-reverse lg:flex-row items-center gap-3 w-full lg:w-auto">
-                  <Button loading={isLoading} variant="outline" size="lg" type="button" className="w-full lg:w-auto px-8 h-12 text-base">
+                  <Button
+                    loading={isLoading}
+                    variant="outline"
+                    size="lg"
+                    type="button"
+                    onClick={methods.handleSubmit((data) => {
+                      setSubmitType("saveAndNew");
+                      onSubmit(data);
+                    })}
+                    className="w-full lg:w-auto px-8 h-12 text-base"
+                  >
                     حفظ وإضافة آخر
                   </Button>
-                  <Button loading={isLoading} size="lg" type="submit" disabled={isLoading} className="w-full lg:w-auto px-8 h-12 text-base">
+                  <Button loading={isLoading} size="lg" type="submit" className="w-full lg:w-auto px-8 h-12 text-base">
                     حفظ البيانات{" "}
                   </Button>
                 </div>

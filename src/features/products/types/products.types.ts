@@ -75,10 +75,15 @@ export type ProductRawMatrial = {
   productNameAr: string;
   productNameEn: string;
   productNameUr: string;
-  description: string | null;
+  description: string;
+  categoryName: string | null;
+  costPrice: number;
+  baseUnitId: number;
   baseUnitName: string;
+  purchaseUnitId: number;
   purchaseUnitName: string;
   conversionFactor: number;
+  minStockLevel: number;
   isActive: boolean;
 };
 export type ProductPrepared = {

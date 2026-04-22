@@ -8,7 +8,7 @@ export function useCreateProductRawMaterial() {
   const queryClient = useQueryClient();
   const { notifyError, notifyWarning, notifySuccess } = useToast();
   return useMutation({
-    mutationFn: (data: FormData) => createProductsRawMatrial(data),
+    mutationFn: (data: Record<string, unknown>) => createProductsRawMatrial(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
         queryKey: productsKeys.all,

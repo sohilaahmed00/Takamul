@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Edit, Trash2, PlusCircle, Search, Check, X, RefreshCw, Edit2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-import Pagination from "@/components/Pagination";
 import { useLanguage } from "@/context/LanguageContext";
 
 import { Button } from "@/components/ui/button";

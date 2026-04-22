@@ -7,7 +7,7 @@ import useToast from "@/hooks/useToast";
 
 type UpdateProductPayload = {
   id: number;
-  data: FormData;
+  data: Record<string, unknown>;
 };
 
 export function useUpdateProductRawMatrial() {
