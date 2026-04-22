@@ -334,7 +334,6 @@ export default function AddProduct() {
           Barcode: productDataPrepared.barcode,
           SellingPrice: productDataPrepared?.taxCalculation == 2 ? productDataPrepared.priceAfterTax : productDataPrepared.priceBeforeTax,
           CostPrice: productDataPrepared.costPrice,
-          MinStockLevel: productDataPrepared.minStockLevel,
           TaxCalculation: productDataPrepared?.taxCalculation,
           CategoryId: productDataPrepared?.categoryId,
           TaxId: productDataPrepared?.taxId,
@@ -343,7 +342,7 @@ export default function AddProduct() {
             productDataPrepared.components?.map((c) => ({
               rawMaterialId: c.componentProductId,
               quantity: c.quantity,
-              unitId: 0,
+              unitId: c?.unitId,
             })) || [],
         });
         break;

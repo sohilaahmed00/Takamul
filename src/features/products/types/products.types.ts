@@ -112,8 +112,8 @@ export type ProductPrepared = {
     quantity: number;
     unitCost: number;
     totalCost: number;
+    unitId: number;
   }[];
-  minStockLevel: number;
 };
 export interface CreateProduct {
   barcode?: string;
