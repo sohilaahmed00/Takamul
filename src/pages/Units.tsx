@@ -566,7 +566,6 @@ const Units = () => {
             value={units?.items}
             totalRecords={units?.totalCount}
             loading={!units?.items}
-            rowsPerPageOptions={[5, 10, 20, 50]}
             lazy
             paginator
             rows={entriesPerPage}
