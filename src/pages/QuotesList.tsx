@@ -80,7 +80,6 @@ export default function QuotesList() {
       <CardContent>
         <DataTable
           value={quotations || []}
-          lazy
           paginator
           rows={entriesPerPage}
           first={(currentPage - 1) * entriesPerPage}

@@ -272,6 +272,7 @@ const CreateQuote: React.FC = () => {
     defaultValues: {
       quotationDate: new Date().toISOString().split("T")[0],
       customerId: 0,
+      globalDiscountAmount: undefined,
       notes: "",
       items: [{ productId: 0, unitPrice: 0, quantity: 1, discountType: "fixed", discountValue: 0 }],
     },
@@ -432,7 +433,7 @@ const CreateQuote: React.FC = () => {
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>{t("discount_amount_value")} </FieldLabel>
-                      <Input type="number" value={field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                      <Input type="number" value={field.value ?? ""} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
