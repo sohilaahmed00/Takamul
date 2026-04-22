@@ -588,8 +588,6 @@ export default function AddProduct() {
                   />
                 )}
 
-                {/* Barcode */}
-
                 {/* Cost price */}
                 {productType !== "Branched" && (
                   <Controller
@@ -621,7 +619,7 @@ export default function AddProduct() {
                         </Field>
                       )}
                     />
-                    <div className="col-span-2">
+                    <div className={productType !== "Prepared" && "col-span-2"}>
                       <Controller
                         name="Barcode"
                         control={control}
@@ -652,17 +650,19 @@ export default function AddProduct() {
                       />
                     </div>
 
-                    <Controller
-                      name="MinStockLevel"
-                      control={control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel className="gap-x-0">الحد الأدنى للمخزون</FieldLabel>
-                          <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} placeholder="ادخل الحد الادنى للمخزون" />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
+                    {productType !== "Prepared" && (
+                      <Controller
+                        name="MinStockLevel"
+                        control={control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel className="gap-x-0">الحد الأدنى للمخزون</FieldLabel>
+                            <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} placeholder="ادخل الحد الادنى للمخزون" />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
+                    )}
 
                     <Controller
                       name="BaseUnitId"
@@ -922,6 +922,9 @@ export default function AddProduct() {
                                     placeholder="اختر الخامة"
                                     onValueChange={(val) => {
                                       const selected = productRawMatrial?.items?.find((item) => String(item.id) === String(val));
+
+                                      setValue(`RawMaterials.${index}.unitId`, 0, { shouldValidate: false });
+
                                       if (selected?.baseUnitId) {
                                         setValue(`RawMaterials.${index}.unitId`, selected.baseUnitId, {
                                           shouldValidate: true,
