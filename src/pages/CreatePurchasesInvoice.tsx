@@ -64,7 +64,6 @@ const CreatePurchaseInvoice: React.FC = () => {
   const { mutateAsync: createPurchaseOrder } = useCreatePurchaseOrder();
   const [discountOpen, setDiscountOpen] = useState<Record<number, boolean>>({});
   const toggleDiscount = (i: number) => setDiscountOpen((prev) => ({ ...prev, [i]: !prev[i] }));
-
   const { id } = useParams();
   const { data: purchaseOrder } = useGetPurchaseOrderById(Number(id));
   const { data: treasurys } = useGetAllTreasurys();
@@ -340,7 +339,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                 }}
               />
               <Field>
-                <FieldLabel>رصيد العميل</FieldLabel>
+                <FieldLabel>مديونية المورد</FieldLabel>
                 <div className="relative">
                   <Input readOnly value={selectedSupplier?.balance?.toLocaleString("en-EG", { minimumFractionDigits: 2 }) ?? ""} placeholder="—" className={`cursor-default bg-muted/50 font-semibold pr-20 ${(selectedSupplier?.balance ?? 0) < 0 ? "text-red-500" : "text-emerald-500"}`} />
                   <div className="absolute inset-y-0 right-0 flex items-center px-3 border-l border-border bg-muted/50 rounded-r-md">
