@@ -614,7 +614,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                   <span className="font-semibold text-orange-600">
                     {summary.totalVat.toLocaleString("en-EG", {
                       minimumFractionDigits: 2,
-                      maximumSignificantDigits: 2,
+                      maximumFractionDigits: 2,
                     })}
                   </span>
                 </div>
