@@ -420,7 +420,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                                       const product = filterProducts?.find((p) => p.id === Number(val));
                                       if (product) {
                                         form.setValue(`items.${index}.unitPrice`, product.costPrice);
-                                        const unitProduct = units?.items?.find((unit) => unit?.id == product?.baseUnitId);
+                                        const unitProduct = units?.items?.find((unit) => unit?.id == product?.unitId);
                                         form.setValue(`items.${index}.unitName`, unitProduct?.name);
                                       }
                                     }}

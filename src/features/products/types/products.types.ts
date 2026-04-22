@@ -24,6 +24,7 @@ export type Product = {
   priceBeforeTax: number;
   balance: number;
   baseUnitId: number;
+  unitId: number;
 };
 export type ProductDirect = {
   id: number;
