@@ -299,6 +299,7 @@ export default function AddProduct() {
           TaxCalculation: productDataDirect?.taxCalculation,
           CategoryId: productDataDirect?.parentCategoryId,
           BaseUnitId: productDataDirect.baseUnitId,
+          Image: productDataDirect.imageUrl ?? undefined,
         });
 
         break;
@@ -408,8 +409,9 @@ export default function AddProduct() {
       // Image
       if (data.Image instanceof File) {
         formData.append("Image", data.Image);
+      } else if (data.Image === undefined || data.Image === null) {
+        formData.append("Image", "");
       }
-
       return formData;
     },
     [productType],
@@ -983,6 +985,24 @@ export default function AddProduct() {
                       control={control}
                       render={({ field, fieldState }) => (
                         <>
+                          {/* صورة قديمة من السيرفر */}
+                          {typeof field.value === "string" && field.value && files.length === 0 && (
+                            <div className="relative w-fit mb-3">
+                              <img src={field.value} alt="صورة المنتج" className="h-32 w-32 object-cover rounded-lg border border-gray-200" />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute -top-2 -right-2 size-6 bg-white border border-gray-200 rounded-full"
+                                onClick={() => {
+                                  field.onChange(undefined);
+                                }}
+                              >
+                                <X size={12} />
+                              </Button>
+                            </div>
+                          )}
+
                           <FileUpload
                             value={files}
                             onValueChange={(newFiles) => {
