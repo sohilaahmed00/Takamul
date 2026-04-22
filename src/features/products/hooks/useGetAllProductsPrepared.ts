@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery, type UseQueryOptions } from "@tanstack/reac
 import { productsKeys } from "../keys/products.keys";
 import { getAllProductsPrepared } from "../services/products";
 import type { GetAllProductPreparedResponse } from "../types/products.types";
+import { handleEmptyResponse } from "@/lib/handleEmptyResponse";
 
 type Params = {
   page: number;
@@ -18,12 +19,7 @@ export const useGetAllProductsPrepared = ({ page, limit, SearchTerm }: Params, o
       try {
         return await getAllProductsPrepared(page, limit, SearchTerm);
       } catch (err) {
-        return {
-          items: [],
-          totalCount: 0,
-          pageNumber: page,
-          pageSize: limit,
-        };
+        handleEmptyResponse(err, { page, limit });
       }
     },
     placeholderData: keepPreviousData,
