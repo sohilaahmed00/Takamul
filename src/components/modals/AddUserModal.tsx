@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { UserPlus } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -23,20 +23,21 @@ interface AddEmployeeModalProps {
   onClose: () => void;
   user: User;
 }
-export const CreateEmployeeSchema = z
-  .object({
-    mobile: z.string().optional().or(z.literal("")),
-    branchId: z.number().min(1, "الفرع مطلوب"),
-    roleName: z.string().min(1, "الصلاحية مطلوبة"),
-    email: z.string().min(1, "البريد الإلكتروني مطلوب").email("البريد الإلكتروني غير صحيح"),
-    userName: z.string().min(3, "اسم المستخدم لازم يكون 3 حروف على الأقل"),
-    password: z.string().min(6, "كلمة المرور لازم تكون 6 حروف على الأقل"),
-    confirmPassword: z.string().min(1, "تأكيد كلمة المرور مطلوب"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "كلمتا المرور غير متطابقتين",
-    path: ["confirmPassword"],
-  });
+export const CreateEmployeeSchema = (isEditMode: boolean) =>
+  z
+    .object({
+      mobile: z.string().optional().or(z.literal("")),
+      branchId: z.number().min(1, "الفرع مطلوب"),
+      roleName: z.string().min(1, "الصلاحية مطلوبة"),
+      email: z.string().min(1, "البريد الإلكتروني مطلوب").email("البريد الإلكتروني غير صحيح"),
+      userName: z.string().min(3, "اسم المستخدم لازم يكون 3 حروف على الأقل"),
+      password: isEditMode ? z.string().optional().or(z.literal("")) : z.string().min(6, "كلمة المرور لازم تكون 6 حروف على الأقل"),
+      confirmPassword: isEditMode ? z.string().optional().or(z.literal("")) : z.string().min(1, "تأكيد كلمة المرور مطلوب"),
+    })
+    .refine((data) => isEditMode || data.password === data.confirmPassword, {
+      message: "كلمتا المرور غير متطابقتين",
+      path: ["confirmPassword"],
+    });
 
 export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModalProps) {
   const { direction } = useLanguage();
@@ -45,8 +46,9 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
   const isEditMode = !!user;
   const { data: branches } = useGetAllBranches();
   const { data: roles } = useGetAllRoles({ page: 1, limit: 100000 });
-  const { control, handleSubmit, reset } = useForm<z.infer<typeof CreateEmployeeSchema>>({
-    resolver: zodResolver(CreateEmployeeSchema),
+  const schema = useMemo(() => CreateEmployeeSchema(isEditMode), [isEditMode]);
+  const { control, handleSubmit, reset } = useForm<z.infer<ReturnType<typeof CreateEmployeeSchema>>>({
+    resolver: zodResolver(schema),
     defaultValues: {
       branchId: 0,
       mobile: "",
@@ -68,18 +70,18 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
     }
   }, [user, reset]);
 
-  const onSubmit = async (data: z.infer<typeof CreateEmployeeSchema>) => {
+  const onSubmit = async (data: z.infer<ReturnType<typeof CreateEmployeeSchema>>) => {
     try {
       const payload: CreateUser = {
         employee: {
           firstName: data?.userName,
-          lastName: " ",
+          lastName: " ", // لازم مسافة
           branchId: data?.branchId,
           mobile: data?.mobile,
         },
         user: {
           email: data?.email,
-          password: data?.password,
+          password: isEditMode ? undefined : data?.password,
           userName: data?.userName,
         },
         roleName: data?.roleName,
@@ -105,8 +107,7 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit, (errors) => console.log(errors))} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* اسم المستخدم */}
+        <form id="userModal" onSubmit={handleSubmit(onSubmit, (errors) => console.log(errors))} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Controller
             name="userName"
             control={control}
@@ -242,7 +243,7 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
         </form>
 
         <DialogFooter>
-          <Button loading={isPending} size="2xl" onClick={handleSubmit(onSubmit)}>
+          <Button form="userModal" loading={isPending} size="2xl" type="submit">
             {isEditMode ? " تعديل مستخدم" : " إضافة مستخدم"}
           </Button>
         </DialogFooter>
