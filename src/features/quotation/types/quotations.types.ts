@@ -9,11 +9,11 @@ export type Quotation = {
   validUntil: string;
   subTotal: number;
   taxAmount: number;
-  globalDiscountAmount: number;
+  discountAmount: number;
   shippingCost: number;
   grandTotal: number;
   status: boolean;
-
+  
   items: {
     baseUnitName: string;
     baseUnitId: number;

@@ -28,7 +28,6 @@ const QuoteSchema = (t: (key: string) => string) =>
     customerId: z.number().min(1, t("customer_required")),
     quotationDate: z.string().min(1, t("date_required")),
     notes: z.string().optional(),
-    quotationDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
     globalDiscountAmount: z.number().min(0).default(0),
     items: z
       .array(
@@ -299,8 +298,6 @@ const CreateQuote: React.FC = () => {
   const { fields: itemFields, append: appendItem, remove: removeItem } = useFieldArray({ control: form.control, name: "items" });
   const items = useWatch({ control: form.control, name: "items" });
   const discAmt = Number(useWatch({ control, name: "globalDiscountAmount" })) || 0;
-  const discType = useWatch({ control, name: "quotationDiscountType" }) || "fixed";
-  const discValue = Number(useWatch({ control, name: "globalDiscountAmount" })) || 0;
   const navigate = useNavigate();
   useEffect(() => {
     if (customers?.[0]?.id && !isEditMode) {
@@ -312,7 +309,7 @@ const CreateQuote: React.FC = () => {
     if (quotation) {
       form.reset({
         customerId: quotation?.customerid,
-        globalDiscountAmount: quotation?.globalDiscountAmount,
+        globalDiscountAmount: quotation?.discountAmount,
         items: quotation?.items.map((quote) => ({
           productId: quote?.productId,
           quantity: quote?.quantity,
@@ -339,21 +336,18 @@ const CreateQuote: React.FC = () => {
       const dType = item.discountType || "fixed";
       const dVal = Number(item.discountValue) || 0;
       const gross = qty * price;
-      const disc = dType === "fixed" ? dVal : gross * (dVal / 100);
-      const afterTax = Math.max(0, gross - disc);
+      const disc = dType === "fixed" ? dVal * qty : gross * (dVal / 100);
+      const afterDisc = Math.max(0, gross - disc);
       const taxCalc = product?.taxCalculation ?? 1;
-      const vatAmount = calcVat(afterTax, product.taxAmount || 0, taxCalc);
-      const beforeTax = afterTax - vatAmount;
-      const total = taxCalc === 3 ? afterTax + vatAmount : afterTax;
+      const vatAmount = calcVat(afterDisc, product.taxAmount || 0, taxCalc);
+      const beforeTax = afterDisc - vatAmount;
 
       subtotal += beforeTax;
       totalTax += vatAmount;
     });
 
-    const globalDisc = discType === "fixed" ? discValue : subtotal * (discValue / 100);
-
     return {
-      grandTotal: Math.max(0, subtotal + totalTax - globalDisc - discAmt),
+      grandTotal: Math.max(0, subtotal + totalTax - discAmt), // ← مرة واحدة بس
       count,
     };
   };
