@@ -240,6 +240,11 @@ export default function AddQuantityAdjustment() {
                   const selectedProduct = inventoryMap[selectedId];
                   const quantityChanged = form.watch(`items.${index}.quantity`) ?? 0;
 
+                  const displayQuantity = selectedProduct
+                    ? id
+                      ? selectedProduct.quantityAvailable - quantityChanged // edit
+                      : selectedProduct.quantityAvailable // create
+                    : "";
                   return (
                     <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 md:p-2 bg-zinc-50 dark:bg-zinc-900/30 md:bg-transparent dark:md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 dark:border-zinc-800 items-center group mb-8">
                       <Controller
@@ -278,7 +283,7 @@ export default function AddQuantityAdjustment() {
 
                       <div>
                         <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("available_quantity")}</FieldLabel>
-                        <Input value={selectedProduct ? selectedProduct.quantityAvailable - quantityChanged : ""} readOnly className="text-center cursor-not-allowed" />{" "}
+                        <Input value={displayQuantity} readOnly className="text-center cursor-not-allowed" />{" "}
                       </div>
 
                       <Controller
