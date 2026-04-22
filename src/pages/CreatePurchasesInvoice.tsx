@@ -492,6 +492,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                             <div className="self-start pt-2 text-center text-orange-600 font-medium">
                               {vatAmount.toLocaleString("en-EG", {
                                 minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
                               })}
                             </div>
 
