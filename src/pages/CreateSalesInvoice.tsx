@@ -167,31 +167,31 @@ const CreateSalesInvoice: React.FC = () => {
   const selectedCustomer = customers?.find((customer) => customer?.id == customerId);
 
   const { invoiceTotal, totalVat } = useMemo(() => {
-    const result = items?.reduce(
-      (acc, item) => {
-        const product = products?.items?.find((p) => p.id === Number(item.productId));
-        const taxRate = product?.taxAmount || 0;
-        const taxCalc = product?.taxCalculation ?? 1;
+    let beforeTaxTotal = 0;
+    let totalVat = 0;
 
-        const qty = item.quantity || 0;
-        const price = item.price || 0;
-        const gross = qty * price;
+    items?.forEach((item) => {
+      const product = products?.items?.find((p) => p.id === Number(item.productId));
+      const qty = item.quantity || 0;
+      const price = item.price || 0;
+      const discType = item.discountType || "fixed";
+      const discValue = item.discountValue || 0;
+      const taxRate = product?.taxAmount || 0;
+      const taxCalc = product?.taxCalculation ?? 1;
+      const gross = qty * price;
+      const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
+      const afterDisc = Math.max(0, gross - discount);
+      const vatAmount = calcVat(afterDisc, taxRate, taxCalc);
+      const beforeTax = afterDisc - vatAmount;
 
-        const beforeTaxNoDisc = taxCalc === 1 ? gross : gross / (1 + taxRate / 100);
-        const disc = item.discountType === "fixed" ? item.discountValue || 0 : beforeTaxNoDisc * ((item.discountValue || 0) / 100);
-        const beforeTax = Math.max(0, beforeTaxNoDisc - disc);
-        const vatAmount = calcVat(beforeTax, taxRate, taxCalc);
-        const itemTotal = taxCalc === 3 ? beforeTax : beforeTax + vatAmount;
+      beforeTaxTotal += beforeTax;
+      totalVat += vatAmount;
+    });
 
-        return {
-          invoiceTotal: acc.invoiceTotal + itemTotal,
-          totalVat: acc.totalVat + vatAmount,
-        };
-      },
-      { invoiceTotal: 0, totalVat: 0 },
-    );
-
-    return result ?? { invoiceTotal: 0, totalVat: 0 };
+    return {
+      invoiceTotal: beforeTaxTotal + totalVat,
+      totalVat,
+    };
   }, [items, products]);
 
   const totalPaid = useMemo(() => {
@@ -402,7 +402,8 @@ const CreateSalesInvoice: React.FC = () => {
                           const gross = qty * price;
                           const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                           const afterTax = Math.max(0, gross - discount);
-                          const vatAmount = calcVat(afterTax, taxRate || 0, 3);
+                          const taxCalc = product?.taxCalculation ?? 1;
+                          const vatAmount = calcVat(afterTax, taxRate || 0, taxCalc);
                           const beforeTax = afterTax - vatAmount;
                           const isDiscOpen = !!discountOpen[index];
 
