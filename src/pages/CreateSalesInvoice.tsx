@@ -36,7 +36,7 @@ const SalesInvoiceSchema = (t: (key: string) => string) =>
           quantity: z.number().min(1, t("quantity_must_be_greater_than_zero")),
           price: z.number().min(0, t("price_must_be_gte_zero")),
           discountType: z.enum(["percentage", "fixed"]).default("fixed"),
-          discountValue: z.number().min(0).default(0),
+          discountValue: z.number().min(0),
         }),
       )
       .min(1, t("must_add_at_least_one_item")),
@@ -85,7 +85,7 @@ const CreateSalesInvoice: React.FC = () => {
           quantity: 1,
           price: 0,
           discountType: "fixed",
-          discountValue: 0,
+          discountValue: undefined,
         },
       ],
       payments: [
@@ -95,7 +95,7 @@ const CreateSalesInvoice: React.FC = () => {
         },
       ],
       invoiceDiscountType: "fixed",
-      invoiceDiscountValue: 0,
+      invoiceDiscountValue: undefined,
     },
   });
 
@@ -494,7 +494,7 @@ const CreateSalesInvoice: React.FC = () => {
                                       />
                                     )}
                                   />
-                                  <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} />} />
+                                  <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" value={field.value ? field.value : undefined} onChange={(e) => field.onChange(Number(e.target.value))} />} />
                                 </div>
                               )}
                             </div>
@@ -595,7 +595,7 @@ const CreateSalesInvoice: React.FC = () => {
                     <div className="flex justify-between items-center text-muted-foreground gap-3">
                       <span className="text-sm font-medium whitespace-nowrap">{t("discount")}</span>
                       <div className="flex gap-2 w-full max-w-[170px]">
-                        <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" min={0} value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center flex-1" placeholder={t("value")} />} />
+                        <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" min={0} value={field.value ? field.value : undefined} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center flex-1" placeholder={t("value")} />} />
                         <Controller
                           control={form.control}
                           name="invoiceDiscountType"
