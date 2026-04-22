@@ -51,7 +51,7 @@ export default function PurchasesList() {
         <CardTitle>{t("purchases_management")}</CardTitle>
         <CardDescription>{t("purchases_management_desc")}</CardDescription>
         <CardAction>
-          <Button variant="default" asChild>
+          <Button size="xl" variant="default" asChild>
             <Link to="/purchases/create">{t("add_purchase_invoice")}</Link>
           </Button>
         </CardAction>
