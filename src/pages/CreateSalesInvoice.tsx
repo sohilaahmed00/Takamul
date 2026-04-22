@@ -595,7 +595,7 @@ const CreateSalesInvoice: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center text-muted-foreground">
                       <span className="text-sm font-medium">{t("subtotal_before_tax")}</span>
-                      <span className="font-semibold text-foreground">{invoiceTotal.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                      <span className="font-semibold text-foreground">{invoiceTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-muted-foreground">
@@ -631,7 +631,7 @@ const CreateSalesInvoice: React.FC = () => {
 
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-foreground">{t("grand_total")}</span>
-                      <span className="text-xl font-black text-foreground">{finalTotal.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                      <span className="text-xl font-black text-foreground">{finalTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-muted-foreground pt-2">
