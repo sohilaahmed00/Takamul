@@ -312,6 +312,7 @@ const CreateQuote: React.FC = () => {
     if (quotation) {
       form.reset({
         customerId: quotation?.customerid,
+        globalDiscountAmount: quotation?.globalDiscountAmount,
         items: quotation?.items.map((quote) => ({
           productId: quote?.productId,
           quantity: quote?.quantity,
