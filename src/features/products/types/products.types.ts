@@ -100,11 +100,12 @@ export type ProductPrepared = {
   priceBeforeTax: number;
   priceAfterTax: number;
   categoryId: number;
-
+  taxId: number;
   taxAmount: number;
   taxName: string | null;
   taxCalculation: number;
   isActive: boolean;
+  baseUnitId: number;
   components: {
     componentProductId: number;
     componentNameAr: string;

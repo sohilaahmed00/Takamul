@@ -332,7 +332,8 @@ export default function AddProduct() {
           MinStockLevel: productDataPrepared.minStockLevel,
           TaxCalculation: productDataPrepared?.taxCalculation,
           CategoryId: productDataPrepared?.categoryId,
-
+          TaxId: productDataPrepared?.taxId,
+          BaseUnitId: productDataPrepared?.baseUnitId,
           RawMaterials:
             productDataPrepared.components?.map((c) => ({
               rawMaterialId: c.componentProductId,
