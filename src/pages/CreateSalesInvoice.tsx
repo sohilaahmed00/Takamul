@@ -20,6 +20,7 @@ import AddParnterModal from "@/components/modals/AddParnterModal";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import z from "zod/v3";
+import { calcVat } from "@/utils/calcVat";
 
 const SalesInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -62,14 +63,6 @@ const CreateSalesInvoice: React.FC = () => {
   const [discountOpen, setDiscountOpen] = useState<Record<number, boolean>>({});
 
   const schema = useMemo(() => SalesInvoiceSchema(t), [t]);
-
-  function calcVat(beforeTax: number, taxRate: number, taxCalculation: string | number) {
-    const calc = Number(taxCalculation);
-
-    if (calc === 1) return 0;
-    if (calc === 2) return beforeTax - beforeTax / (1 + taxRate / 100);
-    return beforeTax * (taxRate / 100);
-  }
 
   const toggleDiscount = (index: number) => {
     setDiscountOpen((prev) => ({
@@ -403,7 +396,7 @@ const CreateSalesInvoice: React.FC = () => {
                           const gross = qty * price;
                           const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                           const afterTax = Math.max(0, gross - discount);
-                          const taxCalc = product?.taxCalculation ?? 1;
+                          const taxCalc = product?.taxCalculation;
                           const vatAmount = calcVat(afterTax, taxRate || 0, taxCalc);
                           const beforeTax = afterTax - vatAmount;
                           const isDiscOpen = !!discountOpen[index];
