@@ -399,13 +399,11 @@ const CreateSalesInvoice: React.FC = () => {
                           const productId = form.watch(`items.${index}.productId`);
                           const product = products?.items?.find((p) => p.id === Number(productId));
                           const taxRate = product?.taxAmount || 0;
-                          const taxCalc = product?.taxCalculation ?? 1;
                           const gross = qty * price;
-                          const beforeTaxNoDisc = taxCalc === 1 ? gross : gross / (1 + taxRate / 100);
-                          const discount = discType === "fixed" ? discValue : beforeTaxNoDisc * (discValue / 100);
-                          const beforeTax = Math.max(0, beforeTaxNoDisc - discount);
-                          const vatAmount = calcVat(beforeTax, taxRate, taxCalc);
-                          const afterTax = beforeTax + vatAmount;
+                          const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
+                          const afterTax = Math.max(0, gross - discount);
+                          const vatAmount = calcVat(afterTax, taxRate || 0, 3);
+                          const beforeTax = afterTax - vatAmount;
                           const isDiscOpen = !!discountOpen[index];
 
                           return (

@@ -239,7 +239,6 @@ const CreatePurchaseInvoice: React.FC = () => {
       const afterTax = Math.max(0, gross - discount);
       const vatAmount = calcVat(afterTax, taxRate || 0, taxCalc);
       const beforeTax = afterTax - vatAmount;
-      const total = taxCalc === 3 ? afterTax + vatAmount : afterTax;
 
       beforeTaxTotal += beforeTax;
       totalVat += vatAmount;
@@ -393,7 +392,6 @@ const CreatePurchaseInvoice: React.FC = () => {
                       const price = Number(form.watch(`items.${index}.unitPrice`) || 0);
                       const discType = form.watch(`items.${index}.discountType`) || "fixed";
                       const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
-
                       const taxId = form.watch(`items.${index}.taxId`);
                       const tax = taxes?.find((taxItem) => taxItem.id === Number(taxId));
                       const taxRate = tax?.amount || 0;
