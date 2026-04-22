@@ -18,18 +18,15 @@ export const useGetAllProductsPrepared = ({ page, limit, SearchTerm }: Params, o
       try {
         return await getAllProductsPrepared(page, limit, SearchTerm);
       } catch (err) {
-        if (typeof err === "string" && err.includes("لا يوجد")) {
-          return {
-            items: [],
-            totalCount: 0,
-            pageNumber: page,
-            pageSize: limit,
-          };
-        }
-        throw err;
+        return {
+          items: [],
+          totalCount: 0,
+          pageNumber: page,
+          pageSize: limit,
+        };
       }
     },
-        placeholderData: keepPreviousData,
+    placeholderData: keepPreviousData,
 
     ...options,
   });
