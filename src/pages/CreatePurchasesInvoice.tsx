@@ -560,7 +560,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                       name={`payments.${index}.amount`}
                       render={({ field, fieldState }) => (
                         <Field className="relative" data-invalid={fieldState.invalid}>
-                          <Input type="number" placeholder="0.00" value={field.value ? field.value : undefined} onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))} className="bg-white" />
+                          <Input type="number" placeholder="0.00" value={field.value ? field.value : undefined} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} className="bg-white" />
                           {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
