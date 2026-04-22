@@ -27,7 +27,6 @@ const QuoteSchema = (t: (key: string) => string) =>
   z.object({
     customerId: z.number().min(1, t("customer_required")),
     quotationDate: z.string().min(1, t("date_required")),
-    discountAmount: z.number().min(0, t("price_must_be_gte_zero")).optional(),
     notes: z.string().optional(),
     quotationDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
     globalDiscountAmount: z.number().min(0).default(0),
@@ -299,7 +298,7 @@ const CreateQuote: React.FC = () => {
   const { data: quotation } = useGetQuotationById(id);
   const { fields: itemFields, append: appendItem, remove: removeItem } = useFieldArray({ control: form.control, name: "items" });
   const items = useWatch({ control: form.control, name: "items" });
-  const discAmt = Number(useWatch({ control, name: "discountAmount" })) || 0;
+  const discAmt = Number(useWatch({ control, name: "globalDiscountAmount" })) || 0;
   const discType = useWatch({ control, name: "quotationDiscountType" }) || "fixed";
   const discValue = Number(useWatch({ control, name: "globalDiscountAmount" })) || 0;
   const navigate = useNavigate();
@@ -433,7 +432,7 @@ const CreateQuote: React.FC = () => {
                 />
 
                 <Controller
-                  name="discountAmount"
+                  name="globalDiscountAmount"
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
