@@ -254,7 +254,7 @@ const CreatePurchaseInvoice: React.FC = () => {
     if (paymentFields.length > 0 && !isEditMode) {
       form.setValue(`payments.0.amount`, Number(summary.finalTotal.toFixed(2)));
     }
-  }, [summary.finalTotal]);
+  }, [summary.finalTotal, isEditMode]);
   useEffect(() => {
     if (treasurys && treasurys.length > 0) {
       form.setValue(`payments.0.treasuryId`, Number(treasurys[0]?.id));
@@ -560,8 +560,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                       name={`payments.${index}.amount`}
                       render={({ field, fieldState }) => (
                         <Field className="relative" data-invalid={fieldState.invalid}>
-                          <Input type="number" placeholder="0.00" value={field.value ? field.value : undefined} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} className="bg-white" />
-                          {fieldState?.error && <FieldError errors={[fieldState.error]} />}
+                          <Input type="number" placeholder="0.00" value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} className="bg-white" /> {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
                     />
