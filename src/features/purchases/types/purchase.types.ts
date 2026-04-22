@@ -17,8 +17,7 @@ export interface Purchase {
   payments?: {
     amount: number;
     treasuryId: number;
-    notes?: string;
-    paymentMethod?: string;
+    paidAmount: number;
   }[];
   items: {
     productId: number;

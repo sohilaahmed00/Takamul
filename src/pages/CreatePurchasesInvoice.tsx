@@ -161,7 +161,7 @@ const CreatePurchaseInvoice: React.FC = () => {
       payments:
         purchaseOrder.payments?.length > 0
           ? purchaseOrder.payments.map((payment) => ({
-              amount: payment.amount,
+              amount: payment.paidAmount,
               treasuryId: payment.treasuryId,
             }))
           : [{ amount: 0, treasuryId: 0 }],
