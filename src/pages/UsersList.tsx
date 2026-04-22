@@ -65,7 +65,6 @@ export default function UsersList() {
         <CardContent>
           <DataTable
             value={users?.data}
-            rowsPerPageOptions={[5, 10, 20, 50]}
             lazy
             paginator
             rows={entriesPerPage}

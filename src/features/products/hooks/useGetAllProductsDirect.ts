@@ -19,7 +19,7 @@ export const useGetAllProductsDirect = ({ page, limit, SearchTerm }: Params, opt
       try {
         return await getAllProductsDirect(page, limit, SearchTerm);
       } catch (err) {
-        handleEmptyResponse(err, { page, limit });
+        return handleEmptyResponse(err, { page, limit });
       }
     },
     placeholderData: keepPreviousData,

@@ -29,6 +29,7 @@ const QuantityAdjustmentSchema = (t: (key: string) => string) =>
         z.object({
           stockInventoryId: z.number().min(1, t("validation_choose_product")),
           operationType: z.enum(["Add", "Remove"]),
+          quantityChanged: z.number().optional(),
           quantity: z
             .number({
               required_error: t("validation_enter_quantity"),
@@ -54,7 +55,6 @@ export default function AddQuantityAdjustment() {
   const { mutateAsync: createQuantityAdjustment, isPending: loadingCreate } = useCreateQuantityAdjustment();
   const { data: wareHouses } = useGetAllWareHouses();
   const [wareHouseName, setWareHousesName] = useState("");
-  const [availableQuantity, setAvailableQuantity] = useState<number>();
   const { data: stockInventories } = useGetStockInventory(
     {
       pageNumber: 1,
@@ -100,11 +100,11 @@ export default function AddQuantityAdjustment() {
               stockInventoryId: Number(match?.id ?? 0),
               operationType: item.operationType,
               quantity: Number(item.quantityChanged ?? 1),
+              quantityChanged: item.operationType === "Add" ? item.quantity - item.quantityChanged : item.quantity + item.quantityChanged,
               notes: item.notes ?? "",
             };
           }) ?? [],
       });
-      setAvailableQuantity(Number(stockInventory?.items[0].quantity) - stockInventory?.items[0].quantityChanged);
     }
   }, [id, stockInventory, stockInventories, form]);
 
@@ -260,7 +260,7 @@ export default function AddQuantityAdjustment() {
                                 if (isView) return;
                                 const product = inventoryMap[Number(val)];
                                 if (product) field.onChange(Number(val));
-                                setAvailableQuantity(product?.quantityAvailable);
+                                form.setValue(`items.${index}.quantityChanged`, product?.quantityAvailable);
                               }}
                             />
 
@@ -280,7 +280,16 @@ export default function AddQuantityAdjustment() {
 
                       <div>
                         <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("available_quantity")}</FieldLabel>
-                        <Input value={availableQuantity ?? ""} readOnly className="text-center  cursor-not-allowed" />
+                        <Controller
+                          control={form.control}
+                          name={`items.${index}.quantityChanged`}
+                          render={({ field, fieldState }) => (
+                            <Field data-invalid={fieldState.invalid} className="relative">
+                              <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product")}</FieldLabel>
+                              <Input value={field?.value} readOnly className="text-center cursor-not-allowed" />{" "}
+                            </Field>
+                          )}
+                        />
                       </div>
 
                       <Controller

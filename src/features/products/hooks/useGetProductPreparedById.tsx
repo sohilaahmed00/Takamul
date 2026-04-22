@@ -8,6 +8,6 @@ export const useGetProductPreparedById = (id: number, options?: QueryOptions) =>
   useQuery<ProductPrepared>({
     queryKey: productsKeys.detail(id),
     queryFn: () => getProductPreparedById(id),
-    enabled: options?.enabled ?? !!id,
     ...options,
+    enabled: options?.enabled ?? !!id,
   });

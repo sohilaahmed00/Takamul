@@ -232,7 +232,7 @@ export default function Login() {
         </div>
 
         <div className="hidden lg:flex flex-col items-center justify-center gap-4 mb-12 flex-1 shrink-0">
-          <img src={`/logo_${lang === "ar" ? "ar" : "en"}_${isDark ? "dark" : "light"}.png`} alt="Takamul logo" className="object-contain drop-shadow-2xl transition-all duration-500 ms-12 mb-8" style={{ height: isDark ? 170 : 170, width: "auto", maxWidth: "100%" }} />
+          <img src={`/logo_${lang === "ar" ? "ar" : "en"}_${isDark ? "dark" : "light"}.png`} alt="Takamul logo" className="object-contain drop-shadow-2xl transition-all duration-500 ms-12 mb-8" style={{ height: 170, width: "auto", maxWidth: "100%" }} />
           <img src={isDark ? "/zakat_en_dark.png" : "/zakat_en_light.png"} alt="هيئة الزكاة والضريبة والجمارك" className="object-contain drop-shadow-xl transition-all duration-500" style={{ height: 90, width: "auto", maxWidth: "100%" }} />
           <div className="flex flex-col items-center gap-4">
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t.download}</p>

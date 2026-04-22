@@ -27,12 +27,12 @@ function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000 });
-
+  const filteredProducts = products?.items?.filter((pro) => pro?.productType == "Direct" || pro?.productType == "Prepared");
   const filtered = useMemo(() => {
-    if (!search.trim()) return products?.items ?? [];
+    if (!search.trim()) return filteredProducts ?? [];
     const q = search.trim().toLowerCase();
-    return (products?.items ?? []).filter((p) => p.productNameAr?.toLowerCase().includes(q) || p.productNameEn?.toLowerCase().includes(q) || p.barcode?.toLowerCase().includes(q));
-  }, [search, products?.items]);
+    return (filteredProducts ?? []).filter((p) => p.productNameAr?.toLowerCase().includes(q) || p.productNameEn?.toLowerCase().includes(q) || p.barcode?.toLowerCase().includes(q));
+  }, [search, filteredProducts]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -467,7 +467,7 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
 
 export default function CartPanel2() {
   const { t } = useLanguage();
-  const { cart, setCart, discount, setDiscount, setScreen, handleHold, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
+  const { cart, setCart, discount, setDiscount, setScreen, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
   const [quotationOpen, setQuotationOpen] = useState(false);
   const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const subRaw = useMemo(() => cart.reduce((s, item) => s + itemBasePriceRaw(item), 0), [cart]);
@@ -480,13 +480,12 @@ export default function CartPanel2() {
 
   const handleApplyDiscount = () => {
     const base = sub + taxAfterDiscount;
-    if (discPct) setDiscount((base * parseFloat(discPct)) / 100);
-    if (discFlat) setDiscount(parseFloat(discFlat));
+    if (discPct) setDiscount({ type: "pct", value: (base * parseFloat(discPct)) / 100 });
+    if (discFlat) setDiscount({ type: "flat", value: parseFloat(discFlat) });
   };
 
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
   const changeQty = (idx: number, d: number) => setCart((p) => p.map((item, i) => (i === idx ? { ...item, qty: Math.max(1, item.qty + d) } : item)));
-  const [searchOpen, setSearchOpen] = useState(false);
 
   const handleBarcodeScanned = useCallback(
     (barcode: string) => {

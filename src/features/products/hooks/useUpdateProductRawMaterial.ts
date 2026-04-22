@@ -4,10 +4,11 @@ import { updateProduct, updateProductBranched, updateProductRawMeterial } from "
 import { productsKeys } from "../keys/products.keys";
 import { handleApiError } from "@/lib/handleApiError";
 import useToast from "@/hooks/useToast";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 type UpdateProductPayload = {
   id: number;
-  data: FormData;
+  data: Record<string, unknown>;
 };
 
 export function useUpdateProductRawMatrial() {
@@ -19,7 +20,7 @@ export function useUpdateProductRawMatrial() {
       queryClient.invalidateQueries({
         queryKey: productsKeys.all,
       });
-      notifySuccess(response?.message);
+      handleApiSuccess(response, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

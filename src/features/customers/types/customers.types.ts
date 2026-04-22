@@ -14,12 +14,14 @@ export interface Customer {
   isActive: boolean;
   createdAt: string;
   balance?: number;
-
 }
 export interface createCustomer {
   customerName: string;
   phone: string;
   mobile?: string;
+  buildingNumber: string;
+  additionalNumber: string;
+  commercialRegister: string;
   city: string;
   state: string;
   postalCode: string;

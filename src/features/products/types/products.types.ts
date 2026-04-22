@@ -24,6 +24,7 @@ export type Product = {
   priceBeforeTax: number;
   balance: number;
   baseUnitId: number;
+  unitId: number;
 };
 export type ProductDirect = {
   id: number;
@@ -75,10 +76,15 @@ export type ProductRawMatrial = {
   productNameAr: string;
   productNameEn: string;
   productNameUr: string;
-  description: string | null;
+  description: string;
+  categoryName: string | null;
+  costPrice: number;
+  baseUnitId: number;
   baseUnitName: string;
+  purchaseUnitId: number;
   purchaseUnitName: string;
   conversionFactor: number;
+  minStockLevel: number;
   isActive: boolean;
 };
 export type ProductPrepared = {
@@ -91,23 +97,24 @@ export type ProductPrepared = {
   description: string;
   categoryName: string;
   costPrice: number;
-  parentCategoryId: number;
   sellingPrice: number;
   priceBeforeTax: number;
   priceAfterTax: number;
-
+  categoryId: number;
+  taxId: number;
   taxAmount: number;
   taxName: string | null;
   taxCalculation: number;
   isActive: boolean;
+  baseUnitId: number;
   components: {
     componentProductId: number;
     componentNameAr: string;
     quantity: number;
     unitCost: number;
     totalCost: number;
+    unitId: number;
   }[];
-  minStockLevel: number;
 };
 export interface CreateProduct {
   barcode?: string;

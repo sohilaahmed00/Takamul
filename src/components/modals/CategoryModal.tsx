@@ -119,7 +119,7 @@ export default function CategoryModal({ isOpen, onClose, category }: CategoryMod
           <DialogHeader className="py-3">
             <DialogTitle className="flex items-center gap-2 text-[#2ecc71]">
               <UserPlus size={20} />
-              إضافة تصنيف
+              {category ? "تعديل تصنيف" : " إضافة تصنيف"}
             </DialogTitle>
           </DialogHeader>
 
@@ -170,7 +170,7 @@ export default function CategoryModal({ isOpen, onClose, category }: CategoryMod
 
           <DialogFooter>
             <Button form="addCustomerForm" className="h-12 px-6 text-base" type="submit">
-              إضافة صنف
+              {category ? "تعديل تصنيف" : " إضافة تصنيف"}
             </Button>
           </DialogFooter>
         </DialogContent>

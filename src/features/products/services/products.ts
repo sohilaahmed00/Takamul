@@ -42,7 +42,7 @@ export const createProductBranched = (data: FormData) =>
     method: "POST",
     data,
   });
-export const createProductsRawMatrial = (data: FormData) =>
+export const createProductsRawMatrial = (data: Record<string, unknown>) =>
   httpClient<string>("/Products/raw-material", {
     method: "POST",
     data,
@@ -73,7 +73,7 @@ export const updateProductPrepared = (id: number, data: FormData) =>
     method: "PUT",
     data,
   });
-export const updateProductRawMeterial = (id: number, data: FormData) =>
+export const updateProductRawMeterial = (id: number, data: Record<string, unknown>) =>
   httpClient<{ message: string }>(`/Products/raw-material/${id}`, {
     method: "PUT",
     data,

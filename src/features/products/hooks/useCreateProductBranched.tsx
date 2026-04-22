@@ -3,17 +3,18 @@ import { productsKeys } from "../keys/products.keys";
 import { createProductBranched } from "../services/products";
 import useToast from "@/hooks/useToast";
 import { handleApiError } from "@/lib/handleApiError";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 export function useCreateProductBranched() {
   const queryClient = useQueryClient();
-  const { notifyError, notifyWarning, notifySuccess } = useToast();
+  const { notifyError, notifySuccess } = useToast();
   return useMutation({
     mutationFn: (data: FormData) => createProductBranched(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
         queryKey: productsKeys.all,
       });
-      notifySuccess(response);
+      handleApiSuccess(response, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

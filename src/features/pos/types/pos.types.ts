@@ -31,6 +31,7 @@ export type CreateTakeawayOrder = {
   globalDiscountPercentage: number;
   globalDiscountValue: number;
   giftCardId: number | null;
+  isHolding?: boolean;
   items: {
     productId: number;
     quantity: number;
