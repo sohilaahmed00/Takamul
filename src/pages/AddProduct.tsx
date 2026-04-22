@@ -365,6 +365,21 @@ export default function AddProduct() {
     }
   }, [id, type, reset, productDataDirect, productDataBranched, productDataPrepared, productDataRawMaterial]);
 
+  const rawMaterials = watch("RawMaterials");
+
+  useEffect(() => {
+    if (productType !== "Prepared") return;
+
+    const totalCost =
+      rawMaterials?.reduce((acc, material) => {
+        const selected = productRawMatrial?.items?.find((item) => item.id === material.rawMaterialId);
+        const costPrice = selected?.costPrice ?? 0;
+        const quantity = material.quantity ?? 0;
+        return acc + costPrice * quantity;
+      }, 0) ?? 0;
+
+    setValue("CostPrice", totalCost, { shouldValidate: true });
+  }, [rawMaterials, productRawMatrial?.items, productType, setValue]);
   // ── Submit ───────────────────────────────────────────────────────────────
   const buildFormData = useCallback(
     (data: FormValues): FormData => {
@@ -577,7 +592,8 @@ export default function AddProduct() {
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel>التكلفة</FieldLabel>
-                        <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} type="number" placeholder="ادخل التكلفة *" />
+                        <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} type="number" placeholder="ادخل التكلفة *" readOnly={productType === "Prepared"} className={productType === "Prepared" ? "bg-gray-100 cursor-not-allowed" : ""} />
+                        {productType === "Prepared" && <p className="text-xs text-gray-400 mt-1">يتم حساب التكلفة تلقائياً بناءً على الخامات المضافة</p>}
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
@@ -799,7 +815,6 @@ export default function AddProduct() {
                   </>
                 )}
 
-                {/* Branched children combobox */}
                 {productType === "Branched" && (
                   <div className="lg:col-span-2">
                     <Controller
@@ -878,78 +893,83 @@ export default function AddProduct() {
 
                     {rawMaterialFields.length === 0 && <div className="text-center py-4 text-gray-400 text-sm">لم يتم إضافة أي خامات بعد. اضغط على "إضافة خامة".</div>}
 
-                    {rawMaterialFields.map((_field, index) => (
-                      <div key={_field.id} className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start border-b border-gray-100 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
-                        <div className="lg:col-span-5">
-                          <Controller
-                            name={`RawMaterials.${index}.rawMaterialId`}
-                            control={control}
-                            render={({ field, fieldState }) => (
-                              <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel>
-                                  الخامة <span className="text-red-500">*</span>
-                                </FieldLabel>
-                                <ComboboxField
-                                  field={field}
-                                  items={productRawMatrial?.items}
-                                  valueKey="id"
-                                  labelKey="productNameAr"
-                                  placeholder="اختر الخامة"
-                                  onValueChange={(val) => {
-                                    const selected = productRawMatrial?.items?.find((item) => String(item.id) === String(val));
-                                    if (selected?.baseUnitId) {
-                                      setValue(`RawMaterials.${index}.unitId`, selected.baseUnitId, {
-                                        shouldValidate: true,
-                                      });
-                                    }
-                                  }}
-                                />{" "}
-                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                              </Field>
-                            )}
-                          />
-                        </div>
+                    {rawMaterialFields.map((_field, index) => {
+                      const selectedRawMaterialId = watch(`RawMaterials.${index}.rawMaterialId`);
+                      const selectedRawMaterial = productRawMatrial?.items?.find((item) => item.id === selectedRawMaterialId);
+                      const availableUnits = units?.items?.filter((unit) => unit.id === selectedRawMaterial?.baseUnitId || unit.id === selectedRawMaterial?.purchaseUnitId) ?? [];
+                      return (
+                        <div key={_field.id} className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start border-b border-gray-100 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
+                          <div className="lg:col-span-5">
+                            <Controller
+                              name={`RawMaterials.${index}.rawMaterialId`}
+                              control={control}
+                              render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                  <FieldLabel>
+                                    الخامة <span className="text-red-500">*</span>
+                                  </FieldLabel>
+                                  <ComboboxField
+                                    field={field}
+                                    items={productRawMatrial?.items}
+                                    valueKey="id"
+                                    labelKey="productNameAr"
+                                    placeholder="اختر الخامة"
+                                    onValueChange={(val) => {
+                                      const selected = productRawMatrial?.items?.find((item) => String(item.id) === String(val));
+                                      if (selected?.baseUnitId) {
+                                        setValue(`RawMaterials.${index}.unitId`, selected.baseUnitId, {
+                                          shouldValidate: true,
+                                        });
+                                      }
+                                    }}
+                                  />
+                                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                              )}
+                            />
+                          </div>
 
-                        <div className="lg:col-span-3">
-                          <Controller
-                            name={`RawMaterials.${index}.quantity`}
-                            control={control}
-                            render={({ field, fieldState }) => (
-                              <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel>
-                                  الكمية <span className="text-red-500">*</span>
-                                </FieldLabel>
-                                <Input {...field} value={field.value ?? ""} type="number" step="0.01" onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} placeholder="0.00" className="bg-white" />
-                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                              </Field>
-                            )}
-                          />
-                        </div>
+                          <div className="lg:col-span-3">
+                            <Controller
+                              name={`RawMaterials.${index}.quantity`}
+                              control={control}
+                              render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                  <FieldLabel>
+                                    الكمية <span className="text-red-500">*</span>
+                                  </FieldLabel>
+                                  <Input {...field} value={field.value ?? ""} type="number" step="0.01" onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} placeholder="0.00" className="bg-white" />
+                                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                              )}
+                            />
+                          </div>
 
-                        <div className="lg:col-span-3">
-                          <Controller
-                            name={`RawMaterials.${index}.unitId`}
-                            control={control}
-                            render={({ field, fieldState }) => (
-                              <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel>
-                                  الوحدة <span className="text-red-500">*</span>
-                                </FieldLabel>
-                                <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder="الوحدة" />
-                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                              </Field>
-                            )}
-                          />
-                        </div>
+                          <div className="lg:col-span-3">
+                            <Controller
+                              name={`RawMaterials.${index}.unitId`}
+                              control={control}
+                              render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                  <FieldLabel>
+                                    الوحدة <span className="text-red-500">*</span>
+                                  </FieldLabel>
+                                  <ComboboxField disabled={!selectedRawMaterialId} field={field} items={availableUnits} valueKey="id" labelKey="name" placeholder="الوحدة" />
+                                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                              )}
+                            />
+                          </div>
 
-                        <div className="lg:col-span-1 flex items-center justify-center lg:pt-8 pt-2">
-                          <Button type="button" variant="destructive" className="" onClick={() => removeRawMaterial(index)}>
-                            <Trash2 size={18} className="" />
-                            <span className="lg:hidden ml-2">حذف الخامة</span>
-                          </Button>
+                          <div className="lg:col-span-1 flex items-center justify-center lg:pt-8 pt-2">
+                            <Button type="button" variant="destructive" className="" onClick={() => removeRawMaterial(index)}>
+                              <Trash2 size={18} className="" />
+                              <span className="lg:hidden ml-2">حذف الخامة</span>
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
 
                     {(methods.formState.errors as FieldErrors<z.infer<typeof createPreparedProductSchema>>).RawMaterials?.root?.message && <p className="text-sm text-red-500 mt-2">{(methods.formState.errors as FieldErrors<z.infer<typeof createPreparedProductSchema>>).RawMaterials?.root?.message}</p>}
                   </div>
