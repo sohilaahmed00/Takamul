@@ -396,9 +396,9 @@ const CreatePurchaseInvoice: React.FC = () => {
                       const taxRate = tax?.amount || 0;
                       const gross = qty * price;
                       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
-                      const afterTax = Math.max(0, gross - discount);
-                      const vatAmount = calcVat(afterTax, taxRate || 0, 3);
-                      const beforeTax = afterTax - vatAmount;
+                      const beforeTax = Math.max(0, gross - discount); // السعر قبل الضريبة
+                      const vatAmount = calcVat(beforeTax, taxRate, 3); // الضريبة على السعر قبلها
+                      const grandTotal = beforeTax + vatAmount; // المجموع الكلي
                       const isDiscOpen = !!discountOpen[index];
 
                       return (
@@ -497,7 +497,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                             </div>
 
                             <div className="self-start pt-2 text-center text-green-600 font-bold">
-                              <div className="self-start pt-2 text-center text-green-600 font-bold">{(afterTax + vatAmount).toLocaleString("en-EG", { minimumFractionDigits: 2 })}</div>
+                              <div className="self-start pt-2 text-center text-green-600 font-bold">{grandTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                             </div>
 
                             <div className="flex items-center justify-center gap-2">
