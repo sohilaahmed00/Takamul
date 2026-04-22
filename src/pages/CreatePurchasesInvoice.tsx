@@ -143,7 +143,6 @@ const CreatePurchaseInvoice: React.FC = () => {
   useEffect(() => {
     if (!purchaseOrder) return;
     if (!products?.items || !units?.items) return;
-
     form.reset({
       supplierId: purchaseOrder.supplierId,
       warehouseId: purchaseOrder.warehouseId ?? 0,
@@ -151,9 +150,9 @@ const CreatePurchaseInvoice: React.FC = () => {
       notes: purchaseOrder.notes ?? "",
       items: purchaseOrder.items.map((item) => ({
         productId: item.productId,
-        unitId: item.unitId,
-        quantity: item.quantity,
         unitPrice: item.unitPrice,
+        quantity: item.quantity,
+        unitName: units?.items?.find((unit) => unit.id == item?.unitId).name,
         discountType: item?.discountValue ? "fixed" : "percentage",
         discountValue: item?.discountValue ? item?.discountValue : item?.discountPercentage,
         taxType: "fixed",
