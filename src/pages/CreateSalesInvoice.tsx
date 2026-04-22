@@ -636,7 +636,7 @@ const CreateSalesInvoice: React.FC = () => {
 
                     <div className="flex justify-between items-center text-muted-foreground pt-2">
                       <span className="text-sm">{t("total_paid")}</span>
-                      <span className="font-semibold text-emerald-500">{totalPaid.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                      <span className="font-semibold text-emerald-500">{totalPaid.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     <div className="flex justify-between items-center bg-background p-3 rounded-lg border border-border mt-2">
