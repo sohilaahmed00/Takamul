@@ -75,22 +75,26 @@ export const createBranchedProductSchema = createProductSchema
     ChildrenIds: z.array(z.number()).min(1, "يجب اختيار صنف أم مباشر واحد على الأقل"),
   });
 
-export const createPreparedProductSchema = createProductSchema.extend({
-  RawMaterials: z
-    .array(
-      z.object({
-        rawMaterialId: z.number().min(1, "الخامة مطلوبة"),
-        quantity: z
-          .number({
-            required_error: "الكمية مطلوبة",
-            invalid_type_error: "الكمية يجب أن تكون رقم",
-          })
-          .min(1, "الكمية يجب أن تكون أكبر من صفر"),
-        unitId: z.number().min(1, "الوحدة مطلوبة"),
-      }),
-    )
-    .min(1, "يجب إضافة خامة واحدة على الأقل للصنف المجهز"),
-});
+export const createPreparedProductSchema = createProductSchema
+  .omit({
+    MinStockLevel: true,
+  })
+  .extend({
+    RawMaterials: z
+      .array(
+        z.object({
+          rawMaterialId: z.number().min(1, "الخامة مطلوبة"),
+          quantity: z
+            .number({
+              required_error: "الكمية مطلوبة",
+              invalid_type_error: "الكمية يجب أن تكون رقم",
+            })
+            .min(1, "الكمية يجب أن تكون أكبر من صفر"),
+          unitId: z.number().min(1, "الوحدة مطلوبة"),
+        }),
+      )
+      .min(1, "يجب إضافة خامة واحدة على الأقل للصنف المجهز"),
+  });
 
 export const createRawMaterialSchema = createProductSchema
   .omit({
