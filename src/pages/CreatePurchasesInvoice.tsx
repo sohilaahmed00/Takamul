@@ -65,6 +65,7 @@ const CreatePurchaseInvoice: React.FC = () => {
   const [discountOpen, setDiscountOpen] = useState<Record<number, boolean>>({});
   const toggleDiscount = (i: number) => setDiscountOpen((prev) => ({ ...prev, [i]: !prev[i] }));
   const { id } = useParams();
+  const isEditMode = !!id;
   const { data: purchaseOrder } = useGetPurchaseOrderById(Number(id));
   const { data: treasurys } = useGetAllTreasurys();
   const [submitType, setSubmitType] = useState<"save" | "saveAndNew">("save");
@@ -250,7 +251,7 @@ const CreatePurchaseInvoice: React.FC = () => {
     };
   }, [items, taxes]);
   useEffect(() => {
-    if (paymentFields.length > 0) {
+    if (paymentFields.length > 0 && !isEditMode) {
       form.setValue(`payments.0.amount`, Number(summary.finalTotal.toFixed(2)));
     }
   }, [summary.finalTotal]);
@@ -559,7 +560,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                       name={`payments.${index}.amount`}
                       render={({ field, fieldState }) => (
                         <Field className="relative" data-invalid={fieldState.invalid}>
-                          <Input type="number" placeholder="0.00" value={field.value === 0 ? "" : field.value} onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))} className="bg-white" />
+                          <Input type="number" placeholder="0.00" value={field.value ? field.value : undefined} onChange={(e) => field.onChange(e.target.value === "" ? 0 : Number(e.target.value))} className="bg-white" />
                           {fieldState?.error && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
