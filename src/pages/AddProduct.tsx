@@ -327,10 +327,12 @@ export default function AddProduct() {
           ProductNameUr: productDataPrepared.productNameUr,
           Description: productDataPrepared.description || "",
           Barcode: productDataPrepared.barcode,
-          SellingPrice: productDataPrepared.priceBeforeTax,
+          SellingPrice: productDataPrepared.sellingPrice,
           CostPrice: productDataPrepared.costPrice,
           MinStockLevel: productDataPrepared.minStockLevel,
           TaxCalculation: productDataPrepared?.taxCalculation,
+          CategoryId: productDataPrepared?.categoryId,
+
           RawMaterials:
             productDataPrepared.components?.map((c) => ({
               rawMaterialId: c.componentProductId,

@@ -7,7 +7,7 @@ import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 export function useCreateProductBranched() {
   const queryClient = useQueryClient();
-  const { notifyError, notifyWarning, notifySuccess } = useToast();
+  const { notifyError, notifySuccess } = useToast();
   return useMutation({
     mutationFn: (data: FormData) => createProductBranched(data),
     onSuccess: (response) => {

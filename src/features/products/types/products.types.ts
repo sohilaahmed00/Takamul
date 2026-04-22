@@ -96,10 +96,10 @@ export type ProductPrepared = {
   description: string;
   categoryName: string;
   costPrice: number;
-  parentCategoryId: number;
   sellingPrice: number;
   priceBeforeTax: number;
   priceAfterTax: number;
+  categoryId: number;
 
   taxAmount: number;
   taxName: string | null;
