@@ -46,7 +46,7 @@ const createPurchasesInvoiceSchema = (t: (key: string) => string) =>
     payments: z
       .array(
         z.object({
-          amount: z.number().min(1, t("amount_must_be_greater_than_zero")),
+          amount: z.number().min(0).optional(),
           treasuryId: z.number().min(1, t("choose_treasury")),
         }),
       )
