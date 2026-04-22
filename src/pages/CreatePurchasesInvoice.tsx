@@ -226,19 +226,18 @@ const CreatePurchaseInvoice: React.FC = () => {
     let totalVat = 0;
 
     items?.forEach((item) => {
-      const product = products?.items?.find((p) => p.id === Number(item.productId));
       const qty = item.quantity || 0;
       const price = item.unitPrice || 0;
       const discType = item.discountType || "fixed";
       const discValue = item.discountValue || 0;
       const tax = taxes?.find((taxItem) => taxItem.id === Number(item.taxId));
       const taxRate = tax?.amount || 0;
-      const taxCalc = product?.taxCalculation ?? 1;
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
-      const afterTax = Math.max(0, gross - discount);
-      const vatAmount = calcVat(afterTax, taxRate || 0, taxCalc);
-      const beforeTax = afterTax - vatAmount;
+      const afterDisc = Math.max(0, gross - discount);
+      const vatAmount = calcVat(afterDisc, taxRate, 3); // غير شامل دايماً
+      const beforeTax = afterDisc; // السعر قبل إضافة الضريبة
+      const grandTotal = afterDisc + vatAmount;
 
       beforeTaxTotal += beforeTax;
       totalVat += vatAmount;
@@ -497,9 +496,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                             </div>
 
                             <div className="self-start pt-2 text-center text-green-600 font-bold">
-                              {afterTax.toLocaleString("en-EG", {
-                                minimumFractionDigits: 2,
-                              })}
+                              <div className="self-start pt-2 text-center text-green-600 font-bold">{(afterTax + vatAmount).toLocaleString("en-EG", { minimumFractionDigits: 2 })}</div>
                             </div>
 
                             <div className="flex items-center justify-center gap-2">
