@@ -327,7 +327,7 @@ export default function AddProduct() {
           ProductNameUr: productDataPrepared.productNameUr,
           Description: productDataPrepared.description || "",
           Barcode: productDataPrepared.barcode,
-          SellingPrice: productDataPrepared.sellingPrice,
+          SellingPrice: productDataPrepared?.taxCalculation == 2 ? productDataPrepared.priceAfterTax : productDataPrepared.priceBeforeTax,
           CostPrice: productDataPrepared.costPrice,
           MinStockLevel: productDataPrepared.minStockLevel,
           TaxCalculation: productDataPrepared?.taxCalculation,
@@ -935,7 +935,7 @@ export default function AddProduct() {
                                 <FieldLabel>
                                   الوحدة <span className="text-red-500">*</span>
                                 </FieldLabel>
-                                <ComboboxField disabled={true} field={field} items={units?.items} valueKey="id" labelKey="name" placeholder="الوحدة" />
+                                <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder="الوحدة" />
                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                               </Field>
                             )}
