@@ -16,7 +16,7 @@ import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
 import type { CreateSalesOrder } from "@/features/sales/types/sales.types";
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ComboboxField from "@/components/ui/ComboboxField";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useGetSalesOrderById } from "@/features/sales/hooks/useGetSalesOrderById";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import formatDate from "@/lib/formatDate";
@@ -24,6 +24,7 @@ import { CreateSalesReturns } from "@/features/salesReturns/types/salesReturns.t
 import { useCreateSalesReturns } from "@/features/salesReturns/hooks/useCreateSalesReturns";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { calcVat } from "@/utils/calcVat";
+import { useGetSalesReturnsById } from "@/features/salesReturns/hooks/useGetSalesReturnsById";
 
 const ReturnInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -35,7 +36,8 @@ const ReturnInvoiceSchema = (t: (key: string) => string) =>
       .array(
         z.object({
           productId: z.number().min(1, t("choose_product")),
-          unitId: z.number().min(1, t("choose_product_unit")),
+
+          unitName: z.string().optional(),
           quantity: z.number().min(1, t("quantity_must_be_greater_than_zero")),
           price: z.number().min(0, t("price_must_be_gte_zero")),
           discountType: z.enum(["percentage", "fixed"]).default("fixed"),
@@ -54,9 +56,19 @@ const CreateReturnSalesInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
   const { id } = useParams();
-  const { data: detailsSalesOrder } = useGetSalesOrderById(Number(id) ?? undefined);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
   const [discountOpen, setDiscountOpen] = useState<Record<number, boolean>>({});
+  const location = useLocation();
+  const isViewMode = !!id && location?.pathname?.includes("view");
+  const { data: detailsSalesOrder } = useGetSalesOrderById(Number(id) ?? undefined, {
+    enabled: !!id && !isViewMode,
+  });
+  const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
+  const { data: wareHouses } = useGetAllWareHouses();
+  const { data: units } = useGetAllUnits({});
+  const { mutateAsync: CreateSalesReturns } = useCreateSalesReturns();
+  const { data: salesReturnOrderDetails } = useGetSalesReturnsById(Number(id));
+  const filterProducts = useMemo(() => products?.items.filter((pro) => pro?.productType == "Direct" || pro?.productType == "Prepared"), [products]);
 
   const schema = useMemo(() => ReturnInvoiceSchema(t), [t]);
 
@@ -77,7 +89,6 @@ const CreateReturnSalesInvoice: React.FC = () => {
       items: [
         {
           productId: 0,
-          unitId: 0,
           quantity: 1,
           price: undefined,
           discountType: "fixed",
@@ -94,12 +105,6 @@ const CreateReturnSalesInvoice: React.FC = () => {
     page: 1,
     limit: 100,
   });
-  const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
-  const { data: wareHouses } = useGetAllWareHouses();
-  const { data: units } = useGetAllUnits({});
-  const { data: treasurys } = useGetAllTreasurys();
-  // const { data: salesOrder } = useGetSalesOrderById(isEditMode ? Number(id) : undefined);
-  const { mutateAsync: CreateSalesReturns } = useCreateSalesReturns();
 
   const customers = customersResponse?.items ?? [];
 
@@ -163,17 +168,6 @@ const CreateReturnSalesInvoice: React.FC = () => {
     return Math.max(0, total);
   }, [beforeTaxTotal, totalVat, invoiceDiscountType, invoiceDiscountValue]);
 
-  const handleAddItem = () => {
-    appendItem({
-      productId: 0,
-      unitId: 0,
-      quantity: 1,
-      price: 0,
-      discountType: "fixed",
-      discountValue: 0,
-    });
-  };
-
   const handleSubmit = async (data: SalesInvoiceType) => {
     const payload: CreateSalesReturns = {
       salesOrderId: detailsSalesOrder?.id,
@@ -197,13 +191,13 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
   useEffect(() => {
     form.reset({
-      customerId: detailsSalesOrder?.customerId,
-      notes: detailsSalesOrder?.notes,
-      orderDate: detailsSalesOrder?.orderDate ? new Date(detailsSalesOrder.orderDate).toISOString().split("T")[0] : "",
-      items: detailsSalesOrder?.items.map((item) => ({
+      customerId: salesReturnOrderDetails?.customerId,
+      notes: salesReturnOrderDetails?.reason,
+      orderDate: salesReturnOrderDetails?.returnDate ? new Date(salesReturnOrderDetails.returnDate).toISOString().split("T")[0] : "",
+      items: salesReturnOrderDetails?.items.map((item) => ({
         price: item?.unitPrice,
         productId: item?.productId,
-        unitId: item?.unitId,
+        // unitId: products?.items?.find((pro) => pro.id == item?.productId).baseUnitId,
         discountType: item?.discountValue ? "fixed" : "percentage",
         discountValue: item?.discountValue ? item?.discountValue : item?.discountPercentage,
         quantity: item?.quantity,
@@ -213,7 +207,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
       //   paymentMethod: payment?.paymentMethod,
       // })),
     });
-  }, [detailsSalesOrder, form]);
+  }, [salesReturnOrderDetails, form]);
 
   return (
     <>
@@ -330,7 +324,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
                     return (
                       <div key={item.id}>
-                        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-zinc-50 dark:bg-zinc-900/20 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 dark:border-zinc-800 items-center">
+                        <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group">
                           <Controller
                             control={form.control}
                             name={`items.${index}.productId`}
@@ -338,13 +332,17 @@ const CreateReturnSalesInvoice: React.FC = () => {
                               <Field>
                                 <ComboboxField
                                   field={field}
-                                  items={products?.items}
+                                  items={filterProducts}
                                   valueKey="id"
                                   labelKey="productNameAr"
                                   placeholder={t("choose_product")}
                                   onValueChange={(val) => {
-                                    const selectedProduct = products?.items?.find((p) => p.id === Number(val));
-                                    if (selectedProduct) form.setValue(`items.${index}.price`, selectedProduct.sellingPrice ?? 0);
+                                    const selectedProduct = filterProducts.find((p) => p.id === Number(val));
+                                    if (selectedProduct) {
+                                      form.setValue(`items.${index}.price`, selectedProduct.sellingPrice);
+                                      const unitProduct = units?.items?.find((unit) => unit?.id == selectedProduct?.baseUnitId);
+                                      form.setValue(`items.${index}.unitName`, unitProduct?.name);
+                                    }
                                   }}
                                 />
                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -354,21 +352,24 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
                           <Controller
                             control={form.control}
-                            name={`items.${index}.unitId`}
-                            render={({ field, fieldState }) => (
+                            name={`items.${index}.unitName`}
+                            render={({ field }) => (
                               <Field>
-                                <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder={t("unit")} />
-                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                <FieldLabel className="md:hidden text-xs mb-1.5 text-muted-foreground">{t("unit")}</FieldLabel>
+                                <span className="block text-center py-2.5 px-3 bg-muted rounded-md text-foreground">{field.value || "-"}</span>
                               </Field>
                             )}
                           />
-
+                          <div className="text-center bg-muted py-2.5 px-3 rounded-md">
+                            <span className={`font-medium  ${(product?.balance ?? 0) <= 0 ? "text-red-500" : "text-emerald-500"}`}>{product?.balance?.toLocaleString("en-EG", { minimumFractionDigits: 2 }) ?? "—"}</span>
+                          </div>
                           <Controller
                             control={form.control}
                             name={`items.${index}.price`}
                             render={({ field, fieldState }) => (
                               <Field>
-                                <Input type="number" value={field.value === 0 || field.value === undefined ? "" : field.value} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" /> {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                               </Field>
                             )}
                           />
@@ -384,22 +385,24 @@ const CreateReturnSalesInvoice: React.FC = () => {
                             )}
                           />
 
-                          <div className="text-center font-medium text-foreground tabular-nums">{beforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</div>
-                          <div className="text-center text-amber-600 font-medium tabular-nums">{vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</div>
-                          <div className="text-center text-primary font-bold tabular-nums">{afterTax.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</div>
+                          <div className="text-center font-medium text-foreground">{beforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+
+                          <div className="text-center text-orange-500 font-medium">{vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+
+                          <div className="text-center text-green-500 font-bold">{afterTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
 
                           <div className="flex items-center justify-center gap-2">
-                            <button type="button" onClick={() => removeItem(index)} disabled={itemFields.length === 1} className="p-2 text-muted-foreground hover:text-destructive disabled:opacity-30 transition-colors">
+                            <button type="button" onClick={() => removeItem(index)} disabled={itemFields.length === 1} className="p-2 text-muted-foreground hover:text-red-500 disabled:opacity-30">
                               <Trash2 size={16} />
                             </button>
-                            <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 transition-colors ${isDiscOpen ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                            <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-500" : "text-muted-foreground"}`}>
                               <Tag size={14} />
                             </button>
                           </div>
                         </div>
 
                         {isDiscOpen && (
-                          <div className="grid grid-cols-2 gap-3 px-2 py-3 bg-primary/5 border border-primary/20 rounded-lg mt-1">
+                          <div className="grid grid-cols-2 gap-3 px-2 py-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-lg">
                             <Controller
                               control={form.control}
                               name={`items.${index}.discountType`}
@@ -416,7 +419,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
                                 />
                               )}
                             />
-                            <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} />} />
+                            <Controller control={form.control} name={`items.${index}.discountValue`} render={({ field }) => <Input type="number" value={field.value ? field.value : undefined} onChange={(e) => field.onChange(Number(e.target.value))} />} />
                           </div>
                         )}
                       </div>

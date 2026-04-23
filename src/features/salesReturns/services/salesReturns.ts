@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import { CreateSalesReturns, GetAllSalesReturnResponse } from "../types/salesReturns.types";
+import { CreateSalesReturns, GetAllSalesReturnResponse, SalesReturn } from "../types/salesReturns.types";
 import { GetAllSalesOrderResponse, SalesOrder } from "@/features/sales/types/sales.types";
 
 // ===================
@@ -38,6 +38,6 @@ export const deleteSalesReturn = (id: number) =>
     method: "DELETE",
   });
 
-export function getSalesOrderById(id: number) {
-  return httpClient<SalesOrder>(`/sales-orders/${id}`);
+export function getSalesReturnOrderById(id: number) {
+  return httpClient<SalesReturn>(`/sales-returns/${id}`);
 }

@@ -38,7 +38,7 @@ const STATUS_MAP: Record<OrderStatusType, string | null> = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
-  const { selectedCustomer, setCart, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable } = usePos();
+  const { selectedCustomer, setCart, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen } = usePos();
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
   const { t } = useLanguage();
 
@@ -81,7 +81,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
           <div className="flex items-center gap-2">
             <DialogTitle className="text-[14px] font-semibold text-sidebar-foreground">{t("orders")}</DialogTitle>
           </div>
-          
+
           <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded-lg flex items-center justify-center bg-sidebar-foreground/10 hover:bg-sidebar-foreground/20 transition-colors text-sidebar-foreground">
             <X size={14} />
           </button>
@@ -209,6 +209,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         <button
                           title="إضافة عناصر"
                           onClick={async (e) => {
+                            setScreen("home");
                             setCart(
                               order.items.map((item) => ({
                                 price: item?.unitPrice ?? 0,
@@ -234,6 +235,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         <button
                           title="استكمال الدفع"
                           onClick={async (e) => {
+                            setScreen("home");
                             setCart(
                               order.items.map((item) => ({
                                 price: item?.unitPrice ?? 0,
