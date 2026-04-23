@@ -317,7 +317,7 @@ const CreateQuote: React.FC = () => {
           unitPrice: quote.unitPrice,
           discountValue: quote?.discountAmount ? quote?.discountAmount : quote?.discountPercentage,
 
-          // unitName: getBaseUnitNameWithId(1),
+          unitName: units?.items?.find((unit) => unit?.id == quote?.baseUnitId)?.name,
         })),
       });
     }
