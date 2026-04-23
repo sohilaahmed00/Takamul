@@ -640,9 +640,6 @@ const CreateQuote: React.FC = () => {
                 {t("cancel")}
               </Button>
               <div className="flex flex-col-reverse lg:flex-row items-center gap-3 w-full lg:w-auto">
-                <Button variant="outline" size="lg" type="button" className="w-full lg:w-auto px-8 h-12 text-base">
-                  {t("save_and_add_another")}
-                </Button>
                 <Button size="lg" type="submit" disabled={isPending} className="w-full lg:w-auto px-8 h-12 text-base">
                   {isPending ? t("saving") : t("save_and_issue_quote")}
                 </Button>
