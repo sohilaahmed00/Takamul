@@ -201,7 +201,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
       items: items.map((item) => ({
         price: item?.unitPrice,
         productId: item?.productId,
-        // unitId: products?.items?.find((pro) => pro.id == item?.productId).baseUnitId,
+        unitId: products?.items?.find((pro) => pro.id == item?.productId)?.baseUnitId,
         discountType: item?.discountValue ? "fixed" : "percentage",
         discountValue: item?.discountValue ? item?.discountValue : item?.discountPercentage,
         quantity: item?.quantity,

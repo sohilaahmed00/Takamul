@@ -421,9 +421,11 @@ const CreateSalesInvoice: React.FC = () => {
                           const taxCalc = product?.taxCalculation ?? 1;
                           const gross = qty * price;
                           const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
-                          const afterTax = Math.max(0, gross - discount);
-                          const vatAmount = calcVat(afterTax, taxRate, taxCalc);
-                          const beforeTax = afterTax - vatAmount;
+                          const afterDiscount = Math.max(0, gross - discount);
+                          const beforeTax = taxCalc === 3 ? afterDiscount / (1 + taxRate / 100) : taxCalc === 2 ? afterDiscount / (1 + taxRate / 100) : afterDiscount;
+
+                          const vatAmount = calcVat(beforeTax, taxRate, taxCalc);
+                          const grandTotal = beforeTax + vatAmount;
                           const isDiscOpen = !!discountOpen[index];
 
                           return (
@@ -493,7 +495,7 @@ const CreateSalesInvoice: React.FC = () => {
 
                                 <div className="text-center text-orange-500 font-medium">{vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
 
-                                <div className="text-center text-green-500 font-bold">{afterTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                                <div className="text-center text-green-500 font-bold">{grandTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
 
                                 <div className="flex items-center justify-center gap-2">
                                   <button type="button" onClick={() => removeItem(index)} disabled={itemFields.length === 1} className="p-2 text-muted-foreground hover:text-red-500 disabled:opacity-30">
