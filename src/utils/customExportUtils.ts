@@ -7,12 +7,7 @@ import { saveAs } from "file-saver";
 // =============================================
 // PDF Export - للتقارير (جداول وكشوفات)
 // =============================================
-export const exportCustomPDF = async (
-  title: string,
-  htmlString: string,
-  orientation: "portrait" | "landscape" = "portrait",
-  width: number = 794
-) => {
+export const exportCustomPDF = async (title: string, htmlString: string, orientation: "portrait" | "landscape" = "portrait", width: number = 794) => {
   const iframe = document.createElement("iframe");
   Object.assign(iframe.style, {
     position: "fixed",
@@ -105,9 +100,7 @@ export const printVoucher = (htmlString: string) => {
     }
   `;
 
-  const injected = htmlString.includes("</head>")
-    ? htmlString.replace("</head>", `<style>${printCSS}</style></head>`)
-    : `<style>${printCSS}</style>` + htmlString;
+  const injected = htmlString.includes("</head>") ? htmlString.replace("</head>", `<style>${printCSS}</style></head>`) : `<style>${printCSS}</style>` + htmlString;
 
   win.document.open();
   win.document.write(injected);
@@ -148,7 +141,7 @@ export const exportVoucherPDF = (title: string, htmlString: string) => {
         }, 800);
       });
     </script>
-    </body>`
+    </body>`,
   );
 
   document.body.appendChild(iframe);
@@ -250,9 +243,7 @@ export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any, l
   const isReceipt = type === "receipt";
   const arTitle = isReceipt ? t("receipt_bond", "سند قبض") : t("payment_bond", "سند صرف");
   const enTitle = isReceipt ? "RECEIPT VOUCHER" : "PAYMENT VOUCHER";
-  const arPartyLabel = isReceipt
-    ? t("received_from", "استلمنا من السيد / السادة :")
-    : t("to_mrs", "يصرف للسيد / السادة :");
+  const arPartyLabel = isReceipt ? t("received_from", "استلمنا من السيد / السادة :") : t("to_mrs", "يصرف للسيد / السادة :");
   const enPartyLabel = isReceipt ? "Received From M/s." : "Pay To M/s.";
   const amountStr = Number(data.amount || 0).toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -504,22 +495,24 @@ export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any, l
 // Treasury Statement
 // =============================================
 export const getTreasuryHTML = (title: string, filtersInfo: string, data: any[], columns: any[], t: any, direction: "rtl" | "ltr" = "rtl") => {
-  const tableRows = data.map((row, i) => {
-    return `
+  const tableRows = data
+    .map((row, i) => {
+      return `
       <tr>
         <td>${i + 1}</td>
         <td>${row.type || "-"}</td>
         <td>${row.date ? new Date(row.date).toLocaleDateString("en-GB") : "-"}</td>
         <td>${row.number || "-"}</td>
         <td>${row.partyName || "-"}</td>
-        <td style="color:#d97706;font-weight:700;">${row.debit > 0 ? Number(row.debit).toLocaleString() : (row.credit > 0 ? Number(row.credit).toLocaleString() : "-")}</td>
+        <td style="color:#d97706;font-weight:700;">${row.debit > 0 ? Number(row.debit).toLocaleString() : row.credit > 0 ? Number(row.credit).toLocaleString() : "-"}</td>
         <td style="font-weight:bold;color:#059669;">
           ${row.balance > 0 ? '<span style="color:#1d4ed8;">↑</span>' : '<span style="color:#dc2626;">↓</span>'}
           ${Number(row.balance).toLocaleString()}
         </td>
       </tr>
     `;
-  }).join("");
+    })
+    .join("");
 
   return `
     <!DOCTYPE html>
@@ -538,13 +531,13 @@ export const getTreasuryHTML = (title: string, filtersInfo: string, data: any[],
       <table>
         <thead>
           <tr>
-            <th>${t("serial","م")}</th>
-            <th>${t("movement_type","نوع الحركة")}</th>
-            <th>${t("date","التاريخ")}</th>
-            <th>${t("document_number","رقم المستند")}</th>
-            <th>${t("party_name","اسم الجهة")}</th>
-            <th>${t("amount","المبلغ")}</th>
-            <th>${t("balance","الرصيد")}</th>
+            <th>${t("serial", "م")}</th>
+            <th>${t("movement_type", "نوع الحركة")}</th>
+            <th>${t("date", "التاريخ")}</th>
+            <th>${t("document_number", "رقم المستند")}</th>
+            <th>${t("party_name", "اسم الجهة")}</th>
+            <th>${t("amount", "المبلغ")}</th>
+            <th>${t("balance", "الرصيد")}</th>
           </tr>
         </thead>
         <tbody>${tableRows}</tbody>
@@ -557,16 +550,10 @@ export const getTreasuryHTML = (title: string, filtersInfo: string, data: any[],
 // =============================================
 // Account Statement
 // =============================================
-export const getAccountStatementHTML = (
-  title: string,
-  partyInfo: { name: string; label: string },
-  filtersInfo: string,
-  summary: { total1: number; label1: string; total2: number; label2: string; total3: number; label3: string; tableCol1?: string; tableCol2?: string },
-  data: any[],
-  t: any,
-  direction: "rtl" | "ltr" = "rtl"
-) => {
-  const tableRows = data.map((row, i) => `
+export const getAccountStatementHTML = (title: string, partyInfo: { name: string; label: string }, filtersInfo: string, summary: { total1: number; label1: string; total2: number; label2: string; total3: number; label3: string; tableCol1?: string; tableCol2?: string }, data: any[], t: any, direction: "rtl" | "ltr" = "rtl") => {
+  const tableRows = data
+    .map(
+      (row, i) => `
     <tr>
       <td>${i + 1}</td>
       <td>${row.date ? new Date(row.date).toLocaleDateString("en-GB") : "-"}</td>
@@ -574,7 +561,9 @@ export const getAccountStatementHTML = (
       <td style="color:#dc2626;font-weight:600;">${row.debit > 0 ? Number(row.debit).toLocaleString() : "-"}</td>
       <td style="color:#059669;font-weight:600;">${row.credit > 0 ? Number(row.credit).toLocaleString() : "-"}</td>
     </tr>
-  `).join("");
+  `,
+    )
+    .join("");
 
   return `
     <!DOCTYPE html>
@@ -628,7 +617,7 @@ export const getAccountStatementHTML = (
           </td>
           <td style="width:34%;border:none;text-align:center;vertical-align:top;">
             <h2 style="font-size:24px;font-weight:800;color:#0f172a;margin-bottom:5px;margin-top:0;">${title}</h2>
-            <p style="font-size:14px;color:#475569;font-weight:600;margin:0;">${t("account_statement","Account Statement")}</p>
+            <p style="font-size:14px;color:#475569;font-weight:600;margin:0;">${t("account_statement", "Account Statement")}</p>
           </td>
           <td style="width:33%;border:none;text-align:left;vertical-align:top;">
             <div style="background:#f8fafc !important;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:12px;text-align:right;direction:${direction};display:inline-block;">
@@ -651,9 +640,9 @@ export const getAccountStatementHTML = (
       <table>
         <thead>
           <tr>
-            <th>${t("serial","م")}</th>
-            <th>${t("date","التاريخ")}</th>
-            <th>${t("type","النوع")}</th>
+            <th>${t("serial", "م")}</th>
+            <th>${t("date", "التاريخ")}</th>
+            <th>${t("type", "النوع")}</th>
             <th>${summary.tableCol1 || summary.label1}</th>
             <th>${summary.tableCol2 || summary.label2}</th>
           </tr>
@@ -669,13 +658,10 @@ export const getAccountStatementHTML = (
 // Quantity Adjustments
 // =============================================
 export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direction: "rtl" | "ltr" = "rtl") => {
-  const tableRows = lines.map((row, i) => {
-    const typeTranslated = row.type === "IN"
-      ? t("in", "إضافة")
-      : row.type === "OUT"
-      ? t("out", "خصم")
-      : t(row.type?.toLowerCase() || "", row.type || "-");
-    return `
+  const tableRows = lines
+    .map((row, i) => {
+      const typeTranslated = row.type === "IN" ? t("in", "إضافة") : row.type === "OUT" ? t("out", "خصم") : t(row.type?.toLowerCase() || "", row.type || "-");
+      return `
       <tr>
         <td>${i + 1}</td>
         <td>${row.productName || "-"} <span style="color:#666;font-size:11px;margin:0 5px;">${row.barcode ? `(${row.barcode})` : ""}</span></td>
@@ -683,7 +669,8 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
         <td style="font-weight:700;">${Number(row.quantity || 0).toLocaleString()}</td>
       </tr>
     `;
-  }).join("");
+    })
+    .join("");
 
   const totalQty = lines.reduce((s, r) => s + Number(r.quantity || 0), 0);
 
@@ -708,21 +695,21 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
     </head>
     <body>
       <div style="text-align:center;margin-bottom:40px;">
-        <h2 style="font-size:20px;font-weight:800;">${t("quantity_adjustments","تعديلات كمية")}</h2>
+        <h2 style="font-size:20px;font-weight:800;">${t("quantity_adjustments", "تعديلات كمية")}</h2>
       </div>
       <div class="header-boxes">
         <div class="h-box">
-          <div class="title">${t("warehouse","المخزن")}</div>
+          <div class="title">${t("warehouse", "المخزن")}</div>
           <div class="value">${data.warehouseName || "-"}</div>
         </div>
       </div>
       <table>
         <thead>
           <tr>
-            <th>${t("serial","م")}</th>
+            <th>${t("serial", "م")}</th>
             <th>${direction === "ltr" ? "Barcode / Name" : "باركود / اسم"}</th>
-            <th>${t("type","نوع")}</th>
-            <th>${t("quantity","كمية")}</th>
+            <th>${t("type", "نوع")}</th>
+            <th>${t("quantity", "كمية")}</th>
           </tr>
         </thead>
         <tbody>${tableRows}</tbody>
@@ -730,11 +717,11 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
       <div class="footer-info">
         <div class="summary-total">
           <div>${totalQty}</div>
-          <div>${t("total_quantities","إجمالي الكميات")}</div>
+          <div>${t("total_quantities", "إجمالي الكميات")}</div>
         </div>
         <div style="margin-top:20px;font-size:14px;color:#333;">
-          <div>${t("data_entry","مدخل البيانات")} : ${data.performedBy || "-"}</div>
-          <div>${t("date","التاريخ")} : ${data.operationDate ? new Date(data.operationDate).toLocaleDateString("en-GB") : "-"}</div>
+          <div>${t("data_entry", "مدخل البيانات")} : ${data.performedBy || "-"}</div>
+          <div>${t("date", "التاريخ")} : ${data.operationDate ? new Date(data.operationDate).toLocaleDateString("en-GB") : "-"}</div>
         </div>
       </div>
     </body>
@@ -745,65 +732,61 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
 // =============================================
 // Standardized Report HTML Template
 // =============================================
-export const generateReportHTML = (
-  title: string,
-  filtersInfo: string,
-  summaryCards: { title: string; value: any; suffix?: string; color?: string }[],
-  columns: { header: string; field: string; body?: (row: any) => string }[],
-  data: any[],
-  t: any,
-  direction: "rtl" | "ltr" = "rtl"
-) => {
-  const tableHeaders = columns.map(col => `<th>${col.header}</th>`).join("");
-  const tableRows = data.map((row, i) => {
-    const cells = columns.map(col => {
-      let val = "";
-      if (col.field === "serial") {
-        val = (i + 1).toString();
-      } else if (col.body) {
-        val = col.body(row);
-      } else {
-        const parts = col.field.split(".");
-        let tempVal = row;
-        for (const p of parts) {
-          tempVal = tempVal ? tempVal[p] : "-";
-        }
-        val = tempVal !== null && tempVal !== undefined ? tempVal : "-";
-      }
-      return `<td>${val}</td>`;
-    }).join("");
-    return `<tr>${cells}</tr>`;
-  }).join("");
+export const generateReportHTML = (title: string, filtersInfo: string, summaryCards: { title: string; value: any; suffix?: string; color?: string }[], columns: { header: string; field: string; body?: (row: any) => string }[], data: any[], t: any, direction: "rtl" | "ltr" = "rtl") => {
+  const tableHeaders = columns.map((col) => `<th>${col.header}</th>`).join("");
+  const tableRows = data
+    .map((row, i) => {
+      const cells = columns
+        .map((col) => {
+          let val = "";
+          if (col.field === "serial") {
+            val = (i + 1).toString();
+          } else if (col.body) {
+            val = col.body(row);
+          } else {
+            const parts = col.field.split(".");
+            let tempVal = row;
+            for (const p of parts) {
+              tempVal = tempVal ? tempVal[p] : "-";
+            }
+            val = tempVal !== null && tempVal !== undefined ? tempVal : "-";
+          }
+          return `<td>${val}</td>`;
+        })
+        .join("");
+      return `<tr>${cells}</tr>`;
+    })
+    .join("");
 
-  const filtersArray = typeof filtersInfo === 'string' ? filtersInfo.split(" | ") : [];
-  const filtersHTML = filtersArray.length > 0 
-    ? `<div class="filters-row">
-        ${filtersArray.map(f => {
-          const parts = f.split(": ");
-          if (parts.length < 2) return "";
-          const label = parts[0];
-          const value = parts.slice(1).join(": ");
-          return `
+  const filtersArray = typeof filtersInfo === "string" ? filtersInfo.split(" | ") : [];
+  const filtersHTML =
+    filtersArray.length > 0
+      ? `<div class="filters-row">
+        ${filtersArray
+          .map((f) => {
+            const parts = f.split(": ");
+            if (parts.length < 2) return "";
+            const label = parts[0];
+            const value = parts.slice(1).join(": ");
+            return `
             <div class="filter-item">
               <span class="filter-label">${label}:</span>
-              <span class="filter-value">${value || '-'}</span>
+              <span class="filter-value">${value || "-"}</span>
             </div>
           `;
-        }).join("")}
+          })
+          .join("")}
        </div>`
-    : "";
+      : "";
 
-  const cardsHTML = (summaryCards && summaryCards.length > 0) 
-    ? `<div class="report-cards-container">
-        ${summaryCards.map(card => {
-          const colorHex = card.color === 'blue' ? '#3b82f6' : 
-                          card.color === 'green' ? '#10b981' : 
-                          card.color === 'orange' ? '#f59e0b' : 
-                          card.color === 'red' ? '#ef4444' : 
-                          card.color === 'purple' ? '#8b5cf6' : 
-                          card.color === 'teal' ? '#14b8a6' : '#3b82f6';
-          return `
-            <div class="report-card ${card.color || 'blue'}">
+  const cardsHTML =
+    summaryCards && summaryCards.length > 0
+      ? `<div class="report-cards-container">
+        ${summaryCards
+          .map((card) => {
+            const colorHex = card.color === "blue" ? "#3b82f6" : card.color === "green" ? "#10b981" : card.color === "orange" ? "#f59e0b" : card.color === "red" ? "#ef4444" : card.color === "purple" ? "#8b5cf6" : card.color === "teal" ? "#14b8a6" : "#3b82f6";
+            return `
+            <div class="report-card ${card.color || "blue"}">
               <div class="card-accent" style="background-color: ${colorHex}"></div>
               <div class="card-content">
                 <div class="card-title">${card.title}</div>
@@ -814,9 +797,10 @@ export const generateReportHTML = (
               </div>
             </div>
           `;
-        }).join("")}
+          })
+          .join("")}
       </div>`
-    : "";
+      : "";
 
   const customStyles = `
     .filters-row {
@@ -865,7 +849,7 @@ export const generateReportHTML = (
       gap: 12px;
       min-width: 180px;
       flex: 1;
-      text-align: ${direction === 'rtl' ? 'right' : 'left'};
+      text-align: ${direction === "rtl" ? "right" : "left"};
       position: relative;
       overflow: hidden;
       box-shadow: 0 1px 2px rgba(0,0,0,0.05);
@@ -873,7 +857,7 @@ export const generateReportHTML = (
     .card-accent {
       position: absolute;
       top: 0;
-      ${direction === 'rtl' ? 'right: 0;' : 'left: 0;'}
+      ${direction === "rtl" ? "right: 0;" : "left: 0;"}
       width: 4px;
       height: 100%;
     }
@@ -919,7 +903,7 @@ export const generateReportHTML = (
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
           <div style="font-size: 16px; font-weight: 800; color: #1e40af;">${t("takamul_data", "تكامل البيانات")}</div>
           <h1 style="margin: 0; font-size: 20px;">${title}</h1>
-          <div style="font-size: 11px; color: #64748b;">${new Date().toLocaleString(direction === 'rtl' ? 'ar-SA' : 'en-GB')}</div>
+          <div style="font-size: 11px; color: #64748b;">${new Date().toLocaleString(direction === "rtl" ? "ar-SA" : "en-GB")}</div>
         </div>
       </div>
       
@@ -944,11 +928,7 @@ export const generateReportHTML = (
 // =============================================
 // Excel Export - الموحد لكافة التقارير
 // =============================================
-export const exportToExcel = (
-  data: any[],
-  columns: { header: string; field: string; body?: (row: any) => any }[],
-  fileName: string
-) => {
+export const exportToExcel = (data: any[], columns: { header: string; field: string; body?: (row: any) => any }[], fileName: string) => {
   const excelData = data.map((row, i) => {
     const obj: any = {};
     columns.forEach((col) => {
@@ -979,7 +959,7 @@ export const exportToExcel = (
   const worksheet = XLSX.utils.json_to_sheet(excelData);
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
-  
+
   // ضبط اتجاه الورقة ليكون من اليمين لليسار إذا كان العنوان بالعربي
   worksheet["!views"] = [{ RTL: true }];
 
@@ -994,13 +974,17 @@ export const exportToExcel = (
 // Stock Receipt HTML Template
 // =============================================
 export const getStockReceiptHTML = (order: any, t: any) => {
-  const itemRows = (order.orderItems || []).map((item: any, idx: number) => `
+  const itemRows = (order.orderItems || [])
+    .map(
+      (item: any, idx: number) => `
     <tr>
       <td style="border-left: 1px solid #e2e8f0; padding: 10px; text-align: right; font-weight: 700;">${item.productName}</td>
       <td style="border-left: 1px solid #e2e8f0; padding: 10px; font-weight: 700;">${item.unitName || "قطعة"}</td>
       <td style="padding: 10px; font-weight: 700;">${item.quantity}</td>
     </tr>
-  `).join("");
+  `,
+    )
+    .join("");
 
   const emptyRows = Array(Math.max(0, 7 - (order.orderItems?.length || 0)))
     .fill(0)
@@ -1165,149 +1149,178 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
   <meta charset="UTF-8"/>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    @page { size: A4 portrait; margin: 8mm; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-    body { padding: 5mm; background: #fff; width: 100%; color: #1e293b; }
-    .header { position: relative; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
-    .header-info { width: 32%; }
-    .header-info h1 { font-size: 18px; font-weight: 900; color: #0f172a; margin-bottom: 2px; }
-    .header-info p { font-size: 8px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-    
-    .logo-center-col { 
-      position: absolute; 
-      left: 50%; 
-      transform: translateX(-50%); 
-      top: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      width: 30%;
+    body { background: #f5f5f5; display: flex; justify-content: center; padding: 20px; }
+    .page {
+      background: #fff;
+      width: 794px;
+      min-height: 1123px;
+      padding: 20px 25px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      color: #1e293b;
     }
-    .logo-box { width: 85px; height: 85px; background: #fff; display: flex; align-items: center; justify-content: center; }
-    .doc-badge { 
-      background: #f1f5f9; 
-      color: #334155; 
-      padding: 4px 15px; 
-      border-radius: 6px; 
-      font-size: 13px; 
+
+    /* Header */
+    .header-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #ccc;
+      margin-bottom: 30px;
+    }
+    .header-table td {
+      padding: 8px 12px;
+      border: 1px solid #ccc;
+    }
+    .header-top td { font-size: 14px; font-weight: 700; }
+    .header-bottom td { font-size: 12px; font-weight: 600; }
+    .logo-cell {
+      text-align: center;
+      font-size: 22px;
       font-weight: 900;
-      white-space: nowrap;
-      border: 1px solid #e2e8f0;
+      color: #333;
+      width: 200px;
+      border-right: 1px solid #ccc;
+      border-left: 1px solid #ccc;
+      vertical-align: middle;
+    }
+    .right-cell { text-align: right; width: 270px; }
+    .left-cell { text-align: left; width: 270px; direction: ltr; }
+
+    /* Title badge */
+    .title-section {
+      text-align: center;
+      margin: 20px 0 25px;
+    }
+    .title-badge {
+      display: inline-block;
+      background: #d1d5db;
+      padding: 10px 40px;
+      border-radius: 6px;
+      font-size: 22px;
+      font-weight: 900;
+      color: #111;
     }
 
-    .meta-box { border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; margin-top: 6px; font-size: 8px; display: flex; width: 100%; }
-    .meta-label { background: #f8fafc; padding: 3px 6px; border-left: 1px solid #e2e8f0; font-weight: 800; color: #64748b; width: 75px; }
-    .meta-value { padding: 3px 8px; flex: 1; font-weight: 900; color: #1e293b; }
+    /* Date line */
+    .date-line {
+      text-align: right;
+      font-size: 14px;
+      font-weight: 800;
+      margin-bottom: 20px;
+    }
 
-    .date-section { display: flex; justify-content: flex-end; margin-bottom: 15px; font-weight: 900; font-size: 14px; }
-    .date-line { border-bottom: 1.5px solid #e2e8f0; width: 160px; margin-right: 8px; height: 18px; }
+    /* Letter body */
+    .letter-body {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px 30px;
+      font-size: 15px;
+      font-weight: 700;
+      line-height: 2;
+      text-align: right;
+    }
+    .row { margin-bottom: 4px; }
+    .label { color: #374151; font-weight: 900; }
+    .val { color: #111; }
+    .underline { border-bottom: 1.5px solid #374151; padding: 0 4px; }
+    .blank-line { display: inline-block; border-bottom: 1.5px solid #9ca3af; width: 120px; height: 10px; margin: 0 4px; vertical-align: bottom; }
 
-    .letter-body { background: #fbfcfd; padding: 25px 35px; border-radius: 20px; border: 1px solid #f1f5f9; font-size: 16px; line-height: 1.8; font-weight: 600; text-align: justify; }
-    .letter-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-    .letter-label { color: #94a3b8; font-size: 11px; font-weight: 900; width: 75px; text-transform: uppercase; }
-    .letter-value { color: #0f172a; font-weight: 900; font-size: 15px; }
-    .highlight { border-bottom: 1.5px solid #0f172a; font-weight: 900; padding: 0 6px; color: #0f172a; }
-    .empty-highlight { border-bottom: 1.5px solid #cbd5e1; width: 100px; display: inline-block; height: 10px; margin: 0 5px; }
-
-    .signatures { margin-top: 50px; display: flex; justify-content: space-between; padding: 0 60px; }
-    .sig-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .sig-line { width: 180px; height: 1.5px; background: #cbd5e1; }
-    .sig-label { font-size: 12px; font-weight: 900; color: #94a3b8; text-transform: uppercase; }
+    /* Signatures */
+    .signatures {
+      margin-top: 50px;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 60px;
+    }
+    .sig-item { text-align: center; }
+    .sig-line { width: 200px; height: 1.5px; background: #9ca3af; margin-bottom: 6px; }
+    .sig-label { font-size: 14px; font-weight: 900; color: #374151; }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="header-info" style="text-align: right;">
-      <h1>مؤسسة تكامل البيانات</h1>
-      <p>للحلول التقنية والبيانات</p>
-      <div class="meta-box" style="direction: ltr;">
-        <div class="meta-label">${t("vat_number_en", "VAT Number")}</div>
-        <div class="meta-value">311296488500003</div>
-      </div>
-      <div class="meta-box" style="direction: ltr;">
-        <div class="meta-label">${t("invoice_no_en", "Invoice No")}</div>
-        <div class="meta-value">${order.orderNumber}</div>
-      </div>
-    </div>
-    
-    <div class="logo-center-col">
-      <div class="logo-box">
-        <img src="/logo_ar_light.png" style="width: 100%; height: 100%; object-fit: contain;" />
-      </div>
-      <div class="doc-badge">${t("financial_claim_letter", "خطاب مطالبة مالية")}</div>
-    </div>
-    
-    <div class="header-info">
-      <h1>Takamul Albayanat</h1>
-      <p>Data Solutions & Technology</p>
-      <div class="meta-box">
-        <div class="meta-label">${t("commercial_no_en", "Commercial No")}</div>
-        <div class="meta-value">${order.commercialNo || "5000"}</div>
-      </div>
-      <div class="meta-box">
-        <div class="meta-label">${t("release_date_en", "Release Date")}</div>
-        <div class="meta-value">${new Date().toLocaleDateString("en-GB")}</div>
-      </div>
-    </div>
+<div class="page">
+
+  <!-- Header -->
+  <table class="header-table">
+    <tbody>
+      <tr class="header-top">
+        <td class="right-cell">
+          <div style="font-size:16px;font-weight:900;">مؤسسة تكامل البيانات</div>
+        </td>
+        <td class="logo-cell" rowspan="2">
+          اللوجو
+        </td>
+        <td class="left-cell">
+          <div style="font-size:16px;font-weight:900;">Takamul Albayanat</div>
+        </td>
+      </tr>
+      <tr class="header-bottom">
+        <td class="right-cell">
+          <span style="margin-left:15px;"><strong>الرقم الضريبي</strong> &nbsp; VAT No. &nbsp; 311296488500003</span>
+        </td>
+        <td class="left-cell">
+          <span><strong>Commercial No.</strong> &nbsp; 5000 &nbsp; سجل التجاري</span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Title -->
+  <div class="title-section">
+    <div class="title-badge">نموذج خطاب مطالبة مالية</div>
   </div>
 
-  <div class="date-section">
-    <span>${t("date", "التاريخ")}:</span>
-    <div class="date-line"></div>
+  <!-- Date -->
+  <div class="date-line">
+    التاريخ: 21 أبريل 2026
   </div>
 
+  <!-- Letter Body -->
   <div class="letter-body">
-    <div class="letter-row">
-      <span class="letter-label">${t("sender", "المرسل")} :</span>
-      <span class="letter-value">${t("takamul_data_org", "مؤسسة تكامل البيانات")}</span>
-    </div>
-    <div class="letter-row">
-      <span class="letter-label">${t("receiver", "المستلم")} :</span>
-      <span class="letter-value">${order.customerName || t("cash_customer", "عميل نقدي")}</span>
-    </div>
-    <div class="letter-row">
-      <span class="letter-label">${t("subject", "الموضوع")} :</span>
-      <span class="letter-value">${t("claim_subject_text", "مطالبة مالية بسداد مستحقات فاتورة")}</span>
+    <div class="row"><span class="label">المرسل :</span> &nbsp;<span class="val">مؤسسة تكامل البيانات</span></div>
+    <div class="row"><span class="label">المستلم :</span> &nbsp;<span class="val">عميل افتراضي</span></div>
+    <div class="row"><span class="label">الموضوع :</span> &nbsp;<span class="val">مطالبة مالية بسداد مبلغ معين</span></div>
+
+    <div style="margin-top:12px;">
+      <span class="val">السادة عميل افتراضي تحية طيبة</span>
     </div>
 
-    <div style="margin-top: 20px; font-weight: 900; color: #0f172a; font-size: 17px;">
-      ${t("gentlemen", "السادة")} / ${order.customerName || t("cash_customer", "عميل نقدي")} 
-      <span style="margin-right: 12px; color: #94a3b8; font-weight: 600; font-size: 14px;">${t("greetings", "تحية طيبة وبعد،،")}</span>
+    <div style="margin-top:12px; line-height:2.2;">
+      نود تذكيركم بأن الفاتورة رقم <span class="underline">430</span> الصادرة بتاريخ <span class="underline">20/04/2026</span>م والمتعلقة
+      <span class="blank-line" style="width:160px;"></span>
+      <br/>
+      بقيمة 306.00 ﷼(ثلاثمائة و ست ريال) كان من المفترض سدادها بحلول <span class="blank-line"></span> وحتى تاريخ هذا الخطاب لم يتم
+      <br/>
+      استلام مبلغ الفاتورة.
     </div>
 
-    <div style="margin-top: 12px;">
-      ${t("remind_invoice", "نود تذكيركم بأن الفاتورة رقم")} <span class="highlight">${order.orderNumber}</span> 
-      ${t("issued_on", "الصادرة بتاريخ")} <span class="highlight">${new Date(order.orderDate).toLocaleDateString("ar-EG")}</span> 
-      ${t("and_related_to", "والمتعلقة بـ")} <span class="empty-highlight" style="width: 150px;"></span>
-      ${t("with_value_of", "بقيمة")} <span class="highlight">${order.grandTotal.toFixed(2)} ${t("currency_sar", "ريال")} (${tafqeet(order.grandTotal)})</span> 
-      ${t("supposed_to_be_paid_by", "كان من المفترض سدادها بحلول")} <span class="empty-highlight"></span> 
-      ${t("claim_not_received_text", "وحتى تاريخ هذا الخطاب لم يتم استلام مبلغ الفاتورة.")}
+    <div style="margin-top:12px;">
+      لذلك نرجو منكم تسديد المبلغ المستحق خلال <span class="underline">7</span> أيام من تاريخه.وذلك عبر الحساب البنكي المرفق في الفاتورة.
     </div>
 
-    <div style="margin-top: 12px;">
-      ${t("please_pay_within", "لذلك نرجو منكم تسديد المبلغ المستحق خلال")} <span class="highlight">7</span> ${t("days_from_date", "أيام من تاريخه، وذلك عبر الحساب البنكي المرفق في الفاتورة.")}
+    <div style="margin-top:12px; font-size:14px;">
+      في حال عدم السداد خلال المهلة المحددة سنضطر آسفين لاتخاذ الإجراءات القانونية اللازمة لتحصيل المستحقات.
     </div>
 
-    <div style="margin-top: 12px; font-size: 13px; opacity: 0.8; font-style: italic;">
-      ${t("legal_action_warning", "في حال عدم السداد خلال المهلة المحددة سنضطر آسفين لاتخاذ الإجراءات القانونية اللازمة لتحصيل المستحقات.")}
-    </div>
-
-    <div style="text-align: center; margin-top: 25px; font-size: 18px; font-weight: 900; color: #0f172a;">
-      ${t("sincerely_yours", "وتفضلوا بقبول فائق الاحترام والتقدير.")}
+    <div style="margin-top:16px; text-align:center; font-size:16px; font-weight:900;">
+      وتفضلوا بقبول فائق الاحترام.
     </div>
   </div>
 
+  <!-- Signatures -->
   <div class="signatures">
     <div class="sig-item">
       <div class="sig-line"></div>
-      <div class="sig-label">${t("signature", "التوقيع")}</div>
+      <div class="sig-label">ختم الشركة</div>
     </div>
     <div class="sig-item">
       <div class="sig-line"></div>
-      <div class="sig-label">${t("company_stamp", "ختم الشركة")}</div>
+      <div class="sig-label">التوقيع</div>
     </div>
   </div>
+
+</div>
 </body>
 </html>`;
 };
