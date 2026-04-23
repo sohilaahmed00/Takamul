@@ -25,6 +25,7 @@ type SalesReturnItem = {
   discountValue: number;
   taxPercentage: number;
   lineTotal: number;
+  unitId: number;
 };
 
 export type SalesReturn = {

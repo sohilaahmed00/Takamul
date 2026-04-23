@@ -201,20 +201,22 @@ const CreateReturnSalesInvoice: React.FC = () => {
       customerId: salesReturnOrderDetails?.customerId ?? detailsSalesOrder?.customerId,
       notes: salesReturnOrderDetails?.reason ?? detailsSalesOrder?.notes,
       orderDate: salesReturnOrderDetails?.returnDate ? salesReturnOrderDetails?.returnDate?.split("T")[0] : detailsSalesOrder?.orderDate?.split("T")[0],
-      items: items.map((item) => ({
-        price: item?.unitPrice,
-        productId: item?.productId,
-        unitId: products?.items?.find((pro) => pro.id == item?.productId)?.baseUnitId,
-        discountType: item?.discountValue ? "fixed" : "percentage",
-        discountValue: item?.discountValue ? item?.discountValue : item?.discountPercentage,
-        quantity: item?.quantity,
-      })),
+      items: items.map((item) => {
+        return {
+          price: item?.unitPrice,
+          productId: item?.productId,
+          unitName: units?.items?.find((unit) => unit?.id == item?.unitId)?.name,
+          discountType: item?.discountValue ? "fixed" : "percentage",
+          discountValue: item?.discountValue ? item?.discountValue : item?.discountPercentage,
+          quantity: item?.quantity,
+        };
+      }),
       // payments: detailsSalesOrder?.payments.map((payment) => ({
       //   amount: payment?.amount,
       //   paymentMethod: payment?.paymentMethod,
       // })),
     });
-  }, [salesReturnOrderDetails, form, detailsSalesOrder]);
+  }, [salesReturnOrderDetails, form, detailsSalesOrder, units?.items]);
 
   return (
     <>
