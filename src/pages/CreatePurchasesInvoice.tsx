@@ -212,18 +212,7 @@ const CreatePurchaseInvoice: React.FC = () => {
     } else {
       await createPurchaseOrder(payload);
     }
-    if (submitType === "saveAndNew") {
-      form.reset({
-        orderDate: new Date().toISOString().split("T")[0],
-        warehouseId: 0,
-        supplierId: 0,
-        notes: "",
-        items: [{ productId: 0, unitName: "", quantity: undefined, unitPrice: undefined, discountType: "fixed", discountValue: 0, taxId: 0 }],
-        payments: [{ amount: undefined, treasuryId: 0 }],
-      });
-    } else {
-      navigate("/purchases");
-    }
+    navigate("/purchases");
   };
 
   const summary = useMemo(() => {
