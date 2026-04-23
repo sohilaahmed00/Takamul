@@ -40,6 +40,7 @@ import { DirectionProvider } from "@/components/ui/direction";
 import { ProductsProvider } from "./context/ProductsContext.tsx";
 import { PosProvider } from "./context/PosContext.tsx";
 import { AuthProvider } from "./providers/AuthProvider.tsx";
+import { TooltipProvider } from "./components/ui/tooltip.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -74,7 +75,10 @@ createRoot(document.getElementById("root")!).render(
                                                             <WarehousesProvider>
                                                               <PriceGroupsProvider>
                                                                 <AuthProvider>
+                                                                  <TooltipProvider>
+
                                                                   <App />
+                                                                  </TooltipProvider>
                                                                 </AuthProvider>
                                                               </PriceGroupsProvider>
                                                             </WarehousesProvider>

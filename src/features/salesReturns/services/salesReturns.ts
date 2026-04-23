@@ -1,17 +1,17 @@
 import { httpClient } from "@/api/httpClient";
-import { CreateSalesReturns } from "../types/salesReturns.types";
+import { CreateSalesReturns, GetAllSalesReturnResponse } from "../types/salesReturns.types";
 import { GetAllSalesOrderResponse, SalesOrder } from "@/features/sales/types/sales.types";
 
 // ===================
 // GET
 // ===================
 
-export const getAllSalesOrders = ({ page = 1, limit = 5, OrderType }: { page: number; limit: number; OrderType?: "POS" | "A4" }) =>
-  httpClient<GetAllSalesOrderResponse>(`/sales-orders`, {
+export const getAllSalesReturnOrders = ({ page = 1, limit = 5, searchTerm }: { page: number; limit: number; searchTerm?: string }) =>
+  httpClient<GetAllSalesReturnResponse>(`/sales-returns`, {
     params: {
       Page: page,
       PageSize: limit,
-      OrderType: OrderType,
+      SearchTerm: searchTerm,
     },
   });
 // export const getCategoryClient = (idOrSlug: string | number) =>

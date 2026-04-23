@@ -205,16 +205,16 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
         phone: partner.phone ?? "",
         mobile: partner.mobile ?? "",
         district: "",
-        streetName: "",
+        streetName: partner?.additionalNumber,
         postalCode: partner.postalCode ?? "",
         taxNumber: partner.taxNumber ?? "",
-        commercialRegister: "",
+        commercialRegister: partner?.commercialRegister,
         isTaxable: !!partner.taxNumber,
         countryId: 0,
         cityId: 0,
         stateId: 0,
-        buildingNumber: "",
-        additionalNumber: "",
+        buildingNumber: partner?.buildingNumber,
+        additionalNumber: partner?.additionalNumber,
       });
     } else if (partner && "supplierName" in partner) {
       form.reset({
@@ -225,13 +225,13 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
         streetName: "",
         postalCode: partner.postalCode ?? "",
         taxNumber: partner.taxNumber ?? "",
-        // commercialRegister: partner.commercialRegister ?? "",
+        commercialRegister: partner.commercialRegister ?? "",
         isTaxable: !!partner.taxNumber,
         countryId: 0,
         cityId: 0,
         stateId: 0,
-        buildingNumber: "",
-        additionalNumber: "",
+        buildingNumber: partner?.buildingNumber,
+        additionalNumber: partner?.additionalNumber,
       });
     } else {
       form.reset({

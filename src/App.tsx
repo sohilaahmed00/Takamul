@@ -185,6 +185,7 @@ import PosSales from "./pages/PosSales";
 import TableLayout from "./pages/AddRoles";
 import PermissionsTree from "./pages/AddRoles";
 import RolesPage from "./pages/RolesPage";
+import SalesReturn from "./pages/SalesReturn";
 
 function AppRoutes() {
   const { receiptData } = usePrint();
@@ -228,6 +229,7 @@ function AppRoutes() {
           <Route path="/sales/edit/:id" element={<CreateSalesInvoice />} />
           <Route path="/sales/all" element={<AllSales />} />
           <Route path="/sales/pos-invoices" element={<PosSales />} />
+          <Route path="/sales/return" element={<SalesReturn />} />
           <Route path="/sales/pos-invoices/:id" element={<POSInvoiceDetails />} />
           <Route path="/sales/pos-invoices/return/:id" element={<ReturnPOSSale />} />
           <Route path="/sales/gift-cards" element={<GiftCards />} />

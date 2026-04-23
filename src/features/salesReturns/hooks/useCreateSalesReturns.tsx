@@ -4,6 +4,7 @@ import { handleApiError } from "@/lib/handleApiError";
 import { CreateSalesReturns } from "../types/salesReturns.types";
 import { salesReturnsKeys } from "../keys/salesReturns.keys";
 import { createSalesReturn } from "../services/salesReturns";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 export function useCreateSalesReturns() {
   const queryClient = useQueryClient();
@@ -16,7 +17,7 @@ export function useCreateSalesReturns() {
       queryClient.invalidateQueries({
         queryKey: salesReturnsKeys.all,
       });
-      notifySuccess(response?.message);
+      handleApiSuccess(response,notifySuccess)
     },
     onError: (error) => handleApiError(error, notifyError),
   });

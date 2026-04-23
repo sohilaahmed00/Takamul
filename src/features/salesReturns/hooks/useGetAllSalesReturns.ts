@@ -1,11 +1,11 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { salesKeys } from "../keys/sales.keys";
-import { getAllSalesOrders } from "../services/sales";
-import type { GetAllSalesOrderResponse } from "../types/sales.types";
+import { salesReturnsKeys } from "../keys/salesReturns.keys";
+import { GetAllSalesReturnResponse } from "../types/salesReturns.types";
+import { getAllSalesReturnOrders } from "../services/salesReturns";
 
-export const useGetAllSalesReturns = ({ page, limit, OrderType }: { page: number; limit: number; OrderType?: "POS" | "A4" }) =>
-  useQuery<GetAllSalesOrderResponse>({
-    queryKey: salesKeys.list({ page, limit, OrderType }),
-    queryFn: () => getAllSalesOrders({ page, limit, OrderType }),
+export const useGetAllSalesReturns = ({ page, limit, searchTerm }: { page: number; limit: number; searchTerm?: string }) =>
+  useQuery<GetAllSalesReturnResponse>({
+    queryKey: salesReturnsKeys.list({ limit, page, searchTerm }),
+    queryFn: () => getAllSalesReturnOrders({ page, limit, searchTerm }),
     placeholderData: keepPreviousData,
   });

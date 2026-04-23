@@ -239,6 +239,21 @@ export default function AddProduct() {
   const anchor = useComboboxAnchor();
   const validateFile = useMemo(() => createFileValidator({ maxFiles: 1, maxSizeMB: 100, allowedTypes: ["image/"] }), []);
 
+  useEffect(() => {
+    if (!isEditMode && units?.items && units?.items?.length > 0) {
+      setValue("BaseUnitId", units?.items[0]?.id);
+    }
+  }, [units?.items, isEditMode]);
+  useEffect(() => {
+    if (!isEditMode && taxesData && taxesData.length > 0 && taxesData[0]?.id) {
+      setValue("TaxId", taxesData[0].id);
+    }
+  }, [taxesData, isEditMode]);
+  useEffect(() => {
+    if (!isEditMode) {
+      setValue("TaxCalculation", 2);
+    }
+  }, [isEditMode]);
   // ── Watched values ───────────────────────────────────────────────────────
   const CostPrice = watch("CostPrice");
   const SellingPrice = watch("SellingPrice");
