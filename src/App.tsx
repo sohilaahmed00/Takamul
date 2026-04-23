@@ -248,16 +248,16 @@ function AppRoutes() {
             {/* الورديات */}
             <Route path="/shifts" element={<ShiftsList />} />
 
-          {/* المشتريات */}
-          <Route path="/purchases" element={<PurchasesList />} />
-          <Route path="/purchases/return" element={<CreateReturnPurchasesInvoice />} />
-          <Route path="/purchases/create" element={<CreatePurchaseInvoice />} />
-          <Route path="/purchases/edit/:id" element={<CreatePurchaseInvoice />} />
-          <Route path="/purchases/import-csv" element={<AddPurchaseCSV />} />
-          <Route path="/purchases/expenses" element={<Expenses />} />
-          <Route path="/suppliers" element={<SuppliersList />} />
-          <Route path="/suppliers/payments" element={<SupplierPaymentsList />} />
-          <Route path="/expenses" element={<Expenses />} />
+            {/* المشتريات */}
+            <Route path="/purchases" element={<PurchasesList />} />
+            <Route path="/purchases/return" element={<CreateReturnPurchasesInvoice />} />
+            <Route path="/purchases/create" element={<CreatePurchaseInvoice />} />
+            <Route path="/purchases/edit/:id" element={<CreatePurchaseInvoice />} />
+            <Route path="/purchases/import-csv" element={<AddPurchaseCSV />} />
+            <Route path="/purchases/expenses" element={<Expenses />} />
+            <Route path="/suppliers" element={<SuppliersList />} />
+            <Route path="/suppliers/payments" element={<SupplierPaymentsList />} />
+            <Route path="/expenses" element={<Expenses />} />
 
             {/* العملاء */}
             <Route path="/customers" element={<CustomersList />} />
