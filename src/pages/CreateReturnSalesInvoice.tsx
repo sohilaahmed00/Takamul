@@ -178,12 +178,15 @@ const CreateReturnSalesInvoice: React.FC = () => {
       reason: data.notes || "",
       refundMethod: "CashFromTreasury",
       treasuryId: 1,
-      items: detailsSalesOrder?.items.map((item) => ({
-        originalItemId: item.id,
-        productId: item.productId,
-        unitId: item.unitId,
-        quantity: item.quantity,
-      })),
+      items: data.items.map((formItem) => {
+        const originalItem = detailsSalesOrder?.items.find((item) => item.productId === formItem.productId);
+        return {
+          originalItemId: originalItem?.id,
+          productId: formItem.productId,
+          unitId: originalItem?.unitId,
+          quantity: formItem.quantity,
+        };
+      }),
     };
 
     await CreateSalesReturns(payload);
