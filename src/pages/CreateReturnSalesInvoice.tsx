@@ -188,7 +188,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
     await CreateSalesReturns(payload);
     form.reset();
-    // navigate("/sales/all");
+    navigate("/sales/return");
   };
 
   useEffect(() => {
