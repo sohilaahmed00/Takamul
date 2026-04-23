@@ -166,7 +166,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex transition-colors duration-300" dir={direction}>
-      <ToastContainer />
+      <ToastContainer pauseOnHover={false} />
 
       <AnimatePresence>{isMobileMenuOpen && isMobile && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-black/50 z-40 lg:hidden" />}</AnimatePresence>
 
