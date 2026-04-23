@@ -18,9 +18,10 @@ import ComboboxField from "@/components/ui/ComboboxField";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import z from "zod/v3";
 import { calcVat } from "@/utils/calcVat";
+import { useGetAllEmployees } from "@/features/employees/hooks/useGetAllEmployees";
 
 const SalesInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -109,6 +110,7 @@ const CreateSalesInvoice: React.FC = () => {
   const { data: treasurys } = useGetAllTreasurys();
   const filterProducts = useMemo(() => products?.items.filter((pro) => pro?.productType == "Direct" || pro?.productType == "Prepared"), [products]);
   const { mutateAsync: createSalesOrders } = useCreateSalesOrders();
+  const { data: employees } = useGetAllEmployees({ page: 1, limit: 10000 });
 
   const customers = customersResponse?.items ?? [];
   useEffect(() => {
@@ -341,6 +343,32 @@ const CreateSalesInvoice: React.FC = () => {
                     </div>
                   </div>
                 </Field>
+                <Controller
+                  name="warehouseId"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>
+                        {t("warehouse")} <span className="text-red-500">*</span>
+                      </FieldLabel>
+                      <Select key={field.value} value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="اختر الموظف" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {employees?.items?.map((c) => (
+                              <SelectItem key={c.id} value={String(c.id)}>
+                                {c.firstName}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
 
                 <div className="lg:col-span-4  col-span-1">
                   <Controller

@@ -26,7 +26,7 @@ export interface Employee {
   brunchName: string;
 }
 export interface GetAllEmployeesResponse extends PaginationMeta {
-  data: Employee[];
+  items: Employee[];
 }
 // export type GetCitiesWithCountryIdResponse = City[];
 // export type GetStatesWithCityIdResponse = State[];
