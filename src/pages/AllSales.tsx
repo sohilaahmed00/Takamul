@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, MoreHorizontal, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { usePrint } from "@/context/PrintContext";
 import { useGetAllSales } from "../features/sales/hooks/useGetAllSales";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable, type DataTableFilterMeta, type DataTablePageEvent } from "primereact/datatable";
@@ -13,6 +14,7 @@ import { Input } from "@/components/ui/input";
 export default function AllSales() {
   type Payment = SalesOrder["payments"][number];
   const { t, direction } = useLanguage();
+  const { printInvoice } = usePrint();
   const navigate = useNavigate();
   const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
@@ -127,18 +129,14 @@ export default function AllSales() {
                       </Link>
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem asChild>
-                      <Link to={`/sales/warehouse/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                    <DropdownMenuItem onClick={() => printInvoice(row, 'stock')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
                         <Warehouse size={14} />
                         سند مخزني
-                      </Link>
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem asChild>
-                      <Link to={`/sales/claim/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                    <DropdownMenuItem onClick={() => printInvoice(row, 'claim')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
                         <FileCheck size={14} />
                         سند مطالبة
-                      </Link>
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator />
