@@ -90,6 +90,10 @@ export const Permissions = {
   products: {
     all: "المنتجات.الكل",
     view: "المنتجات.عرض",
+    DirectView: "المنتجات.عرض الاصناف المباشرة",
+    RawMaterialView: "المنتجات.عرض الخامات",
+    PreparedView: "المنتجات.عرض الاصناف المجهزة",
+    BranchedView: "المنتجات.عرض الاصناف المتفرعه",
     add: "المنتجات.إضافة",
     edit: "المنتجات.تعديل",
     delete: "المنتجات.حذف",

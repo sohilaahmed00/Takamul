@@ -41,6 +41,7 @@ export default function ProductsList() {
     },
   );
   const hasPermission = useAuthStore((s) => s.hasPermission);
+  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
 
   const { data: productsDirect } = useGetAllProductsDirect(
     {
@@ -173,21 +174,31 @@ export default function ProductsList() {
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="border border-gray-200 rounded-t-md overflow-hidden">
             <TabsList variant={"line"} className="flex overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit! pb-1 max-lg:w-full [&::-webkit-scrollbar]:hidden">
-              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
-                جميع الأصناف
-              </TabsTrigger>
-              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="Direct">
-                الأصناف المباشرة
-              </TabsTrigger>
-              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="Branched">
-                الأصناف المتفرعة
-              </TabsTrigger>
-              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="Prepared">
-                الأصناف المجهزة
-              </TabsTrigger>
-              <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="RawMatrial">
-                الخامات
-              </TabsTrigger>
+              {hasPermission("المنتجات.عرض") && (
+                <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
+                  جميع الأصناف
+                </TabsTrigger>
+              )}
+              {hasAnyPermission(["المنتجات.عرض الاصناف المباشرة", "المنتجات.عرض"]) && (
+                <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="Direct">
+                  الأصناف المباشرة
+                </TabsTrigger>
+              )}
+              {hasAnyPermission(["المنتجات.عرض الاصناف المتفرعه", "المنتجات.عرض"]) && (
+                <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="Branched">
+                  الأصناف المتفرعة
+                </TabsTrigger>
+              )}
+              {hasAnyPermission(["المنتجات.عرض الخامات", "المنتجات.عرض"]) && (
+                <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="Prepared">
+                  الأصناف المجهزة
+                </TabsTrigger>
+              )}
+              {hasAnyPermission(["المنتجات.عرض الاصناف المجهزة", "المنتجات.عرض"]) && (
+                <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="RawMatrial">
+                  الخامات
+                </TabsTrigger>
+              )}
             </TabsList>
           </Tabs>
 
@@ -214,7 +225,7 @@ export default function ProductsList() {
             <Column field="balance" sortable header={"الكمية"} />
             <Column field="barcode" sortable header={"الباركود"} />
             <Column field="costPrice" sortable header={"سعر الشراء"} />
-         
+
             <Column field="sellingPrice" sortable header={"سعر البيع"} />
 
             {activeTab == "allProducts" && (
