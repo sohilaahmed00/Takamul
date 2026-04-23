@@ -26,13 +26,13 @@ interface TableCardProps {
 
 export function TableCard({ table, selected, onClick }: TableCardProps) {
   return (
- <div
+<div
   onClick={onClick}
-  className={`bg-card rounded-xl overflow-hidden transition-all border
+  className={`bg-card rounded-xl overflow-hidden transition-all border flex flex-col h-[200px]
     ${selected ? "border-primary border-2 cursor-pointer" : "border-border hover:border-primary/30 cursor-pointer"}`}
 >
-        <div className="p-3 flex items-center justify-center h-[180px]">
-        <svg viewBox="0 0 260 210" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-[220px]" style={{ overflow: "visible" }}>
+  <div className="flex-1 flex items-center justify-center p-2 min-h-0">
+    <svg viewBox="0 0 260 210" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" style={{ overflow: "visible" }}>
           {/* Table surface */}
           <rect x="65" y="58" width="130" height="90" rx="12" style={{ fill: "var(--bg-card)", stroke: "var(--border)" }} strokeWidth="1.5" />
 
@@ -84,7 +84,7 @@ export function TableCard({ table, selected, onClick }: TableCardProps) {
       </div>
 
       {/* Status bar */}
-      <div className={`h-1.5 ${STATUS_COLOR[table.status]}`} />
+      <div className={`h-1.5 shrink-0 ${STATUS_COLOR[table.status]}`} />
     </div>
   );
 }
