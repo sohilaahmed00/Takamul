@@ -243,7 +243,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>{t("date")} *</FieldLabel>
-                      <Input type="date" {...field} />
+                      <Input disabled={true} type="date" {...field} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
@@ -255,7 +255,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>{t("warehouse")} *</FieldLabel>
-                      <ComboboxField field={field} items={wareHouses} valueKey="id" labelKey="warehouseName" placeholder={t("choose_warehouse")} />
+                      <ComboboxField disabled={true} field={field} items={wareHouses} valueKey="id" labelKey="warehouseName" placeholder={t("choose_warehouse")} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
@@ -269,7 +269,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
                       render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
                           <FieldLabel>{t("customer")} *</FieldLabel>
-                          <ComboboxField field={field} items={customers} valueKey="id" labelKey="customerName" placeholder={t("choose_customer")} />
+                          <ComboboxField disabled={true} field={field} items={customers} valueKey="id" labelKey="customerName" placeholder={t("choose_customer")} />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -341,6 +341,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
                             render={({ field, fieldState }) => (
                               <Field>
                                 <ComboboxField
+                                disabled={true}
                                   field={field}
                                   items={filterProducts}
                                   valueKey="id"
