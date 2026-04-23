@@ -379,7 +379,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
                             name={`items.${index}.price`}
                             render={({ field, fieldState }) => (
                               <Field>
-                                <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                                <Input disabled={true} type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
                                 {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                               </Field>
                             )}
