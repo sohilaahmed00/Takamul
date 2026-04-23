@@ -74,7 +74,14 @@ export default function RecentTransactions() {
               <Column header={t("date")} body={(row) => new Date(row.orderDate).toLocaleDateString("ar-EG")} />
               <Column header={t("customer_name")} field="customerName" />
               <Column header={t("cashier")} field="createdBy" />
-              <Column header={t("invoice_status")} field="orderStatus" />
+              <Column 
+                header={t("invoice_status")} 
+                body={(rowData) => {
+                  if (rowData.orderStatus === "Confirmed") return "مكتملة";
+                  if (rowData.orderStatus === "UnConfirmed") return "غير مكتملة";
+                  return rowData.orderStatus;
+                }}
+              />
               <Column header={t("total_amount")} field="grandTotal" />
               <Column header={t("paid_amount")} body={(rowData) => rowData.payments?.reduce((sum: number, p: any) => sum + p.amount, 0) ?? 0} />
             </DataTable>
@@ -93,7 +100,14 @@ export default function RecentTransactions() {
               <Column header={t("date")} body={(row) => formatDate(row.orderDate)} />
               <Column header={t("invoice_number")} field="purchaseOrderNumber" />
               <Column header={t("supplier_name")} field="supplierName" />
-              <Column header={t("purchase_order_status")} field="orderStatus" />
+              <Column 
+                header={t("purchase_order_status")} 
+                body={(rowData) => {
+                  if (rowData.orderStatus === "Confirmed") return "مكتملة";
+                  if (rowData.orderStatus === "UnConfirmed") return "غير مكتملة";
+                  return rowData.orderStatus;
+                }}
+              />
             </DataTable>
           </div>
         )}
@@ -110,7 +124,14 @@ export default function RecentTransactions() {
               <Column header={t("invoice_number")} field="quotationNumber" />
               <Column header={t("date")} body={(row) => formatDate(row.quotationDate)} />
               <Column header={t("customer_name")} field="customerName" />
-              <Column header={t("quote_status")} field="status" />
+              <Column 
+                header={t("quote_status")} 
+                body={(rowData) => {
+                  if (rowData.status === "Confirmed" || rowData.status === "Active") return "مكتملة";
+                  if (rowData.status === "UnConfirmed" || rowData.status === "Pending") return "غير مكتملة";
+                  return rowData.status;
+                }}
+              />
               <Column header={t("subtotal")} field="subTotal" />
               <Column header={t("tax_amount")} field="taxAmount" />
               <Column header={t("discount_amount")} field="discountAmount" />

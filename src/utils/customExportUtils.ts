@@ -1191,10 +1191,10 @@ export const getStockReceiptHTML = (order: any, t: any) => {
 <body>
   <div class="header-grid">
     <div class="header-col">
-      <div class="company-title">${t("takamul_data_org", "مؤسسة تكامل البيانات")}</div>
+      <div class="company-title">${order.branchInfo?.organizationNameAR || t("takamul_data_org", "مؤسسة تكامل البيانات")}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("vat_number", "الرقم الضريبي")}</div>
-        <div class="meta-value">311296488500003</div>
+        <div class="meta-value">${order.branchInfo?.taxNumber || "311296488500003"}</div>
         <div class="meta-label-en">VAT No.</div>
       </div>
       <div class="meta-row">
@@ -1209,10 +1209,10 @@ export const getStockReceiptHTML = (order: any, t: any) => {
     </div>
     
     <div class="header-col">
-      <div class="company-title">Takamul Albayanat</div>
+      <div class="company-title">${order.branchInfo?.organizationName || "Takamul Albayanat"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
-        <div class="meta-value">${order.commercialNo || "5000"}</div>
+        <div class="meta-value">${order.branchInfo?.commercialRegister || order.commercialNo || "5000"}</div>
         <div class="meta-label-en">Commercial No.</div>
       </div>
       <div class="meta-row">
@@ -1411,10 +1411,10 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
 <body>
   <div class="header-grid">
     <div class="header-col">
-      <div class="company-title">${t("takamul_data_org", "مؤسسة تكامل البيانات")}</div>
+      <div class="company-title">${order.branchInfo?.organizationNameAR || t("takamul_data_org", "مؤسسة تكامل البيانات")}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("vat_number", "الرقم الضريبي")}</div>
-        <div class="meta-value">311296488500003</div>
+        <div class="meta-value">${order.branchInfo?.taxNumber || "311296488500003"}</div>
         <div class="meta-label-en">VAT No.</div>
       </div>
     </div>
@@ -1424,10 +1424,10 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
     </div>
     
     <div class="header-col">
-      <div class="company-title">Takamul Albayanat</div>
+      <div class="company-title">${order.branchInfo?.organizationName || "Takamul Albayanat"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
-        <div class="meta-value">${order.commercialNo || "5000"}</div>
+        <div class="meta-value">${order.branchInfo?.commercialRegister || order.commercialNo || "5000"}</div>
         <div class="meta-label-en">Commercial No.</div>
       </div>
     </div>
@@ -1438,7 +1438,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
   </div>
 
   <div class="letter-body">
-    <div class="row"><span class="label">${t("sender", "المرسل")} :</span> &nbsp;<span class="val">${t("takamul_data_org", "مؤسسة تكامل البيانات")}</span></div>
+    <div class="row"><span class="label">${t("sender", "المرسل")} :</span> &nbsp;<span class="val">${order.branchInfo?.organizationNameAR || t("takamul_data_org", "مؤسسة تكامل البيانات")}</span></div>
     <div class="row"><span class="label">${t("recipient", "المستلم")} :</span> &nbsp;<span class="val">${order.customerName || order.customer || t("cash_customer", "عميل نقدي")}</span></div>
     <div class="row"><span class="label">${t("subject", "الموضوع")} :</span> &nbsp;<span class="val">${t("financial_claim_subject", "مطالبة مالية بسداد مبلغ معين")}</span></div>
 

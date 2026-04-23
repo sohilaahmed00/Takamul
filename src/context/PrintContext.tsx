@@ -13,15 +13,24 @@ interface PrintContextType {
 
 const PrintContext = createContext<PrintContextType>({} as PrintContextType);
 
+import { useBranch } from '@/hooks/useBranch';
+
 export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useLanguage();
+  const { data: branchInfo } = useBranch();
 
   const printInvoice = async (data: any, type: 'invoice' | 'stock' | 'claim' = 'invoice') => {
     if (!data?.id) return;
+    
+    // إثراء البيانات بمعلومات الفرع
+    const extendedData = { 
+      ...data, 
+      branchInfo: branchInfo || null 
+    };
 
     // محاولة جلب رقم الجوال لو مش موجود
     const rawName = (data.customerName || data.customer || "").toString().trim();
-    if (!data.customerPhone && rawName) {
+    if (!extendedData.customerPhone && rawName) {
       try {
         // جلب العميل مباشرة من الـ API بالاسم
         const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
@@ -45,9 +54,9 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
         });
 
         if (found) {
-          data.customerPhone = found.mobile || found.phone || "";
+          extendedData.customerPhone = found.mobile || found.phone || "";
         } else if (searchTerm.includes("افتراضي") || searchTerm.includes("نقدي") || searchTerm.includes("عام")) {
-          data.customerPhone = "056225332";
+          extendedData.customerPhone = "056225332";
         }
       } catch (err) {
         console.error("Error fetching customer for print:", err);
@@ -57,16 +66,16 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     let html = '';
     switch (type) {
       case 'stock':
-        html = getStockReceiptHTML(data, t);
+        html = getStockReceiptHTML(extendedData, t);
         printVoucher(html);
         break;
       case 'claim':
-        html = getClaimReceiptHTML(data, t);
+        html = getClaimReceiptHTML(extendedData, t);
         printVoucher(html);
         break;
       case 'invoice':
       default:
-        window.open(`/sales/invoice/${data.id}`, '_blank');
+        window.open(`/sales/invoice/${extendedData.id}`, '_blank');
         break;
     }
   };
