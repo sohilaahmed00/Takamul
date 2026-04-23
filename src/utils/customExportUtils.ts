@@ -107,11 +107,25 @@ export const printVoucher = (htmlString: string) => {
   win.document.close();
 
   win.document.fonts.ready.then(() => {
-    setTimeout(() => {
-      win.focus();
-      win.print();
-      setTimeout(() => win.close(), 1000);
-    }, 600);
+    const checkImages = () => {
+      const imgs = win.document.querySelectorAll('img');
+      const promises = Array.from(imgs).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      });
+      return Promise.all(promises);
+    };
+
+    checkImages().then(() => {
+      setTimeout(() => {
+        win.focus();
+        win.print();
+        setTimeout(() => win.close(), 1000);
+      }, 600);
+    });
   });
 };
 
@@ -140,8 +154,7 @@ export const exportVoucherPDF = (title: string, htmlString: string) => {
           window.print();
         }, 800);
       });
-    </script>
-    </body>`,
+    </script></body>`
   );
 
   document.body.appendChild(iframe);
@@ -763,19 +776,19 @@ export const generateReportHTML = (title: string, filtersInfo: string, summaryCa
     filtersArray.length > 0
       ? `<div class="filters-row">
         ${filtersArray
-          .map((f) => {
-            const parts = f.split(": ");
-            if (parts.length < 2) return "";
-            const label = parts[0];
-            const value = parts.slice(1).join(": ");
-            return `
+        .map((f) => {
+          const parts = f.split(": ");
+          if (parts.length < 2) return "";
+          const label = parts[0];
+          const value = parts.slice(1).join(": ");
+          return `
             <div class="filter-item">
               <span class="filter-label">${label}:</span>
               <span class="filter-value">${value || "-"}</span>
             </div>
           `;
-          })
-          .join("")}
+        })
+        .join("")}
        </div>`
       : "";
 
@@ -783,9 +796,9 @@ export const generateReportHTML = (title: string, filtersInfo: string, summaryCa
     summaryCards && summaryCards.length > 0
       ? `<div class="report-cards-container">
         ${summaryCards
-          .map((card) => {
-            const colorHex = card.color === "blue" ? "#3b82f6" : card.color === "green" ? "#10b981" : card.color === "orange" ? "#f59e0b" : card.color === "red" ? "#ef4444" : card.color === "purple" ? "#8b5cf6" : card.color === "teal" ? "#14b8a6" : "#3b82f6";
-            return `
+        .map((card) => {
+          const colorHex = card.color === "blue" ? "#3b82f6" : card.color === "green" ? "#10b981" : card.color === "orange" ? "#f59e0b" : card.color === "red" ? "#ef4444" : card.color === "purple" ? "#8b5cf6" : card.color === "teal" ? "#14b8a6" : "#3b82f6";
+          return `
             <div class="report-card ${card.color || "blue"}">
               <div class="card-accent" style="background-color: ${colorHex}"></div>
               <div class="card-content">
@@ -797,8 +810,8 @@ export const generateReportHTML = (title: string, filtersInfo: string, summaryCa
               </div>
             </div>
           `;
-          })
-          .join("")}
+        })
+        .join("")}
       </div>`
       : "";
 
@@ -1184,10 +1197,15 @@ export const getStockReceiptHTML = (order: any, t: any) => {
         <div class="meta-value">311296488500003</div>
         <div class="meta-label-en">VAT No.</div>
       </div>
+      <div class="meta-row">
+        <div class="meta-label-ar">${t("invoice_no", "فاتورة رقم")}</div>
+        <div class="meta-value">${order.orderNumber || order.invoiceNo || "-"}</div>
+        <div class="meta-label-en">INV No.</div>
+      </div>
     </div>
     
     <div class="logo-container">
-      <img src="/logo_ar_light.png" style="max-height: 55px; max-width: 90%; object-fit: contain;" />
+      <img src="${window.location.origin}/logo_ar_light.png" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
     </div>
     
     <div class="header-col">
@@ -1197,12 +1215,16 @@ export const getStockReceiptHTML = (order: any, t: any) => {
         <div class="meta-value">${order.commercialNo || "5000"}</div>
         <div class="meta-label-en">Commercial No.</div>
       </div>
+      <div class="meta-row">
+        <div class="meta-label-ar">${t("issue", "إصدار")}</div>
+        <div class="meta-value" style="font-size: 7.5px;">${formattedDate} | ${new Date().toLocaleTimeString("en-US", { hour: '2-digit', minute: '2-digit' })}</div>
+        <div class="meta-label-en">Release D/T</div>
+      </div>
     </div>
   </div>
   
   <div class="doc-type-bar">
     <div style="font-size: 18px; font-weight: 900; color: #1e293b;">${t("stock_receipt", "اذن مخزني")}</div>
-    <div style="font-size: 11px; font-weight: 700; color: #64748b; margin-top: 2px;">${t("date", "التاريخ")}: ${formattedDate}</div>
   </div>
   
   <div class="customer-section">
@@ -1217,7 +1239,7 @@ export const getStockReceiptHTML = (order: any, t: any) => {
       <div class="v-separator"></div>
       <div class="info-group">
         <span class="info-label">${t("phone", "رقم الجوال")} :</span>
-        <span class="info-val">${order.customerPhone || "-"}</span>
+        <span class="info-val">${order.customerPhone && order.customerPhone !== '-' ? order.customerPhone : "-"}</span>
       </div>
     </div>
   </div>
@@ -1254,40 +1276,40 @@ export const getStockReceiptHTML = (order: any, t: any) => {
 // Claim Receipt HTML Template
 // =============================================
 export const getClaimReceiptHTML = (order: any, t: any) => {
-    // محاولة البحث عن التاريخ في كل الحقول الممكنة (Scavenger)
-    let dateVal = order.createdAt || order.date || order.invoiceDate || order.issueDate || order.created_at || order.saleDate;
-    
-    // البحث في كافة الحقول لو الحقول الأساسية فاضية
-    if (!dateVal) {
-      for (const key in order) {
-        if (key.toLowerCase().includes('date') && order[key]) {
-          dateVal = order[key];
-          break;
-        }
+  // محاولة البحث عن التاريخ في كل الحقول الممكنة (Scavenger)
+  let dateVal = order.createdAt || order.date || order.invoiceDate || order.issueDate || order.created_at || order.saleDate;
+
+  // البحث في كافة الحقول لو الحقول الأساسية فاضية
+  if (!dateVal) {
+    for (const key in order) {
+      if (key.toLowerCase().includes('date') && order[key]) {
+        dateVal = order[key];
+        break;
       }
     }
-    
-    let formattedDate = "-";
-    if (dateVal) {
-      if (dateVal instanceof Date) {
-        formattedDate = dateVal.toLocaleDateString("ar-SA");
-      } else if (typeof dateVal === 'string') {
-        const cleanDate = dateVal.split(' ')[0].split('T')[0];
-        formattedDate = cleanDate; // Default fallback
-        
-        // محاولة التحويل لتنسيق أجمل إذا أمكن
-        const p = cleanDate.includes('/') ? cleanDate.split('/') : cleanDate.includes('-') ? cleanDate.split('-') : [];
-        if (p.length === 3) {
-          const d = p[0].length === 4 ? new Date(`${p[0]}-${p[1]}-${p[2]}`) : new Date(`${p[2]}-${p[1]}-${p[0]}`);
-          if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString("ar-SA");
-        }
+  }
+
+  let formattedDate = "-";
+  if (dateVal) {
+    if (dateVal instanceof Date) {
+      formattedDate = dateVal.toLocaleDateString("ar-SA");
+    } else if (typeof dateVal === 'string') {
+      const cleanDate = dateVal.split(' ')[0].split('T')[0];
+      formattedDate = cleanDate; // Default fallback
+
+      // محاولة التحويل لتنسيق أجمل إذا أمكن
+      const p = cleanDate.includes('/') ? cleanDate.split('/') : cleanDate.includes('-') ? cleanDate.split('-') : [];
+      if (p.length === 3) {
+        const d = p[0].length === 4 ? new Date(`${p[0]}-${p[1]}-${p[2]}`) : new Date(`${p[2]}-${p[1]}-${p[0]}`);
+        if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString("ar-SA");
       }
     }
+  }
 
-    const orderNo = order.orderNumber || order.invoiceNo || order.refNo || "-";
-    const amount = order.totalAmount || order.grandTotal || 0;
+  const orderNo = order.orderNumber || order.invoiceNo || order.refNo || "-";
+  const amount = order.totalAmount || order.grandTotal || 0;
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
   <meta charset="UTF-8"/>
@@ -1398,7 +1420,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
     </div>
     
     <div class="logo-container">
-      <img src="/logo_ar_light.png" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
+      <img src="${window.location.origin}/logo_ar_light.png" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
     </div>
     
     <div class="header-col">
@@ -1413,10 +1435,6 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
 
   <div class="title-section">
     <div class="title-badge">${t("financial_claim_letter", "نموذج خطاب مطالبة مالية")}</div>
-  </div>
-
-  <div class="date-line">
-    ${t("date", "التاريخ")}: ${new Date().toLocaleDateString("ar-SA")}
   </div>
 
   <div class="letter-body">
