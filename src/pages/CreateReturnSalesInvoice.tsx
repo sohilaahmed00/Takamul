@@ -341,7 +341,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
                             render={({ field, fieldState }) => (
                               <Field>
                                 <ComboboxField
-                                disabled={true}
+                                  disabled={true}
                                   field={field}
                                   items={filterProducts}
                                   valueKey="id"
@@ -455,8 +455,6 @@ const CreateReturnSalesInvoice: React.FC = () => {
                     <span className="font-semibold text-amber-600 tabular-nums">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
                   </div>
 
-             
-
                   <hr className="border-border" />
 
                   <div className="flex justify-between items-center">
@@ -467,14 +465,16 @@ const CreateReturnSalesInvoice: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-transparent p-5 sm:p-6 rounded-sm border border-gray-100 dark:border-gray-800 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
-              <Button type="button" variant="destructive" className="h-12 px-6" onClick={() => navigate("/sales/all")}>
-                {t("cancel_and_return")}
-              </Button>
-              <Button type="submit" className="h-12 px-6">
-                {t("save_and_issue_invoice")}
-              </Button>
-            </div>
+            {!isViewMode && (
+              <div className="bg-white dark:bg-transparent p-5 sm:p-6 rounded-sm border border-gray-100 dark:border-gray-800 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+                <Button type="button" variant="destructive" className="h-12 px-6" onClick={() => navigate("/sales/all")}>
+                  {t("cancel_and_return")}
+                </Button>
+                <Button type="submit" className="h-12 px-6">
+                  {t("save_and_issue_invoice")}
+                </Button>
+              </div>
+            )}
           </form>
         </CardContent>
       </Card>
