@@ -23,20 +23,35 @@ interface AddEmployeeModalProps {
   onClose: () => void;
   user: User;
 }
-export const CreateEmployeeSchema = z
-  .object({
-    mobile: z.string().optional().or(z.literal("")),
-    branchId: z.number().min(1, "الفرع مطلوب"),
-    roleName: z.string().min(1, "الصلاحية مطلوبة"),
-    email: z.string().min(1, "البريد الإلكتروني مطلوب").email("البريد الإلكتروني غير صحيح"),
-    userName: z.string().min(3, "اسم المستخدم لازم يكون 3 حروف على الأقل"),
-    password: z.string().min(6, "كلمة المرور لازم تكون 6 حروف على الأقل"),
-    confirmPassword: z.string().min(1, "تأكيد كلمة المرور مطلوب"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "كلمتا المرور غير متطابقتين",
-    path: ["confirmPassword"],
-  });
+const getSchema = (isEditMode: boolean) =>
+  z
+    .object({
+      mobile: z.string().optional().or(z.literal("")),
+      branchId: z.number().min(1, "الفرع مطلوب"),
+      roleName: z.string().min(1, "الصلاحية مطلوبة"),
+      email: z.string().min(1, "البريد الإلكتروني مطلوب").email("البريد الإلكتروني غير صحيح"),
+      userName: z.string().min(3, "اسم المستخدم لازم يكون 3 حروف على الأقل"),
+
+      password: isEditMode ? z.string().optional() : z.string().min(8, "كلمة المرور لازم تكون 8 حروف على الأقل"),
+
+      confirmPassword: isEditMode ? z.string().optional() : z.string().min(8, "تأكيد كلمة المرور مطلوب"),
+    })
+    .refine(
+      (data) => {
+        // في حالة الإضافة لازم يتطابقوا
+        if (!isEditMode) return data.password === data.confirmPassword;
+
+        // في التعديل:
+        // لو كتب باسورد → لازم confirm يساويه
+        if (data.password) return data.password === data.confirmPassword;
+
+        return true;
+      },
+      {
+        message: "كلمتا المرور غير متطابقتين",
+        path: ["confirmPassword"],
+      },
+    );
 
 export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModalProps) {
   const { direction } = useLanguage();
@@ -45,8 +60,10 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
   const isEditMode = !!user;
   const { data: branches } = useGetAllBranches();
   const { data: roles } = useGetAllRoles({ page: 1, limit: 100000 });
-  const { control, handleSubmit, reset } = useForm<z.infer<typeof CreateEmployeeSchema>>({
-    resolver: zodResolver(CreateEmployeeSchema),
+  type FormData = z.infer<ReturnType<typeof getSchema>>;
+
+  const { control, handleSubmit, reset } = useForm<FormData>({
+    resolver: zodResolver(getSchema(isEditMode)),
     defaultValues: {
       branchId: 0,
       mobile: "",
@@ -68,7 +85,7 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
     }
   }, [user, reset]);
 
-  const onSubmit = async (data: z.infer<typeof CreateEmployeeSchema>) => {
+  const onSubmit = async (data: FormData) => {
     try {
       const payload: CreateUser = {
         employee: {
@@ -111,8 +128,7 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit, (errors) => console.log(errors))} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* اسم المستخدم */}
+        <form id="userForm" onSubmit={handleSubmit(onSubmit, (errors) => console.log(errors))} className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Controller
             name="userName"
             control={control}
@@ -248,7 +264,7 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
         </form>
 
         <DialogFooter>
-          <Button loading={isPending} size="2xl" onClick={handleSubmit(onSubmit)}>
+          <Button loading={isPending} size="2xl" form="userForm">
             {isEditMode ? " تعديل مستخدم" : " إضافة مستخدم"}
           </Button>
         </DialogFooter>
