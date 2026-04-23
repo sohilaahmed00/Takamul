@@ -974,11 +974,38 @@ export const exportToExcel = (data: any[], columns: { header: string; field: str
 // Stock Receipt HTML Template
 // =============================================
 export const getStockReceiptHTML = (order: any, t: any) => {
-  const itemRows = (order.orderItems || [])
+  // محاولة البحث عن التاريخ
+  let dateVal = order.createdAt || order.date || order.invoiceDate || order.issueDate || order.created_at || order.saleDate;
+  if (!dateVal) {
+    for (const key in order) {
+      if (key.toLowerCase().includes('date') && order[key]) {
+        dateVal = order[key];
+        break;
+      }
+    }
+  }
+
+  let formattedDate = "-";
+  if (dateVal) {
+    if (dateVal instanceof Date) {
+      formattedDate = dateVal.toLocaleDateString("ar-SA");
+    } else if (typeof dateVal === 'string') {
+      const cleanDate = dateVal.split(' ')[0].split('T')[0];
+      formattedDate = cleanDate;
+      const p = cleanDate.includes('/') ? cleanDate.split('/') : cleanDate.includes('-') ? cleanDate.split('-') : [];
+      if (p.length === 3) {
+        const d = p[0].length === 4 ? new Date(`${p[0]}-${p[1]}-${p[2]}`) : new Date(`${p[2]}-${p[1]}-${p[0]}`);
+        if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString("ar-SA");
+      }
+    }
+  }
+
+  const items = order.items || order.orderItems || [];
+  const itemRows = items
     .map(
       (item: any, idx: number) => `
     <tr>
-      <td style="border-left: 1px solid #e2e8f0; padding: 10px; text-align: right; font-weight: 700;">${item.productName}</td>
+      <td style="border-left: 1px solid #e2e8f0; padding: 10px; text-align: right; font-weight: 700;">${item.productName || item.name}</td>
       <td style="border-left: 1px solid #e2e8f0; padding: 10px; font-weight: 700;">${item.unitName || "قطعة"}</td>
       <td style="padding: 10px; font-weight: 700;">${item.quantity}</td>
     </tr>
@@ -986,7 +1013,7 @@ export const getStockReceiptHTML = (order: any, t: any) => {
     )
     .join("");
 
-  const emptyRows = Array(Math.max(0, 7 - (order.orderItems?.length || 0)))
+  const emptyRows = Array(Math.max(0, 10 - items.length))
     .fill(0)
     .map(() => `<tr style="height: 35px;"><td style="border-left: 1px solid #e2e8f0;"></td><td style="border-left: 1px solid #e2e8f0;"></td><td></td></tr>`)
     .join("");
@@ -999,124 +1026,208 @@ export const getStockReceiptHTML = (order: any, t: any) => {
   <style>
     @page { size: A4 portrait; margin: 8mm; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-    body { padding: 5mm; background: #fff; width: 100%; }
-    .header { position: relative; display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px; border-bottom: 1px solid #f1f5f9; padding-bottom: 15px; }
-    .header-info { width: 32%; }
-    .header-info h1 { font-size: 18px; font-weight: 900; color: #0f172a; margin-bottom: 2px; }
-    .header-info p { font-size: 8px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+    body { padding: 5mm; background: #fff; width: 100%; color: #334155; }
     
-    .logo-center-col { 
-      position: absolute; 
-      left: 50%; 
-      transform: translateX(-50%); 
-      top: 0;
+    .header-grid {
+      display: grid;
+      grid-template-columns: 1fr 0.8fr 1fr;
+      gap: 10px;
+      margin-bottom: 5px;
+    }
+    
+    .header-col {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .company-title {
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 5px;
+      padding: 5px;
+    }
+    
+    .meta-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1.3fr 0.7fr;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      font-size: 10px;
+      text-align: center;
+      align-items: center;
+    }
+    
+    .meta-label-ar { font-weight: 800; padding: 4px; border-right: 1px solid #e2e8f0; background: #f1f5f9; white-space: nowrap; }
+    .meta-value { font-weight: 900; padding: 4px; border-right: 1px solid #e2e8f0; background: #fff; min-height: 24px; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
+    .meta-label-en { font-weight: 700; padding: 4px; color: #64748b; font-size: 8px; white-space: nowrap; }
+    
+    .logo-container {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 80px;
+    }
+    
+    .doc-type-bar {
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      padding: 8px;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 900;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+    
+    .customer-section {
+      margin-bottom: 15px;
+    }
+    
+    .section-header {
+      background: #f1f5f9;
+      padding: 4px 15px;
+      font-size: 13px;
+      font-weight: 900;
+      border: 1px solid #e2e8f0;
+      border-bottom: none;
+      display: inline-block;
+      margin-left: auto;
+      border-radius: 4px 4px 0 0;
+    }
+    
+    .customer-info-box {
+      border: 1px solid #e2e8f0;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+    }
+    
+    .info-group {
+      display: flex;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    
+    .info-label { color: #64748b; }
+    .info-val { color: #0f172a; }
+    
+    .v-separator {
+      width: 1px;
+      height: 20px;
+      background: #e2e8f0;
+    }
+    
+    table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    th { 
+      background: #f8fafc; 
+      border: 1px solid #e2e8f0; 
+      padding: 6px; 
+      font-size: 12px; 
+      font-weight: 900;
+      text-align: center;
+    }
+    th .en-sub { 
+      display: block; 
+      font-size: 9px; 
+      font-weight: 700; 
+      color: #64748b;
+      margin-top: -2px;
+    }
+    
+    td { 
+      border: 1px solid #e2e8f0; 
+      padding: 8px; 
+      text-align: center; 
+      font-size: 13px; 
+      font-weight: 800;
+    }
+    
+    .signatures {
+      margin-top: 30px;
+      display: flex;
+      justify-content: space-around;
+    }
+    
+    .sig-block {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 8px;
-      width: 30%;
+      gap: 5px;
     }
-    .logo-box { width: 85px; height: 85px; background: #fff; display: flex; align-items: center; justify-content: center; }
-    .doc-badge { 
-      background: #f1f5f9; 
-      color: #334155; 
-      padding: 4px 15px; 
-      border-radius: 6px; 
-      font-size: 14px; 
-      font-weight: 900;
-      white-space: nowrap;
-      border: 1px solid #e2e8f0;
+    
+    .sig-line {
+      width: 180px;
+      border-bottom: 1.5px solid #cbd5e1;
+      margin-bottom: 5px;
     }
-
-    .meta-box { border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; margin-top: 6px; font-size: 8px; display: flex; width: 100%; }
-    .meta-label { background: #f8fafc; padding: 3px 6px; border-left: 1px solid #e2e8f0; font-weight: 800; color: #64748b; width: 75px; }
-    .meta-value { padding: 3px 8px; flex: 1; font-weight: 900; color: #1e293b; }
-
-    .customer-card { border: 1px solid #f1f5f9; border-radius: 15px; overflow: hidden; margin-bottom: 20px; background: #fbfcfd; }
-    .card-header { background: #f8fafc; padding: 6px 15px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; }
-    .card-header span { font-size: 12px; font-weight: 900; color: #1e293b; }
-    .card-body { padding: 12px 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 30px; }
-    .info-item { display: flex; align-items: center; gap: 8px; }
-    .info-label { font-size: 9px; font-weight: 800; color: #94a3b8; min-width: 65px; }
-    .info-value { font-size: 12px; font-weight: 900; color: #1e293b; }
-
-    table { width: 100%; border-collapse: collapse; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
-    th { background: #f8fafc; padding: 8px; font-weight: 900; color: #475569; font-size: 11px; border-bottom: 1px solid #e2e8f0; }
-    td { padding: 8px; text-align: center; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
-
-    .signatures { margin-top: 40px; display: flex; justify-content: space-between; padding: 0 50px; }
-    .sig-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
-    .sig-line { width: 160px; height: 1.5px; background: #cbd5e1; }
-    .sig-label { font-size: 13px; font-weight: 900; color: #334155; }
+    
+    .sig-text { font-size: 13px; font-weight: 900; }
   </style>
 </head>
 <body>
-  <div class="header">
-    <div class="header-info" style="text-align: right;">
-      <h1>${t("takamul_data_org", "مؤسسة تكامل البيانات")}</h1>
-      <p>${t("tech_data_solutions", "للحلول التقنية والبيانات")}</p>
-      <div class="meta-box" style="direction: ltr;">
-        <div class="meta-label">${t("vat_number_en", "VAT Number")}</div>
+  <div class="header-grid">
+    <div class="header-col">
+      <div class="company-title">${t("takamul_data_org", "مؤسسة تكامل البيانات")}</div>
+      <div class="meta-row">
+        <div class="meta-label-ar">${t("vat_number", "الرقم الضريبي")}</div>
         <div class="meta-value">311296488500003</div>
-      </div>
-      <div class="meta-box" style="direction: ltr;">
-        <div class="meta-label">${t("invoice_no_en", "Invoice No")}</div>
-        <div class="meta-value">${order.orderNumber}</div>
+        <div class="meta-label-en">VAT No.</div>
       </div>
     </div>
     
-    <div class="logo-center-col">
-      <div class="logo-box">
-        <img src="/logo_ar_light.png" style="width: 100%; height: 100%; object-fit: contain;" />
-      </div>
-      <div class="doc-badge">${t("stock_receipt", "إذن صرف مخزني")}</div>
+    <div class="logo-container">
+      <img src="/logo_ar_light.png" style="max-height: 55px; max-width: 90%; object-fit: contain;" />
     </div>
     
-    <div class="header-info">
-      <h1>Takamul Albayanat</h1>
-      <p>Data Solutions & Technology</p>
-      <div class="meta-box">
-        <div class="meta-label">${t("commercial_no_en", "Commercial No")}</div>
+    <div class="header-col">
+      <div class="company-title">Takamul Albayanat</div>
+      <div class="meta-row">
+        <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
         <div class="meta-value">${order.commercialNo || "5000"}</div>
-      </div>
-      <div class="meta-box">
-        <div class="meta-label">${t("release_date_en", "Release Date")}</div>
-        <div class="meta-value">${new Date().toLocaleDateString("en-GB")}</div>
+        <div class="meta-label-en">Commercial No.</div>
       </div>
     </div>
   </div>
-
-  <div class="customer-card">
-    <div class="card-header">
-      <span>${t("recipient_data", "بيانات الجهة المستلمة")}</span>
-      <span style="font-size: 8px; color: #94a3b8; font-weight: 800; letter-spacing: 0.5px;">${t("customer_info_en", "CUSTOMER INFO")}</span>
+  
+  <div class="doc-type-bar">
+    <div style="font-size: 18px; font-weight: 900; color: #1e293b;">${t("stock_receipt", "اذن مخزني")}</div>
+    <div style="font-size: 11px; font-weight: 700; color: #64748b; margin-top: 2px;">${t("date", "التاريخ")}: ${formattedDate}</div>
+  </div>
+  
+  <div class="customer-section">
+    <div style="display: flex; justify-content: flex-start;">
+      <div class="section-header">${t("customer_data", "بيانات العميل")}</div>
     </div>
-    <div class="card-body">
-      <div class="info-item">
-        <span class="info-label">${t("name", "الاسم")}:</span>
-        <span class="info-value">${order.customerName || t("cash_customer", "عميل نقدي")}</span>
+    <div class="customer-info-box">
+      <div class="info-group">
+        <span class="info-label">${t("name", "الاسم")} :</span>
+        <span class="info-val">${order.customerName || order.customer || t("cash_customer", "عميل نقدي")}</span>
       </div>
-      <div class="info-item">
-        <span class="info-label">${t("phone", "الجوال")}:</span>
-        <span class="info-value">${order.customerPhone || "056225332"}</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">${t("vat_number", "الرقم الضريبي")}:</span>
-        <span class="info-value">300000000000003</span>
-      </div>
-      <div class="info-item">
-        <span class="info-label">${t("address", "العنوان")}:</span>
-        <span class="info-value" style="font-size: 10px;">${t("medina_address", "المدينة المنورة / البدراني / ش شيبة بن عثمان")}</span>
+      <div class="v-separator"></div>
+      <div class="info-group">
+        <span class="info-label">${t("phone", "رقم الجوال")} :</span>
+        <span class="info-val">${order.customerPhone || "-"}</span>
       </div>
     </div>
   </div>
-
+  
   <table>
     <thead>
       <tr>
-        <th style="width: 50%; text-align: right;">${t("item_description", "بيان الصنف")} <br/><span style="font-size: 8px; opacity: 0.6;">${t("item_des_en", "Item Des")}</span></th>
-        <th style="width: 25%;">${t("unit", "الوحدة")} <br/><span style="font-size: 8px; opacity: 0.6;">${t("unit_en", "Unit")}</span></th>
-        <th style="width: 25%;">${t("quantity", "الكمية")} <br/><span style="font-size: 8px; opacity: 0.6;">${t("qty_en", "QTY")}</span></th>
+        <th style="width: 50%;">${t("item_description", "بيان الصنف")} <span class="en-sub">Item Des</span></th>
+        <th style="width: 25%;">${t("unit", "الوحدة")} <span class="en-sub">Unit</span></th>
+        <th style="width: 25%;">${t("quantity", "الكمية")} <span class="en-sub">QTY</span></th>
       </tr>
     </thead>
     <tbody>
@@ -1124,15 +1235,15 @@ export const getStockReceiptHTML = (order: any, t: any) => {
       ${emptyRows}
     </tbody>
   </table>
-
+  
   <div class="signatures">
-    <div class="sig-item">
+    <div class="sig-block">
       <div class="sig-line"></div>
-      <div class="sig-label">${t("recipient_signature", "توقيع المستلم")}</div>
+      <div class="sig-text">${t("recipient_signature", "توقيع المستلم")}</div>
     </div>
-    <div class="sig-item">
+    <div class="sig-block">
       <div class="sig-line"></div>
-      <div class="sig-label">${t("warehouse_keeper", "أمين المستودع")}</div>
+      <div class="sig-text">${t("warehouse_keeper", "أمين المستودع")}</div>
     </div>
   </div>
 </body>
@@ -1143,184 +1254,209 @@ export const getStockReceiptHTML = (order: any, t: any) => {
 // Claim Receipt HTML Template
 // =============================================
 export const getClaimReceiptHTML = (order: any, t: any) => {
-  return `<!DOCTYPE html>
+    // محاولة البحث عن التاريخ في كل الحقول الممكنة (Scavenger)
+    let dateVal = order.createdAt || order.date || order.invoiceDate || order.issueDate || order.created_at || order.saleDate;
+    
+    // البحث في كافة الحقول لو الحقول الأساسية فاضية
+    if (!dateVal) {
+      for (const key in order) {
+        if (key.toLowerCase().includes('date') && order[key]) {
+          dateVal = order[key];
+          break;
+        }
+      }
+    }
+    
+    let formattedDate = "-";
+    if (dateVal) {
+      if (dateVal instanceof Date) {
+        formattedDate = dateVal.toLocaleDateString("ar-SA");
+      } else if (typeof dateVal === 'string') {
+        const cleanDate = dateVal.split(' ')[0].split('T')[0];
+        formattedDate = cleanDate; // Default fallback
+        
+        // محاولة التحويل لتنسيق أجمل إذا أمكن
+        const p = cleanDate.includes('/') ? cleanDate.split('/') : cleanDate.includes('-') ? cleanDate.split('-') : [];
+        if (p.length === 3) {
+          const d = p[0].length === 4 ? new Date(`${p[0]}-${p[1]}-${p[2]}`) : new Date(`${p[2]}-${p[1]}-${p[0]}`);
+          if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString("ar-SA");
+        }
+      }
+    }
+
+    const orderNo = order.orderNumber || order.invoiceNo || order.refNo || "-";
+    const amount = order.totalAmount || order.grandTotal || 0;
+
+    return `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
   <meta charset="UTF-8"/>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
+    @page { size: A4 portrait; margin: 8mm; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-    body { background: #f5f5f5; display: flex; justify-content: center; padding: 20px; }
-    .page {
-      background: #fff;
-      width: 794px;
-      min-height: 1123px;
-      padding: 20px 25px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      color: #1e293b;
-    }
-
-    /* Header */
-    .header-table {
-      width: 100%;
-      border-collapse: collapse;
-      border: 1px solid #ccc;
-      margin-bottom: 30px;
-    }
-    .header-table td {
-      padding: 8px 12px;
-      border: 1px solid #ccc;
-    }
-    .header-top td { font-size: 14px; font-weight: 700; }
-    .header-bottom td { font-size: 12px; font-weight: 600; }
-    .logo-cell {
-      text-align: center;
-      font-size: 22px;
-      font-weight: 900;
-      color: #333;
-      width: 200px;
-      border-right: 1px solid #ccc;
-      border-left: 1px solid #ccc;
-      vertical-align: middle;
-    }
-    .right-cell { text-align: right; width: 270px; }
-    .left-cell { text-align: left; width: 270px; direction: ltr; }
-
-    /* Title badge */
-    .title-section {
-      text-align: center;
-      margin: 20px 0 25px;
-    }
-    .title-badge {
-      display: inline-block;
-      background: #d1d5db;
-      padding: 10px 40px;
-      border-radius: 6px;
-      font-size: 22px;
-      font-weight: 900;
-      color: #111;
-    }
-
-    /* Date line */
-    .date-line {
-      text-align: right;
-      font-size: 14px;
-      font-weight: 800;
+    body { padding: 5mm; background: #fff; width: 100%; color: #334155; }
+    
+    .header-grid {
+      display: grid;
+      grid-template-columns: 1fr 0.8fr 1fr;
+      gap: 10px;
       margin-bottom: 20px;
     }
+    
+    .header-col {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    
+    .company-title {
+      font-size: 14px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 5px;
+      padding: 5px;
+    }
+    
+    .meta-row {
+      display: grid;
+      grid-template-columns: 1.2fr 1.3fr 0.7fr;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      font-size: 10px;
+      text-align: center;
+      align-items: center;
+    }
+    
+    .meta-label-ar { font-weight: 800; padding: 4px; border-right: 1px solid #e2e8f0; background: #f1f5f9; white-space: nowrap; }
+    .meta-value { font-weight: 900; padding: 4px; border-right: 1px solid #e2e8f0; background: #fff; min-height: 24px; display: flex; align-items: center; justify-content: center; }
+    .meta-label-en { font-weight: 700; padding: 4px; color: #64748b; font-size: 8px; white-space: nowrap; }
+    
+    .logo-container {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      min-height: 80px;
+    }
 
-    /* Letter body */
+    .title-section { text-align: center; margin-bottom: 20px; }
+    .title-badge {
+      display: inline-block;
+      background: #f1f5f9;
+      padding: 8px 30px;
+      border-radius: 6px;
+      font-size: 18px;
+      font-weight: 900;
+      color: #0f172a;
+      border: 1px solid #e2e8f0;
+    }
+
+    .date-line { text-align: right; font-size: 13px; font-weight: 800; margin-bottom: 15px; }
+
     .letter-body {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 20px 30px;
-      font-size: 15px;
+      background: #fbfcfd;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px 25px;
+      font-size: 14px;
       font-weight: 700;
       line-height: 2;
       text-align: right;
     }
-    .row { margin-bottom: 4px; }
-    .label { color: #374151; font-weight: 900; }
-    .val { color: #111; }
-    .underline { border-bottom: 1.5px solid #374151; padding: 0 4px; }
-    .blank-line { display: inline-block; border-bottom: 1.5px solid #9ca3af; width: 120px; height: 10px; margin: 0 4px; vertical-align: bottom; }
+    .row { margin-bottom: 5px; }
+    .label { color: #64748b; font-weight: 900; }
+    .val { color: #0f172a; font-weight: 800; }
+    .underline { border-bottom: 1.5px solid #cbd5e1; padding: 0 4px; }
+    .blank-line { display: inline-block; border-bottom: 1.5px solid #cbd5e1; width: 120px; height: 10px; margin: 0 4px; vertical-align: bottom; }
 
-    /* Signatures */
     .signatures {
-      margin-top: 50px;
+      margin-top: 40px;
       display: flex;
       justify-content: space-between;
-      padding: 0 60px;
+      padding: 0 40px;
     }
-    .sig-item { text-align: center; }
-    .sig-line { width: 200px; height: 1.5px; background: #9ca3af; margin-bottom: 6px; }
-    .sig-label { font-size: 14px; font-weight: 900; color: #374151; }
+    .sig-item { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .sig-line { width: 180px; height: 1.5px; background: #cbd5e1; }
+    .sig-label { font-size: 14px; font-weight: 900; color: #334155; }
   </style>
 </head>
 <body>
-<div class="page">
+  <div class="header-grid">
+    <div class="header-col">
+      <div class="company-title">${t("takamul_data_org", "مؤسسة تكامل البيانات")}</div>
+      <div class="meta-row">
+        <div class="meta-label-ar">${t("vat_number", "الرقم الضريبي")}</div>
+        <div class="meta-value">311296488500003</div>
+        <div class="meta-label-en">VAT No.</div>
+      </div>
+    </div>
+    
+    <div class="logo-container">
+      <img src="/logo_ar_light.png" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
+    </div>
+    
+    <div class="header-col">
+      <div class="company-title">Takamul Albayanat</div>
+      <div class="meta-row">
+        <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
+        <div class="meta-value">${order.commercialNo || "5000"}</div>
+        <div class="meta-label-en">Commercial No.</div>
+      </div>
+    </div>
+  </div>
 
-  <!-- Header -->
-  <table class="header-table">
-    <tbody>
-      <tr class="header-top">
-        <td class="right-cell">
-          <div style="font-size:16px;font-weight:900;">مؤسسة تكامل البيانات</div>
-        </td>
-        <td class="logo-cell" rowspan="2">
-          اللوجو
-        </td>
-        <td class="left-cell">
-          <div style="font-size:16px;font-weight:900;">Takamul Albayanat</div>
-        </td>
-      </tr>
-      <tr class="header-bottom">
-        <td class="right-cell">
-          <span style="margin-left:15px;"><strong>الرقم الضريبي</strong> &nbsp; VAT No. &nbsp; 311296488500003</span>
-        </td>
-        <td class="left-cell">
-          <span><strong>Commercial No.</strong> &nbsp; 5000 &nbsp; سجل التجاري</span>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-
-  <!-- Title -->
   <div class="title-section">
-    <div class="title-badge">نموذج خطاب مطالبة مالية</div>
+    <div class="title-badge">${t("financial_claim_letter", "نموذج خطاب مطالبة مالية")}</div>
   </div>
 
-  <!-- Date -->
   <div class="date-line">
-    التاريخ: 21 أبريل 2026
+    ${t("date", "التاريخ")}: ${new Date().toLocaleDateString("ar-SA")}
   </div>
 
-  <!-- Letter Body -->
   <div class="letter-body">
-    <div class="row"><span class="label">المرسل :</span> &nbsp;<span class="val">مؤسسة تكامل البيانات</span></div>
-    <div class="row"><span class="label">المستلم :</span> &nbsp;<span class="val">عميل افتراضي</span></div>
-    <div class="row"><span class="label">الموضوع :</span> &nbsp;<span class="val">مطالبة مالية بسداد مبلغ معين</span></div>
+    <div class="row"><span class="label">${t("sender", "المرسل")} :</span> &nbsp;<span class="val">${t("takamul_data_org", "مؤسسة تكامل البيانات")}</span></div>
+    <div class="row"><span class="label">${t("recipient", "المستلم")} :</span> &nbsp;<span class="val">${order.customerName || order.customer || t("cash_customer", "عميل نقدي")}</span></div>
+    <div class="row"><span class="label">${t("subject", "الموضوع")} :</span> &nbsp;<span class="val">${t("financial_claim_subject", "مطالبة مالية بسداد مبلغ معين")}</span></div>
 
     <div style="margin-top:12px;">
-      <span class="val">السادة عميل افتراضي تحية طيبة</span>
+      <span class="val">${t("dear_customer", "السادة")} ${order.customerName || order.customer || t("cash_customer", "عميل نقدي")} ${t("greetings", "تحية طيبة")}</span>
     </div>
 
     <div style="margin-top:12px; line-height:2.2;">
-      نود تذكيركم بأن الفاتورة رقم <span class="underline">430</span> الصادرة بتاريخ <span class="underline">20/04/2026</span>م والمتعلقة
-      <span class="blank-line" style="width:160px;"></span>
-      <br/>
-      بقيمة 306.00 ﷼(ثلاثمائة و ست ريال) كان من المفترض سدادها بحلول <span class="blank-line"></span> وحتى تاريخ هذا الخطاب لم يتم
-      <br/>
-      استلام مبلغ الفاتورة.
+      ${t("claim_text_p1", "نود تذكيركم بأن الفاتورة رقم")} <span class="underline">${orderNo}</span> ${t("issued_on", "الصادرة بتاريخ")} <span class="underline">${formattedDate}</span> ${t("related_to", "والمتعلقة")}
+      <span class="blank-line" style="width:100px;"></span>
+      ${t("claim_text_p2", "بقيمة")} ${amount?.toFixed(2)} ${t("sar", "﷼")} (${tafqeet(amount, "ar")}) ${t("claim_text_p3", "كان من المفترض سدادها بحلول")} <span class="blank-line" style="width:100px;"></span> ${t("claim_text_p4", "وحتى تاريخ هذا الخطاب لم يتم استلام مبلغ الفاتورة.")}
     </div>
 
     <div style="margin-top:12px;">
-      لذلك نرجو منكم تسديد المبلغ المستحق خلال <span class="underline">7</span> أيام من تاريخه.وذلك عبر الحساب البنكي المرفق في الفاتورة.
+      ${t("claim_text_p5", "لذلك نرجو منكم تسديد المبلغ المستحق خلال")} <span class="underline">7</span> ${t("days_from_date", "أيام من تاريخه.وذلك عبر الحساب البنكي المرفق في الفاتورة.")}
     </div>
 
     <div style="margin-top:12px; font-size:14px;">
-      في حال عدم السداد خلال المهلة المحددة سنضطر آسفين لاتخاذ الإجراءات القانونية اللازمة لتحصيل المستحقات.
+      ${t("claim_text_p6", "في حال عدم السداد خلال المهلة المحددة سنضطر آسفين لاتخاذ الإجراءات القانونية اللازمة لتحصيل المستحقات.")}
     </div>
 
     <div style="margin-top:16px; text-align:center; font-size:16px; font-weight:900;">
-      وتفضلوا بقبول فائق الاحترام.
+      ${t("best_regards", "وتفضلوا بقبول فائق الاحترام.")}
     </div>
   </div>
 
-  <!-- Signatures -->
   <div class="signatures">
     <div class="sig-item">
       <div class="sig-line"></div>
-      <div class="sig-label">ختم الشركة</div>
+      <div class="sig-label">${t("signature", "التوقيع")}</div>
     </div>
     <div class="sig-item">
       <div class="sig-line"></div>
-      <div class="sig-label">التوقيع</div>
+      <div class="sig-label">${t("company_stamp", "ختم الشركة")}</div>
     </div>
   </div>
-
-</div>
 </body>
 </html>`;
 };
