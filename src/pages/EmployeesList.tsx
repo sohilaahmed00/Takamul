@@ -70,7 +70,6 @@ export default function AllEmployees() {
         <CardContent>
           <DataTable
             value={employees?.items}
-            rowsPerPageOptions={[5, 10, 20, 50]}
             lazy
             paginator
             rows={entriesPerPage}
