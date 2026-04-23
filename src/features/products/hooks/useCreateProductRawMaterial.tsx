@@ -3,17 +3,18 @@ import { productsKeys } from "../keys/products.keys";
 import { createProductsPrepared, createProductsRawMatrial } from "../services/products";
 import useToast from "@/hooks/useToast";
 import { handleApiError } from "@/lib/handleApiError";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 export function useCreateProductRawMaterial() {
   const queryClient = useQueryClient();
   const { notifyError, notifyWarning, notifySuccess } = useToast();
   return useMutation({
-    mutationFn: (data: FormData) => createProductsRawMatrial(data),
+    mutationFn: (data: Record<string, unknown>) => createProductsRawMatrial(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({
         queryKey: productsKeys.all,
       });
-      notifySuccess(response);
+      handleApiSuccess(response, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

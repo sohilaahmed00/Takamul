@@ -22,7 +22,7 @@ export const getAllSalesOrders = ({ page = 1, limit = 5, OrderType, SearchTerm }
 // // ===================
 
 export const createSalesOrders = (data: CreateSalesOrder) =>
-  httpClient<{ message: string }>("/sales-orders", {
+  httpClient<{ message: string }>("/sales-orders/a4", {
     method: "POST",
     data,
   });

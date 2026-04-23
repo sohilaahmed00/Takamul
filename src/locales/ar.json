@@ -1194,7 +1194,7 @@
   "general_group": "عام",
   "opening_balance_with_negative_note": "رصيد افتتاحي *( المديونية بالسالب)",
   "stop_selling_if_overdue": "ايقاف البيع في حالة وجود مبالغ مستحقة",
-  "mobile": "الموبايل",
+  "mobile": "الجوال",
   "city_required": "المدينة مطلوبة",
   "state": "المحافظة/الولاية",
   "updating": "جارٍ التعديل...",
@@ -1378,7 +1378,7 @@
   "add_another_payment": "إضافة دفعة أخرى",
   "total_paid": "إجمالي المدفوع",
   "remaining_to_pay": "المتبقي للدفع",
-  "sales_title": "مبيعات",
+  "sales_title": "جميع المبيعات",
   "quantity_adjustments_title": "تعديلات الكميات",
   "warehouses_title": "المستودعات",
   "warehouses_desc": "إضافة وتعديل وحذف المستودعات وربطها بالفروع",
@@ -1634,6 +1634,7 @@
   "smtp_user": "SMTP مستخدم",
   "smtp_password": "SMTP كلمة المرور",
   "smtp_port": "SMTP PORT",
+<<<<<<< HEAD
   "smtp_encryption": "SMTP تشفير",
   "vat_number_en": "الرقم الضريبي",
   "invoice_no_en": "رقم الفاتورة",
@@ -1646,3 +1647,7 @@
   "signature": "التوقيع",
   "company_stamp": "ختم الشركة"
 }
+=======
+  "smtp_encryption": "SMTP تشفير"
+}
+>>>>>>> b2b3d7650462e2b9267ba2e7318434132e65516b

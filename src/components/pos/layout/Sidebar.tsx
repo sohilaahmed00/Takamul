@@ -1,4 +1,4 @@
-import { Clock, Eye, FileText, LogOut, Printer, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
+import { Clock, CreditCard, Eye, FileText, LogOut, Plus, Printer, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
 import { calcItemTax, calcTotals, itemBasePrice, NAV_ITEMS } from "@/constants/data";
 import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL, usePos } from "@/context/PosContext";
 import type { CartItem, Screen } from "@/constants/data";
@@ -26,18 +26,19 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
 
 const fallbackBadge = { label: "", cls: "bg-sky-100 text-sky-600" };
 
-type OrderStatusType = "الكل" | "مكتملة" | "معلقة";
+type OrderStatusType = "الكل" | "مكتملة" | "معلقة" | "قيد التجهيز";
 
 const STATUS_MAP: Record<OrderStatusType, string | null> = {
   الكل: null,
   مكتملة: "Confirmed",
   معلقة: "UnConfirmed",
+  "قيد التجهيز": "InProgress",
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
-  const { setSelectedOrderId, selectedCustomer } = usePos();
+  const { selectedCustomer, setCart, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen } = usePos();
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
   const { t } = useLanguage();
 
@@ -72,20 +73,16 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
   //   setCurrentPage(1);
   // }, [activeStatus, search]);
 
-  const handleSelect = (order: SalesOrder) => {
-    setSelectedOrderId(order.id);
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent showCloseButton={false} className="p-0 overflow-hidden gap-0 flex flex-col" style={{ maxWidth: 580, width: "95vw", maxHeight: "88vh" }}>
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-4 py-3 text-white shrink-0 bg-sidebar">
+        <div className="flex items-center justify-between px-4 py-3 shrink-0 bg-sidebar border-b border-sidebar-foreground/10">
           <div className="flex items-center gap-2">
-            <FileText size={15} />
-            <DialogTitle className="text-[14px] font-medium text-white">{t("orders")}</DialogTitle>
+            <DialogTitle className="text-[14px] font-semibold text-sidebar-foreground">{t("orders")}</DialogTitle>
           </div>
-          <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded flex items-center justify-center bg-white/15 hover:bg-white/25 transition-colors">
+
+          <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded-lg flex items-center justify-center bg-sidebar-foreground/10 hover:bg-sidebar-foreground/20 transition-colors text-sidebar-foreground">
             <X size={14} />
           </button>
         </div>
@@ -128,10 +125,9 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
               {filtered.map((order: SalesOrder) => {
                 const badgeCls = order.orderStatus?.toLowerCase() === "confirmed" ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400" : order.orderStatus?.toLowerCase() === "unconfirmed" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400" : order.orderStatus?.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400" : fallbackBadge.cls;
 
-                const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus;
-
+                const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus?.toLowerCase() === "inprogress" ? t("قيد التجهيز") : order.orderStatus;
                 return (
-                  <button key={order.id} onClick={() => handleSelect(order)} className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors text-right w-full">
+                  <div key={order.id} className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors text-right w-full">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
                       <FileText size={14} />
                     </div>
@@ -164,51 +160,108 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                       </span>
                     </div>
 
-                    <button
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        const invoiceData: InvoiceData = {
-                          logoUrl: LOGO_URL,
-                          invoiceNumber: `—`,
-                          institutionName: INSTITUTION_NAME,
-                          institutionTaxNumber: INSTITUTION_TAX_NO,
-                          invoiceDate: formatDate(new Date()),
-                          institutionAddress: INSTITUTION_ADDRESS,
-                          institutionPhone: INSTITUTION_PHONE,
-                          customerName: selectedCustomer?.customerName ?? undefined,
-                          customerPhone: undefined,
-                          items: order?.items.map((item) => {
-                            const tt: CartItem = {
-                              price: item?.unitPrice,
-                              qty: item?.quantity,
-                              taxamount: item?.taxAmount,
-                              taxCalculation: item?.taxCalculation,
-                              productId: item?.id,
-                              op: null,
-                            };
-                            const base = itemBasePrice(tt);
-                            const tax = calcItemTax(tt);
-                            return {
-                              productName: tt.name,
-                              quantity: tt.qty,
-                              unitPrice: Number(base.toFixed(2)),
-                              taxAmount: Number(tax.toFixed(2)),
-                              total: Number((base + tax).toFixed(2)),
-                            };
-                          }),
-                          subTotal: Number(order?.subTotal.toFixed(2)),
-                          discountAmount: Number(order?.discountAmount.toFixed(2)),
-                          taxAmount: order?.taxAmount,
-                          grandTotal: order?.grandTotal,
-                          notes: INSTITUTION_NOTES,
-                        };
-                        await printInvoice(invoiceData);
-                      }}
-                      className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
-                    >
-                      {order?.orderStatus == "Confirmed" ? <Printer size={13} /> : <Eye size={13} />}
-                    </button>
-                  </button>
+                    {order?.orderStatus == "Confirmed" ? (
+                      <button
+                        onClick={async (e) => {
+                          const invoiceData: InvoiceData = {
+                            logoUrl: LOGO_URL,
+                            invoiceNumber: `—`,
+                            institutionName: INSTITUTION_NAME,
+                            institutionTaxNumber: INSTITUTION_TAX_NO,
+                            invoiceDate: formatDate(new Date()),
+                            institutionAddress: INSTITUTION_ADDRESS,
+                            institutionPhone: INSTITUTION_PHONE,
+                            customerName: selectedCustomer?.customerName ?? undefined,
+                            customerPhone: undefined,
+                            items: order?.items.map((item) => {
+                              const tt: CartItem = {
+                                price: item?.unitPrice,
+                                qty: item?.quantity,
+                                taxamount: item?.taxAmount,
+                                taxCalculation: item?.taxCalculation,
+                                productId: item?.id,
+                                op: null,
+                              };
+                              const base = itemBasePrice(tt);
+                              const tax = calcItemTax(tt);
+                              return {
+                                productName: tt.name,
+                                quantity: tt.qty,
+                                unitPrice: Number(base.toFixed(2)),
+                                taxAmount: Number(tax.toFixed(2)),
+                                total: Number((base + tax).toFixed(2)),
+                              };
+                            }),
+                            subTotal: Number(order?.subTotal.toFixed(2)),
+                            discountAmount: Number(order?.discountAmount.toFixed(2)),
+                            taxAmount: order?.taxAmount,
+                            grandTotal: order?.grandTotal,
+                            notes: INSTITUTION_NOTES,
+                          };
+                          await printInvoice(invoiceData);
+                        }}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                      >
+                        <Printer size={13} />
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-x-4">
+                        <button
+                          title="إضافة عناصر"
+                          onClick={async (e) => {
+                            setScreen("home");
+                            setCart(
+                              order.items.map((item) => ({
+                                price: item?.unitPrice ?? 0,
+                                qty: item?.quantity,
+                                taxamount: item?.taxAmount,
+                                taxCalculation: item.taxCalculation,
+                                name: item?.productName,
+                                productId: item?.productId,
+                              })),
+                            );
+                            onOpenChange(false);
+                            if (order.orderStatus == "InProgress") {
+                              setOrderType("dine-in");
+                              setDineInMode("add-items");
+                              setSelectedOrderId(order?.id);
+                            }
+                            // await printInvoice(invoiceData);
+                          }}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                        >
+                          <Plus size={13} />
+                        </button>
+                        <button
+                          title="استكمال الدفع"
+                          onClick={async (e) => {
+                            setScreen("home");
+                            setCart(
+                              order.items.map((item) => ({
+                                price: item?.unitPrice ?? 0,
+                                qty: item?.quantity,
+                                taxamount: item?.taxAmount,
+                                taxCalculation: item.taxCalculation,
+                                name: item?.productName,
+                                productId: item?.productId,
+                              })),
+                            );
+                            onOpenChange(false);
+                            if (order.orderStatus == "InProgress") {
+                              setOrderType("dine-in");
+                              setDineInMode("checkout");
+                              setSelectedOrderId(order?.id);
+                              setSelectedTable(order?.tableId);
+                            }
+                            // await printInvoice(invoiceData);
+                          }}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                        >
+                          <CreditCard size={13} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 );
               })}
             </div>

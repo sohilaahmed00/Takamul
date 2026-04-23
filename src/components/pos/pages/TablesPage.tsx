@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetAllTables } from "@/features/pos/hooks/useGetAllTables";
 import { Table } from "@/features/pos/types/pos.types";
 import { CreditCard, Plus } from "lucide-react";
 import { usePos } from "@/context/PosContext";
 import { useGetOrderByTableId } from "@/features/pos/hooks/useGetOrderByTableId";
 import { Customer } from "@/features/customers/types/customers.types";
 import { useLanguage } from "@/context/LanguageContext";
+import { useGetAllTables } from "@/features/tables/hooks/useGetAllTables";
 
 type TableStatus = "Free" | "Occupied";
 type FilterType = "all" | "Free" | "Occupied";
@@ -119,10 +119,8 @@ export default function TablesPage() {
           </TabsList>
         </Tabs>
       </div>
-
       {/* Table grid */}
-      <div className="grid grid-cols-5 gap-3 px-4 mt-4 flex-1 overflow-y-auto pb-4">{filtered.length === 0 ? <div className="col-span-5 flex items-center justify-center text-muted-foreground text-sm py-12">{t("no_tables_found")}</div> : filtered?.map((t) => <TableCard key={t.id} table={t} selected={selectedTable === t.id} onClick={() => setSelectedTable(selectedTable === t.id ? null : t.id)} />)}</div>
-      {/* Footer */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 px-4 mt-4 flex-1 overflow-y-auto pb-4">{filtered.length === 0 ? <div className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-5 flex items-center justify-center text-muted-foreground text-sm py-12">{t("no_tables_found")}</div> : filtered?.map((t) => <TableCard key={t.id} table={t} selected={selectedTable === t.id} onClick={() => setSelectedTable(selectedTable === t.id ? null : t.id)} />)}</div> {/* Footer */}
       <div className="bg-background border-t border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           {(
@@ -173,7 +171,7 @@ export default function TablesPage() {
                         setDineInMode("add-items");
                         setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
                         setOrderType("dine-in");
-                        setSelectedTable2(String(selectedTable));
+                        setSelectedTable2(selectedTable);
                         setScreen("home");
                       }}
                     >
@@ -202,7 +200,7 @@ export default function TablesPage() {
                         // setSelectedOrderId(detailsOrder.id);
                         setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
                         setOrderType("dine-in");
-                        setSelectedTable2(String(selectedTable));
+                        setSelectedTable2(selectedTable);
                         setScreen("home");
                       }}
                     >
@@ -217,7 +215,7 @@ export default function TablesPage() {
                       setDineInMode("new-order");
                       setSelectedOrderId(null);
                       setOrderType("dine-in");
-                      setSelectedTable2(String(selectedTable));
+                      setSelectedTable2(selectedTable);
                       setScreen("home");
                     }}
                   >

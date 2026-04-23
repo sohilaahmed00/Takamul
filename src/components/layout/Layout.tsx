@@ -50,10 +50,12 @@ const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarO
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
+
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
   const { language, direction, setLanguage, t } = useLanguage();
   const { systemSettings } = useSettings();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -179,13 +181,7 @@ export default function Layout() {
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--border)]">
-          <div className={cn("flex items-center justify-center overflow-hidden flex-1")}>
-            {showSidebarContent ? (
-              <Logo className={isDark ? "h-15" : "h-15"} onClick={closeAllMenus} />
-            ) : (
-              <Logo showText={false} className={isDark ? "h-24" : "h-20"} onClick={closeAllMenus} />
-            )}
-          </div>
+          <div className={cn("flex items-center justify-center overflow-hidden flex-1")}>{showSidebarContent ? <Logo className={isDark ? "h-15" : "h-15"} onClick={closeAllMenus} /> : <Logo showText={false} className={isDark ? "h-24" : "h-20"} onClick={closeAllMenus} />}</div>
 
           {isMobile && (
             <button onClick={() => setIsMobileMenuOpen(false)} className="text-[var(--text-muted)] hover:text-red-500 transition-colors p-1">
@@ -193,7 +189,6 @@ export default function Layout() {
             </button>
           )}
         </div>
-
 
         <div className="p-3 space-y-1">
           <SidebarItem
@@ -225,10 +220,11 @@ export default function Layout() {
           <AnimatePresence>
             {openSubmenu === "sales" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                {hasPermission(Permissions?.salesOrders?.all) && <SubmenuItem label={t("all_sales")} icon={List} path="/sales/all" />}
+                {/* {hasPermission(Permissions?.salesOrders?.all) && <SubmenuItem label={t("all_sales")} icon={List} path="/sales/all" />} */}
                 {hasAnyPermission([Permissions?.salesOrders?.all, Permissions?.salesOrders?.view]) && <SubmenuItem label={t("invoices_a4")} icon={FileText} path="/sales/a4-invoices" />}
                 {hasAnyPermission([Permissions?.salesOrders?.all, Permissions?.salesOrders?.pos]) && <SubmenuItem label={t("invoices_pos")} icon={RefreshCcw} path="/sales/pos-invoices" />}
                 {hasAnyPermission([Permissions?.giftCards?.all, Permissions?.giftCards?.view]) && <SubmenuItem label={t("gift_cards")} icon={Gift} path="/sales/gift-cards" />}
+                {<SubmenuItem label={"المرتجعات"} icon={FileText} path="/sales/return" />}
               </motion.div>
             )}
           </AnimatePresence>
@@ -414,15 +410,15 @@ export default function Layout() {
                 <span>{t("sales_a4_quick")}</span>
               </button>
 
-              <button onClick={() => navigate("/pos")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+              <button onClick={() => navigate("/pos")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                 <ShoppingCart size={16} />
                 <span>{t("pos_quick")}</span>
               </button>
 
-              <button onClick={() => navigate("/sales/all")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+              {/* <button onClick={() => navigate("/sales/all")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                 <List size={16} />
                 <span>{t("all_sales")}</span>
-              </button>
+              </button> */}
 
               <button onClick={() => navigate("/products/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                 <Package size={16} />

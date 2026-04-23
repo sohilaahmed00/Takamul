@@ -185,6 +185,7 @@ import PosSales from "./pages/PosSales";
 import TableLayout from "./pages/AddRoles";
 import PermissionsTree from "./pages/AddRoles";
 import RolesPage from "./pages/RolesPage";
+import SalesReturn from "./pages/SalesReturn";
 
 function AppRoutes() {
   return (
@@ -217,6 +218,7 @@ function AppRoutes() {
             <Route path="/products/quantity-adjustments/edit/:id" element={<AddQuantityAdjustment />} />
             <Route path="/products/quantity-adjustments/:mode/:id" element={<AddQuantityAdjustment />} />
 
+<<<<<<< HEAD
             {/* المبيعات */}
             <Route path="/sales/a4-invoices" element={<A4Sales />} />
             <Route path="/sales/a4-invoices/create" element={<CreateA4Invoice />} />
@@ -234,6 +236,27 @@ function AppRoutes() {
             <Route path="/sales/create-from-quote" element={<CreateSalesInvoice />} />
             <Route path="/sales/return/:id" element={<CreateReturnSalesInvoice />} />
             <Route path="/sales/pos" element={<POS />} />
+=======
+          {/* المبيعات */}
+          <Route path="/sales/a4-invoices" element={<A4Sales />} />
+          <Route path="/sales/a4-invoices/create" element={<CreateA4Invoice />} />
+          <Route path="/sales/add-tax-invoice" element={<AddTaxInvoice />} />
+          <Route path="/sales/add-simplified-tax-invoice" element={<AddSimplifiedTaxInvoice />} />
+          <Route path="/sales/import-csv" element={<ImportSales />} />
+          <Route path="/sales/create" element={<CreateSalesInvoice />} />
+          <Route path="/sales/edit/:id" element={<CreateSalesInvoice />} />
+          <Route path="/sales/all" element={<AllSales />} />
+          <Route path="/sales/pos-invoices" element={<PosSales />} />
+          <Route path="/sales/return" element={<SalesReturn />} />
+          <Route path="/sales/return/view/:id" element={<CreateReturnSalesInvoice />} />
+          <Route path="/sales/pos-invoices/:id" element={<POSInvoiceDetails />} />
+          <Route path="/sales/pos-invoices/return/:id" element={<ReturnPOSSale />} />
+          <Route path="/sales/gift-cards" element={<GiftCards />} />
+          <Route path="/sales/deliveries" element={<Deliveries />} />
+          <Route path="/sales/create-from-quote" element={<CreateSalesInvoice />} />
+          <Route path="/sales/return/:id" element={<CreateReturnSalesInvoice />} />
+          <Route path="/sales/pos" element={<POS />} />
+>>>>>>> b2b3d7650462e2b9267ba2e7318434132e65516b
 
             {/* نقطة البيع */}
 
@@ -245,6 +268,7 @@ function AppRoutes() {
             {/* الورديات */}
             <Route path="/shifts" element={<ShiftsList />} />
 
+<<<<<<< HEAD
             {/* المشتريات */}
             <Route path="/purchases" element={<PurchasesList />} />
             <Route path="/purchases/return" element={<CreateReturnPurchasesInvoice />} />
@@ -256,6 +280,19 @@ function AppRoutes() {
             <Route path="/suppliers" element={<SuppliersList />} />
             <Route path="/suppliers/payments" element={<SupplierPaymentsList />} />
             <Route path="/expenses" element={<Expenses />} />
+=======
+          {/* المشتريات */}
+          <Route path="/purchases" element={<PurchasesList />} />
+          <Route path="/purchases/return" element={<CreateReturnPurchasesInvoice />} />
+          <Route path="/purchases/create" element={<CreatePurchaseInvoice />} />
+          <Route path="/purchases/edit/:id" element={<CreatePurchaseInvoice />} />
+          <Route path="/purchases/edit/:id" element={<CreatePurchaseInvoice />} />
+          <Route path="/purchases/import-csv" element={<AddPurchaseCSV />} />
+          <Route path="/purchases/expenses" element={<Expenses />} />
+          <Route path="/suppliers" element={<SuppliersList />} />
+          <Route path="/suppliers/payments" element={<SupplierPaymentsList />} />
+          <Route path="/expenses" element={<Expenses />} />
+>>>>>>> b2b3d7650462e2b9267ba2e7318434132e65516b
 
             {/* العملاء */}
             <Route path="/customers" element={<CustomersList />} />

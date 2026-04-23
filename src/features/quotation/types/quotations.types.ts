@@ -3,6 +3,7 @@ import type { PaginationMeta } from "@/types";
 export type Quotation = {
   id: number;
   quotationNumber: string;
+  customerid: number;
   customerName: string;
   quotationDate: string;
   validUntil: string;
@@ -12,6 +13,7 @@ export type Quotation = {
   shippingCost: number;
   grandTotal: number;
   status: boolean;
+  
   items: {
     baseUnitName: string;
     baseUnitId: number;
@@ -31,10 +33,8 @@ export type Quotation = {
 export type CreateQuotation = {
   customerId: number;
   quotationDate: string;
-  discountAmount: number;
   notes: string;
-  globalDiscountValue: number;
-  globalDiscountPercentage: number;
+  globalDiscountAmount: number;
   items: {
     productId: number;
     taxPercentage: number;

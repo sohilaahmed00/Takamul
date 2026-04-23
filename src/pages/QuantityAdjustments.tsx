@@ -13,6 +13,7 @@ import { FilterMatchMode } from "primereact/api";
 import formatDate from "@/lib/formatDate";
 import { Input } from "@/components/ui/input";
 import { exportCustomPDF, printCustomHTML, getQuantityAdjustmentHTML } from "@/utils/customExportUtils";
+import { useDeleteQuantityAdjustment } from "@/features/quantity-adjustments/hooks/useDeleteQuantityAdjustment";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function QuantityAdjustments() {
@@ -22,6 +23,7 @@ export default function QuantityAdjustments() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [page, setPage] = useState(1);
+  const { mutate: deleteQuantityAdjustmen } = useDeleteQuantityAdjustment();
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const { data: adjustments } = useGetQuantityAdjustments({
     pageNumber: currentPage,
@@ -115,6 +117,9 @@ export default function QuantityAdjustments() {
                 </button>
                 <button onClick={() => handleExportPDF(product)} className="btn-minimal-action btn-compact-action text-slate-600" type="button" disabled={printingRow === product.id} title={"PDF"}>
                   <FileText size={16} />
+                </button>
+                <button onClick={() => deleteQuantityAdjustmen(product.id)} className="btn-minimal-action">
+                  <Trash2 size={16} />
                 </button>
               </div>
             )}

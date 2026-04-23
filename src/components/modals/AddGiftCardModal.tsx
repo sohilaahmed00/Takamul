@@ -16,7 +16,7 @@ import { CreateGiftCardPayload, GiftCard, UpdateGiftCardPayload } from "@/featur
 import { useCreateGiftCard } from "@/features/gift-cards/hooks/useCreateGiftCard";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 import { useUpdateGiftCard } from "@/features/gift-cards/hooks/useUpdateGiftCard";
-import { file } from "zod";
+import ComboboxField from "../ui/ComboboxField";
 
 interface AddGiftCardModalProps {
   isOpen: boolean;
@@ -51,11 +51,17 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
       code: "",
       amount: undefined as unknown as number,
       expiryDate: "",
-      customerId: null,
+      customerId: undefined,
       notes: "",
     },
   });
   const { control, watch, setValue, reset } = form;
+
+  useEffect(() => {
+    if (customers?.items?.length > 0 && !giftCard) {
+      setValue("customerId", customers.items[0].id, {});
+    }
+  }, [customers?.items]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -125,7 +131,9 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>الكود <span className="text-red-500">*</span></FieldLabel>
+                  <FieldLabel>
+                    الكود <span className="text-red-500">*</span>
+                  </FieldLabel>
                   <div className="flex gap-2">
                     <Input {...field} placeholder={"ادخل الكود"} />
                     <Button
@@ -153,25 +161,7 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel>العميل</FieldLabel>
-                  <Select
-                    value={field.value ? String(field.value) : ""}
-                    onValueChange={(value) => {
-                      field.onChange(Number(value));
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={"اختر العميل"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {customers?.items?.map((c) => (
-                          <SelectItem key={c.id} value={String(c.id)}>
-                            {c.customerName}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  <ComboboxField field={field} items={customers?.items} valueKey="id" labelKey="customerName" placeholder={t("choose_customer")} />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>
               )}
@@ -193,7 +183,10 @@ export default function AddGiftCardModal({ isOpen, onClose, giftCard }: AddGiftC
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel> تاريخ الصلاحية  <span className="text-red-500">*</span></FieldLabel>
+                  <FieldLabel>
+                    {" "}
+                    تاريخ الصلاحية <span className="text-red-500">*</span>
+                  </FieldLabel>
                   <Input {...field} type="date" placeholder={"ادخل تاريخ الصلاحية"} />
                   {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                 </Field>

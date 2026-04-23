@@ -2,21 +2,25 @@ import type { PaginationMeta } from "@/types";
 
 export interface Supplier {
   id: number;
-  supplierCode: number;
+  supplierCode?: number | null;
   supplierName: string;
-  email: string;
-  phone: string;
-  mobile: string;
-  address: string;
-  city: string;
-  state: string;
-  postalCode: string;
-  taxNumber: string;
+  email?: string | null;
+  phone?: string | null;
+  mobile?: string | null;
+  address?: string | null;
+  buildingNumber?: string | null;
+  additionalNumber?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+  postalCode?: string | null;
+  commercialRegister?: string | null;
+  taxNumber?: string | null;
   paymentTerms: number;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-  balance?: number;
+  createdAt: string; // أو Date
+  updatedAt: string; // أو Date
+  balance: number;
 }
 export interface createSupplier {
   supplierName: string;

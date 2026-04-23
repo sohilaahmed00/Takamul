@@ -33,6 +33,7 @@ export interface SalesOrder {
   customerId: number;
   createdBy: string;
   orderDate: string;
+  tableId: number;
   warehouseName: string;
   subTotal: number;
   taxAmount: number;
@@ -61,7 +62,8 @@ export type CreateSalesOrder = {
   }[];
   payments: {
     amount: number;
-    paymentMethod: "Cash" | "Visa" | "CreditCard" | "DebitCard" | "BankTransfer" | "Check" | "MobilePayment" | "OnlinePayment" | "Other";
+    paymentMethod: string;
+    treasuryId: number;
     notes: string;
   }[];
 };

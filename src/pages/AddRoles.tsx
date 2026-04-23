@@ -545,16 +545,16 @@ const GROUPS: Group[] = [
           },
         ],
       },
-      {
-        id: "profits_reports",
-        label: "تقارير الأرباح",
-        permissions: [
-          {
-            id: "view",
-            label: "عرض",
-          },
-        ],
-      },
+      // {
+      //   id: "profits_reports",
+      //   label: "تقارير الأرباح",
+      //   permissions: [
+      //     {
+      //       id: "view",
+      //       label: "عرض",
+      //     },
+      //   ],
+      // },
     ],
   },
 ];

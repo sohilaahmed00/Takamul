@@ -43,7 +43,7 @@ function PageContent() {
 }
 
 export default function AppLayout() {
-  const { showHoldModal, setShowHoldModal, confirmHold, setSelectedItemIdx, setCart, cart, selectedItemIdx } = usePos();
+  const { setSelectedItemIdx, setCart, cart, selectedItemIdx } = usePos();
   useEffect(() => {
     const init = async () => {
       try {
@@ -64,8 +64,6 @@ export default function AppLayout() {
     >
       {" "}
       <ToastContainer pauseOnHover={false} />
-      {/* Modal */}
-      {showHoldModal && <HoldModal open={showHoldModal} onClose={() => setShowHoldModal(false)} onConfirm={confirmHold} />}
       {/* Sidebar */}
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden min-w-0 bg-sidebar rounded-tr-[28px] rounded-lg">

@@ -18,7 +18,6 @@ import { useGetAllTaxes } from "@/features/taxes/hooks/useGetAllTaxes";
 import { useCreateProductDirect } from "@/features/products/hooks/useCreateProductDirect";
 import ComboboxField from "@/components/ui/ComboboxField";
 import { useGetAllMainCategories } from "@/features/categories/hooks/useGetAllMainCategories";
-import { useGetAllSubCategoriesWidthParentId } from "@/features/categories/hooks/useGetAllSubCategoriesWidthParentId";
 import { useGetAllProductsDirect } from "@/features/products/hooks/useGetAllProductsDirect";
 import type { ProductDirect } from "@/features/products/types/products.types";
 import { useCreateProductBranched } from "@/features/products/hooks/useCreateProductBranched";
@@ -37,6 +36,8 @@ import { useGetAllUnits } from "@/features/units/hooks/useGetAllUnits";
 import z from "zod/v3";
 import useToast from "@/hooks/useToast";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUpdateProductRawMatrial } from "@/features/products/hooks/useUpdateProductRawMaterial";
+import { useAuthStore } from "@/store/authStore";
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
@@ -75,22 +76,26 @@ export const createBranchedProductSchema = createProductSchema
     ChildrenIds: z.array(z.number()).min(1, "يجب اختيار صنف أم مباشر واحد على الأقل"),
   });
 
-export const createPreparedProductSchema = createProductSchema.extend({
-  RawMaterials: z
-    .array(
-      z.object({
-        rawMaterialId: z.number().min(1, "الخامة مطلوبة"),
-        quantity: z
-          .number({
-            required_error: "الكمية مطلوبة",
-            invalid_type_error: "الكمية يجب أن تكون رقم",
-          })
-          .min(1, "الكمية يجب أن تكون أكبر من صفر"),
-        unitId: z.number().min(1, "الوحدة مطلوبة"),
-      }),
-    )
-    .min(1, "يجب إضافة خامة واحدة على الأقل للصنف المجهز"),
-});
+export const createPreparedProductSchema = createProductSchema
+  .omit({
+    MinStockLevel: true,
+  })
+  .extend({
+    RawMaterials: z
+      .array(
+        z.object({
+          rawMaterialId: z.number().min(1, "الخامة مطلوبة"),
+          quantity: z
+            .number({
+              required_error: "الكمية مطلوبة",
+              invalid_type_error: "الكمية يجب أن تكون رقم",
+            })
+            .min(1, "الكمية يجب أن تكون أكبر من صفر"),
+          unitId: z.number().min(1, "الوحدة مطلوبة"),
+        }),
+      )
+      .min(1, "يجب إضافة خامة واحدة على الأقل للصنف المجهز"),
+  });
 
 export const createRawMaterialSchema = createProductSchema
   .omit({
@@ -139,7 +144,7 @@ export const baseDefaultValues: FormValues = {
   Image: undefined,
   ChildrenIds: [],
   RawMaterials: [{ rawMaterialId: 0, quantity: undefined as unknown as number, unitId: 0 }],
-  BaseUnitId: 0,
+  BaseUnitId: undefined,
   PurchaseUnitId: 0,
   ConversionFactor: undefined,
 };
@@ -166,8 +171,9 @@ export default function AddProduct() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { notifyError, notifySuccess } = useToast();
-  const [mainCategoryId, setMainCategoryId] = useState<number>();
   const [productType, setProductType] = useState<ProductType>("Direct");
+  const [submitType, setSubmitType] = useState<"save" | "saveAndNew">("save");
+
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const type = searchParams.get("type") as ProductType;
@@ -177,9 +183,18 @@ export default function AddProduct() {
   // ── Data hooks ──────────────────────────────────────────────────────────
   const { data: taxesData } = useGetAllTaxes();
   const { data: mainCategories } = useGetAllMainCategories();
-  const { data: subCategories } = useGetAllSubCategoriesWidthParentId(mainCategoryId as number);
-  const { data: productsDirect } = useGetAllProductsDirect({ page: 1, limit: 100 });
-  const { data: productRawMatrial } = useGetAllProductsRawMatrial({ page: 1, limit: 100 });
+  const { data: productsDirect } = useGetAllProductsDirect(
+    { page: 1, limit: 100 },
+    {
+      enabled: productType == "Branched",
+    },
+  );
+  const { data: productRawMatrial } = useGetAllProductsRawMatrial(
+    { page: 1, limit: 100 },
+    {
+      enabled: productType == "Prepared",
+    },
+  );
   const { data: units } = useGetAllUnits({ page: 1, size: 100 });
 
   // ── Edit data hooks ──────────────────────────────────────────────────────
@@ -204,6 +219,7 @@ export default function AddProduct() {
   const { mutateAsync: updateProductBranched } = useUpdateProductBranched();
   const { mutateAsync: updateProductDirect } = useUpdateProductDirect();
   const { mutateAsync: updateProductPrepared } = useUpdateProductPrepared();
+  const { mutateAsync: updateProductRawMatrial } = useUpdateProductRawMatrial();
 
   const isLoading = isDirectLoading || isBranchedLoading || isPreparedLoading || isRawLoading;
 
@@ -224,6 +240,21 @@ export default function AddProduct() {
   const anchor = useComboboxAnchor();
   const validateFile = useMemo(() => createFileValidator({ maxFiles: 1, maxSizeMB: 100, allowedTypes: ["image/"] }), []);
 
+  useEffect(() => {
+    if (!isEditMode && units?.items && units?.items?.length > 0) {
+      setValue("BaseUnitId", units?.items[0]?.id);
+    }
+  }, [units?.items, isEditMode]);
+  useEffect(() => {
+    if (!isEditMode && taxesData && taxesData.length > 0 && taxesData[0]?.id) {
+      setValue("TaxId", taxesData[0].id);
+    }
+  }, [taxesData, isEditMode]);
+  useEffect(() => {
+    if (!isEditMode) {
+      setValue("TaxCalculation", 2);
+    }
+  }, [isEditMode]);
   // ── Watched values ───────────────────────────────────────────────────────
   const CostPrice = watch("CostPrice");
   const SellingPrice = watch("SellingPrice");
@@ -272,8 +303,9 @@ export default function AddProduct() {
     if (!id) return;
     switch (type) {
       case "Direct": {
-        if (!productDataDirect) return;
+        if (!productDataDirect || !units?.items?.length) return;
         setProductType("Direct");
+        console.log(productDataDirect?.baseUnitId);
         reset({
           ProductNameAr: productDataDirect.productNameAr,
           ProductNameEn: productDataDirect.productNameEn,
@@ -286,15 +318,16 @@ export default function AddProduct() {
           TaxId: productDataDirect?.taxId,
           TaxCalculation: productDataDirect?.taxCalculation,
           CategoryId: productDataDirect?.parentCategoryId,
-          BaseUnitId: productDataDirect?.baseUnitId,
+          BaseUnitId: productDataDirect.baseUnitId,
+          Image: productDataDirect.imageUrl ?? undefined,
         });
+
         break;
       }
 
       case "Branched": {
         if (!productDataBranched) return;
         setProductType("Branched");
-        setMainCategoryId(productDataBranched.parentCategoryId);
         reset({
           ProductNameAr: productDataBranched.productNameAr,
           ProductNameEn: productDataBranched.productNameEn,
@@ -309,22 +342,23 @@ export default function AddProduct() {
       case "Prepared": {
         if (!productDataPrepared) return;
         setProductType("Prepared");
-        setMainCategoryId(productDataPrepared.parentCategoryId);
         reset({
           ProductNameAr: productDataPrepared.productNameAr,
           ProductNameEn: productDataPrepared.productNameEn,
           ProductNameUr: productDataPrepared.productNameUr,
           Description: productDataPrepared.description || "",
           Barcode: productDataPrepared.barcode,
-          SellingPrice: productDataPrepared.priceBeforeTax,
+          SellingPrice: productDataPrepared?.taxCalculation == 2 ? productDataPrepared.priceAfterTax : productDataPrepared.priceBeforeTax,
           CostPrice: productDataPrepared.costPrice,
-          MinStockLevel: productDataPrepared.minStockLevel,
           TaxCalculation: productDataPrepared?.taxCalculation,
+          CategoryId: productDataPrepared?.categoryId,
+          TaxId: productDataPrepared?.taxId,
+          BaseUnitId: productDataPrepared?.baseUnitId,
           RawMaterials:
             productDataPrepared.components?.map((c) => ({
               rawMaterialId: c.componentProductId,
               quantity: c.quantity,
-              unitId: 0,
+              unitId: c?.unitId,
             })) || [],
         });
         break;
@@ -339,6 +373,9 @@ export default function AddProduct() {
           ProductNameUr: productDataRawMaterial.productNameUr,
           Description: productDataRawMaterial.description || "",
           ConversionFactor: productDataRawMaterial.conversionFactor,
+          CostPrice: productDataRawMaterial?.costPrice,
+          PurchaseUnitId: productDataRawMaterial?.purchaseUnitId,
+          BaseUnitId: productDataRawMaterial?.baseUnitId,
         });
         break;
       }
@@ -348,43 +385,33 @@ export default function AddProduct() {
     }
   }, [id, type, reset, productDataDirect, productDataBranched, productDataPrepared, productDataRawMaterial]);
 
-  // ── Auto-set CategoryId after subCategories load ─────────────────────────
+  const rawMaterials = watch("RawMaterials");
+
   useEffect(() => {
-    if (!mainCategoryId || !subCategories?.length) return;
+    if (productType !== "Prepared") return;
 
-    let categoryName: string | undefined;
-    if (type === "Branched") categoryName = productDataBranched?.categoryName;
-    else if (type === "Direct") categoryName = productDataDirect?.categoryName;
-    else if (type === "Prepared") categoryName = productDataPrepared?.categoryName;
+    const totalCost =
+      rawMaterials?.reduce((acc, material) => {
+        const selected = productRawMatrial?.items?.find((item) => item.id === material.rawMaterialId);
+        const costPrice = selected?.costPrice ?? 0;
+        const quantity = material.quantity ?? 0;
+        return acc + costPrice * quantity;
+      }, 0) ?? 0;
 
-    if (!categoryName) return;
-
-    const category = subCategories.find((cat) => cat.categoryNameAr === categoryName);
-    if (category) {
-      setValue("CategoryId", category.id, { shouldValidate: true });
-    }
-  }, [subCategories, mainCategoryId, type, productDataBranched, productDataDirect, productDataPrepared, setValue]);
-
+    setValue("CostPrice", totalCost, { shouldValidate: true });
+  }, [rawMaterials, productRawMatrial?.items, productType, setValue]);
   // ── Submit ───────────────────────────────────────────────────────────────
   const buildFormData = useCallback(
     (data: FormValues): FormData => {
       const formData = new FormData();
-
       const skipKeys = new Set(["Image", "image", "ChildrenIds", "RawMaterials", "PurchaseUnitId", "ConversionFactor"]);
-
       Object.entries(data).forEach(([key, value]) => {
         if (skipKeys.has(key) || value === undefined || value === null) return;
-        // console.log(key);
-        // console.log(value);
         formData.append(key, String(value));
       });
-
-      // Branched children
       if (productType === "Branched" && Array.isArray(data.ChildrenIds)) {
         data.ChildrenIds.forEach((childId) => formData.append("ChildrenIds[]", String(childId)));
       }
-
-      // Prepared raw materials
       if (productType === "Prepared" && Array.isArray(data.RawMaterials)) {
         formData.append(
           "Components",
@@ -398,64 +425,81 @@ export default function AddProduct() {
         );
       }
 
-      // Raw material-specific fields
-      if (productType === "RawMatrial") {
-        if (data.PurchaseUnitId) formData.append("PurchaseUnitId", String(data.PurchaseUnitId));
-        if (data.ConversionFactor !== undefined) formData.append("ConversionFactor", String(data.ConversionFactor));
-      }
-
       // Image
       if (data.Image instanceof File) {
         formData.append("Image", data.Image);
+      } else if (data.Image === undefined || data.Image === null) {
+        formData.append("Image", "");
       }
-
       return formData;
     },
     [productType],
   );
 
+  const buildRawMaterialJson = useCallback(
+    (data: FormValues): Record<string, unknown> => ({
+      productNameAr: data.ProductNameAr,
+      productNameEn: data.ProductNameEn,
+      productNameUr: data.ProductNameUr,
+      costPrice: data.CostPrice,
+      baseUnitId: data.BaseUnitId,
+      purchaseUnitId: data.PurchaseUnitId,
+      conversionFactor: data.ConversionFactor,
+    }),
+    [],
+  );
+
   const onSubmit = async (data: FormValues) => {
-    const formData = buildFormData(data);
-
     try {
-      if (isEditMode) {
-        formData.append("Id", id);
-
-        switch (productType) {
-          case "Branched":
-            await updateProductBranched({ id: Number(id), data: formData });
-            break;
-          case "Direct":
-            await updateProductDirect({ id: Number(id), data: formData });
-            break;
-          case "Prepared":
-            await updateProductPrepared({ id: Number(id), data: formData });
-            break;
-          default:
-            notifyError(`نوع منتج غير معروف للتعديل: ${productType}`);
+      if (isEditMode && id) {
+        if (productType === "RawMatrial") {
+          const body = { ...buildRawMaterialJson(data), id: Number(id) };
+          await updateProductRawMatrial({ id: Number(id), data: body });
+        } else {
+          const formData = buildFormData(data);
+          formData.append("Id", id);
+          switch (productType) {
+            case "Branched":
+              await updateProductBranched({ id: Number(id), data: formData });
+              break;
+            case "Direct":
+              await updateProductDirect({ id: Number(id), data: formData });
+              break;
+            case "Prepared":
+              await updateProductPrepared({ id: Number(id), data: formData });
+              break;
+            default:
+              notifyError(`نوع منتج غير معروف للتعديل: ${productType}`);
+          }
         }
       } else {
-        switch (productType) {
-          case "RawMatrial":
-            await createRawMaterial(formData);
-            break;
-          case "Branched":
-            await createProductBranched(formData);
-            break;
-          case "Prepared":
-            await createProductPrepared(formData);
-            break;
-          default:
-            await createProductDirect(formData);
+        if (productType === "RawMatrial") {
+          await createRawMaterial(buildRawMaterialJson(data));
+        } else {
+          const formData = buildFormData(data);
+          switch (productType) {
+            case "Branched":
+              await createProductBranched(formData);
+              break;
+            case "Prepared":
+              await createProductPrepared(formData);
+              break;
+            default:
+              await createProductDirect(formData);
+          }
         }
       }
-
-      navigate("/products");
+      if (submitType == "save") {
+        navigate("/products");
+      } else {
+        reset();
+      }
     } catch (error) {}
   };
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
   return (
     <div className="space-y-4 pb-24">
       {/* Breadcrumb */}
@@ -480,18 +524,27 @@ export default function AddProduct() {
           {/* Product type tabs */}
           <Tabs value={productType} onValueChange={(val) => setProductType(val as ProductType)} className="w-full  rounded-sm">
             <TabsList className="mb-8 w-full! h-fit!">
-              <TabsTrigger className="py-2!" value="Direct">
-                الصنف المباشر
-              </TabsTrigger>
-              <TabsTrigger className="py-2!" value="Branched">
-                الصنف المتفرع
-              </TabsTrigger>
-              <TabsTrigger className="py-2!" value="Prepared">
-                الصنف المجهز
-              </TabsTrigger>
-              <TabsTrigger className="py-2!" value="RawMatrial">
-                الخامة
-              </TabsTrigger>
+              {hasAnyPermission(["المنتجات.إضافة مباشرة", "المنتجات.إضافة"]) && (
+                <TabsTrigger className="py-2!" value="Direct">
+                  الصنف المباشر
+                </TabsTrigger>
+              )}
+              {hasAnyPermission(["المنتجات.إضافة متفرعة", "المنتجات.إضافة"]) && (
+                <TabsTrigger className="py-2!" value="Branched">
+                  {" "}
+                  الصنف المتفرع{" "}
+                </TabsTrigger>
+              )}
+              {hasAnyPermission(["المنتجات.إضافة جاهزة", "المنتجات.إضافة"]) && (
+                <TabsTrigger className="py-2!" value="Prepared">
+                  الصنف المجهز
+                </TabsTrigger>
+              )}
+              {hasAnyPermission(["المنتجات.إضافة مواد خام", "المنتجات.إضافة"]) && (
+                <TabsTrigger className="py-2!" value="RawMatrial">
+                  الخامة
+                </TabsTrigger>
+              )}
             </TabsList>
           </Tabs>
 
@@ -560,8 +613,6 @@ export default function AddProduct() {
                   />
                 )}
 
-                {/* Barcode */}
-
                 {/* Cost price */}
                 {productType !== "Branched" && (
                   <Controller
@@ -570,7 +621,8 @@ export default function AddProduct() {
                     render={({ field, fieldState }) => (
                       <Field data-invalid={fieldState.invalid}>
                         <FieldLabel>التكلفة</FieldLabel>
-                        <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} type="number" placeholder="ادخل التكلفة *" />
+                        <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} type="number" placeholder="ادخل التكلفة *" readOnly={productType === "Prepared"} className={productType === "Prepared" ? "bg-gray-100 cursor-not-allowed" : ""} />
+                        {productType === "Prepared" && <p className="text-xs text-gray-400 mt-1">يتم حساب التكلفة تلقائياً بناءً على الخامات المضافة</p>}
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
@@ -592,7 +644,7 @@ export default function AddProduct() {
                         </Field>
                       )}
                     />
-                    <div className="col-span-2">
+                    <div className={""}>
                       <Controller
                         name="Barcode"
                         control={control}
@@ -622,19 +674,6 @@ export default function AddProduct() {
                         )}
                       />
                     </div>
-
-                    <Controller
-                      name="MinStockLevel"
-                      control={control}
-                      render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel className="gap-x-0">الحد الأدنى للمخزون</FieldLabel>
-                          <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} placeholder="ادخل الحد الادنى للمخزون" />
-                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                        </Field>
-                      )}
-                    />
-
                     <Controller
                       name="BaseUnitId"
                       control={control}
@@ -643,12 +682,7 @@ export default function AddProduct() {
                           <FieldLabel className="gap-x-0">
                             الوحدة <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <Select
-                            value={field.value ? String(field.value) : ""}
-                            onValueChange={(value) => {
-                              field.onChange(Number(value));
-                            }}
-                          >
+                          <Select key={field.value} value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder={"اختر الوحدة"} />
                             </SelectTrigger>
@@ -661,11 +695,27 @@ export default function AddProduct() {
                                 ))}
                               </SelectGroup>
                             </SelectContent>
-                          </Select>{" "}
+                          </Select>
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
                     />
+                    {productType !== "Prepared" && (
+                    <div className="col-span-2">
+                        <Controller
+                        name="MinStockLevel"
+                        control={control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel className="gap-x-0">الحد الأدنى للمخزون</FieldLabel>
+                            <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} placeholder="ادخل الحد الادنى للمخزون" />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
+                    </div>
+                    )}
+
                     <Controller
                       name="TaxId"
                       control={control}
@@ -674,7 +724,20 @@ export default function AddProduct() {
                           <FieldLabel>
                             الضريبة المطبقة <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <ComboboxField field={field} items={taxesData} valueKey="id" labelKey="name" placeholder="اختر الضريبة" />
+                          <Select key={field.value} value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="اختر الضريبة" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                {taxesData?.map((c) => (
+                                  <SelectItem key={c.id} value={String(c.id)}>
+                                    {c.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -688,59 +751,48 @@ export default function AddProduct() {
                           <FieldLabel>
                             طريقة حساب الضريبة <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <ComboboxField
-                            field={field}
-                            items={[
-                              { id: 1, name: "لا يوجد ضريبة" },
-                              { id: 2, name: "السعر شامل الضريبة" },
-                              { id: 3, name: "السعر غير شامل الضريبة" },
-                            ]}
-                            valueKey="id"
-                            labelKey="name"
-                            placeholder="اختر طريقة الحساب"
-                          />
+                          <Select key={field.value} value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="اختر طريقة الحساب" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectItem value={"1"}>لا يوجد ضريبة</SelectItem>
+                                <SelectItem value={"2"}>السعر شامل الضريبة</SelectItem>
+                                <SelectItem value={"3"}>السعر غير شامل الضريبة</SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
                     />
 
                     {/* Price summary card */}
-                   <div className="lg:col-span-2">
-  <div className="w-full bg-card border border-border rounded-xl p-5">
-    <div className="flex flex-col space-y-3.5">
-      
-      <div className="flex justify-between items-center">
-        <span className="text-muted-foreground text-[15px]">
-          السعر قبل الضريبة
-        </span>
-        <span className="text-muted-foreground text-[15px]">
-          {summary.basePrice}
-        </span>
-      </div>
+                    <div className="lg:col-span-2">
+                      <div className="w-full bg-card border border-border rounded-xl p-5">
+                        <div className="flex flex-col space-y-3.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground text-[15px]">السعر قبل الضريبة</span>
+                            <span className="text-muted-foreground text-[15px]">{summary.basePrice}</span>
+                          </div>
 
-      <div className="flex justify-between items-center">
-        <span className="text-primary text-[15px]">
-          ضريبة ({summary.taxPercentage}%) {summary.taxName}
-        </span>
-        <span className="text-primary text-[15px]">
-          {summary.taxAmount} +
-        </span>
-      </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-primary text-[15px]">
+                              ضريبة ({summary.taxPercentage}%) {summary.taxName}
+                            </span>
+                            <span className="text-primary text-[15px]">{summary.taxAmount} +</span>
+                          </div>
 
-      <div className="border-t border-border my-0.5" />
+                          <div className="border-t border-border my-0.5" />
 
-      <div className="flex justify-between items-center pt-1">
-        <span className="text-foreground font-bold text-lg">
-          السعر النهائي
-        </span>
-        <span className="text-foreground font-bold text-lg">
-          {summary.finalPrice}
-        </span>
-      </div>
-
-    </div>
-  </div>
-</div>
+                          <div className="flex justify-between items-center pt-1">
+                            <span className="text-foreground font-bold text-lg">السعر النهائي</span>
+                            <span className="text-foreground font-bold text-lg">{summary.finalPrice}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </>
                 )}
 
@@ -809,7 +861,6 @@ export default function AddProduct() {
                   </>
                 )}
 
-                {/* Branched children combobox */}
                 {productType === "Branched" && (
                   <div className="lg:col-span-2">
                     <Controller
@@ -888,67 +939,86 @@ export default function AddProduct() {
 
                     {rawMaterialFields.length === 0 && <div className="text-center py-4 text-gray-400 text-sm">لم يتم إضافة أي خامات بعد. اضغط على "إضافة خامة".</div>}
 
-                    {rawMaterialFields.map((_field, index) => (
-                      <div
-                        key={_field.id} // FIX: use field.id not index for stable keys
-                        className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start border-b border-gray-100 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0"
-                      >
-                        <div className="lg:col-span-5">
-                          <Controller
-                            name={`RawMaterials.${index}.rawMaterialId`}
-                            control={control}
-                            render={({ field, fieldState }) => (
-                              <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel>
-                                  الخامة <span className="text-red-500">*</span>
-                                </FieldLabel>
-                                <ComboboxField field={field} items={productRawMatrial?.items} valueKey="id" labelKey="productNameAr" placeholder="اختر الخامة" />
-                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                              </Field>
-                            )}
-                          />
-                        </div>
+                    {rawMaterialFields.map((_field, index) => {
+                      const selectedRawMaterialId = watch(`RawMaterials.${index}.rawMaterialId`);
+                      const selectedRawMaterial = productRawMatrial?.items?.find((item) => item.id === selectedRawMaterialId);
+                      const availableUnits = units?.items?.filter((unit) => unit.id === selectedRawMaterial?.baseUnitId || unit.id === selectedRawMaterial?.purchaseUnitId) ?? [];
+                      return (
+                        <div key={_field.id} className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start border-b border-gray-100 pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
+                          <div className="lg:col-span-5">
+                            <Controller
+                              name={`RawMaterials.${index}.rawMaterialId`}
+                              control={control}
+                              render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                  <FieldLabel>
+                                    الخامة <span className="text-red-500">*</span>
+                                  </FieldLabel>
+                                  <ComboboxField
+                                    field={field}
+                                    items={productRawMatrial?.items}
+                                    valueKey="id"
+                                    labelKey="productNameAr"
+                                    placeholder="اختر الخامة"
+                                    onValueChange={(val) => {
+                                      const selected = productRawMatrial?.items?.find((item) => String(item.id) === String(val));
 
-                        <div className="lg:col-span-3">
-                          <Controller
-                            name={`RawMaterials.${index}.quantity`}
-                            control={control}
-                            render={({ field, fieldState }) => (
-                              <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel>
-                                  الكمية <span className="text-red-500">*</span>
-                                </FieldLabel>
-                                <Input {...field} value={field.value ?? ""} type="number" step="0.01" onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} placeholder="0.00" className="bg-white" />
-                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                              </Field>
-                            )}
-                          />
-                        </div>
+                                      setValue(`RawMaterials.${index}.unitId`, 0, { shouldValidate: false });
 
-                        <div className="lg:col-span-3">
-                          <Controller
-                            name={`RawMaterials.${index}.unitId`}
-                            control={control}
-                            render={({ field, fieldState }) => (
-                              <Field data-invalid={fieldState.invalid}>
-                                <FieldLabel>
-                                  الوحدة <span className="text-red-500">*</span>
-                                </FieldLabel>
-                                <ComboboxField field={field} items={units?.items} valueKey="id" labelKey="name" placeholder="الوحدة" />
-                                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                              </Field>
-                            )}
-                          />
-                        </div>
+                                      if (selected?.baseUnitId) {
+                                        setValue(`RawMaterials.${index}.unitId`, selected.baseUnitId, {
+                                          shouldValidate: true,
+                                        });
+                                      }
+                                    }}
+                                  />
+                                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                              )}
+                            />
+                          </div>
 
-                        <div className="lg:col-span-1 flex items-center justify-center lg:pt-8 pt-2">
-                          <Button type="button" variant="destructive" className="" onClick={() => removeRawMaterial(index)}>
-                            <Trash2 size={18} className="" />
-                            <span className="lg:hidden ml-2">حذف الخامة</span>
-                          </Button>
+                          <div className="lg:col-span-3">
+                            <Controller
+                              name={`RawMaterials.${index}.quantity`}
+                              control={control}
+                              render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                  <FieldLabel>
+                                    الكمية <span className="text-red-500">*</span>
+                                  </FieldLabel>
+                                  <Input {...field} value={field.value ?? ""} type="number" step="0.01" onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} placeholder="0.00" className="bg-white" />
+                                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                              )}
+                            />
+                          </div>
+
+                          <div className="lg:col-span-3">
+                            <Controller
+                              name={`RawMaterials.${index}.unitId`}
+                              control={control}
+                              render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                  <FieldLabel>
+                                    الوحدة <span className="text-red-500">*</span>
+                                  </FieldLabel>
+                                  <ComboboxField disabled={!selectedRawMaterialId} field={field} items={availableUnits} valueKey="id" labelKey="name" placeholder="الوحدة" />
+                                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                                </Field>
+                              )}
+                            />
+                          </div>
+
+                          <div className="lg:col-span-1 flex items-center justify-center lg:pt-8 pt-2">
+                            <Button type="button" variant="destructive" className="" onClick={() => removeRawMaterial(index)}>
+                              <Trash2 size={18} className="" />
+                              <span className="lg:hidden ml-2">حذف الخامة</span>
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
 
                     {(methods.formState.errors as FieldErrors<z.infer<typeof createPreparedProductSchema>>).RawMaterials?.root?.message && <p className="text-sm text-red-500 mt-2">{(methods.formState.errors as FieldErrors<z.infer<typeof createPreparedProductSchema>>).RawMaterials?.root?.message}</p>}
                   </div>
@@ -962,6 +1032,24 @@ export default function AddProduct() {
                       control={control}
                       render={({ field, fieldState }) => (
                         <>
+                          {/* صورة قديمة من السيرفر */}
+                          {typeof field.value === "string" && field.value && files.length === 0 && (
+                            <div className="relative w-fit mb-3">
+                              <img src={field.value} alt="صورة المنتج" className="h-32 w-32 object-cover rounded-lg border border-gray-200" />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute -top-2 -right-2 size-6 bg-white border border-gray-200 rounded-full"
+                                onClick={() => {
+                                  field.onChange(undefined);
+                                }}
+                              >
+                                <X size={12} />
+                              </Button>
+                            </div>
+                          )}
+
                           <FileUpload
                             value={files}
                             onValueChange={(newFiles) => {
@@ -1033,10 +1121,20 @@ export default function AddProduct() {
                   إلغاء
                 </Button>
                 <div className="flex flex-col-reverse lg:flex-row items-center gap-3 w-full lg:w-auto">
-                  <Button loading={isLoading} variant="outline" size="lg" type="button" className="w-full lg:w-auto px-8 h-12 text-base">
+                  <Button
+                    loading={isLoading}
+                    variant="outline"
+                    size="lg"
+                    type="button"
+                    onClick={methods.handleSubmit((data) => {
+                      setSubmitType("saveAndNew");
+                      onSubmit(data);
+                    })}
+                    className="w-full lg:w-auto px-8 h-12 text-base"
+                  >
                     حفظ وإضافة آخر
                   </Button>
-                  <Button loading={isLoading} size="lg" type="submit" disabled={isLoading} className="w-full lg:w-auto px-8 h-12 text-base">
+                  <Button loading={isLoading} size="lg" type="submit" className="w-full lg:w-auto px-8 h-12 text-base">
                     حفظ البيانات{" "}
                   </Button>
                 </div>

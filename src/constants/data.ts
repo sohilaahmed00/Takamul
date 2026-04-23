@@ -54,7 +54,6 @@ export function itemBasePriceRaw(item: Omit<CartItem, "name" | "op" | "productId
   const base = item.price * item.qty;
   const rate = (item.taxamount ?? 0) / 100;
   return item.taxCalculation === 2 ? base / (1 + rate) : base;
-  
 }
 
 export function itemBasePrice(item: Omit<CartItem, "name" | "op" | "productId" | "note">): number {
@@ -84,13 +83,15 @@ export function itemTotal(item: CartItem): number {
   return itemBasePrice(item) + calcItemTax(item);
 }
 
-export function calcTotals(cart: CartItem[], discount: number) {
+export function calcTotals(cart: CartItem[], discount: { type: "pct" | "flat"; value: number }) {
   const sub = cart.reduce((s, item) => s + itemBasePrice(item), 0);
   const originalTax = cart.reduce((s, item) => s + calcItemTax(item), 0);
   const itemDiscountsTotal = cart.reduce((s, item) => s + (itemBasePriceRaw(item) - itemBasePrice(item)), 0);
 
-  const subAfterDiscount = Math.max(0, sub - discount);
-  const discountRatio = sub > 0 ? discount / sub : 0;
+  const discountAmount = discount.type === "flat" ? discount.value : (sub * discount.value) / 100;
+
+  const subAfterDiscount = Math.max(0, sub - discountAmount);
+  const discountRatio = sub > 0 ? discountAmount / sub : 0;
 
   const tax = parseFloat(
     cart
@@ -111,5 +112,6 @@ export function calcTotals(cart: CartItem[], discount: number) {
     total,
     originalTax,
     itemDiscountsTotal,
+    discountAmount,
   };
 }

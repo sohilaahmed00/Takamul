@@ -3,6 +3,7 @@ import { productsKeys } from "../keys/products.keys";
 import { createProductsPrepared } from "../services/products";
 import useToast from "@/hooks/useToast";
 import { handleApiError } from "@/lib/handleApiError";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 export function useCreateProductPrepared() {
   const queryClient = useQueryClient();
@@ -13,7 +14,7 @@ export function useCreateProductPrepared() {
       queryClient.invalidateQueries({
         queryKey: productsKeys.all,
       });
-      notifySuccess(response);
+      handleApiSuccess(response, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

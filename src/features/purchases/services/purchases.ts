@@ -28,10 +28,10 @@ export const createPurchaseOrder = (data: CreatePurchaseOrder) =>
 //     data,
 //   });
 
-// export const deleteCategory = (id: number) =>
-//   httpClient<void>(`/blog/category/${id}`, {
-//     method: "DELETE",
-//   });
+export const deletePurchaseOrder = (id: number) =>
+  httpClient<{ message: string }>(`/PurchaseOrder/${id}`, {
+    method: "DELETE",
+  });
 
 export function getPurchaseOrderById(id: number) {
   return httpClient<Purchase>(`/PurchaseOrder/${id}`);

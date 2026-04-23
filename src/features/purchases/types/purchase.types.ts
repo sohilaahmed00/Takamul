@@ -13,11 +13,11 @@ export interface Purchase {
   taxAmount: number;
   warehouseId?: number;
   notes?: string;
+  grandTotal: number;
   payments?: {
     amount: number;
     treasuryId: number;
-    notes?: string;
-    paymentMethod?: string;
+    paidAmount: number;
   }[];
   items: {
     productId: number;
@@ -27,6 +27,7 @@ export interface Purchase {
     discountValue?: number;
     discountPercentage?: number;
     lineTotal?: number;
+    taxId: number;
   }[];
 }
 export type CreatePurchaseOrder = {
