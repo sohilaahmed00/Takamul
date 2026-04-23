@@ -32,8 +32,8 @@ interface ChangePasswordDialogProps {
 // ---------- Component ----------
 export default function ChangePasswordDialog({ isOpen, onClose }: ChangePasswordDialogProps) {
   const { mutateAsync: updateUser, isPending } = useUpdateUser();
-  const { userId } = useAuthStore();
-  console.log(userId)
+  const { userId, userName, email } = useAuthStore();
+  console.log(userId);
   const { control, handleSubmit, reset } = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(ChangePasswordSchema),
     defaultValues: { newPassword: "", confirmPassword: "" },
@@ -45,6 +45,8 @@ export default function ChangePasswordDialog({ isOpen, onClose }: ChangePassword
         id: Number(userId),
         data: {
           newPassword: data?.newPassword,
+          userName: userName,
+          email,
         },
       });
       reset();
