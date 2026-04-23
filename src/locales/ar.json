@@ -1634,7 +1634,6 @@
   "smtp_user": "SMTP مستخدم",
   "smtp_password": "SMTP كلمة المرور",
   "smtp_port": "SMTP PORT",
-<<<<<<< HEAD
   "smtp_encryption": "SMTP تشفير",
   "vat_number_en": "الرقم الضريبي",
   "invoice_no_en": "رقم الفاتورة",
@@ -1647,7 +1646,3 @@
   "signature": "التوقيع",
   "company_stamp": "ختم الشركة"
 }
-=======
-  "smtp_encryption": "SMTP تشفير"
-}
->>>>>>> b2b3d7650462e2b9267ba2e7318434132e65516b
