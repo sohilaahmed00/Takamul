@@ -699,7 +699,7 @@ export default function AddProduct() {
                                 ))}
                               </SelectGroup>
                             </SelectContent>
-                          </Select>{" "}
+                          </Select>
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -712,6 +712,20 @@ export default function AddProduct() {
                           <FieldLabel>
                             الضريبة المطبقة <span className="text-red-500">*</span>
                           </FieldLabel>
+                          <Select key={field.value} value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="اختر الضريبة" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                {taxesData?.map((c) => (
+                                  <SelectItem key={c.id} value={String(c.id)}>
+                                    {c.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
                           <ComboboxField field={field} items={taxesData} valueKey="id" labelKey="name" placeholder="اختر الضريبة" />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
