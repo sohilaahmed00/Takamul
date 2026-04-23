@@ -27,6 +27,7 @@ export interface Purchase {
     discountValue?: number;
     discountPercentage?: number;
     lineTotal?: number;
+    taxId: number;
   }[];
 }
 export type CreatePurchaseOrder = {

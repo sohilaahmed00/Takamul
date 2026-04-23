@@ -157,7 +157,7 @@ const CreatePurchaseInvoice: React.FC = () => {
         discountType: item?.discountValue ? "fixed" : "percentage",
         discountValue: item?.discountValue ? item?.discountValue : item?.discountPercentage,
         taxType: "fixed",
-        taxId: 0,
+        taxId: item?.taxId,
       })),
       payments:
         purchaseOrder.payments?.length > 0
@@ -195,7 +195,6 @@ const CreatePurchaseInvoice: React.FC = () => {
         discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
         discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
         taxId: item.taxId,
-        unitId: 1,
       })),
       payments: data.payments.map((payment) => ({
         amount: payment.amount,
