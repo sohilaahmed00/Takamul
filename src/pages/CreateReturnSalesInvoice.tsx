@@ -298,9 +298,10 @@ const CreateReturnSalesInvoice: React.FC = () => {
               <h3 className="text-sm font-semibold text-zinc-500 mb-4">{t("items_list")}</h3>
 
               <div className="w-full overflow-x-auto pb-4">
-                <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-zinc-200 dark:border-zinc-800 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
+                <div className="hidden md:grid md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_0.9fr_0.9fr_60px] gap-4 px-2 pb-3 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-widest items-center">
                   <div>{t("product_name")}</div>
                   <div>{t("unit")}</div>
+                  <div>{t("balance")}</div>
                   <div>{t("unit_price")}</div>
                   <div>{t("quantity")}</div>
                   <div>{t("subtotal_before_tax")}</div>
