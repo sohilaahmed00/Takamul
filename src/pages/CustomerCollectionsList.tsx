@@ -202,7 +202,6 @@ export default function CustomerCollectionsList() {
               loading={isLoading || isDeleting}
               paginator
               rows={entriesPerPage}
-              rowsPerPageOptions={[5, 10, 20, 50]}
               first={(currentPage - 1) * entriesPerPage}
               onPage={(e: DataTablePageEvent) => {
                 if (e.page === undefined) return;
