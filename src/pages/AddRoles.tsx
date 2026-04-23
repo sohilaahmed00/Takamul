@@ -85,10 +85,10 @@ const GROUPS: Group[] = [
             id: "view",
             label: "عرض",
             subPermissions: [
-              { id: "view_direct", label: " مباشرة", value: "المنتجات.عرض" },
-              { id: "view_raw", label: "  خام", value: "المنتجات.عرض" },
-              { id: "view_variant", label: " متفرع", value: "المنتجات.عرض" },
-              { id: "view_ready", label: "جاهز", value: "المنتجات.عرض" },
+              { id: "view_direct", label: " مباشرة", value: "المنتجات.عرض الاصناف المباشرة" },
+              { id: "view_raw", label: "  خام", value: "المنتجات.عرض الخامات" },
+              { id: "view_variant", label: " متفرع", value: "المنتجات.عرض الاصناف المتفرعه" },
+              { id: "view_ready", label: "جاهز", value: "المنتجات.عرض الاصناف المجهزة" },
             ],
           },
           {
