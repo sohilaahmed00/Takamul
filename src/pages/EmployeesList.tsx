@@ -69,7 +69,7 @@ export default function AllEmployees() {
         </CardHeader>
         <CardContent>
           <DataTable
-            value={employees?.data}
+            value={employees?.items}
             rowsPerPageOptions={[5, 10, 20, 50]}
             lazy
             paginator
@@ -81,7 +81,7 @@ export default function AllEmployees() {
               setCurrentPage(e.page + 1);
               setEntriesPerPage(e.rows);
             }}
-            loading={!employees?.data}
+            loading={!employees?.items}
             header={header}
             responsiveLayout="stack"
             className="custom-green-table custom-compact-table"
