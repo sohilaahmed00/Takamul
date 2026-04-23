@@ -192,12 +192,13 @@ const CreateReturnSalesInvoice: React.FC = () => {
   };
 
   useEffect(() => {
+    const tt = salesReturnOrderDetails?.items ?? detailsSalesOrder?.items ?? [];
     form.reset({
-      warehouseId: wareHouses?.find((wareHouse) => wareHouse?.warehouseName == detailsSalesOrder?.warehouseName).id,
+      warehouseId: wareHouses?.find((wareHouse) => wareHouse?.warehouseName == detailsSalesOrder?.warehouseName)?.id,
       customerId: salesReturnOrderDetails?.customerId ?? detailsSalesOrder?.customerId,
       notes: salesReturnOrderDetails?.reason ?? detailsSalesOrder?.notes,
       orderDate: salesReturnOrderDetails?.returnDate ? new Date(salesReturnOrderDetails.returnDate).toISOString().split("T")[0] : detailsSalesOrder?.orderDate,
-      items: salesReturnOrderDetails?.items.map((item) => ({
+      items: tt.map((item) => ({
         price: item?.unitPrice,
         productId: item?.productId,
         // unitId: products?.items?.find((pro) => pro.id == item?.productId).baseUnitId,
