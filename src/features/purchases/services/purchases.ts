@@ -21,6 +21,11 @@ export const createPurchaseOrder = (data: CreatePurchaseOrder) =>
     method: "POST",
     data,
   });
+export const updatePurchaseOrder = ({ data, id }: { data: CreatePurchaseOrder; id: number }) =>
+  httpClient<{ message: string }>(`/PurchaseOrder/${id}`, {
+    method: "PUT",
+    data,
+  });
 
 // export const updateCategory = (id: number, data: CreateCategory) =>
 //   httpClient<CreateResponse>(`/blog/category/${id}`, {

@@ -22,6 +22,7 @@ import { useGetPurchaseOrderById } from "@/features/purchases/hooks/useGetPurcha
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import z from "zod/v3";
 import { calcVat } from "@/utils/calcVat";
+import { useUpdatePurchaseOrder } from "@/features/purchases/hooks/useUpdatePurchaseOrder";
 
 const createPurchasesInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -62,6 +63,7 @@ const CreatePurchaseInvoice: React.FC = () => {
   const purchasesInvoiceSchema = useMemo(() => createPurchasesInvoiceSchema(t), [t]);
 
   const { mutateAsync: createPurchaseOrder } = useCreatePurchaseOrder();
+  const { mutateAsync: updatePurchaseOrder } = useUpdatePurchaseOrder();
   const [discountOpen, setDiscountOpen] = useState<Record<number, boolean>>({});
   const toggleDiscount = (i: number) => setDiscountOpen((prev) => ({ ...prev, [i]: !prev[i] }));
   const { id } = useParams();
@@ -205,7 +207,11 @@ const CreatePurchaseInvoice: React.FC = () => {
       })),
     };
 
-    await createPurchaseOrder(payload);
+    if (isEditMode) {
+      await updatePurchaseOrder({ id: Number(id), data: payload });
+    } else {
+      await createPurchaseOrder(payload);
+    }
     if (submitType === "saveAndNew") {
       form.reset({
         orderDate: new Date().toISOString().split("T")[0],
@@ -256,10 +262,10 @@ const CreatePurchaseInvoice: React.FC = () => {
     }
   }, [summary.finalTotal, isEditMode]);
   useEffect(() => {
-    if (treasurys && treasurys.length > 0) {
+    if (treasurys && treasurys.length > 0 && !isEditMode) {
       form.setValue(`payments.0.treasuryId`, Number(treasurys[0]?.id));
     }
-  }, [treasurys]);
+  }, [treasurys, isEditMode]);
 
   const handleAddPayment = () => {
     appendPayment({ amount: 0, treasuryId: 0 });
