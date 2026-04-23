@@ -38,7 +38,7 @@ const SalesInvoiceSchema = (t: (key: string) => string) =>
           quantity: z.number().min(1, t("quantity_must_be_greater_than_zero")),
           price: z.number().min(0, t("price_must_be_gte_zero")),
           discountType: z.enum(["percentage", "fixed"]).default("fixed"),
-          discountValue: z.number().positive().optional(),
+          discountValue: z.number().min(0).optional(),
         }),
       )
       .min(1, t("must_add_at_least_one_item")),
