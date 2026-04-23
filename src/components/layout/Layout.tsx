@@ -209,10 +209,10 @@ export default function Layout() {
                 {hasAnyPermission([Permissions?.products?.BranchedView, Permissions?.products?.DirectView, Permissions?.products?.PreparedView, Permissions?.products?.RawMaterialView]) && <SubmenuItem label={t("products_list")} icon={List} path="/products" />}
                 {(hasPermission(Permissions?.products?.add) || hasPermission(Permissions?.products?.addDirect) || hasPermission(Permissions?.products?.addVariant) || hasPermission(Permissions?.products?.addReady) || hasPermission(Permissions?.products?.addRaw)) && <SubmenuItem label={t("add_product")} icon={PlusCircle} path="/products/create" />}
                 {/* <SubmenuItem label={t("print_barcode")} icon={Tag} path="/products/barcode" /> */}
-                <SubmenuItem label={t("quantity_adjustments")} icon={SlidersHorizontal} path="/products/quantity-adjustments" />
-                <SubmenuItem label={t("groups")} icon={Folder} path="/products/groups" />
+                {hasAnyPermission([Permissions?.stockInventory?.view, Permissions?.stockInventory?.all]) && <SubmenuItem label={t("quantity_adjustments")} icon={SlidersHorizontal} path="/products/quantity-adjustments" />}
+                {hasAnyPermission([Permissions?.productCategories?.view, Permissions?.productCategories?.view]) && <SubmenuItem label={t("groups")} icon={Folder} path="/products/groups" />}
                 {(hasPermission(Permissions?.units?.all) || hasPermission(Permissions?.units?.view)) && <SubmenuItem label={t("units")} icon={Wrench} path="/products/units" />}
-                <SubmenuItem label={t("additions")} icon={Folder} path="/products/additions" />
+                {hasAnyPermission([Permissions?.additions?.view, Permissions?.additions?.all]) && <SubmenuItem label={t("additions")} icon={Folder} path="/products/additions" />}
               </motion.div>
             )}
           </AnimatePresence>
