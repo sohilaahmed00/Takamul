@@ -405,9 +405,9 @@ const CreateReturnSalesInvoice: React.FC = () => {
                             <button type="button" onClick={() => removeItem(index)} disabled={itemFields.length === 1} className="p-2 text-muted-foreground hover:text-red-500 disabled:opacity-30">
                               <Trash2 size={16} />
                             </button>
-                            <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-500" : "text-muted-foreground"}`}>
+                            {/* <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-500" : "text-muted-foreground"}`}>
                               <Tag size={14} />
-                            </button>
+                            </button> */}
                           </div>
                         </div>
 
