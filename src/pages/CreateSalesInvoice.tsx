@@ -28,6 +28,7 @@ const SalesInvoiceSchema = (t: (key: string) => string) =>
     orderDate: z.string().min(1, t("date_required")),
     customerId: z.number().min(1, t("customer_required")),
     warehouseId: z.number().min(1, t("warehouse_required")),
+    employeeId: z.number().optional(),
     notes: z.string().optional(),
     items: z
       .array(
@@ -344,12 +345,12 @@ const CreateSalesInvoice: React.FC = () => {
                   </div>
                 </Field>
                 <Controller
-                  name="warehouseId"
+                  name="employeeId"
                   control={form.control}
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>
-                        {t("warehouse")} <span className="text-red-500">*</span>
+                        الموظف<span className="text-red-500">*</span>
                       </FieldLabel>
                       <Select key={field.value} value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
                         <SelectTrigger className="w-full">
