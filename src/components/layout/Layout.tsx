@@ -604,7 +604,7 @@ export default function Layout() {
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={cn("absolute mt-2 w-48 bg-[var(--bg-card)] rounded-lg shadow-lg border border-[var(--border)] py-1 z-50", direction === "rtl" ? "left-0" : "right-0")}>
                     <button className="w-full text-right px-4 py-2 text-sm text-[var(--text-main)] hover:bg-[var(--bg-main)] flex items-center gap-2">
                       <Users size={16} />
-                      {t("profile")}
+                      تغير كلمة المرور
                     </button>
 
                     <div className="h-px bg-[var(--border)] my-1"></div>

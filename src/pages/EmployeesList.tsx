@@ -86,8 +86,8 @@ export default function AllEmployees() {
             className="custom-green-table custom-compact-table"
             dataKey="id"
           >
-            <Column header="Name" body={(row) => `${row.firstName} `} />
-            <Column field="mobile" header="Phone" />
+            <Column header="الإسم" body={(row) => `${row.firstName} `} />
+            <Column field="mobile" header="رقم الجوال" />
             <Column
               header="العمليات"
               body={(raw: Employee) => (
