@@ -56,7 +56,6 @@ export default function RolesPage() {
       <CardContent>
         <DataTable
           value={roles?.data || []}
-          rowsPerPageOptions={[5, 10, 20, 50]}
           lazy
           paginator
           rows={entriesPerPage}
