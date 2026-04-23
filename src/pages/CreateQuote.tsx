@@ -485,9 +485,10 @@ const CreateQuote: React.FC = () => {
                         const taxCalc = product?.taxCalculation ?? 1;
                         const gross = qty * price;
                         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
+                        const afterDiscount = Math.max(0, gross - discount);
+                        const beforeTax = taxCalc === 3 ? afterDiscount / (1 + taxRate / 100) : taxCalc === 2 ? afterDiscount / (1 + taxRate / 100) : afterDiscount;
                         const afterTax = Math.max(0, gross - discount);
-                        const vatAmount = calcVat(afterTax, taxRate, taxCalc);
-                        const beforeTax = afterTax - vatAmount;
+                        const vatAmount = taxCalc === 2 ? calcVat(afterDiscount, taxRate, taxCalc) : calcVat(beforeTax, taxRate, taxCalc);
                         const isDiscOpen = !!discountOpen[index];
 
                         return (
