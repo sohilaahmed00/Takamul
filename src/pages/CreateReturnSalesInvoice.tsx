@@ -197,7 +197,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
       warehouseId: wareHouses?.find((wareHouse) => wareHouse?.warehouseName == detailsSalesOrder?.warehouseName)?.id ?? salesReturnOrderDetails?.warehouseId,
       customerId: salesReturnOrderDetails?.customerId ?? detailsSalesOrder?.customerId,
       notes: salesReturnOrderDetails?.reason ?? detailsSalesOrder?.notes,
-      orderDate: salesReturnOrderDetails?.returnDate ? new Date(salesReturnOrderDetails.returnDate).toISOString().split("T")[0] : new Date(detailsSalesOrder.orderDate).toISOString().split("T")[0],
+      orderDate: salesReturnOrderDetails?.returnDate ? salesReturnOrderDetails?.returnDate?.split("T")[0] : detailsSalesOrder?.orderDate?.split("T")[0],
       items: items.map((item) => ({
         price: item?.unitPrice,
         productId: item?.productId,
