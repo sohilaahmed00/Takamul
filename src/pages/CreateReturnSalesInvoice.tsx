@@ -67,7 +67,9 @@ const CreateReturnSalesInvoice: React.FC = () => {
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { mutateAsync: CreateSalesReturns } = useCreateSalesReturns();
-  const { data: salesReturnOrderDetails } = useGetSalesReturnsById(Number(id));
+  const { data: salesReturnOrderDetails } = useGetSalesReturnsById(Number(id), {
+    enabled: isViewMode && !!id,
+  });
   const filterProducts = useMemo(() => products?.items.filter((pro) => pro?.productType == "Direct" || pro?.productType == "Prepared"), [products]);
 
   const schema = useMemo(() => ReturnInvoiceSchema(t), [t]);
@@ -191,9 +193,10 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
   useEffect(() => {
     form.reset({
-      customerId: salesReturnOrderDetails?.customerId,
-      notes: salesReturnOrderDetails?.reason,
-      orderDate: salesReturnOrderDetails?.returnDate ? new Date(salesReturnOrderDetails.returnDate).toISOString().split("T")[0] : "",
+      warehouseId: wareHouses?.find((wareHouse) => wareHouse?.warehouseName == detailsSalesOrder?.warehouseName).id,
+      customerId: salesReturnOrderDetails?.customerId ?? detailsSalesOrder?.customerId,
+      notes: salesReturnOrderDetails?.reason ?? detailsSalesOrder?.notes,
+      orderDate: salesReturnOrderDetails?.returnDate ? new Date(salesReturnOrderDetails.returnDate).toISOString().split("T")[0] : detailsSalesOrder?.orderDate,
       items: salesReturnOrderDetails?.items.map((item) => ({
         price: item?.unitPrice,
         productId: item?.productId,
@@ -207,7 +210,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
       //   paymentMethod: payment?.paymentMethod,
       // })),
     });
-  }, [salesReturnOrderDetails, form]);
+  }, [salesReturnOrderDetails, form, detailsSalesOrder]);
 
   return (
     <>

@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useGetAllTables } from "@/features/pos/hooks/useGetAllTables";
 import { Table } from "@/features/pos/types/pos.types";
 import { CreditCard, Plus } from "lucide-react";
 import { usePos } from "@/context/PosContext";
 import { useGetOrderByTableId } from "@/features/pos/hooks/useGetOrderByTableId";
 import { Customer } from "@/features/customers/types/customers.types";
 import { useLanguage } from "@/context/LanguageContext";
+import { useGetAllTables } from "@/features/tables/hooks/useGetAllTables";
 
 type TableStatus = "Free" | "Occupied";
 type FilterType = "all" | "Free" | "Occupied";

@@ -181,13 +181,7 @@ export default function Layout() {
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
         <div className="h-16 flex items-center justify-between px-4 border-b border-[var(--border)]">
-          <div className={cn("flex items-center justify-center overflow-hidden flex-1")}>
-            {showSidebarContent ? (
-              <Logo className={isDark ? "h-15" : "h-15"} onClick={closeAllMenus} />
-            ) : (
-              <Logo showText={false} className={isDark ? "h-24" : "h-20"} onClick={closeAllMenus} />
-            )}
-          </div>
+          <div className={cn("flex items-center justify-center overflow-hidden flex-1")}>{showSidebarContent ? <Logo className={isDark ? "h-15" : "h-15"} onClick={closeAllMenus} /> : <Logo showText={false} className={isDark ? "h-24" : "h-20"} onClick={closeAllMenus} />}</div>
 
           {isMobile && (
             <button onClick={() => setIsMobileMenuOpen(false)} className="text-[var(--text-muted)] hover:text-red-500 transition-colors p-1">
@@ -230,6 +224,7 @@ export default function Layout() {
                 {hasAnyPermission([Permissions?.salesOrders?.all, Permissions?.salesOrders?.view]) && <SubmenuItem label={t("invoices_a4")} icon={FileText} path="/sales/a4-invoices" />}
                 {hasAnyPermission([Permissions?.salesOrders?.all, Permissions?.salesOrders?.pos]) && <SubmenuItem label={t("invoices_pos")} icon={RefreshCcw} path="/sales/pos-invoices" />}
                 {hasAnyPermission([Permissions?.giftCards?.all, Permissions?.giftCards?.view]) && <SubmenuItem label={t("gift_cards")} icon={Gift} path="/sales/gift-cards" />}
+                {<SubmenuItem label={"المرتجعات"} icon={Gift} path="/sales/return" />}
               </motion.div>
             )}
           </AnimatePresence>

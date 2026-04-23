@@ -37,6 +37,7 @@ import z from "zod/v3";
 import useToast from "@/hooks/useToast";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUpdateProductRawMatrial } from "@/features/products/hooks/useUpdateProductRawMaterial";
+import { useAuthStore } from "@/store/authStore";
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
@@ -498,6 +499,7 @@ export default function AddProduct() {
 
   // ─── Render ────────────────────────────────────────────────────────────────
 
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
   return (
     <div className="space-y-4 pb-24">
       {/* Breadcrumb */}
@@ -522,18 +524,27 @@ export default function AddProduct() {
           {/* Product type tabs */}
           <Tabs value={productType} onValueChange={(val) => setProductType(val as ProductType)} className="w-full  rounded-sm">
             <TabsList className="mb-8 w-full! h-fit!">
-              <TabsTrigger className="py-2!" value="Direct">
-                الصنف المباشر
-              </TabsTrigger>
-              <TabsTrigger className="py-2!" value="Branched">
-                الصنف المتفرع
-              </TabsTrigger>
-              <TabsTrigger className="py-2!" value="Prepared">
-                الصنف المجهز
-              </TabsTrigger>
-              <TabsTrigger className="py-2!" value="RawMatrial">
-                الخامة
-              </TabsTrigger>
+              {hasAnyPermission(["المنتجات.إضافة مباشرة", "المنتجات.إضافة"]) && (
+                <TabsTrigger className="py-2!" value="Direct">
+                  الصنف المباشر
+                </TabsTrigger>
+              )}
+              {hasAnyPermission(["المنتجات.إضافة متفرعة", "المنتجات.إضافة"]) && (
+                <TabsTrigger className="py-2!" value="Branched">
+                  {" "}
+                  الصنف المتفرع{" "}
+                </TabsTrigger>
+              )}
+              {hasAnyPermission(["المنتجات.إضافة جاهزة", "المنتجات.إضافة"]) && (
+                <TabsTrigger className="py-2!" value="Prepared">
+                  الصنف المجهز
+                </TabsTrigger>
+              )}
+              {hasAnyPermission(["المنتجات.إضافة مواد خام", "المنتجات.إضافة"]) && (
+                <TabsTrigger className="py-2!" value="RawMatrial">
+                  الخامة
+                </TabsTrigger>
+              )}
             </TabsList>
           </Tabs>
 

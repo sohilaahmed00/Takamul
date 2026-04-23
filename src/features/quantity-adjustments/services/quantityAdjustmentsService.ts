@@ -32,3 +32,8 @@ export async function updateQuantityAdjustment(id: number, payload: UpdateQuanti
     data: payload,
   });
 }
+export async function deleteQuantityAdjustment(id: number) {
+  return await httpClient<{ message: string }>(`/StockInventory/${id}`, {
+    method: "DELETE",
+  });
+}

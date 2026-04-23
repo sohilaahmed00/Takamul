@@ -14,7 +14,6 @@ import { useGetGiftCards } from "@/features/gift-cards/hooks/useGetGiftCards";
 import { GiftCard } from "@/features/gift-cards/types/giftCard.types";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import useToast from "@/hooks/useToast";
-import { useGetAllTables } from "@/features/pos/hooks/useGetAllTables";
 import ComboboxField from "@/components/ui/ComboboxField";
 import { useLanguage } from "@/context/LanguageContext";
 import { Dialog, DialogContent, DialogHeader, DialogOverlay, DialogTitle } from "@/components/ui/dialog";
@@ -26,6 +25,7 @@ import { UnifiedPaymentDialog } from "../modals/UnifiedPaymentDialog";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Globe, Sun, Moon, Monitor } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
+import { useGetAllTables } from "@/features/tables/hooks/useGetAllTables";
 const TABS = ["add", "discount", "coupon", "note"] as const;
 
 interface CouponTabProps {
@@ -218,7 +218,6 @@ export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyCha
       finalDisc = currentValue === 0 ? null : { type: discType, value: currentValue };
     }
 
-    // ابعت كل حاجة مع بعض
     onQtyChange(finalQty);
     onDiscountChange(finalDisc);
     onSaveExtras(localExtras);

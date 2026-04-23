@@ -16,6 +16,7 @@ import Currencies from "./Currencies";
 import CustomerGroups from "./CustomerGroups";
 import PriceGroups from "./PriceGroups";
 import Tables from "./Tables";
+import TablesList from "./Tables";
 
 interface SettingSectionProps {
   id: string;
@@ -158,7 +159,7 @@ export default function SystemSettings() {
                 </div>
               </SettingSection>
             )}
-            
+
             {activeSection === "tobacco" && (
               <SettingSection id="tobacco" title={t("tobacco_fees", "رسوم التبغ")} hideSave>
                 <div className="min-h-[300px] flex items-center justify-center">
@@ -167,9 +168,7 @@ export default function SystemSettings() {
                       <Percent size={32} className="text-gray-400" />
                     </div>
                     <h3 className="text-lg font-bold text-[var(--text-main)] mb-2">{t("tobacco_fees", "رسوم التبغ")}</h3>
-                    <p className="text-[var(--text-muted)] font-medium">
-                      {t("not_determined_yet", "لم يتم التحديد بعد")}
-                    </p>
+                    <p className="text-[var(--text-muted)] font-medium">{t("not_determined_yet", "لم يتم التحديد بعد")}</p>
                   </div>
                 </div>
               </SettingSection>
@@ -180,65 +179,63 @@ export default function SystemSettings() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">حالة الترويسة العلوية</label>
-                    <ComboboxField
-                      items={["إظهار", "إخفاء"]}
-                      value={systemSettings.reports.headerStatus ? "إظهار" : "إخفاء"}
-                      onValueChange={(val) => handleUpdate("reports", "headerStatus", val === "إظهار")}
-                    />
+                    <ComboboxField items={["إظهار", "إخفاء"]} value={systemSettings.reports.headerStatus ? "إظهار" : "إخفاء"} onValueChange={(val) => handleUpdate("reports", "headerStatus", val === "إظهار")} />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">صورة الترويسة العلوية Max( 2500px w * 600px h)</label>
                     <div className="mt-2">
-                       <FileUpload
-                            value={headerImageFiles}
-                            onValueChange={(newFiles) => {
-                              setHeaderImageFiles(newFiles);
-                              if (newFiles.length > 0) {
-                                handleUpdate("reports", "headerImage", newFiles[0].name);
-                              } else {
-                                handleUpdate("reports", "headerImage", "");
-                              }
-                            }}
-                            accept="image/*"
-                            maxFiles={1}
-                          >
-                            <FileUploadDropzone className="py-4 px-2">
-                              <div className="flex flex-col items-center gap-0">
-                                <div className="flex items-center justify-center rounded-full border p-1.5 mb-1">
-                                  <Upload className="size-4 text-muted-foreground" />
-                                </div>
-                                <p className="font-medium text-xs">اسحب وافلت الصورة هنا</p>
-                                <p className="text-muted-foreground" style={{ fontSize: "10px" }}>أو اضغط للتصفح</p>
-                              </div>
-                              <FileUploadTrigger asChild>
-                                <Button variant="outline" size="sm" className="mt-1 h-7 text-xs w-fit font-bold">
-                                  تصفح الملفات
-                                </Button>
-                              </FileUploadTrigger>
-                            </FileUploadDropzone>
+                      <FileUpload
+                        value={headerImageFiles}
+                        onValueChange={(newFiles) => {
+                          setHeaderImageFiles(newFiles);
+                          if (newFiles.length > 0) {
+                            handleUpdate("reports", "headerImage", newFiles[0].name);
+                          } else {
+                            handleUpdate("reports", "headerImage", "");
+                          }
+                        }}
+                        accept="image/*"
+                        maxFiles={1}
+                      >
+                        <FileUploadDropzone className="py-4 px-2">
+                          <div className="flex flex-col items-center gap-0">
+                            <div className="flex items-center justify-center rounded-full border p-1.5 mb-1">
+                              <Upload className="size-4 text-muted-foreground" />
+                            </div>
+                            <p className="font-medium text-xs">اسحب وافلت الصورة هنا</p>
+                            <p className="text-muted-foreground" style={{ fontSize: "10px" }}>
+                              أو اضغط للتصفح
+                            </p>
+                          </div>
+                          <FileUploadTrigger asChild>
+                            <Button variant="outline" size="sm" className="mt-1 h-7 text-xs w-fit font-bold">
+                              تصفح الملفات
+                            </Button>
+                          </FileUploadTrigger>
+                        </FileUploadDropzone>
 
-                            <FileUploadList>
-                              {headerImageFiles.map((file) => (
-                                <FileUploadItem key={file.name} value={file}>
-                                  <FileUploadItemPreview />
-                                  <FileUploadItemMetadata />
-                                  <FileUploadItemDelete asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="size-7"
-                                      onClick={() => {
-                                        setHeaderImageFiles([]);
-                                        handleUpdate("reports", "headerImage", "");
-                                      }}
-                                    >
-                                      <X />
-                                    </Button>
-                                  </FileUploadItemDelete>
-                                </FileUploadItem>
-                              ))}
-                            </FileUploadList>
-                          </FileUpload>
+                        <FileUploadList>
+                          {headerImageFiles.map((file) => (
+                            <FileUploadItem key={file.name} value={file}>
+                              <FileUploadItemPreview />
+                              <FileUploadItemMetadata />
+                              <FileUploadItemDelete asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="size-7"
+                                  onClick={() => {
+                                    setHeaderImageFiles([]);
+                                    handleUpdate("reports", "headerImage", "");
+                                  }}
+                                >
+                                  <X />
+                                </Button>
+                              </FileUploadItemDelete>
+                            </FileUploadItem>
+                          ))}
+                        </FileUploadList>
+                      </FileUpload>
                     </div>
                   </div>
                 </div>
@@ -253,9 +250,7 @@ export default function SystemSettings() {
                       <Printer size={32} className="text-gray-400" />
                     </div>
                     <h3 className="text-lg font-bold text-[var(--text-main)] mb-2">{t("print_settings", "إعدادات طباعة")}</h3>
-                    <p className="text-[var(--text-muted)] font-medium">
-                      {t("not_determined_yet", "لم يتم التحديد بعد")}
-                    </p>
+                    <p className="text-[var(--text-muted)] font-medium">{t("not_determined_yet", "لم يتم التحديد بعد")}</p>
                   </div>
                 </div>
               </SettingSection>
@@ -268,7 +263,7 @@ export default function SystemSettings() {
             )}
 
             {activeSection === "currencies" && (
-             <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
+              <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
                 <Currencies />
               </div>
             )}
@@ -293,19 +288,13 @@ export default function SystemSettings() {
                       <Percent size={32} className="text-gray-400" />
                     </div>
                     <h3 className="text-lg font-bold text-[var(--text-main)] mb-2">{t("tax_list", "قائمة الضرايب")}</h3>
-                    <p className="text-[var(--text-muted)] font-medium">
-                      {t("not_determined_yet", "لم يتم التحديد بعد")}
-                    </p>
+                    <p className="text-[var(--text-muted)] font-medium">{t("not_determined_yet", "لم يتم التحديد بعد")}</p>
                   </div>
                 </div>
               </SettingSection>
             )}
 
-            {activeSection === "tables" && (
-              <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
-                <Tables />
-              </div>
-            )}
+            {activeSection === "tables" && <TablesList />}
           </div>
         </div>
       </CardContent>
