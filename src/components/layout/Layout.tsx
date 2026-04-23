@@ -415,10 +415,10 @@ export default function Layout() {
                 <span>{t("pos_quick")}</span>
               </button>
 
-              <button onClick={() => navigate("/sales/all")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+              {/* <button onClick={() => navigate("/sales/all")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                 <List size={16} />
                 <span>{t("all_sales")}</span>
-              </button>
+              </button> */}
 
               <button onClick={() => navigate("/products/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                 <Package size={16} />
