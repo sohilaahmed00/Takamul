@@ -564,14 +564,14 @@ const CreateQuote: React.FC = () => {
                               </div>
                               <div className="flex items-center md:justify-center font-medium text-amber-600 mt-2 md:mt-0 px-2 h-9">
                                 <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("vat")}:</FieldLabel>
-                                {taxAmount.toLocaleString("en-EG", {
+                                {vatAmount.toLocaleString("en-EG", {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
                                 })}
                               </div>
                               <div className="flex items-center md:justify-center font-medium text-green-700 mt-2 md:mt-0 px-2 h-9">
                                 <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("total_including_tax")}:</FieldLabel>
-                                {total.toLocaleString("en-EG", {
+                                {afterTax.toLocaleString("en-EG", {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
                                 })}
