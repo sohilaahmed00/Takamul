@@ -42,38 +42,6 @@ export interface Group {
 
 const GROUPS: Group[] = [
   {
-    id: "users",
-    label: "المستخدمين",
-    pages: [
-      {
-        id: "products_list",
-        label: "الصلاحيات",
-        permissions: [
-          {
-            id: "view",
-            label: "عرض الادوار",
-            value: "الأدوار.عرض",
-          },
-          {
-            id: "view2",
-            label: "عرض الصلاحيات",
-            value: "الأدوار.عرض الصلاحيات",
-          },
-          {
-            id: "edit",
-            label: "تعديل الادوار",
-            value: "الأدوار.تعديل",
-          },
-          {
-            id: "delete",
-            label: "حذف الادوار",
-            value: "الأدوار.حذف",
-          },
-        ],
-      },
-    ],
-  },
-  {
     id: "products",
     label: "الأصناف",
     pages: [
@@ -253,6 +221,92 @@ const GROUPS: Group[] = [
             id: "add",
             label: "إضافة",
             value: "أوامر الشراء.إضافة",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "users",
+    label: "المستخدمين",
+    pages: [
+      {
+        id: "users_list",
+        label: "قائمة المستخدمين",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض",
+            value: "المستخدمين.عرض",
+          },
+
+          {
+            id: "add",
+            label: "إضافة",
+            value: "المستخدمين.إضافة",
+          },
+          {
+            id: "edit",
+            label: "تعديل",
+            value: "المستخدمين.تعديل",
+          },
+          {
+            id: "delete",
+            label: "حذف ",
+            value: "المستخدمين.حذف",
+          },
+        ],
+      },
+      {
+        id: "roels",
+        label: "الصلاحيات",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض الادوار",
+            value: "الأدوار.عرض",
+          },
+          {
+            id: "view2",
+            label: "عرض الصلاحيات",
+            value: "الأدوار.عرض الصلاحيات",
+          },
+          {
+            id: "edit",
+            label: "تعديل الادوار",
+            value: "الأدوار.تعديل",
+          },
+          {
+            id: "delete",
+            label: "حذف الادوار",
+            value: "الأدوار.حذف",
+          },
+        ],
+      },
+      {
+        id: "employees",
+        label: "الموظفين",
+        permissions: [
+          {
+            id: "view",
+            label: "عرض",
+            value: "الموظفين.عرض",
+          },
+
+          {
+            id: "add",
+            label: "إضافة",
+            value: "الموظفين.إضافة",
+          },
+          {
+            id: "edit",
+            label: "تعديل",
+            value: "الموظفين.تعديل",
+          },
+          {
+            id: "delete",
+            label: "حذف ",
+            value: "الموظفين.حذف",
           },
         ],
       },

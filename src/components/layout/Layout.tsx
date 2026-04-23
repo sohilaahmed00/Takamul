@@ -284,13 +284,13 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          <SidebarItem icon={Landmark} label={t("treasuries")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "treasurys"} onClick={() => toggleSubmenu("treasurys")} />
+          {hasAnyPermission(Object.values(Permissions?.treasury)) && <SidebarItem icon={Landmark} label={t("treasuries")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "treasurys"} onClick={() => toggleSubmenu("treasurys")} />}
           <AnimatePresence>
             {openSubmenu === "treasurys" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                <SubmenuItem label={t("treasuries_list")} icon={List} path="/treasurys" />
-                <SubmenuItem label={t("treasury_statement")} icon={ArrowUpRight} path="/treasury/external-transfers" />
-                <SubmenuItem label={t("internal_transfers")} icon={ArrowLeftRight} path="/treasury/internal-transfers" />
+                {hasPermission(Permissions?.treasury?.view) && <SubmenuItem label={t("treasuries_list")} icon={List} path="/treasurys" />}
+                {hasPermission(Permissions?.treasury?.viewStatement) && <SubmenuItem label={t("treasury_statement")} icon={ArrowUpRight} path="/treasury/external-transfers" />}
+                {hasPermission(Permissions?.treasury?.viewTransfers) && <SubmenuItem label={t("internal_transfers")} icon={ArrowLeftRight} path="/treasury/internal-transfers" />}
               </motion.div>
             )}
           </AnimatePresence>
