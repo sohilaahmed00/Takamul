@@ -94,6 +94,7 @@ export default function SalesReturn() {
             dataKey="id"
             stripedRows={false}
           >
+            <Column header={"رقم الفاتورة"} sortable field="salesOrderNumber" />
             <Column header={"رقم المرتجع"} sortable field="returnNumber" />
             <Column header={t("date")} sortable field="returnDate" body={(row) => formatDate(row.returnDate)} />
             <Column header={t("customer_name")} sortable field="customerName" />
