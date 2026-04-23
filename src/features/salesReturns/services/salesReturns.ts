@@ -33,10 +33,10 @@ export const createSalesReturn = (data: CreateSalesReturns) =>
 //     data,
 //   });
 
-// export const deleteCategory = (id: number) =>
-//   httpClient<void>(`/blog/category/${id}`, {
-//     method: "DELETE",
-//   });
+export const deleteSalesReturn = (id: number) =>
+  httpClient<void>(`/blog/category/${id}`, {
+    method: "DELETE",
+  });
 
 export function getSalesOrderById(id: number) {
   return httpClient<SalesOrder>(`/sales-orders/${id}`);

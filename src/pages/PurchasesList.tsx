@@ -11,12 +11,14 @@ import { useLanguage } from "@/context/LanguageContext";
 import formatDate from "@/lib/formatDate";
 
 import { Input } from "@/components/ui/input";
+import { useDeletePurchaseOrder } from "@/features/purchases/hooks/useDeletePurchaseOrder";
 
 export default function PurchasesList() {
   const { t, direction } = useLanguage();
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const { mutate: deletePurchaseOrder } = useDeletePurchaseOrder();
 
   const { data: purchases } = useGetAllPurchases({
     page: currentPage,
@@ -88,7 +90,7 @@ export default function PurchasesList() {
                 <Link to={`/purchases/edit/${purchase?.id}`} className="btn-minimal-action btn-edit">
                   <Edit2 size={16} />
                 </Link>
-                <button onClick={async () => {}} className="btn-minimal-action btn-delete">
+                <button onClick={() => deletePurchaseOrder(purchase?.id)} className="btn-minimal-action btn-delete">
                   <Trash2 size={16} />
                 </button>
               </div>
