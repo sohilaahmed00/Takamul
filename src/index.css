@@ -803,6 +803,34 @@ input[type="number"] {
   scrollbar-width: none;
 }
 
+/* --- Print Styles --- */
+@media print {
+  .print-hidden {
+    display: none !important;
+  }
+  
+  .print-block {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+  }
+
+  body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+    background: white !important;
+  }
+
+  /* Hide everything else */
+  #root > *:not(.print-block) {
+     display: none !important;
+  }
+}
+
 /* تغيير خلفية اليوم المختار */
 .react-datepicker__day--selected, 
 .react-datepicker__day--keyboard-selected {

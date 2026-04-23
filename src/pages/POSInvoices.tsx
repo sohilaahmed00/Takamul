@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { FileText, Search, Edit2, RotateCcw, Trash2, ArrowRight, ArrowLeft, Download, Printer, ChevronDown, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileCheck, Truck, FileSpreadsheet, Mail, MessageCircle, Copy, Info, UserCog, FileMinus, FileJson } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
+import { usePrint } from "@/context/PrintContext";
 import { useSales } from "@/context/SalesContext";
 import { cn } from "@/lib/utils";
 import { AnimatePresence } from "framer-motion";
@@ -46,6 +47,7 @@ const mockSales: SaleRecord[] = [
 
 export default function POSSales() {
   const { t, direction } = useLanguage();
+  const { printInvoice } = usePrint();
   const navigate = useNavigate();
 
   // الحماية من الـ Context الفارغ
@@ -415,9 +417,10 @@ export default function POSSales() {
                               {/* 6 */}
                               <button
                                 onClick={() => {
-                                  setShowStoreBond(sale);
+                                  printInvoice(sale, 'stock');
                                   setActiveActionMenu(null);
                                 }}
+
                                 className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                               >
                                 <FileCheck size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">سند مخزني</span>
@@ -425,9 +428,10 @@ export default function POSSales() {
                               {/* 7 */}
                               <button
                                 onClick={() => {
-                                  setShowClaimBond(sale);
+                                  printInvoice(sale, 'claim');
                                   setActiveActionMenu(null);
                                 }}
+
                                 className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                               >
                                 <Info size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">سند مطالبة</span>
