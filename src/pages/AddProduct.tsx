@@ -644,7 +644,7 @@ export default function AddProduct() {
                         </Field>
                       )}
                     />
-                    <div className={productType !== "Prepared" && "col-span-2"}>
+                    <div className={""}>
                       <Controller
                         name="Barcode"
                         control={control}
@@ -674,21 +674,6 @@ export default function AddProduct() {
                         )}
                       />
                     </div>
-
-                    {productType !== "Prepared" && (
-                      <Controller
-                        name="MinStockLevel"
-                        control={control}
-                        render={({ field, fieldState }) => (
-                          <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel className="gap-x-0">الحد الأدنى للمخزون</FieldLabel>
-                            <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} placeholder="ادخل الحد الادنى للمخزون" />
-                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                          </Field>
-                        )}
-                      />
-                    )}
-
                     <Controller
                       name="BaseUnitId"
                       control={control}
@@ -715,6 +700,22 @@ export default function AddProduct() {
                         </Field>
                       )}
                     />
+                    {productType !== "Prepared" && (
+                    <div className="col-span-2">
+                        <Controller
+                        name="MinStockLevel"
+                        control={control}
+                        render={({ field, fieldState }) => (
+                          <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel className="gap-x-0">الحد الأدنى للمخزون</FieldLabel>
+                            <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} placeholder="ادخل الحد الادنى للمخزون" />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                          </Field>
+                        )}
+                      />
+                    </div>
+                    )}
+
                     <Controller
                       name="TaxId"
                       control={control}
