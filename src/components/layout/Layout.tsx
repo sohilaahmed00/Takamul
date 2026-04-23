@@ -224,7 +224,7 @@ export default function Layout() {
                 {hasAnyPermission([Permissions?.salesOrders?.all, Permissions?.salesOrders?.view]) && <SubmenuItem label={t("invoices_a4")} icon={FileText} path="/sales/a4-invoices" />}
                 {hasAnyPermission([Permissions?.salesOrders?.all, Permissions?.salesOrders?.pos]) && <SubmenuItem label={t("invoices_pos")} icon={RefreshCcw} path="/sales/pos-invoices" />}
                 {hasAnyPermission([Permissions?.giftCards?.all, Permissions?.giftCards?.view]) && <SubmenuItem label={t("gift_cards")} icon={Gift} path="/sales/gift-cards" />}
-                {<SubmenuItem label={"المرتجعات"} icon={Gift} path="/sales/return" />}
+                {<SubmenuItem label={"المرتجعات"} icon={FileText} path="/sales/return" />}
               </motion.div>
             )}
           </AnimatePresence>
