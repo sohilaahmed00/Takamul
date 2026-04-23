@@ -454,28 +454,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
                     <span className="font-semibold text-amber-600 tabular-nums">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
                   </div>
 
-                  <div className="flex justify-between items-center text-sm gap-3">
-                    <span className="text-muted-foreground whitespace-nowrap">{t("discount")}</span>
-                    <div className="flex gap-1.5">
-                      <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" min={0} value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="w-20 text-center text-xs bg-background" placeholder="0" />} />
-                      <Controller
-                        control={form.control}
-                        name="invoiceDiscountType"
-                        render={({ field }) => (
-                          <ComboboxField
-                            field={field}
-                            items={[
-                              { value: "fixed", label: t("value") },
-                              { value: "percentage", label: "%" },
-                            ]}
-                            valueKey="value"
-                            labelKey="label"
-                            className="w-20 h-8 text-xs"
-                          />
-                        )}
-                      />
-                    </div>
-                  </div>
+             
 
                   <hr className="border-border" />
 
