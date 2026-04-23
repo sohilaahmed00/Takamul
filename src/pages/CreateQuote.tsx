@@ -28,7 +28,7 @@ const QuoteSchema = (t: (key: string) => string) =>
     customerId: z.number().min(1, t("customer_required")),
     quotationDate: z.string().min(1, t("date_required")),
     notes: z.string().optional(),
-    globalDiscountAmount: z.number().min(0),
+    globalDiscountAmount: z.number().min(0).optional(),
     items: z
       .array(
         z.object({
