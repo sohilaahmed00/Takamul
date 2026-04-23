@@ -726,7 +726,6 @@ export default function AddProduct() {
                               </SelectGroup>
                             </SelectContent>
                           </Select>
-                          <ComboboxField field={field} items={taxesData} valueKey="id" labelKey="name" placeholder="اختر الضريبة" />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
@@ -740,17 +739,18 @@ export default function AddProduct() {
                           <FieldLabel>
                             طريقة حساب الضريبة <span className="text-red-500">*</span>
                           </FieldLabel>
-                          <ComboboxField
-                            field={field}
-                            items={[
-                              { id: 1, name: "لا يوجد ضريبة" },
-                              { id: 2, name: "السعر شامل الضريبة" },
-                              { id: 3, name: "السعر غير شامل الضريبة" },
-                            ]}
-                            valueKey="id"
-                            labelKey="name"
-                            placeholder="اختر طريقة الحساب"
-                          />
+                          <Select key={field.value} value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="اختر طريقة الحساب" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectItem value={"1"}>لا يوجد ضريبة</SelectItem>
+                                <SelectItem value={"2"}>السعر شامل الضريبة</SelectItem>
+                                <SelectItem value={"3"}>السعر غير شامل الضريبة</SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}
