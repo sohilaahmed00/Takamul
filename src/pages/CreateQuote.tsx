@@ -583,9 +583,9 @@ const CreateQuote: React.FC = () => {
                                   <Trash2 size={16} />
                                 </button>
 
-                                <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-600" : "text-zinc-400"}`}>
+                                {/* <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-600" : "text-zinc-400"}`}>
                                   <Tag size={14} />
-                                </button>
+                                </button> */}
                               </div>
                             </div>
 

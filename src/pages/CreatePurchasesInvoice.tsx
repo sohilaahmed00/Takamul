@@ -499,6 +499,10 @@ const CreatePurchaseInvoice: React.FC = () => {
                               <button type="button" onClick={() => removeItem(index)} className="p-2 text-zinc-400 hover:text-red-500">
                                 <Trash2 size={16} />
                               </button>
+
+                              {/* <button type="button" onClick={() => toggleDiscount(index)} className={`p-2 ${isDiscOpen ? "text-emerald-600" : "text-zinc-400"}`}>
+                                <Tag size={14} />
+                              </button> */}
                             </div>
                           </div>
 
