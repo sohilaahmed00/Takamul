@@ -201,4 +201,9 @@ export interface PaginationMeta {
 
 export interface AppJwtPayload extends JwtPayload {
   Permission: Permission[];
+  UserId: string;
+  username: string;
+  BranchId: string;
+  IsActive: string;
+  email: string;
 }

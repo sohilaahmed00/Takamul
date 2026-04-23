@@ -52,13 +52,13 @@ const applyToken = (requestConfig: AxiosRequestConfig, token: string): void => {
   requestConfig.headers!.Authorization = `Bearer ${token}`;
 };
 
-const handleRefreshSuccess = (token: string, expiration: string, permission: Permission[]): void => {
-  useAuthStore.getState().setAuth(token, new Date(expiration).getTime(), permission);
+const handleRefreshSuccess = (token: string, expiration: string, permission: Permission[], userId: string, email: string, username: string): void => {
+  useAuthStore.getState().setAuth(token, new Date(expiration).getTime(), permission, userId, email, username);
 };
 
 apiClient.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState();
-console.log(accessToken)
+  console.log(accessToken);
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`;
   }
@@ -102,8 +102,7 @@ apiClient.interceptors.response.use(
       const data = await refreshToken();
       const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
       console.log(data);
-
-      handleRefreshSuccess(data.accessToken, data.accessTokenExpiration, decoded.Permission);
+      handleRefreshSuccess(data.accessToken, data.accessTokenExpiration, decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username);
       resolvePendingRequests(data.accessToken);
       applyToken(originalRequest, data.accessToken);
       return apiClient(originalRequest);

@@ -26,15 +26,9 @@ export type CreateUser = {
 };
 
 export type UpdateUser = {
-  employee: {
-    mobile: string;
-    branchId: number;
-  };
-  user: {
-    userName: string;
-    email: string;
-  };
-  roleName: string;
+  userName?: string;
+  email?: string;
+  newPassword?: string;
 };
 
 export interface GetAllUsersResponse extends PaginationMeta {

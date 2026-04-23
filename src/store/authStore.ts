@@ -5,10 +5,11 @@ type AuthState = {
   accessToken: string | null;
   expiresAt: number | null;
   permissions: Permission[];
-
-  setAuth: (token: string, expiresAt: number, permissions: Permission[]) => void;
+  userId: string | null; // ← أضف
+  email: string | null; // ← أضف
+  userName: string | null; // ← أضف
+  setAuth: (token: string, expiresAt: number, permissions: Permission[], userId: string, email: string, userName: string) => void;
   clearAuth: () => void;
-
   isExpired: () => boolean;
   isInitialized: boolean;
   setInitialized: (v: boolean) => void;
@@ -22,12 +23,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   expiresAt: null,
   permissions: [],
   isInitialized: false,
-
-  setAuth: (token, expiresAt, permissions) =>
+  userId: null,
+  email: null,
+  userName: null,
+  setAuth: (token, expiresAt, permissions, userId, email, userName) =>
     set({
       accessToken: token,
       expiresAt,
       permissions,
+      userId,
+      email,
+      userName,
       isInitialized: true,
     }),
 
@@ -45,19 +51,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!expiresAt) return true;
     return Date.now() >= expiresAt;
   },
-hasAnyPermission: (perms: (Permission | undefined | null)[]) => {
-  const { permissions } = get();
+  hasAnyPermission: (perms: (Permission | undefined | null)[]) => {
+    const { permissions } = get();
 
-  if (!Array.isArray(permissions) || !Array.isArray(perms)) return false;
+    if (!Array.isArray(permissions) || !Array.isArray(perms)) return false;
 
-  return perms.some((p) => {
-    if (!p) return false;
-    return permissions.includes(p);
-  });
-},
+    return perms.some((p) => {
+      if (!p) return false;
+      return permissions.includes(p);
+    });
+  },
   hasPermission: (permission) => {
     const { permissions } = get();
-    
+
     return Array.isArray(permissions) && permissions.includes(permission);
   },
   hasAllPermissions: (perms) => {

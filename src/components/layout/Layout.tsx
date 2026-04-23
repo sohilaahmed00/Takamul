@@ -15,6 +15,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
+import ChangePasswordDialog from "../modals/Changepassworddialog";
 
 interface SidebarItemProps {
   icon: LucideIcon;
@@ -59,6 +60,7 @@ export default function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [openNestedSubmenu, setOpenNestedSubmenu] = useState<string | null>(null);
@@ -86,9 +88,7 @@ export default function Layout() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const hasPermission = useAuthStore((s) => s.hasPermission);
-  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
-  const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
+  const { userId, email, userName, hasPermission, hasAnyPermission, hasAllPermissions } = useAuthStore();
 
   const toggleSubmenu = (menu: string) => {
     if (!isSidebarOpen && !isMobile) {
@@ -210,7 +210,7 @@ export default function Layout() {
                 {(hasPermission(Permissions?.products?.add) || hasPermission(Permissions?.products?.addDirect) || hasPermission(Permissions?.products?.addVariant) || hasPermission(Permissions?.products?.addReady) || hasPermission(Permissions?.products?.addRaw)) && <SubmenuItem label={t("add_product")} icon={PlusCircle} path="/products/create" />}
                 {/* <SubmenuItem label={t("print_barcode")} icon={Tag} path="/products/barcode" /> */}
                 {hasAnyPermission([Permissions?.stockInventory?.view, Permissions?.stockInventory?.all]) && <SubmenuItem label={t("quantity_adjustments")} icon={SlidersHorizontal} path="/products/quantity-adjustments" />}
-                {hasAnyPermission([Permissions?.productCategories?.view, Permissions?.productCategories?.view]) && <SubmenuItem label={t("groups")} icon={Folder} path="/products/groups" />}
+                {hasAnyPermission([Permissions?.productCategories?.view, Permissions?.productCategories?.all]) && <SubmenuItem label={t("groups")} icon={Folder} path="/products/groups" />}
                 {(hasPermission(Permissions?.units?.all) || hasPermission(Permissions?.units?.view)) && <SubmenuItem label={t("units")} icon={Wrench} path="/products/units" />}
                 {hasAnyPermission([Permissions?.additions?.view, Permissions?.additions?.all]) && <SubmenuItem label={t("additions")} icon={Folder} path="/products/additions" />}
               </motion.div>
@@ -594,7 +594,7 @@ export default function Layout() {
                 <img src="https://picsum.photos/seed/avatar/100/100" alt="User" className="w-8 h-8 rounded-full border border-[var(--border)]" />
                 <div className="hidden md:block text-right">
                   <p className="text-sm font-medium text-[var(--text-main)]">{t("admin")}</p>
-                  <p className="text-xs text-[var(--text-muted)]">Admin</p>
+                  <p className="text-xs text-[var(--text-muted)]">{userName}</p>
                 </div>
                 <ChevronDown size={16} className="text-[var(--text-muted)]" />
               </button>
@@ -602,7 +602,13 @@ export default function Layout() {
               <AnimatePresence>
                 {activeDropdown === "user" && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className={cn("absolute mt-2 w-48 bg-[var(--bg-card)] rounded-lg shadow-lg border border-[var(--border)] py-1 z-50", direction === "rtl" ? "left-0" : "right-0")}>
-                    <button className="w-full text-right px-4 py-2 text-sm text-[var(--text-main)] hover:bg-[var(--bg-main)] flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setIsChangePasswordOpen(true);
+                        closeAllMenus();
+                      }}
+                      className="w-full text-right px-4 py-2 text-sm text-[var(--text-main)] hover:bg-[var(--bg-main)] flex items-center gap-2"
+                    >
                       <Users size={16} />
                       تغير كلمة المرور
                     </button>
@@ -636,6 +642,7 @@ export default function Layout() {
       </div>
 
       <LogoModal isOpen={isLogoModalOpen} onClose={() => setIsLogoModalOpen(false)} />
+      <ChangePasswordDialog isOpen={isChangePasswordOpen} onClose={() => setIsChangePasswordOpen(false)} />
     </div>
   );
 }
