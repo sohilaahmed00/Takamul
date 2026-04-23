@@ -64,7 +64,7 @@ export default function UsersList() {
         </CardHeader>
         <CardContent>
           <DataTable
-            value={users?.data}
+            value={users?.items}
             lazy
             paginator
             rows={entriesPerPage}
@@ -75,7 +75,7 @@ export default function UsersList() {
               setCurrentPage(e.page + 1);
               setEntriesPerPage(e.rows);
             }}
-            loading={!users?.data}
+            loading={!users?.items}
             header={header}
             responsiveLayout="stack"
             className="custom-green-table custom-compact-table"

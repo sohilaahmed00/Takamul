@@ -26,12 +26,12 @@ interface TableCardProps {
 
 export function TableCard({ table, selected, onClick }: TableCardProps) {
   return (
-    <div
-      onClick={onClick}
-      className={`bg-card rounded-xl overflow-hidden transition-all border h-fit
-        ${selected ? "border-primary border-2 cursor-pointer" : "border-border hover:border-primary/30 cursor-pointer"}`}
-    >
-      <div className="p-3 flex items-center justify-center">
+ <div
+  onClick={onClick}
+  className={`bg-card rounded-xl overflow-hidden transition-all border
+    ${selected ? "border-primary border-2 cursor-pointer" : "border-border hover:border-primary/30 cursor-pointer"}`}
+>
+        <div className="p-3 flex items-center justify-center h-[180px]">
         <svg viewBox="0 0 260 210" xmlns="http://www.w3.org/2000/svg" className="w-full max-w-[220px]" style={{ overflow: "visible" }}>
           {/* Table surface */}
           <rect x="65" y="58" width="130" height="90" rx="12" style={{ fill: "var(--bg-card)", stroke: "var(--border)" }} strokeWidth="1.5" />
@@ -120,7 +120,7 @@ export default function TablesPage() {
         </Tabs>
       </div>
       {/* Table grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 px-4 mt-4 flex-1 overflow-y-auto pb-4">{filtered.length === 0 ? <div className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-5 flex items-center justify-center text-muted-foreground text-sm py-12">{t("no_tables_found")}</div> : filtered?.map((t) => <TableCard key={t.id} table={t} selected={selectedTable === t.id} onClick={() => setSelectedTable(selectedTable === t.id ? null : t.id)} />)}</div> {/* Footer */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 px-4 mt-4 flex-1 overflow-y-auto pb-4">{filtered.length === 0 ? <div className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-5 flex items-center justify-center text-muted-foreground text-sm py-12">{t("no_tables_found")}</div> : filtered?.map((table) => <TableCard key={table.id} table={table} selected={selectedTable === table.id} onClick={() => setSelectedTable(selectedTable === table.id ? null : table.id)} />)}</div>{" "}
       <div className="bg-background border-t border-border px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
           {(

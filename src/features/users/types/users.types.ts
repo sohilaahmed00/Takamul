@@ -38,5 +38,5 @@ export type UpdateUser = {
 };
 
 export interface GetAllUsersResponse extends PaginationMeta {
-  data: User[];
+  items: User[];
 }
