@@ -32,10 +32,8 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     const cleanedBranchInfo = clean(branchInfo);
     const cleanedData = clean(data);
 
-  
-
     if (!cleanedBranchInfo) {
-      console.warn("branchInfo is not loaded yet!");
+      console.warn("error");
       return;
     }
 
