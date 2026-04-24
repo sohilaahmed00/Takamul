@@ -19,9 +19,9 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import z from "zod/v3";
 import { calcVat } from "@/utils/calcVat";
 import { useGetAllEmployees } from "@/features/employees/hooks/useGetAllEmployees";
+import z from "zod";
 
 const SalesInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -46,12 +46,12 @@ const SalesInvoiceSchema = (t: (key: string) => string) =>
       .array(
         z.object({
           amount: z.number().min(0),
-          treasuryId: z.number({ required_error: t("choose_payment_method") }).min(1, t("choose_payment_method")),
+          treasuryId: z.number().min(1, t("choose_payment_method")),
         }),
       )
       .min(1, t("must_add_at_least_one_payment")),
     invoiceDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
-    invoiceDiscountValue: z.number().min(0).default(0),
+    invoiceDiscountValue: z.number().min(0).optional(),
   });
 
 type SalesInvoiceType = z.input<ReturnType<typeof SalesInvoiceSchema>>;

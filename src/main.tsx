@@ -39,77 +39,75 @@ import "primeicons/primeicons.css";
 import { DirectionProvider } from "@/components/ui/direction";
 import { ProductsProvider } from "./context/ProductsContext.tsx";
 import { PosProvider } from "./context/PosContext.tsx";
-import { AuthProvider } from "./providers/AuthProvider.tsx";
 import { TooltipProvider } from "./components/ui/tooltip.tsx";
+import { initAuth } from "./lib/initAuth.ts";
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <DirectionProvider dir="rtl" direction="rtl">
-      <QueryProvider>
-        <BrowserRouter>
-          <ThemeProvider>
-            <SettingsProvider>
-              <LanguageProvider>
-                <PosProvider>
-                  <AdjustmentsProvider>
-                    <ExpensesProvider>
-                      <SalesProvider>
-                        <PurchasesProvider>
-                          <ExpenseCategoriesProvider>
-                            <QuotesProvider>
-                              <UsersProvider>
-                                <BanksProvider>
-                                  <TransfersProvider>
-                                    <PromotionsProvider>
-                                      <PaymentCompaniesProvider>
-                                        <PaymentMethodsProvider>
-                                          <LogoProvider>
-                                            <CurrenciesProvider>
-                                              <CustomerGroupsProvider>
-                                                <UserGroupsProvider>
-                                                  <CategoriesProvider>
-                                                    <DeliveryCompaniesProvider>
-                                                      <DelegatesProvider>
-                                                        <TablesProvider>
-                                                          <AdditionsProvider>
-                                                            <WarehousesProvider>
-                                                              <PriceGroupsProvider>
-                                                                <AuthProvider>
+initAuth().then(() => {
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <DirectionProvider dir="rtl" direction="rtl">
+        <QueryProvider>
+          <BrowserRouter>
+            <ThemeProvider>
+              <SettingsProvider>
+                <LanguageProvider>
+                  <PosProvider>
+                    <AdjustmentsProvider>
+                      <ExpensesProvider>
+                        <SalesProvider>
+                          <PurchasesProvider>
+                            <ExpenseCategoriesProvider>
+                              <QuotesProvider>
+                                <UsersProvider>
+                                  <BanksProvider>
+                                    <TransfersProvider>
+                                      <PromotionsProvider>
+                                        <PaymentCompaniesProvider>
+                                          <PaymentMethodsProvider>
+                                            <LogoProvider>
+                                              <CurrenciesProvider>
+                                                <CustomerGroupsProvider>
+                                                  <UserGroupsProvider>
+                                                    <CategoriesProvider>
+                                                      <DeliveryCompaniesProvider>
+                                                        <DelegatesProvider>
+                                                          <TablesProvider>
+                                                            <AdditionsProvider>
+                                                              <WarehousesProvider>
+                                                                <PriceGroupsProvider>
                                                                   <TooltipProvider>
-
-                                                                  <App />
+                                                                    <App />
                                                                   </TooltipProvider>
-                                                                </AuthProvider>
-                                                              </PriceGroupsProvider>
-                                                            </WarehousesProvider>
-                                                          </AdditionsProvider>
-                                                        </TablesProvider>
-                                                      </DelegatesProvider>
-                                                    </DeliveryCompaniesProvider>
-                                                  </CategoriesProvider>
-                                                </UserGroupsProvider>
-                                              </CustomerGroupsProvider>
-                                            </CurrenciesProvider>
-                                          </LogoProvider>
-                                        </PaymentMethodsProvider>
-                                      </PaymentCompaniesProvider>
-                                    </PromotionsProvider>
-                                  </TransfersProvider>
-                                </BanksProvider>
-                              </UsersProvider>
-                            </QuotesProvider>
-                          </ExpenseCategoriesProvider>
-                        </PurchasesProvider>
-                      </SalesProvider>
-                    </ExpensesProvider>
-                  </AdjustmentsProvider>
-                </PosProvider>
-
-              </LanguageProvider>
-            </SettingsProvider>
-          </ThemeProvider>
-        </BrowserRouter>
-      </QueryProvider>
-    </DirectionProvider>
-  </StrictMode>,
-);
+                                                                </PriceGroupsProvider>
+                                                              </WarehousesProvider>
+                                                            </AdditionsProvider>
+                                                          </TablesProvider>
+                                                        </DelegatesProvider>
+                                                      </DeliveryCompaniesProvider>
+                                                    </CategoriesProvider>
+                                                  </UserGroupsProvider>
+                                                </CustomerGroupsProvider>
+                                              </CurrenciesProvider>
+                                            </LogoProvider>
+                                          </PaymentMethodsProvider>
+                                        </PaymentCompaniesProvider>
+                                      </PromotionsProvider>
+                                    </TransfersProvider>
+                                  </BanksProvider>
+                                </UsersProvider>
+                              </QuotesProvider>
+                            </ExpenseCategoriesProvider>
+                          </PurchasesProvider>
+                        </SalesProvider>
+                      </ExpensesProvider>
+                    </AdjustmentsProvider>
+                  </PosProvider>
+                </LanguageProvider>
+              </SettingsProvider>
+            </ThemeProvider>
+          </BrowserRouter>
+        </QueryProvider>
+      </DirectionProvider>
+    </StrictMode>,
+  );
+});

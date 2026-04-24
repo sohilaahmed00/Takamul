@@ -455,7 +455,7 @@ export default function CartPanel() {
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 px-2 text-xs gap-1.5">
+                <Button variant="ghost" size="sm" className=" text-xs gap-1.5">
                   <Globe className="h-3.5 w-3.5" />
                   {language.toUpperCase()}
                 </Button>
@@ -469,9 +469,8 @@ export default function CartPanel() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 px-2 text-xs gap-1.5">
+                <Button variant="ghost" size="sm" className="  text-xs gap-1.5">
                   <ThemeIcon theme={theme} />
-                  {themeLabels[theme] || t("theme")}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align={direction === "rtl" ? "start" : "end"}>
