@@ -701,19 +701,19 @@ export default function AddProduct() {
                       )}
                     />
                     {productType !== "Prepared" && (
-                    <div className="col-span-2">
+                      <div className="col-span-2">
                         <Controller
-                        name="MinStockLevel"
-                        control={control}
-                        render={({ field, fieldState }) => (
-                          <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel className="gap-x-0">الحد الأدنى للمخزون</FieldLabel>
-                            <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} placeholder="ادخل الحد الادنى للمخزون" />
-                            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-                          </Field>
-                        )}
-                      />
-                    </div>
+                          name="MinStockLevel"
+                          control={control}
+                          render={({ field, fieldState }) => (
+                            <Field data-invalid={fieldState.invalid}>
+                              <FieldLabel className="gap-x-0">الحد الأدنى للمخزون</FieldLabel>
+                              <Input {...field} value={field.value ?? ""} onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))} placeholder="ادخل الحد الادنى للمخزون" />
+                              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                            </Field>
+                          )}
+                        />
+                      </div>
                     )}
 
                     <Controller
@@ -728,7 +728,7 @@ export default function AddProduct() {
                             <SelectTrigger className="w-full">
                               <SelectValue placeholder="اختر الضريبة" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent side="bottom">
                               <SelectGroup>
                                 {taxesData?.map((c) => (
                                   <SelectItem key={c.id} value={String(c.id)}>

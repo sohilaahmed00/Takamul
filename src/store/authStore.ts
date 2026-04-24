@@ -26,7 +26,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   userId: null,
   email: null,
   userName: null,
-  setAuth: (token, expiresAt, permissions, userId, email, userName) =>
+  setAuth: (token, expiresAt, permissions, userId, email, userName) => {
+    console.log("setAuth called:", { userId, email, userName });
     set({
       accessToken: token,
       expiresAt,
@@ -35,13 +36,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       email,
       userName,
       isInitialized: true,
-    }),
+    });
+  },
 
   clearAuth: () =>
     set({
       accessToken: null,
       expiresAt: null,
       permissions: [],
+      userId: null,
+      email: null,
+      userName: null,
     }),
 
   setInitialized: (v: boolean) => set({ isInitialized: v }),

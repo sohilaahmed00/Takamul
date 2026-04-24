@@ -33,7 +33,6 @@ interface ChangePasswordDialogProps {
 export default function ChangePasswordDialog({ isOpen, onClose }: ChangePasswordDialogProps) {
   const { mutateAsync: updateUser, isPending } = useUpdateUser();
   const { userId, userName, email } = useAuthStore();
-  console.log(userId);
   const { control, handleSubmit, reset } = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(ChangePasswordSchema),
     defaultValues: { newPassword: "", confirmPassword: "" },

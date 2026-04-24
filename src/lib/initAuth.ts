@@ -8,11 +8,10 @@ export const initAuth = async (): Promise<void> => {
   try {
     const data = await refreshToken();
     const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
+    console.log("decoded token:", decoded);
 
     useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username);
   } catch {
     useAuthStore.getState().clearAuth();
-  } finally {
-    useAuthStore.getState().setInitialized(true);
   }
 };

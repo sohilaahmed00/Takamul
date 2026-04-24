@@ -88,7 +88,12 @@ export default function Layout() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const { userId, email, userName, hasPermission, hasAnyPermission, hasAllPermissions } = useAuthStore();
+  const userId = useAuthStore((s) => s.userId);
+  const email = useAuthStore((s) => s.email);
+  const userName = useAuthStore((s) => s.userName);
+  const hasPermission = useAuthStore((s) => s.hasPermission);
+  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
+  const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
 
   const toggleSubmenu = (menu: string) => {
     if (!isSidebarOpen && !isMobile) {
