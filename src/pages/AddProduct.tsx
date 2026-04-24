@@ -252,7 +252,7 @@ export default function AddProduct() {
   }, [taxesData, isEditMode]);
   useEffect(() => {
     if (!isEditMode) {
-      setValue("TaxCalculation", 2);
+      setValue("TaxCalculation", 1);
     }
   }, [isEditMode]);
   // ── Watched values ───────────────────────────────────────────────────────
