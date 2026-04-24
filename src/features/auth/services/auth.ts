@@ -11,6 +11,14 @@ export const refreshToken = async () => {
   const response = await apiClient.post<LoginResponse>("/Auth/refresh-token");
   return response.data;
 };
+export const logout = (data: string) =>
+  httpClient<LoginResponse>("/Auth/logout", {
+    method: "POST",
+    data,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
 export const login = async (credentials: LoginPayload) => {
   const response = await apiClient.post<LoginResponse>("/Auth/login", credentials, {

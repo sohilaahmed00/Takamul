@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { login } from "../services/auth";
+import { login, logout } from "../services/auth";
 import { handleApiSuccess } from "@/lib/handleApiSuccess";
 import useToast from "@/hooks/useToast";
 import { LoginPayload } from "../types/auth.types";
@@ -8,35 +8,17 @@ import { useAuthStore } from "@/store/authStore";
 import { jwtDecode } from "jwt-decode";
 import { AppJwtPayload } from "@/types";
 
-type TokenPayload = {
-  sub: string;
-  name?: string;
-  role?: string;
-  exp: number;
-};
-
-export const useLogin = () => {
+export const useLogout = () => {
   const { notifyError, notifySuccess } = useToast();
-  const setAuth = useAuthStore((s) => s.setAuth);
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: (data: LoginPayload) => login(data),
-
+    mutationFn: (data: string) => logout(data),
     onSuccess: (response) => {
       handleApiSuccess(response, notifySuccess);
-
-      if (!response?.accessToken || !response?.accessTokenExpiration) return;
-
-      const token = response.accessToken;
-
-      const expiresAt = new Date(response.accessTokenExpiration).getTime();
-
-      const decoded = jwtDecode<AppJwtPayload>(token);
-
-      setAuth(token, expiresAt, decoded?.Permission, decoded?.UserId, decoded?.email, decoded?.username);
+      useAuthStore.getState().clearAuth();
+      queryClient.clear();
+      window.location.href = "/";
     },
-
     onError: (error) => handleApiError(error, notifyError),
   });
 };

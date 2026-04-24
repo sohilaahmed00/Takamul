@@ -525,7 +525,7 @@ export default function CartPanel() {
             {orderType === "dine-in" && (
               <Select value={String(selectedTable) ?? ""} onValueChange={(value) => setSelectedTable(Number(value))}>
                 <SelectTrigger className="h-8 text-xs w-28">
-                  <SelectValue placeholder={t("choose_table")} />
+                  <SelectValue placeholder={"اختر الطاولة"} />
                 </SelectTrigger>
                 <SelectContent>
                   {freeTables?.map((t) => (

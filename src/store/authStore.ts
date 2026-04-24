@@ -18,6 +18,8 @@ type AuthState = {
   hasAllPermissions: (permissions: (Permission | undefined)[]) => boolean;
 };
 
+
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   expiresAt: null,
@@ -48,6 +50,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       email: null,
       userName: null,
     }),
+
 
   setInitialized: (v: boolean) => set({ isInitialized: v }),
 

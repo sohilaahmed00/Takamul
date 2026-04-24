@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
 import ChangePasswordDialog from "../modals/Changepassworddialog";
+import { useLogout } from "@/features/auth/hooks/useLogout";
 
 interface SidebarItemProps {
   icon: LucideIcon;
@@ -51,6 +52,7 @@ const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarO
 export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { mutateAsync: logout } = useLogout();
 
   const { theme, setTheme } = useTheme();
   const isDark = theme === "dark";
@@ -91,6 +93,7 @@ export default function Layout() {
   const userId = useAuthStore((s) => s.userId);
   const email = useAuthStore((s) => s.email);
   const userName = useAuthStore((s) => s.userName);
+  const accessToken = useAuthStore((s) => s.accessToken);
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
   const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
@@ -622,9 +625,8 @@ export default function Layout() {
 
                     <button
                       type="button"
-                      onClick={() => {
-                        localStorage.removeItem("takamul_token");
-                        localStorage.removeItem("takamul_refresh_token");
+                      onClick={async () => {
+                        await logout(email);
                         navigate("/");
                         closeAllMenus();
                       }}
