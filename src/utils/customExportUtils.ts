@@ -987,7 +987,6 @@ export const exportToExcel = (data: any[], columns: { header: string; field: str
 // Stock Receipt HTML Template
 // =============================================
 export const getStockReceiptHTML = (order: any, t: any) => {
-  // محاولة البحث عن التاريخ
   let dateVal = order.createdAt || order.date || order.invoiceDate || order.issueDate || order.created_at || order.saleDate;
   if (!dateVal) {
     for (const key in order) {
@@ -1001,14 +1000,14 @@ export const getStockReceiptHTML = (order: any, t: any) => {
   let formattedDate = "-";
   if (dateVal) {
     if (dateVal instanceof Date) {
-      formattedDate = dateVal.toLocaleDateString("ar-SA");
+      formattedDate = dateVal.toLocaleDateString("en-GB"); // ✅ English date
     } else if (typeof dateVal === 'string') {
       const cleanDate = dateVal.split(' ')[0].split('T')[0];
       formattedDate = cleanDate;
       const p = cleanDate.includes('/') ? cleanDate.split('/') : cleanDate.includes('-') ? cleanDate.split('-') : [];
       if (p.length === 3) {
         const d = p[0].length === 4 ? new Date(`${p[0]}-${p[1]}-${p[2]}`) : new Date(`${p[2]}-${p[1]}-${p[0]}`);
-        if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString("ar-SA");
+        if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString("en-GB"); // ✅ English date
       }
     }
   }
@@ -1018,7 +1017,7 @@ export const getStockReceiptHTML = (order: any, t: any) => {
     .map(
       (item: any, idx: number) => `
     <tr>
-      <td style="border-left: 1px solid #e2e8f0; padding: 10px; text-align: right; font-weight: 700;">${item.productName || item.name}</td>
+      <td style="border-left: 1px solid #e2e8f0; padding: 10px; text-align: center; font-weight: 700;">${item.productName || item.name}</td>
       <td style="border-left: 1px solid #e2e8f0; padding: 10px; font-weight: 700;">${item.unitName || "قطعة"}</td>
       <td style="padding: 10px; font-weight: 700;">${item.quantity}</td>
     </tr>
@@ -1037,7 +1036,7 @@ export const getStockReceiptHTML = (order: any, t: any) => {
   <meta charset="UTF-8"/>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    @page { size: A4 portrait; margin: 8mm; }
+    @page { size: A4 portrait; margin: 8mm; margin-top: 0; margin-bottom: 0; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
     body { padding: 5mm; background: #fff; width: 100%; color: #334155; }
     
@@ -1191,10 +1190,10 @@ export const getStockReceiptHTML = (order: any, t: any) => {
 <body>
   <div class="header-grid">
     <div class="header-col">
-      <div class="company-title">${order.branchInfo?.organizationNameAR || t("takamul_data_org", "مؤسسة تكامل البيانات")}</div>
+      <div class="company-title">${order.branchInfo?.name || "-"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("vat_number", "الرقم الضريبي")}</div>
-        <div class="meta-value">${order.branchInfo?.taxNumber || "311296488500003"}</div>
+        <div class="meta-value">${order.branchInfo?.taxNumber || "-"}</div>
         <div class="meta-label-en">VAT No.</div>
       </div>
       <div class="meta-row">
@@ -1205,14 +1204,14 @@ export const getStockReceiptHTML = (order: any, t: any) => {
     </div>
     
     <div class="logo-container">
-      <img src="${window.location.origin}/logo_ar_light.png" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
+      <img src="${order.branchInfo?.imageUrl}" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
     </div>
     
     <div class="header-col">
-      <div class="company-title">${order.branchInfo?.organizationName || "Takamul Albayanat"}</div>
+      <div class="company-title">${order.branchInfo?.nameEN }</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
-        <div class="meta-value">${order.branchInfo?.commercialRegister || order.commercialNo || "5000"}</div>
+        <div class="meta-value">${order.branchInfo?.commercialRegister || order.commercialNo  }</div>
         <div class="meta-label-en">Commercial No.</div>
       </div>
       <div class="meta-row">
@@ -1276,10 +1275,8 @@ export const getStockReceiptHTML = (order: any, t: any) => {
 // Claim Receipt HTML Template
 // =============================================
 export const getClaimReceiptHTML = (order: any, t: any) => {
-  // محاولة البحث عن التاريخ في كل الحقول الممكنة (Scavenger)
   let dateVal = order.createdAt || order.date || order.invoiceDate || order.issueDate || order.created_at || order.saleDate;
 
-  // البحث في كافة الحقول لو الحقول الأساسية فاضية
   if (!dateVal) {
     for (const key in order) {
       if (key.toLowerCase().includes('date') && order[key]) {
@@ -1292,16 +1289,14 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
   let formattedDate = "-";
   if (dateVal) {
     if (dateVal instanceof Date) {
-      formattedDate = dateVal.toLocaleDateString("ar-SA");
+      formattedDate = dateVal.toLocaleDateString("en-GB"); // ✅ English date
     } else if (typeof dateVal === 'string') {
       const cleanDate = dateVal.split(' ')[0].split('T')[0];
-      formattedDate = cleanDate; // Default fallback
-
-      // محاولة التحويل لتنسيق أجمل إذا أمكن
+      formattedDate = cleanDate;
       const p = cleanDate.includes('/') ? cleanDate.split('/') : cleanDate.includes('-') ? cleanDate.split('-') : [];
       if (p.length === 3) {
         const d = p[0].length === 4 ? new Date(`${p[0]}-${p[1]}-${p[2]}`) : new Date(`${p[2]}-${p[1]}-${p[0]}`);
-        if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString("ar-SA");
+        if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString("en-GB"); // ✅ English date
       }
     }
   }
@@ -1315,7 +1310,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
   <meta charset="UTF-8"/>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    @page { size: A4 portrait; margin: 8mm; }
+    @page { size: A4 portrait; margin: 8mm; margin-top: 0; margin-bottom: 0; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
     body { padding: 5mm; background: #fff; width: 100%; color: #334155; }
     
@@ -1386,16 +1381,40 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       border: 1px solid #e2e8f0;
       border-radius: 8px;
       padding: 20px 25px;
-      font-size: 14px;
+      font-size: 12.5px;
       font-weight: 700;
       line-height: 2;
-      text-align: right;
+      text-align: justify;
     }
-    .row { margin-bottom: 5px; }
-    .label { color: #64748b; font-weight: 900; }
+    .row { margin-bottom: 5px; display: flex; align-items: flex-start; gap: 10px; }
+    .label { 
+      color: #64748b; 
+      font-weight: 900; 
+      width: 100px; 
+      display: inline-flex; 
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
     .val { color: #0f172a; font-weight: 800; }
-    .underline { border-bottom: 1.5px solid #cbd5e1; padding: 0 4px; }
-    .blank-line { display: inline-block; border-bottom: 1.5px solid #cbd5e1; width: 120px; height: 10px; margin: 0 4px; vertical-align: bottom; }
+
+    /* ✅ خط ممتد لنهاية السطر */
+    .extend-line {
+      display: inline-block;
+      border-bottom: 1.5px solid #cbd5e1;
+      flex: 1;
+      height: 10px;
+      vertical-align: bottom;
+      margin-right: 4px;
+    }
+
+    /* ✅ سطر كامل يحتوي نص + خط ممتد */
+    .line-with-extend {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      width: 100%;
+      margin-bottom: 6px;
+    }
 
     .signatures {
       margin-top: 40px;
@@ -1411,23 +1430,23 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
 <body>
   <div class="header-grid">
     <div class="header-col">
-      <div class="company-title">${order.branchInfo?.organizationNameAR || t("takamul_data_org", "مؤسسة تكامل البيانات")}</div>
+      <div class="company-title">${order.branchInfo?.name || "-" }</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("vat_number", "الرقم الضريبي")}</div>
-        <div class="meta-value">${order.branchInfo?.taxNumber || "311296488500003"}</div>
+        <div class="meta-value">${order.branchInfo?.taxNumber || "-"}</div>
         <div class="meta-label-en">VAT No.</div>
       </div>
     </div>
     
     <div class="logo-container">
-      <img src="${window.location.origin}/logo_ar_light.png" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
+      <img src="${order.branchInfo?.imageUrl}" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
     </div>
     
     <div class="header-col">
-      <div class="company-title">${order.branchInfo?.organizationName || "Takamul Albayanat"}</div>
+      <div class="company-title">${order.branchInfo?.nameEN || "-"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
-        <div class="meta-value">${order.branchInfo?.commercialRegister || order.commercialNo || "5000"}</div>
+        <div class="meta-value">${order.branchInfo?.commercialRegister ||"-"}</div>
         <div class="meta-label-en">Commercial No.</div>
       </div>
     </div>
@@ -1437,28 +1456,48 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
     <div class="title-badge">${t("financial_claim_letter", "نموذج خطاب مطالبة مالية")}</div>
   </div>
 
+  <div class="date-line" style="text-align: right; padding: 0 25px; margin-bottom: 10px;">
+    <span class="label" style="min-width: auto; color: #334155;">${t("date", "التاريخ")}:</span> <span class="val">${formattedDate}</span>
+  </div>
+
   <div class="letter-body">
-    <div class="row"><span class="label">${t("sender", "المرسل")} :</span> &nbsp;<span class="val">${order.branchInfo?.organizationNameAR || t("takamul_data_org", "مؤسسة تكامل البيانات")}</span></div>
-    <div class="row"><span class="label">${t("recipient", "المستلم")} :</span> &nbsp;<span class="val">${order.customerName || order.customer || t("cash_customer", "عميل نقدي")}</span></div>
-    <div class="row"><span class="label">${t("subject", "الموضوع")} :</span> &nbsp;<span class="val">${t("financial_claim_subject", "مطالبة مالية بسداد مبلغ معين")}</span></div>
+    <div class="row"><span class="label"><span>${t("sender", "المرسل")}</span><span>:</span></span> <span class="val">${order.branchInfo?.name || t("-")}</span></div>
+    <div class="row"><span class="label"><span>${t("recipient", "المستلم")}</span><span>:</span></span> <span class="val">${order.customerName || order.customer || t("-")}</span></div>
+    <div class="row"><span class="label"><span>${t("subject", "الموضوع")}</span><span>:</span></span> <span class="val">${t("financial_claim_subject", "مطالبة مالية بسداد مبلغ معين")}</span></div>
 
     <div style="margin-top:12px;">
-      <span class="val">${t("dear_customer", "السادة")} ${order.customerName || order.customer || t("cash_customer", "عميل نقدي")} ${t("greetings", "تحية طيبة")}</span>
-    </div>
-
-    <div style="margin-top:12px; line-height:2.2;">
-      ${t("claim_text_p1", "نود تذكيركم بأن الفاتورة رقم")} <span class="underline">${orderNo}</span> ${t("issued_on", "الصادرة بتاريخ")} <span class="underline">${formattedDate}</span> ${t("related_to", "والمتعلقة")}
-      <span class="blank-line" style="width:100px;"></span>
-      ${t("claim_text_p2", "بقيمة")} ${amount?.toFixed(2)} ${t("sar", "﷼")} (${tafqeet(amount, "ar")}) ${t("claim_text_p3", "كان من المفترض سدادها بحلول")} <span class="blank-line" style="width:100px;"></span> ${t("claim_text_p4", "وحتى تاريخ هذا الخطاب لم يتم استلام مبلغ الفاتورة.")}
+      <span class="val">${t("dear_customer", "السادة")} ${order.customerName || order.customer || t("-")} ${t("greetings", "تحية طيبة")}</span>
     </div>
 
     <div style="margin-top:12px;">
-      ${t("claim_text_p5", "لذلك نرجو منكم تسديد المبلغ المستحق خلال")} <span class="underline">7</span> ${t("days_from_date", "أيام من تاريخه.وذلك عبر الحساب البنكي المرفق في الفاتورة.")}
+
+      <!-- ✅ السطر الأول: نود تذكيركم ... والمتعلقة + خط لنهاية السطر -->
+      <div class="line-with-extend">
+        <span>${t("claim_text_p1", "نود تذكيركم بأن الفاتورة رقم")} <span class="val">${orderNo}</span> ${t("issued_on", "الصادرة بتاريخ")} <span class="val">${formattedDate}</span> ${t("related_to", "والمتعلقة")}</span>
+        <span class="extend-line"></span>
+      </div>
+
+      <!-- ✅ السطر الثاني: بقيمة ... بحلول + خط لنهاية السطر -->
+      <div class="line-with-extend">
+        <span>${t("claim_text_p2", "بقيمة")} <span class="val">${amount?.toFixed(2)} ${t("sar", "﷼")} (${tafqeet(amount, "ar")})</span> ${t("claim_text_p3", "كان من المفترض سدادها بحلول")}</span>
+        <span class="extend-line"></span>
+      </div>
+
+      <!-- ✅ السطر الثالث: وحتى تاريخ هذا الخطاب -->
+      <div style="margin-top: 4px;">
+        ${t("claim_text_p4", "وحتى تاريخ هذا الخطاب لم يتم استلام مبلغ الفاتورة.")}
+      </div>
+
     </div>
 
-    <div style="margin-top:12px; font-size:14px;">
-      ${t("claim_text_p6", "في حال عدم السداد خلال المهلة المحددة سنضطر آسفين لاتخاذ الإجراءات القانونية اللازمة لتحصيل المستحقات.")}
+    <div style="margin-top:12px;">
+      ${t("claim_text_p5", "لذلك نرجو منكم تسديد المبلغ المستحق خلال")} <span class="val">7</span> ${t("days_from_date", "أيام من تاريخه. وذلك عبر الحساب البنكي المرفق في الفاتورة.")}
     </div>
+
+    <!-- ✅ آخر سطر على سطر واحد -->
+  <div style="margin-top:12px; font-size:12px; white-space: nowrap; overflow: visible;">
+  ${t("claim_text_p6", "في حال عدم السداد خلال المهلة المحددة سنضطر آسفين لاتخاذ الإجراءات القانونية اللازمة لتحصيل المستحقات.")}
+</div>
 
     <div style="margin-top:16px; text-align:center; font-size:16px; font-weight:900;">
       ${t("best_regards", "وتفضلوا بقبول فائق الاحترام.")}

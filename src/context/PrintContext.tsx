@@ -1,8 +1,8 @@
 import React, { createContext, useContext, ReactNode } from 'react';
-import { 
-  printVoucher, 
-  getStockReceiptHTML, 
-  getClaimReceiptHTML 
+import {
+  printVoucher,
+  getStockReceiptHTML,
+  getClaimReceiptHTML
 } from '@/utils/customExportUtils';
 import { getAllCustomers } from '@/features/customers/services/customers';
 import { useLanguage } from './LanguageContext';
@@ -21,11 +21,11 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
 
   const printInvoice = async (data: any, type: 'invoice' | 'stock' | 'claim' = 'invoice') => {
     if (!data?.id) return;
-    
+
     // إثراء البيانات بمعلومات الفرع
-    const extendedData = { 
-      ...data, 
-      branchInfo: branchInfo || null 
+    const extendedData = {
+      ...data,
+      branchInfo: branchInfo || null
     };
 
     // محاولة جلب رقم الجوال لو مش موجود
@@ -35,7 +35,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
         // جلب العميل مباشرة من الـ API بالاسم
         const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
         const customers = response?.items || [];
-        
+
         const normalize = (str: string) => {
           if (!str) return "";
           return str
