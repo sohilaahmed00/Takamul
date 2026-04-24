@@ -4,19 +4,32 @@ export interface Customer {
   id: number;
   customerCode: number;
   customerName: string;
-  phone: string | null;
-  mobile: string | null;
-  address: string;
+
+  phone: string;
+  mobile: string;
+
+  address: string | null;
   buildingNumber: string | null;
   additionalNumber: string | null;
-  commercialRegister: string | null;
-  city: string;
-  state: string;
+
+  city: string | null;
+  cityId: number | null;
+
+  state: string | null;
+  stateId: number | null;
+
+  countryName: string | null;
+  countryId: number | null;
+
   postalCode: string | null;
+
+  commercialRegister: string | null;
   taxNumber: string | null;
-  isActive: boolean;
-  createdAt: string;
+
   balance: number;
+  isActive: boolean;
+
+  createdAt: string;
 }
 export interface createCustomer {
   customerName: string;

@@ -64,6 +64,7 @@ export default function Topbar2() {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
+    numberingSystem: "latn", 
   });
 
   return (
@@ -123,7 +124,7 @@ export default function Topbar2() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-[minmax(0,1fr)_150px_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] gap-3 items-end">
             <div className="flex items-end gap-2">
-              <Button size="icon-lg" variant="outline" className="border-[#000052] text-[#000052] hover:bg-[#000052]/10 dark:border-border dark:text-foreground dark:hover:bg-muted" onClick={() => setOpenDialog(true)}>
+              <Button size="icon-lg" variant="outline" className="border-[#000052] text-[#000052]! bg-white! dark:border-border dark:text-foreground dark:hover:bg-muted" onClick={() => setOpenDialog(true)}>
                 <Plus size={14} />
               </Button>
               <div className="flex flex-col gap-1 flex-1">

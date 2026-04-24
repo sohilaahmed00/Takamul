@@ -34,6 +34,6 @@ export const useBranch = () => {
       const response = await apiClient.get("/Branch/Employeebranch");
       return response.data;
     },
-    staleTime: 1000 * 60 * 60, // 1 hour
+    staleTime: 1000 * 60 * 60,
   });
 };
