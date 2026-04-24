@@ -467,7 +467,7 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
 
 export default function CartPanel2() {
   const { t } = useLanguage();
-  const { cart, setCart, discount, setDiscount, setScreen, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
+  const { cart, setCart, discount, setDiscount, setScreen, setSelectedCustomer, selectedCustomer, orderType, handleConfirmPayment, dineInMode, handleAddItemsToExistingOrder } = usePos();
   const [quotationOpen, setQuotationOpen] = useState(false);
   const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const subRaw = useMemo(() => cart.reduce((s, item) => s + itemBasePriceRaw(item), 0), [cart]);
@@ -533,7 +533,7 @@ export default function CartPanel2() {
       lastKeyTime = now;
 
       if (e.key === "Enter") {
-        if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer); // ✅ بس لو مش معلم
+        if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer);
         buffer = "";
         clearTimeout(timer);
         return;
@@ -548,7 +548,7 @@ export default function CartPanel2() {
 
       clearTimeout(timer);
       timer = setTimeout(() => {
-        if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer); // ✅ بس لو مش معلم
+        if (buffer.length > 2 && !isTyping) handleBarcodeScanned(buffer);
         buffer = "";
       }, 300);
     };
@@ -584,7 +584,7 @@ export default function CartPanel2() {
               <th className="w-[300px] whitespace-nowrap">اسم الصنف</th>
               <th className="whitespace-nowrap">السعر بدون ضريبة</th>
               <th className="whitespace-nowrap">الكمية</th>
-              <th className="whitespace-nowrap">قيمة الخصم</th>
+              {/* <th className="whitespace-nowrap">قيمة الخصم</th> */}
               <th className="whitespace-nowrap">الإجمالي قبل الضريبة</th>
               <th className="whitespace-nowrap">ضريبة القيمة المضافة</th>
               <th className="whitespace-nowrap">الإجمالي النهائي</th>
@@ -630,7 +630,7 @@ export default function CartPanel2() {
               <td className="whitespace-nowrap">--</td>
               <td className="whitespace-nowrap">--</td>
               <td className="whitespace-nowrap">--</td>
-              <td className="whitespace-nowrap">--</td>
+              {/* <td className="whitespace-nowrap">--</td> */}
               <td className="whitespace-nowrap">--</td>
               <td className="whitespace-nowrap">--</td>
               <td className="whitespace-nowrap">-</td>
@@ -668,7 +668,7 @@ export default function CartPanel2() {
                     </div>
                   </td>
 
-                  <td className="whitespace-nowrap">
+                  {/* <td className="whitespace-nowrap">
                     <div className="flex items-center gap-1.5 justify-center">
                       <div className="flex items-center gap-1 text-[10px] font-bold">
                         <span className={`transition-colors ${(item.itemDiscount?.type ?? "flat") === "pct" ? "text-gray-400" : "text-[#000052]"}`}>ر.س</span>
@@ -719,7 +719,7 @@ export default function CartPanel2() {
                         }}
                       />
                     </div>
-                  </td>
+                  </td> */}
                   <td className="whitespace-nowrap font-semibold">{base.toFixed(2)}</td>
                   <td className="whitespace-nowrap">{tax.toFixed(2)}</td>
                   <td className="whitespace-nowrap font-bold">{rowTotal.toFixed(2)}</td>
@@ -825,7 +825,14 @@ export default function CartPanel2() {
             </div>
 
             <div className="flex items-center justify-center border-b border-gray-300 p-2">
-              <button className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-3 py-1 rounded-md h-full w-full">تعليق الفاتورة</button>
+              <button
+                onClick={() => {
+                  handleConfirmPayment({ isHolding: true });
+                }}
+                className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-3 py-1 rounded-md h-full w-full"
+              >
+                تعليق الفاتورة
+              </button>
             </div>
 
             <div className="flex items-center justify-center border-l border-gray-300 p-2">
@@ -851,7 +858,14 @@ export default function CartPanel2() {
         <div className="flex lg:hidden flex-col">
           <div className="grid grid-cols-4 gap-1 p-2 border-b border-gray-300">
             <button className="bg-violet-700 text-white text-[10px] rounded-md py-1.5">عرض أسعار</button>
-            <button className="bg-cyan-600 text-white text-[10px] rounded-md py-1.5">تعليق</button>
+            <button
+              onClick={() => {
+                handleConfirmPayment({ isHolding: true });
+              }}
+              className="bg-cyan-600 text-white text-[10px] rounded-md py-1.5"
+            >
+              تعليق
+            </button>
             <button onClick={() => setInvoicesOpen(true)} className="bg-teal-600 text-white text-[10px] rounded-md py-1.5">
               قائمة
             </button>
@@ -919,74 +933,3 @@ export default function CartPanel2() {
     </>
   );
 }
-
-// {/* Header */}
-// <div className="overflow-x-auto">
-//   <div
-//     className="text-white text-[10px] font-bold px-2 py-2 min-w-[1100px]"
-//     style={{
-//       backgroundColor: "#000052",
-//       display: "grid",
-//       gridTemplateColumns: GRID_COLUMNS_FULL,
-//     }}
-//   >
-//     <span className="whitespace-nowrap">#</span>
-//     <span className="whitespace-nowrap">كود الصنف</span>
-//     <span className="whitespace-nowrap">اسم الصنف</span>
-//     <span className="whitespace-nowrap">السعر بدون ضريبة</span>
-//     <span className="whitespace-nowrap">الكمية</span>
-//     <span className="whitespace-nowrap">نسبة الخصم%</span>
-//     <span className="whitespace-nowrap">قيمة الخصم</span>
-//     <span className="whitespace-nowrap">الإجمالي قبل الضريبة</span>
-//     <span className="whitespace-nowrap">ضريبة القيمة المضافة</span>
-//     <span className="whitespace-nowrap">الإجمالي النهائي</span>
-//     <span className="whitespace-nowrap">موظف الخدمة</span>
-//     <span></span>
-//   </div>
-
-//   {/* Body */}
-//   <div className="flex-1 overflow-y-auto bg-white px-2 min-w-[1100px]">
-//     {/* Search Row */}
-//     <div
-//       className="items-center py-2 border-b border-gray-300 text-[11px] text-gray-400"
-//       style={{
-//         display: "grid",
-//         gridTemplateColumns: GRID_COLUMNS_FULL,
-//       }}
-//     >
-//       <span>{cart.length + 1}</span>
-//       <span>--</span>
-//       <div className="col-span-1">
-//         <ProductSearch onSelect={(product) => { /* ... */ }} />
-//       </div>
-//       <span>--</span>
-//       <span>--</span>
-//       <span>--</span>
-//       <span>--</span>
-//       <span>--</span>
-//       <span>--</span>
-//       <span>--</span>
-//       <span>-</span>
-//       <span></span>
-//     </div>
-
-//     {/* Cart Items */}
-//     {cart.map((item, idx) => {
-//       // ... نفس الحسابات
-//       return (
-//         <div
-//           key={idx}
-//           className={`items-center px-2 py-2 border-b border-gray-100 text-[11px] ${
-//             idx % 2 === 0 ? "bg-white" : "bg-[#f6f9fc]"
-//           }`}
-//           style={{
-//             display: "grid",
-//             gridTemplateColumns: GRID_COLUMNS_FULL,
-//           }}
-//         >
-//           {/* نفس محتوى الـ lg row */}
-//         </div>
-//       );
-//     })}
-//   </div>
-// </div>

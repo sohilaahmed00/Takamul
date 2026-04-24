@@ -56,7 +56,11 @@ export default function Topbar2() {
     }
   };
   const now = new Date();
-  const invoiceDate = now.toLocaleString("ar-EG", {
+  const dateTime = now.toLocaleString("ar-EG", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
@@ -99,7 +103,7 @@ export default function Topbar2() {
               </div>
               <div className="flex flex-col items-center gap-0.5">
                 <span className="text-[10px] text-blue-400">تاريخ الفاتورة</span>
-                <span className="text-[11px] font-semibold text-[#000052] dark:text-foreground">اليوم، {invoiceDate}</span>
+                <span className="text-[11px] font-semibold text-[#000052] dark:text-foreground">اليوم، {dateTime}</span>
               </div>
             </div>
 
