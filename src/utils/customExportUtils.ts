@@ -1211,7 +1211,7 @@ export const getStockReceiptHTML = (order: any, t: any) => {
       <div class="company-title">${order.branchInfo?.nameEN }</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
-        <div class="meta-value">${order.branchInfo?.commercialRegister || order.commercialNo  }</div>
+        <div class="meta-value">${order.branchInfo?.commercialRegister || order.commercialNo || "-"}</div>
         <div class="meta-label-en">Commercial No.</div>
       </div>
       <div class="meta-row">
@@ -1233,12 +1233,12 @@ export const getStockReceiptHTML = (order: any, t: any) => {
     <div class="customer-info-box">
       <div class="info-group">
         <span class="info-label">${t("name", "الاسم")} :</span>
-        <span class="info-val">${order.customerName || order.customer || t("cash_customer", "عميل نقدي")}</span>
+        <span class="info-val">${order.customerName || order.customer}</span>
       </div>
       <div class="v-separator"></div>
       <div class="info-group">
         <span class="info-label">${t("phone", "رقم الجوال")} :</span>
-        <span class="info-val">${order.customerPhone && order.customerPhone !== '-' ? order.customerPhone : "-"}</span>
+        <span class="info-val">${order.customerPhone && order.customerPhone !== '-' && order.customerPhone !== 'string' ? order.customerPhone : "-"}</span>
       </div>
     </div>
   </div>
@@ -1430,7 +1430,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
 <body>
   <div class="header-grid">
     <div class="header-col">
-      <div class="company-title">${order.branchInfo?.name || "-" }</div>
+      <div class="company-title">${order.branchInfo?.name || "-"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("vat_number", "الرقم الضريبي")}</div>
         <div class="meta-value">${order.branchInfo?.taxNumber || "-"}</div>
@@ -1446,7 +1446,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       <div class="company-title">${order.branchInfo?.nameEN || "-"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
-        <div class="meta-value">${order.branchInfo?.commercialRegister ||"-"}</div>
+        <div class="meta-value">${order.branchInfo?.commercialRegister || "-"}</div>
         <div class="meta-label-en">Commercial No.</div>
       </div>
     </div>

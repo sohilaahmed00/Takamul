@@ -22,10 +22,25 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const printInvoice = async (data: any, type: 'invoice' | 'stock' | 'claim' = 'invoice') => {
     if (!data?.id) return;
 
-    // إثراء البيانات بمعلومات الفرع
-    const extendedData = {
-      ...data,
-      branchInfo: branchInfo || null
+    // تنظيف البيانات من القيم النصية غير المرغوب فيها مثل "string" أو "null"
+    const clean = (obj: any) => {
+      if (!obj) return obj;
+      const newObj = { ...obj };
+      Object.keys(newObj).forEach(key => {
+        if (newObj[key] === 'string' || newObj[key] === 'null' || newObj[key] === 'undefined') {
+          newObj[key] = null;
+        }
+      });
+      return newObj;
+    };
+
+    const cleanedBranchInfo = clean(branchInfo);
+    const cleanedData = clean(data);
+
+    console.log("Cleaned Branch Info for print:", cleanedBranchInfo);
+    const extendedData = { 
+      ...cleanedData, 
+      branchInfo: cleanedBranchInfo || cleanedData.branchInfo || null 
     };
 
     // محاولة جلب رقم الجوال لو مش موجود
