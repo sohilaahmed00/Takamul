@@ -103,6 +103,7 @@ export const printVoucher = (htmlString: string) => {
   const doc = iframe.contentWindow?.document || iframe.contentDocument;
   if (!doc) return;
 
+  
   const printCSS = `
     @page { size: A4 portrait; margin: 10mm 10mm; }
     @media print {
