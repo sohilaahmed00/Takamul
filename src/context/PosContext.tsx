@@ -222,13 +222,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    const payments = [
-      {
-        amount: paidAmount,
-        treasuryId: 1,
-        notes: "",
-      },
-    ];
+    const payments = isHolding ? [] : [{ amount: paidAmount, treasuryId: selectedVaultId, notes: "" }];
 
     const items = cart.map((cat) => ({
       productId: cat?.productId,
@@ -259,13 +253,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
           globalDiscountValue: discount.type === "flat" ? discount.value : 0,
           globalDiscountPercentage: discount.type === "pct" ? discount.value : 0,
           giftCardId: selectedGiftCardId,
-          payments: [
-            {
-              amount: paidAmount,
-              treasuryId: selectedVaultId!,
-              notes: "",
-            },
-          ],
+          payments: isHolding ? [] : [{ amount: paidAmount, treasuryId: selectedVaultId!, notes: "" }],
         });
         setDineInMode(null);
       } else if (orderType === "delivery") {
@@ -316,18 +304,13 @@ export function PosProvider({ children }: { children: ReactNode }) {
           invoiceNumber: "5000",
           invoiceDate: formatDate(new Date()),
           customerName: selectedCustomer?.customerName,
-          items: cart.map((c) => ({
-            productName: c.name,
-            quantity: c.qty,
-          })),
+          items: cart.map((c) => ({ productName: c.name, quantity: c.qty })),
         };
 
         await printInvoice(invoiceData);
         if (printKitchenBon && orderType !== "dine-in") {
           await printPreparationBon(sampleBon);
         }
-
-        // setSuccessInfo({ method, amount });
       }
 
       setCart([]);

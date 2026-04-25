@@ -307,7 +307,7 @@ export default function Sidebar() {
                 return;
               }
               if (isNav) {
-                navigate("/"); // ← غير المسار حسب اللي عندك
+                navigate("/dashboard");
                 return;
               }
               setScreen(id as Screen);

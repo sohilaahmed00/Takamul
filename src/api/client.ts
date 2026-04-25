@@ -21,12 +21,9 @@ apiClient.interceptors.request.use((config) => {
 const refreshAuthLogic = async (failedRequest: any) => {
   const data = await refreshToken();
   const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
-
   useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username);
-
   failedRequest.response.config.headers.Authorization = `Bearer ${data.accessToken}`;
+  return Promise.resolve();
 };
 
-createAuthRefresh(apiClient, refreshAuthLogic, {
-  statusCodes: [401],
-});
+createAuthRefresh(apiClient, refreshAuthLogic);
