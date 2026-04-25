@@ -6,6 +6,7 @@ import { useGetAllMainCategories } from "@/features/categories/hooks/useGetAllMa
 import { Product, ProductBranch } from "@/features/products/types/products.types";
 import { useGetProductBranchedById } from "@/features/products/hooks/useGetProductBranchedById";
 import { ChevronLeft, ChevronRight, SaudiRiyal } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 export default function HomePage() {
   const { language, t } = useLanguage();
@@ -211,7 +212,6 @@ export default function HomePage() {
           </button>
         </div>
       </div>
-
       {/* Menu grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 p-3 py-2.5">
         {filteredProducts?.map((item, i) => (
@@ -225,42 +225,43 @@ export default function HomePage() {
           </div>
         ))}
       </div>
-
       {/* Children variant modal */}
-      {childrenModal && (
-        <div className="absolute inset-0 bg-black/35 flex items-center justify-center z-50 rounded-xl">
-          <div className="bg-card rounded-2xl p-5 w-72 border border-border">
-            <div className="text-sm font-black text-foreground mb-4">{modalTitle}</div>
-            <div className="space-y-2">
-              {childrenModal.map((child: ProductBranch["children"][number] | any, i: number) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    const pro = {
-                      id: child?.id,
-                      productNameAr: child?.productNameAr,
-                      sellingPrice: child?.sellingPrice,
-                      taxAmount: 0,
-                      taxCalculation: 1,
-                      productNameEn: child?.productNameEn,
-                      productNameUr: child?.productNameUr,
-                    };
-                    addToCart(pro);
-                    setChildrenModal(null);
-                  }}
-                  className="w-full flex justify-between items-center px-3 py-2.5 border border-border rounded-lg hover:border-primary/40 hover:bg-primary/5 transition-colors"
-                >
-                  <span className="text-sm font-semibold text-foreground">{getProductName(child)}</span>
-                  <span className="text-sm font-bold text-primary">${child.sellingPrice}.00</span>
-                </button>
-              ))}
-            </div>
-            <button onClick={() => setChildrenModal(null)} className="w-full mt-3 py-2 text-xs text-muted-foreground hover:text-foreground">
+      <Dialog open={!!childrenModal} onOpenChange={(open) => !open && setChildrenModal(null)}>
+        <DialogContent className="w-80 rounded-2xl p-0 overflow-hidden">
+          <DialogHeader className="px-5 pt-5 pb-3 border-b border-border">
+            <DialogTitle className="text-sm font-black text-foreground">{modalTitle}</DialogTitle>
+          </DialogHeader>
+
+          <div className="px-4 py-3 space-y-2 max-h-80 overflow-y-auto">
+            {childrenModal?.map((child: any, i: number) => (
+              <button
+                key={i}
+                onClick={() => {
+                  addToCart({
+                    id: child?.id,
+                    productNameAr: child?.productNameAr,
+                    sellingPrice: child?.sellingPrice,
+                    taxAmount: 0,
+                    taxCalculation: 1,
+                    productNameEn: child?.productNameEn,
+                    productNameUr: child?.productNameUr,
+                  });
+                }}
+                className="w-full flex justify-between items-center px-3 py-2.5 border border-border rounded-xl hover:border-primary/50 hover:bg-primary/5 active:scale-[0.98] transition-all duration-150"
+              >
+                <span className="text-sm font-semibold text-foreground">{getProductName(child)}</span>
+                <span className="text-sm font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md">{child.sellingPrice}.00</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="px-4 pb-4 pt-2">
+            <button onClick={() => setChildrenModal(null)} className="w-full py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors">
               {t("cancel") || "إلغاء"}
             </button>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

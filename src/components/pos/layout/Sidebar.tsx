@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import formatDate from "@/lib/formatDate";
 import { useGetAllSales } from "@/features/sales/hooks/useGetAllSales";
 import { InvoiceData, printInvoice } from "../orders/printInvoice";
+import { useNavigate } from "react-router-dom";
 
 interface OrdersDialogProps {
   open: boolean;
@@ -286,7 +287,7 @@ export default function Sidebar() {
   const { screen, setScreen } = usePos();
   const [open, setOpen] = useState(false);
   const { t } = useLanguage();
-
+  const navigate = useNavigate();
   return (
     <>
       <div
@@ -297,12 +298,16 @@ export default function Sidebar() {
       >
         {" "}
         <div className="flex-1" />
-        {NAV_ITEMS.map(({ id, icon: Icon, label }) => (
+        {NAV_ITEMS.map(({ id, icon: Icon, label, isNav }) => (
           <button
             key={id}
             onClick={() => {
               if (id === "orders") {
                 setOpen(true);
+                return;
+              }
+              if (isNav) {
+                navigate("/"); // ← غير المسار حسب اللي عندك
                 return;
               }
               setScreen(id as Screen);

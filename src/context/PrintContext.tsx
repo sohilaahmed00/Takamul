@@ -1,20 +1,25 @@
-import React, { createContext, useContext, ReactNode } from "react";
-import { printVoucher, getStockReceiptHTML, getClaimReceiptHTML } from "@/utils/customExportUtils";
-import { getAllCustomers, getCustomerById } from "@/features/customers/services/customers";
-import { useLanguage } from "./LanguageContext";
-import { useBranch } from "@/hooks/useBranch";
+import React, { createContext, useContext, ReactNode } from 'react';
+import {
+  printVoucher,
+  getStockReceiptHTML,
+  getClaimReceiptHTML
+} from '@/utils/customExportUtils';
+import { getAllCustomers } from '@/features/customers/services/customers';
+import { useLanguage } from './LanguageContext';
 
 interface PrintContextType {
-  printInvoice: (data: any, type?: "invoice" | "stock" | "claim") => Promise<void>;
+  printInvoice: (data: any, type?: 'invoice' | 'stock' | 'claim') => Promise<void>;
 }
 
 const PrintContext = createContext<PrintContextType>({} as PrintContextType);
+
+import { useBranch } from '@/hooks/useBranch';
 
 export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useLanguage();
   const { data: branchInfo } = useBranch();
 
-  const printInvoice = async (data: any, type: "invoice" | "stock" | "claim" = "invoice") => {
+  const printInvoice = async (data: any, type: 'invoice' | 'stock' | 'claim' = 'invoice') => {
     if (!data?.id) return;
 
     const clean = (obj: any) => {
@@ -37,80 +42,69 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const extendedData = {
-      ...cleanedData,
-      branchInfo: cleanedBranchInfo || cleanedData.branchInfo || null,
+      ...data,
+      branchInfo: branchInfo || null
     };
 
+    // محاولة جلب رقم الجوال لو مش موجود
     const rawName = (data.customerName || data.customer || "").toString().trim();
     const customerId = data.customerId;
 
     if (!extendedData.customerPhone) {
       try {
-        let foundCustomer: any = null;
+        // جلب العميل مباشرة من الـ API بالاسم
+        const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
+        const customers = response?.items || [];
 
-        if (customerId) {
-          // ✅ httpClient بيرجع البيانات مباشرة بدون .data
-          foundCustomer = await getCustomerById(customerId);
-        } else if (rawName) {
-          const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
-          const customers = response?.items || [];
+        const normalize = (str: string) => {
+          if (!str) return "";
+          return str
+            .replace(/[أإآا]/g, "ا")
+            .replace(/[ىي]/g, "ي")
+            .replace(/[ةه]/g, "ه")
+            .replace(/\s+/g, "")
+            .replace(/[\u064B-\u0652]/g, "")
+            .toLowerCase();
+        };
 
-          const normalize = (str: string) => {
-            if (!str) return "";
-            return str
-              .replace(/[أإآا]/g, "ا")
-              .replace(/[ىي]/g, "ي")
-              .replace(/[ةه]/g, "ه")
-              .replace(/\s+/g, "")
-              .replace(/[\u064B-\u0652]/g, "")
-              .toLowerCase();
-          };
+        const searchTerm = normalize(rawName);
+        const found = customers.find(c => {
+          const cName = normalize(c.customerName || "");
+          return cName === searchTerm || cName.includes(searchTerm) || searchTerm.includes(cName);
+        });
 
-          const searchTerm = normalize(rawName);
-          foundCustomer = customers.find((c: any) => {
-            const cName = normalize(c.customerName || "");
-            return cName === searchTerm || cName.includes(searchTerm) || searchTerm.includes(cName);
-          });
-        }
-
-        if (foundCustomer) {
-          // ✅ Customer type عندها mobile و phone
-          const phoneVal = foundCustomer.mobile || foundCustomer.phone || "";
-          extendedData.customerPhone = phoneVal;
-          extendedData.mobile = phoneVal;
-          extendedData.phone = phoneVal;
-        } else if (
-          rawName &&
-          (rawName.includes("افتراضي") || rawName.includes("نقدي") || rawName.includes("عام"))
-        ) {
-          const defaultPhone = "056225332";
-          extendedData.customerPhone = defaultPhone;
-          extendedData.mobile = defaultPhone;
-          extendedData.phone = defaultPhone;
+        if (found) {
+          extendedData.customerPhone = found.mobile || found.phone || "";
+        } else if (searchTerm.includes("افتراضي") || searchTerm.includes("نقدي") || searchTerm.includes("عام")) {
+          extendedData.customerPhone = "056225332";
         }
       } catch (err) {
         console.error("Error fetching customer for print:", err);
       }
     }
 
-    let html = "";
+    let html = '';
     switch (type) {
-      case "stock":
+      case 'stock':
         html = getStockReceiptHTML(extendedData, t);
         printVoucher(html);
         break;
-      case "claim":
+      case 'claim':
         html = getClaimReceiptHTML(extendedData, t);
         printVoucher(html);
         break;
-      case "invoice":
+      case 'invoice':
       default:
-        window.open(`/sales/invoice/${extendedData.id}`, "_blank");
+        window.open(`/sales/invoice/${extendedData.id}`, '_blank');
         break;
     }
   };
 
-  return <PrintContext.Provider value={{ printInvoice }}>{children}</PrintContext.Provider>;
+  return (
+    <PrintContext.Provider value={{ printInvoice }}>
+      {children}
+    </PrintContext.Provider>
+  );
 };
 
 export const usePrint = () => useContext(PrintContext);
