@@ -433,12 +433,7 @@ export default function CartPanel() {
         <div className="px-3  border-b border-border flex items-center justify-between  py-3 shrink-0">
           <div className="flex items-center gap-4 ">
             {/* Home */}
-            <button onClick={() => navigate("/dashboard")} className="text-gray-400 hover:text-gray-600 transition-colors">
-              <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5Z" />
-                <path d="M9 21V12h6v9" />
-              </svg>
-            </button>
+          
 
             {/* Network */}
             <div className="flex items-center gap-1">
@@ -473,7 +468,7 @@ export default function CartPanel() {
                   <ThemeIcon theme={theme} />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align={direction === "rtl" ? "start" : "end"}>
+              <DropdownMenuContent className="w-40" align={direction === "rtl" ? "start" : "end"}>
                 <DropdownMenuItem onClick={() => setTheme("light")}>
                   <Sun className="h-3.5 w-3.5 mr-2" />
                   {t("light_mode")}
@@ -504,6 +499,10 @@ export default function CartPanel() {
             </DropdownMenu>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+             <Button size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 dark:bg-muted dark:text-foreground dark:hover:bg-muted/70 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
+                <Pause className="w-3 h-3" />
+                غلق الوردية
+              </Button>
             <Select
               value={orderType}
               onValueChange={(val: OrderType) => {
@@ -523,10 +522,11 @@ export default function CartPanel() {
             </Select>
 
             {orderType === "dine-in" && (
-              <Select value={String(selectedTable) ?? ""} onValueChange={(value) => setSelectedTable(Number(value))}>
+              <Select value={selectedTable ? String(selectedTable) : ""} onValueChange={(value) => setSelectedTable(Number(value))}>
                 <SelectTrigger className="h-8 text-xs w-28">
                   <SelectValue placeholder={"اختر الطاولة"} />
                 </SelectTrigger>
+
                 <SelectContent>
                   {freeTables?.map((t) => (
                     <SelectItem key={t.id} value={String(t.id)}>

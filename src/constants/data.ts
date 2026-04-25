@@ -1,12 +1,11 @@
 // ─── NAVIGATION ──────────────────────────────────────────────────────────────
-import { Home, LayoutGrid, ClipboardList } from "lucide-react";
+import { Home, LayoutGrid, ClipboardList, ShoppingCart, Store } from "lucide-react";
 
 export const NAV_ITEMS = [
-  { id: "home", icon: Home, label: "Home" },
+  { id: "main-home", icon: Home, label: "Home", isNav: true },
+  { id: "home", icon: ShoppingCart, label: "Sales" },
   { id: "tables", icon: LayoutGrid, label: "Tables" },
   { id: "orders", icon: ClipboardList, label: "Orders" },
-  //   { id: "reports", icon: BarChart2, label: "Reports" },
-  //   { id: "settings", icon: Settings, label: "Settings" },
 ];
 
 // ─── MENU DATA ────────────────────────────────────────────────────────────────
