@@ -47,7 +47,7 @@ const mockSales: SaleRecord[] = [
 
 export default function POSSales() {
   const { t, direction } = useLanguage();
-  const { printInvoice } = usePrint();
+  const { printInvoice, exportPDF, exportExcel, exportCSV } = usePrint();
   const navigate = useNavigate();
 
   // الحماية من الـ Context الفارغ
@@ -372,7 +372,7 @@ export default function POSSales() {
                                 }}
                                 className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
                               >
-                                <FileText size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تفاصيل فاتورة المبيعات</span>
+                                <FileText size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">طباعة الفاتورة</span>
                               </button>
                               {/* 2 */}
                               <button
@@ -450,7 +450,7 @@ export default function POSSales() {
                               {/* 9 */}
                               <button
                                 onClick={() => {
-                                  alert("جاري تحميل الفاتورة PDF");
+                                  exportPDF(sale);
                                   setActiveActionMenu(null);
                                 }}
                                 className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
@@ -460,7 +460,7 @@ export default function POSSales() {
                               {/* 10 */}
                               <button
                                 onClick={() => {
-                                  alert("جاري تصدير الفاتورة Excel");
+                                  exportExcel(sale);
                                   setActiveActionMenu(null);
                                 }}
                                 className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
@@ -470,7 +470,7 @@ export default function POSSales() {
                               {/* 11 */}
                               <button
                                 onClick={() => {
-                                  alert("جاري تصدير الفاتورة CSV");
+                                  exportCSV(sale);
                                   setActiveActionMenu(null);
                                 }}
                                 className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
@@ -508,15 +508,6 @@ export default function POSSales() {
                                 <FileMinus size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">سند فسخ</span>
                               </button>
                               {/* 15 */}
-                              <button
-                                onClick={() => {
-                                  alert("نافذة تعديل المندوب");
-                                  setActiveActionMenu(null);
-                                }}
-                                className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
-                              >
-                                <UserCog size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تعديل المندوب / الموظف</span>
-                              </button>
                               <div className="h-px bg-gray-100 my-1 mx-4" />
                               {/* 16 */}
                               <button

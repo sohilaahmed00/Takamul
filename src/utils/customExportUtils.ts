@@ -22,10 +22,11 @@ export const exportCustomPDF = async (title: string, htmlString: string, orienta
 
   await new Promise<void>((resolve) => {
     iframe.onload = () => resolve();
-    iframe.srcdoc = htmlString;
+    iframe.srcdoc = injectPrintCSS(htmlString);
   });
 
   await iframe.contentDocument?.fonts.ready;
+  await waitForImages(iframe.contentDocument!);
   await new Promise((r) => setTimeout(r, 500));
 
   const iframeBody = iframe.contentDocument!.body;
@@ -78,13 +79,13 @@ export const exportCustomPDF = async (title: string, htmlString: string, orienta
 // Print Voucher - سند قبض / صرف (ورقة واحدة A4)
 // =============================================
 const PRINT_CSS = `
-  @page { size: A4 portrait; margin: 10mm; }
+  @page { size: A4 portrait; margin: 0 !important; }
   @media print {
     html, body {
       width: 100% !important;
       max-width: 100% !important;
       margin: 0 !important;
-      padding: 0 5mm !important;
+      padding: 10mm !important;
       box-sizing: border-box !important;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
@@ -124,28 +125,12 @@ export const printVoucher = (htmlString: string): void => {
   });
 
 
-  
-  const printCSS = `
-    @page { 
-      size: A4 portrait; 
-      margin: 0 !important; /* يخفي الهيدر والفوتر الخاص بالمتصفح */
-    }
-    @media print {
-      html, body {
-        width: 100% !important;
-        max-width: 100% !important;
-        margin: 0 !important;
-        padding: 10mm !important; /* يضيف هامش داخلي بدلاً من الهامش الخارجي للمتصفح */
-        box-sizing: border-box !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-    }
-  `;
+
+  document.body.appendChild(iframe);
 
   const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
   if (!doc) {
-    document.body.removeChild(iframe);
+    if (iframe.parentNode) document.body.removeChild(iframe);
     return;
   }
 
@@ -1023,6 +1008,26 @@ export const exportToExcel = (data: any[], columns: { header: string; field: str
   saveAs(blob, `${fileName}_${Date.now()}.xlsx`);
 };
 
+export const exportToCSV = (data: any[], fileName: string) => {
+  if (data.length === 0) return;
+  const headers = Object.keys(data[0]);
+  const csvRows = [
+    headers.join(","),
+    ...data.map((row) =>
+      headers
+        .map((fieldName) => {
+          const value = row[fieldName] !== null && row[fieldName] !== undefined ? String(row[fieldName]) : "-";
+          return `"${value.replace(/"/g, '""')}"`;
+        })
+        .join(","),
+    ),
+  ];
+
+  const csvString = "\uFEFF" + csvRows.join("\n");
+  const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+  saveAs(blob, `${fileName}_${Date.now()}.csv`);
+};
+
 // =============================================
 // Stock Receipt HTML Template
 // =============================================
@@ -1350,9 +1355,9 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
   <meta charset="UTF-8"/>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    @page { size: A4 portrait; margin: 8mm; margin-top: 0; margin-bottom: 0; }
+    @page { size: A4 portrait; margin: 0 !important; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-    body { padding: 5mm; background: #fff; width: 100%; color: #334155; }
+    body { padding: 10mm; background: #fff; width: 100%; color: #334155; }
  
     .header-grid {
       display: grid;
