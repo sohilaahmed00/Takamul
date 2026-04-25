@@ -104,14 +104,18 @@ export const printVoucher = (htmlString: string) => {
   if (!doc) return;
 
   
+  
   const printCSS = `
-    @page { size: A4 portrait; margin: 10mm 10mm; }
+    @page { 
+      size: A4 portrait; 
+      margin: 0 !important; /* يخفي الهيدر والفوتر الخاص بالمتصفح */
+    }
     @media print {
       html, body {
         width: 100% !important;
         max-width: 100% !important;
         margin: 0 !important;
-        padding: 0 5mm !important;
+        padding: 10mm !important; /* يضيف هامش داخلي بدلاً من الهامش الخارجي للمتصفح */
         box-sizing: border-box !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
