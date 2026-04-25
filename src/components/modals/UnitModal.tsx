@@ -42,6 +42,7 @@ interface UnitModalModalProps {
 
 const UnitSchema = z.object({
   name: z.string().min(3, "الاسم يجب أن يكون 3 أحرف على الأقل"),
+  unitCode: z.string().min(1, "يرجى إدخال كود الوحدة"),
   description: z.string().optional(),
 });
 
@@ -56,6 +57,7 @@ export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps
     defaultValues: {
       name: "",
       description: "",
+      unitCode: "",
     },
   });
   useEffect(() => {
@@ -111,6 +113,20 @@ export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps
                     </FieldLabel>
 
                     <Input {...field} placeholder={t("enter_unit_name")} />
+                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  </Field>
+                )}
+              />
+              <Controller
+                name="unitCode"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel>
+                     الكود الضريبي<span className="text-red-500">*</span>
+                    </FieldLabel>
+
+                    <Input {...field} placeholder={"ادخل كود الضريبي"} />
                     {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                   </Field>
                 )}

@@ -18,12 +18,7 @@ interface OrdersDialogProps {
 }
 // ── Status / Tab config ────────────────────────────────────────────────────────
 
-const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
-  completed: { label: "مكتملة", cls: "bg-green-100 text-green-700" },
-  pending: { label: "معلقة", cls: "bg-yellow-100 text-yellow-700" },
-  cancelled: { label: "ملغاة", cls: "bg-red-100 text-red-600" },
-  refunded: { label: "مردودة", cls: "bg-gray-100 text-gray-600" },
-};
+
 
 const fallbackBadge = { label: "", cls: "bg-sky-100 text-sky-600" };
 
