@@ -4,7 +4,7 @@ import {
   getStockReceiptHTML,
   getClaimReceiptHTML
 } from '@/utils/customExportUtils';
-import { getAllCustomers } from '@/features/customers/services/customers';
+import { getAllCustomers, getCustomerById } from '@/features/customers/services/customers';
 import { useLanguage } from './LanguageContext';
 
 interface PrintContextType {
@@ -22,41 +22,68 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const printInvoice = async (data: any, type: 'invoice' | 'stock' | 'claim' = 'invoice') => {
     if (!data?.id) return;
 
-    // إثراء البيانات بمعلومات الفرع
-    const extendedData = {
-      ...data,
-      branchInfo: branchInfo || null
+    const clean = (obj: any) => {
+      if (!obj) return obj;
+      const newObj = { ...obj };
+      Object.keys(newObj).forEach((key) => {
+        if (newObj[key] === "string" || newObj[key] === "null" || newObj[key] === "undefined") {
+          newObj[key] = null;
+        }
+      });
+      return newObj;
     };
 
-    // محاولة جلب رقم الجوال لو مش موجود
+    const cleanedBranchInfo = clean(branchInfo);
+    const cleanedData = clean(data);
+
+    const extendedData = {
+      ...cleanedData,
+      branchInfo: cleanedBranchInfo || cleanedData.branchInfo || null
+    };
+
     const rawName = (data.customerName || data.customer || "").toString().trim();
     if (!extendedData.customerPhone && rawName) {
       try {
-        // جلب العميل مباشرة من الـ API بالاسم
-        const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
-        const customers = response?.items || [];
+        let foundCustomer = null;
 
-        const normalize = (str: string) => {
-          if (!str) return "";
-          return str
-            .replace(/[أإآا]/g, "ا")
-            .replace(/[ىي]/g, "ي")
-            .replace(/[ةه]/g, "ه")
-            .replace(/\s+/g, "")
-            .replace(/[\u064B-\u0652]/g, "")
-            .toLowerCase();
-        };
+        if (customerId) {
+          // جلب العميل بالمعرف (أكثر دقة)
+          const response = await getCustomerById(customerId);
+          // الرد قد يكون مباشر أو داخل كائن data
+          foundCustomer = (response as any).data || response;
+        } else if (rawName) {
+          // محاولة البحث بالاسم كخيار احتياطي
+          const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
+          const customers = response?.items || [];
+          
+          const normalize = (str: string) => {
+            if (!str) return "";
+            return str
+              .replace(/[أإآا]/g, "ا")
+              .replace(/[ىي]/g, "ي")
+              .replace(/[ةه]/g, "ه")
+              .replace(/\s+/g, "")
+              .replace(/[\u064B-\u0652]/g, "")
+              .toLowerCase();
+          };
 
-        const searchTerm = normalize(rawName);
-        const found = customers.find(c => {
-          const cName = normalize(c.customerName || "");
-          return cName === searchTerm || cName.includes(searchTerm) || searchTerm.includes(cName);
-        });
+          const searchTerm = normalize(rawName);
+          foundCustomer = customers.find(c => {
+            const cName = normalize(c.customerName || "");
+            return cName === searchTerm || cName.includes(searchTerm) || searchTerm.includes(cName);
+          });
+        }
 
-        if (found) {
-          extendedData.customerPhone = found.mobile || found.phone || "";
-        } else if (searchTerm.includes("افتراضي") || searchTerm.includes("نقدي") || searchTerm.includes("عام")) {
-          extendedData.customerPhone = "056225332";
+        if (foundCustomer) {
+          const phoneVal = foundCustomer.mobile || foundCustomer.phone || "";
+          extendedData.customerPhone = phoneVal;
+          extendedData.mobile = phoneVal;
+          extendedData.phone = phoneVal;
+        } else if (rawName && (rawName.includes("افتراضي") || rawName.includes("نقدي") || rawName.includes("عام"))) {
+          const defaultPhone = "056225332";
+          extendedData.customerPhone = defaultPhone;
+          extendedData.mobile = defaultPhone;
+          extendedData.phone = defaultPhone;
         }
       } catch (err) {
         console.error("Error fetching customer for print:", err);
