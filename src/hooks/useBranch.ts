@@ -5,7 +5,7 @@ export interface BranchInfo {
   id: number;
   code: string;
   name: string;
-  nameEN: string;
+  nameEn: string;
   imageUrl: string | null;
   businessName: string;
   commercialRegister: string;

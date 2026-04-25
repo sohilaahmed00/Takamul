@@ -13,7 +13,7 @@ export default defineConfig({
   // server: {
   //   proxy: {
   //     "/api": {
-  //       target: "http://erptakamul.runasp.net",
+  //       target: "https://erptakamul.runasp.net",
   //       changeOrigin: true,
   //     },
   //   },
