@@ -22,25 +22,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const printInvoice = async (data: any, type: 'invoice' | 'stock' | 'claim' = 'invoice') => {
     if (!data?.id) return;
 
-    const clean = (obj: any) => {
-      if (!obj) return obj;
-      const newObj = { ...obj };
-      Object.keys(newObj).forEach((key) => {
-        if (newObj[key] === "string" || newObj[key] === "null" || newObj[key] === "undefined") {
-          newObj[key] = null;
-        }
-      });
-      return newObj;
-    };
-
-    const cleanedBranchInfo = clean(branchInfo);
-    const cleanedData = clean(data);
-
-    if (!cleanedBranchInfo) {
-      console.warn("branchInfo is not loaded yet!");
-      return;
-    }
-
+    // إثراء البيانات بمعلومات الفرع
     const extendedData = {
       ...data,
       branchInfo: branchInfo || null
@@ -48,9 +30,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
 
     // محاولة جلب رقم الجوال لو مش موجود
     const rawName = (data.customerName || data.customer || "").toString().trim();
-    const customerId = data.customerId;
-
-    if (!extendedData.customerPhone) {
+    if (!extendedData.customerPhone && rawName) {
       try {
         // جلب العميل مباشرة من الـ API بالاسم
         const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
