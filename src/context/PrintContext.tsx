@@ -1,15 +1,14 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { printVoucher, getStockReceiptHTML, getClaimReceiptHTML } from "@/utils/customExportUtils";
-import { getAllCustomers } from "@/features/customers/services/customers";
+import { getAllCustomers, getCustomerById } from "@/features/customers/services/customers";
 import { useLanguage } from "./LanguageContext";
+import { useBranch } from "@/hooks/useBranch";
 
 interface PrintContextType {
   printInvoice: (data: any, type?: "invoice" | "stock" | "claim") => Promise<void>;
 }
 
 const PrintContext = createContext<PrintContextType>({} as PrintContextType);
-
-import { useBranch } from "@/hooks/useBranch";
 
 export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useLanguage();
@@ -32,8 +31,6 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     const cleanedBranchInfo = clean(branchInfo);
     const cleanedData = clean(data);
 
-  
-
     if (!cleanedBranchInfo) {
       console.warn("branchInfo is not loaded yet!");
       return;
@@ -45,32 +42,51 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const rawName = (data.customerName || data.customer || "").toString().trim();
-    if (!extendedData.customerPhone && rawName) {
+    const customerId = data.customerId;
+
+    if (!extendedData.customerPhone) {
       try {
-        const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
-        const customers = response?.items || [];
+        let foundCustomer: any = null;
 
-        const normalize = (str: string) => {
-          if (!str) return "";
-          return str
-            .replace(/[أإآا]/g, "ا")
-            .replace(/[ىي]/g, "ي")
-            .replace(/[ةه]/g, "ه")
-            .replace(/\s+/g, "")
-            .replace(/[\u064B-\u0652]/g, "")
-            .toLowerCase();
-        };
+        if (customerId) {
+          // ✅ httpClient بيرجع البيانات مباشرة بدون .data
+          foundCustomer = await getCustomerById(customerId);
+        } else if (rawName) {
+          const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
+          const customers = response?.items || [];
 
-        const searchTerm = normalize(rawName);
-        const found = customers.find((c) => {
-          const cName = normalize(c.customerName || "");
-          return cName === searchTerm || cName.includes(searchTerm) || searchTerm.includes(cName);
-        });
+          const normalize = (str: string) => {
+            if (!str) return "";
+            return str
+              .replace(/[أإآا]/g, "ا")
+              .replace(/[ىي]/g, "ي")
+              .replace(/[ةه]/g, "ه")
+              .replace(/\s+/g, "")
+              .replace(/[\u064B-\u0652]/g, "")
+              .toLowerCase();
+          };
 
-        if (found) {
-          extendedData.customerPhone = found.mobile || found.phone || "";
-        } else if (searchTerm.includes("افتراضي") || searchTerm.includes("نقدي") || searchTerm.includes("عام")) {
-          extendedData.customerPhone = "056225332";
+          const searchTerm = normalize(rawName);
+          foundCustomer = customers.find((c: any) => {
+            const cName = normalize(c.customerName || "");
+            return cName === searchTerm || cName.includes(searchTerm) || searchTerm.includes(cName);
+          });
+        }
+
+        if (foundCustomer) {
+          // ✅ Customer type عندها mobile و phone
+          const phoneVal = foundCustomer.mobile || foundCustomer.phone || "";
+          extendedData.customerPhone = phoneVal;
+          extendedData.mobile = phoneVal;
+          extendedData.phone = phoneVal;
+        } else if (
+          rawName &&
+          (rawName.includes("افتراضي") || rawName.includes("نقدي") || rawName.includes("عام"))
+        ) {
+          const defaultPhone = "056225332";
+          extendedData.customerPhone = defaultPhone;
+          extendedData.mobile = defaultPhone;
+          extendedData.phone = defaultPhone;
         }
       } catch (err) {
         console.error("Error fetching customer for print:", err);

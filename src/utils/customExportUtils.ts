@@ -1238,7 +1238,7 @@ export const getStockReceiptHTML = (order: any, t: any) => {
       <div class="v-separator"></div>
       <div class="info-group">
         <span class="info-label">${t("phone", "رقم الجوال")} :</span>
-        <span class="info-val">${order.customerPhone && order.customerPhone !== '-' && order.customerPhone !== 'string' ? order.customerPhone : "-"}</span>
+        <span class="info-val">${order.mobile || order.phone || "-"}</span>
       </div>
     </div>
   </div>
@@ -1275,35 +1275,48 @@ export const getStockReceiptHTML = (order: any, t: any) => {
 // Claim Receipt HTML Template
 // =============================================
 export const getClaimReceiptHTML = (order: any, t: any) => {
-  let dateVal = order.createdAt || order.date || order.invoiceDate || order.issueDate || order.created_at || order.saleDate;
-
+  let dateVal =
+    order.createdAt ||
+    order.date ||
+    order.invoiceDate ||
+    order.issueDate ||
+    order.created_at ||
+    order.saleDate;
+ 
   if (!dateVal) {
     for (const key in order) {
-      if (key.toLowerCase().includes('date') && order[key]) {
+      if (key.toLowerCase().includes("date") && order[key]) {
         dateVal = order[key];
         break;
       }
     }
   }
-
+ 
   let formattedDate = "-";
   if (dateVal) {
     if (dateVal instanceof Date) {
-      formattedDate = dateVal.toLocaleDateString("en-GB"); // ✅ English date
-    } else if (typeof dateVal === 'string') {
-      const cleanDate = dateVal.split(' ')[0].split('T')[0];
+      formattedDate = dateVal.toLocaleDateString("en-GB");
+    } else if (typeof dateVal === "string") {
+      const cleanDate = dateVal.split(" ")[0].split("T")[0];
       formattedDate = cleanDate;
-      const p = cleanDate.includes('/') ? cleanDate.split('/') : cleanDate.includes('-') ? cleanDate.split('-') : [];
+      const p = cleanDate.includes("/")
+        ? cleanDate.split("/")
+        : cleanDate.includes("-")
+        ? cleanDate.split("-")
+        : [];
       if (p.length === 3) {
-        const d = p[0].length === 4 ? new Date(`${p[0]}-${p[1]}-${p[2]}`) : new Date(`${p[2]}-${p[1]}-${p[0]}`);
-        if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString("en-GB"); // ✅ English date
+        const d =
+          p[0].length === 4
+            ? new Date(`${p[0]}-${p[1]}-${p[2]}`)
+            : new Date(`${p[2]}-${p[1]}-${p[0]}`);
+        if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString("en-GB");
       }
     }
   }
-
+ 
   const orderNo = order.orderNumber || order.invoiceNo || order.refNo || "-";
   const amount = order.totalAmount || order.grandTotal || 0;
-
+ 
   return `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
@@ -1313,28 +1326,16 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
     @page { size: A4 portrait; margin: 8mm; margin-top: 0; margin-bottom: 0; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
     body { padding: 5mm; background: #fff; width: 100%; color: #334155; }
-    
+ 
     .header-grid {
       display: grid;
       grid-template-columns: 1fr 0.8fr 1fr;
       gap: 10px;
       margin-bottom: 20px;
     }
-    
-    .header-col {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-    
-    .company-title {
-      font-size: 14px;
-      font-weight: 800;
-      text-align: center;
-      margin-bottom: 5px;
-      padding: 5px;
-    }
-    
+    .header-col { display: flex; flex-direction: column; gap: 5px; }
+    .company-title { font-size: 14px; font-weight: 800; text-align: center; margin-bottom: 5px; padding: 5px; }
+ 
     .meta-row {
       display: grid;
       grid-template-columns: 1.2fr 1.3fr 0.7fr;
@@ -1346,11 +1347,10 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       text-align: center;
       align-items: center;
     }
-    
     .meta-label-ar { font-weight: 800; padding: 4px; border-right: 1px solid #e2e8f0; background: #f1f5f9; white-space: nowrap; }
     .meta-value { font-weight: 900; padding: 4px; border-right: 1px solid #e2e8f0; background: #fff; min-height: 24px; display: flex; align-items: center; justify-content: center; }
     .meta-label-en { font-weight: 700; padding: 4px; color: #64748b; font-size: 8px; white-space: nowrap; }
-    
+ 
     .logo-container {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
@@ -1361,7 +1361,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       height: 100%;
       min-height: 80px;
     }
-
+ 
     .title-section { text-align: center; margin-bottom: 20px; }
     .title-badge {
       display: inline-block;
@@ -1373,9 +1373,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       color: #0f172a;
       border: 1px solid #e2e8f0;
     }
-
-    .date-line { text-align: right; font-size: 13px; font-weight: 800; margin-bottom: 15px; }
-
+ 
     .letter-body {
       background: #fbfcfd;
       border: 1px solid #e2e8f0;
@@ -1387,17 +1385,16 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       text-align: justify;
     }
     .row { margin-bottom: 5px; display: flex; align-items: flex-start; gap: 10px; }
-    .label { 
-      color: #64748b; 
-      font-weight: 900; 
-      width: 100px; 
-      display: inline-flex; 
+    .label {
+      color: #64748b;
+      font-weight: 900;
+      width: 100px;
+      display: inline-flex;
       justify-content: space-between;
       flex-shrink: 0;
     }
     .val { color: #0f172a; font-weight: 800; }
-
-    /* ✅ خط ممتد لنهاية السطر */
+ 
     .extend-line {
       display: inline-block;
       border-bottom: 1.5px solid #cbd5e1;
@@ -1406,8 +1403,6 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       vertical-align: bottom;
       margin-right: 4px;
     }
-
-    /* ✅ سطر كامل يحتوي نص + خط ممتد */
     .line-with-extend {
       display: flex;
       align-items: flex-end;
@@ -1415,7 +1410,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       width: 100%;
       margin-bottom: 6px;
     }
-
+ 
     .signatures {
       margin-top: 40px;
       display: flex;
@@ -1437,11 +1432,11 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
         <div class="meta-label-en">VAT No.</div>
       </div>
     </div>
-    
+ 
     <div class="logo-container">
-      <img src="${order.branchInfo?.imageUrl}" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
+      <img src="${order.branchInfo?.imageUrl || ""}" style="max-height: 70px; max-width: 100%; object-fit: contain;" />
     </div>
-    
+ 
     <div class="header-col">
       <div class="company-title">${order.branchInfo?.nameEN || "-"}</div>
       <div class="meta-row">
@@ -1451,59 +1446,84 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       </div>
     </div>
   </div>
-
+ 
   <div class="title-section">
     <div class="title-badge">${t("financial_claim_letter", "نموذج خطاب مطالبة مالية")}</div>
   </div>
-
-  <div class="date-line" style="text-align: right; padding: 0 25px; margin-bottom: 10px;">
-    <span class="label" style="min-width: auto; color: #334155;">${t("date", "التاريخ")}:</span> <span class="val">${formattedDate}</span>
+ 
+  <div style="text-align: right; padding: 0 25px; margin-bottom: 10px; font-size: 13px; font-weight: 800;">
+    <span style="color: #334155; font-weight: 900;">${t("date", "التاريخ")}:</span>
+    <span class="val"> ${formattedDate}</span>
   </div>
-
+ 
   <div class="letter-body">
-    <div class="row"><span class="label"><span>${t("sender", "المرسل")}</span><span>:</span></span> <span class="val">${order.branchInfo?.name || t("-")}</span></div>
-    <div class="row"><span class="label"><span>${t("recipient", "المستلم")}</span><span>:</span></span> <span class="val">${order.customerName || order.customer || t("-")}</span></div>
-    <div class="row"><span class="label"><span>${t("subject", "الموضوع")}</span><span>:</span></span> <span class="val">${t("financial_claim_subject", "مطالبة مالية بسداد مبلغ معين")}</span></div>
-
-    <div style="margin-top:12px;">
-      <span class="val">${t("dear_customer", "السادة")} ${order.customerName || order.customer || t("-")} ${t("greetings", "تحية طيبة")}</span>
+    <div class="row">
+      <span class="label"><span>${t("sender", "المرسل")}</span><span>:</span></span>
+      <span class="val">${order.branchInfo?.name || "-"}</span>
     </div>
-
+    <div class="row">
+      <span class="label"><span>${t("recipient", "المستلم")}</span><span>:</span></span>
+      <span class="val">
+        ${order.customerName || order.customer || "-"}
+        ${order.mobile || order.customerPhone || order.phone ? `| ${order.mobile || order.customerPhone || order.phone}` : ""}
+      </span>
+    </div>
+    <div class="row">
+      <span class="label"><span>${t("subject", "الموضوع")}</span><span>:</span></span>
+      <span class="val">${t("financial_claim_subject", "مطالبة مالية بسداد مبلغ معين")}</span>
+    </div>
+ 
     <div style="margin-top:12px;">
-
-      <!-- ✅ السطر الأول: نود تذكيركم ... والمتعلقة + خط لنهاية السطر -->
+      <span class="val">
+        ${t("dear_customer", "السادة")} ${order.customerName || order.customer || "-"} ${t("greetings", "تحية طيبة")}
+      </span>
+    </div>
+ 
+    <div style="margin-top:12px;">
+      <!-- السطر الأول: نود تذكيركم ... والمتعلقة + خط -->
       <div class="line-with-extend">
-        <span>${t("claim_text_p1", "نود تذكيركم بأن الفاتورة رقم")} <span class="val">${orderNo}</span> ${t("issued_on", "الصادرة بتاريخ")} <span class="val">${formattedDate}</span> ${t("related_to", "والمتعلقة")}</span>
+        <span>
+          ${t("claim_text_p1", "نود تذكيركم بأن الفاتورة رقم")}
+          <span class="val">${orderNo}</span>
+          ${t("issued_on", "الصادرة بتاريخ")}
+          <span class="val">${formattedDate}</span>
+          ${t("related_to", "والمتعلقة")}
+        </span>
         <span class="extend-line"></span>
       </div>
-
-      <!-- ✅ السطر الثاني: بقيمة ... بحلول + خط لنهاية السطر -->
+ 
+      <!-- السطر الثاني: بقيمة ... بحلول + خط -->
       <div class="line-with-extend">
-        <span>${t("claim_text_p2", "بقيمة")} <span class="val">${amount?.toFixed(2)} ${t("sar", "﷼")} (${tafqeet(amount, "ar")})</span> ${t("claim_text_p3", "كان من المفترض سدادها بحلول")}</span>
+        <span>
+          ${t("claim_text_p2", "بقيمة")}
+          <span class="val">${amount?.toFixed(2)} ${t("sar", "﷼")} (${tafqeet(amount, "ar")})</span>
+          ${t("claim_text_p3", "كان من المفترض سدادها بحلول")}
+        </span>
         <span class="extend-line"></span>
       </div>
-
-      <!-- ✅ السطر الثالث: وحتى تاريخ هذا الخطاب -->
+ 
+      <!-- السطر الثالث: وحتى تاريخ هذا الخطاب -->
       <div style="margin-top: 4px;">
         ${t("claim_text_p4", "وحتى تاريخ هذا الخطاب لم يتم استلام مبلغ الفاتورة.")}
       </div>
-
     </div>
-
+ 
     <div style="margin-top:12px;">
-      ${t("claim_text_p5", "لذلك نرجو منكم تسديد المبلغ المستحق خلال")} <span class="val">7</span> ${t("days_from_date", "أيام من تاريخه. وذلك عبر الحساب البنكي المرفق في الفاتورة.")}
+      ${t("claim_text_p5", "لذلك نرجو منكم تسديد المبلغ المستحق خلال")}
+      <span class="val">7</span>
+      ${t("days_from_date", "أيام من تاريخه. وذلك عبر الحساب البنكي المرفق في الفاتورة.")}
     </div>
-
-    <!-- ✅ آخر سطر على سطر واحد -->
-  <div style="margin-top:12px; font-size:12px; white-space: nowrap; overflow: visible;">
-  ${t("claim_text_p6", "في حال عدم السداد خلال المهلة المحددة سنضطر آسفين لاتخاذ الإجراءات القانونية اللازمة لتحصيل المستحقات.")}
-</div>
-
+ 
+    <!-- آخر سطر — خط مصغر عشان ميتاكلش -->
+    <div style="margin-top:12px; font-size: 11px; white-space: nowrap; overflow: visible;">
+      ${t("claim_text_p6", "في حال عدم السداد خلال المهلة المحددة سنضطر آسفين لاتخاذ الإجراءات القانونية اللازمة لتحصيل المستحقات.")}
+    </div>
+ 
     <div style="margin-top:16px; text-align:center; font-size:16px; font-weight:900;">
       ${t("best_regards", "وتفضلوا بقبول فائق الاحترام.")}
     </div>
   </div>
-
+ 
   <div class="signatures">
     <div class="sig-item">
       <div class="sig-line"></div>
