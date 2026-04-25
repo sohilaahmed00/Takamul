@@ -229,6 +229,7 @@ function AppRoutes() {
           <Route path="/sales/all" element={<AllSales />} />
           <Route path="/sales/pos-invoices" element={<PosSales />} />
           <Route path="/sales/pos-invoices/:id" element={<POSInvoiceDetails />} />
+          <Route path="/sales/:id" element={<POSInvoiceDetails />} />
           <Route path="/sales/pos-invoices/return/:id" element={<ReturnPOSSale />} />
           <Route path="/sales/gift-cards" element={<GiftCards />} />
           <Route path="/sales/deliveries" element={<Deliveries />} />

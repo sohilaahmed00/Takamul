@@ -67,9 +67,9 @@ export const getStockReceiptHTML = (order: any, t: any): string => {
   <meta charset="UTF-8"/>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
-    @page { size: A4 portrait; margin: 8mm; margin-top: 0; margin-bottom: 0; }
+    @page { size: A4 portrait; margin: 0 !important; }
     * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
-    body { padding: 5mm; background: #fff; width: 100%; color: #334155; }
+    body { padding: 10mm; background: #fff; width: 100%; color: #334155; }
 
     .header-grid {
       display: grid;
@@ -184,7 +184,7 @@ export const getStockReceiptHTML = (order: any, t: any): string => {
     </div>
 
     <div class="header-col">
-      <div class="company-title">${order.branchInfo?.nameEN || "-"}</div>
+      <div class="company-title">${order.branchInfo?.nameEn || order.branchInfo?.name || "-"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
         <div class="meta-value">${order.branchInfo?.commercialRegister || order.commercialNo || "-"}</div>

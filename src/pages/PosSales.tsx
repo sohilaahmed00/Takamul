@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 export default function PosSales() {
   type Payment = SalesOrder["payments"][number];
   const { t, direction, language } = useLanguage();
-  const { printInvoice } = usePrint();
+  const { printInvoice, exportPDF, exportExcel, exportCSV } = usePrint();
   const navigate = useNavigate();
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -98,17 +98,15 @@ export default function PosSales() {
               header={t("actions")}
               body={(row) => (
                 <DropdownMenu>
-                  <DropdownMenuTrigger>
+                  <DropdownMenuTrigger asChild>
                     <button className="btn-minimal-action btn-compact-action">
                       <MoreHorizontal size={18} />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-52 p-1">
-                    <DropdownMenuItem asChild>
-                      <Link to={`/sales/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
-                        <FileText size={14} />
-                        تفاصيل فاتورة المبيعات
-                      </Link>
+                    <DropdownMenuItem onClick={() => printInvoice(row, 'invoice')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
+                      <FileText size={14} />
+                      طباعة الفاتورة
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator />
@@ -132,17 +130,17 @@ export default function PosSales() {
 
                     <DropdownMenuSeparator />
 
-                    <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                    <DropdownMenuItem onClick={() => exportPDF(row)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
                       <FileDown size={14} />
                       {t("download_pdf")}
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                    <DropdownMenuItem onClick={() => exportExcel(row)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
                       <FileSpreadsheet size={14} />
                       {t("download_excel")}
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                    <DropdownMenuItem onClick={() => exportCSV(row)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
                       <FileSpreadsheet size={14} />
                       {t("download_csv")}
                     </DropdownMenuItem>
@@ -157,15 +155,6 @@ export default function PosSales() {
                     <DropdownMenuItem onClick={() => {}} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
                       <MessageCircle size={14} />
                       {t("send_whatsapp")}
-                    </DropdownMenuItem>
-
-                    <DropdownMenuSeparator />
-
-                    <DropdownMenuItem asChild>
-                      <Link to={`/sales/edit-agent/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
-                        <UserCog size={14} />
-                        تعديل المندوب / الموظف
-                      </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
