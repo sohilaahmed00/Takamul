@@ -3,7 +3,6 @@ import { printVoucher, getStockReceiptHTML, getClaimReceiptHTML } from "@/utils/
 import { getAllCustomers, getCustomerById } from "@/features/customers/services/customers";
 import { useLanguage } from "./LanguageContext";
 import { useBranch } from "@/hooks/useBranch";
-import useToast from "@/hooks/useToast";
 
 interface PrintContextType {
   printInvoice: (data: any, type?: "invoice" | "stock" | "claim") => Promise<void>;
@@ -14,7 +13,6 @@ const PrintContext = createContext<PrintContextType>({} as PrintContextType);
 export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useLanguage();
   const { data: branchInfo, isLoading: isBranchLoading, refetch: refetchBranch } = useBranch();
-  const { notifyInfo, notifyError, notifySuccess } = useToast();
 
   const printInvoice = async (data: any, type: "invoice" | "stock" | "claim" = "invoice") => {
     if (!data?.id) return;
@@ -34,7 +32,6 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
 
     if (!currentBranchInfo) {
       if (isBranchLoading) {
-        notifyInfo(t("loading_branch_info", "جاري تحميل بيانات الفرع..."));
         // انتظر قليلاً لعل البيانات تظهر
         await new Promise(r => setTimeout(r, 1000));
         const refetched = await refetchBranch();
@@ -46,7 +43,6 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     }
 
     if (!currentBranchInfo) {
-      notifyError(t("branch_info_required", "فشل تحميل بيانات الفرع، يرجى المحاولة مرة أخرى"));
       return;
     }
 
@@ -82,7 +78,6 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
         extendedData.mobile = "-";
         extendedData.phone = "-";
       } else {
-        notifyInfo(t("preparing_print", "جاري تجهيز البيانات للطباعة..."));
         let foundCustomer: any = null;
 
         // ✅ أولاً: جرب getCustomerById لو فيه customerId
@@ -127,12 +122,10 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
       case "stock":
         html = getStockReceiptHTML(extendedData, t);
         printVoucher(html);
-        notifySuccess(t("print_started", "بدأت عملية الطباعة"));
         break;
       case "claim":
         html = getClaimReceiptHTML(extendedData, t);
         printVoucher(html);
-        notifySuccess(t("print_started", "بدأت عملية الطباعة"));
         break;
       case "invoice":
       default:
