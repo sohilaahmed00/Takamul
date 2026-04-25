@@ -103,7 +103,7 @@ export const printVoucher = (htmlString: string) => {
   const doc = iframe.contentWindow?.document || iframe.contentDocument;
   if (!doc) return;
 
-  
+
   
   const printCSS = `
     @page { 
@@ -1250,7 +1250,7 @@ export const getStockReceiptHTML = (order: any, t: any) => {
     </div>
     
     <div class="header-col">
-      <div class="company-title">${order.branchInfo?.nameEN }</div>
+      <div class="company-title">${order.branchInfo?.nameEn || "-" }</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
         <div class="meta-value">${order.branchInfo?.commercialRegister || order.commercialNo  }</div>
@@ -1480,7 +1480,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
     </div>
  
     <div class="header-col">
-      <div class="company-title">${order.branchInfo?.nameEN || "-"}</div>
+      <div class="company-title">${order.branchInfo?.nameEn || "-"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
         <div class="meta-value">${order.branchInfo?.commercialRegister ||"-"}</div>
