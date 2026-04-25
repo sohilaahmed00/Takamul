@@ -80,7 +80,6 @@ export default function SuppliersList() {
         <CardContent>
           <DataTable
             value={filteredSuppliers}
-            rowsPerPageOptions={[5, 10, 20, 50]}
             lazy
             paginator
             rows={entriesPerPage}

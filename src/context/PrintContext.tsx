@@ -42,9 +42,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const rawName = (data.customerName || data.customer || "").toString().trim();
-    const customerId = data.customerId;
-
-    if (!extendedData.customerPhone) {
+    if (!extendedData.customerPhone && rawName) {
       try {
         let foundCustomer = null;
 
