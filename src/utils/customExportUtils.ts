@@ -104,6 +104,7 @@ export const printVoucher = (htmlString: string) => {
   if (!doc) return;
 
   
+  
   const printCSS = `
     @page { 
       size: A4 portrait; 
