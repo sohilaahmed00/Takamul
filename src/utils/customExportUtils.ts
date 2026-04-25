@@ -78,12 +78,30 @@ export const exportCustomPDF = async (title: string, htmlString: string, orienta
 // Print Voucher - سند قبض / صرف (ورقة واحدة A4)
 // =============================================
 export const printVoucher = (htmlString: string) => {
-  const w = 900;
-  const h = 700;
-  const left = window.screen.width / 2 - w / 2;
-  const top = window.screen.height / 2 - h / 2;
-  const win = window.open("", "_blank", `width=${w},height=${h},left=${left},top=${top}`);
-  if (!win) return;
+  // إنشاء iframe مخفي للطباعة لتجنب حظر النوافذ المنبثقة (Pop-up blockers)
+  const frameId = "print-iframe";
+  let iframe = document.getElementById(frameId) as HTMLIFrameElement;
+  
+  if (iframe) {
+    document.body.removeChild(iframe);
+  }
+  
+  iframe = document.createElement("iframe");
+  iframe.id = frameId;
+  Object.assign(iframe.style, {
+    position: "fixed",
+    right: "0",
+    bottom: "0",
+    width: "0",
+    height: "0",
+    border: "none",
+    visibility: "hidden",
+  });
+  
+  document.body.appendChild(iframe);
+  
+  const doc = iframe.contentWindow?.document || iframe.contentDocument;
+  if (!doc) return;
 
   const printCSS = `
     @page { size: A4 portrait; margin: 10mm 10mm; }
@@ -100,32 +118,51 @@ export const printVoucher = (htmlString: string) => {
     }
   `;
 
-  const injected = htmlString.includes("</head>") ? htmlString.replace("</head>", `<style>${printCSS}</style></head>`) : `<style>${printCSS}</style>` + htmlString;
+  const injected = htmlString.includes("</head>") 
+    ? htmlString.replace("</head>", `<style>${printCSS}</style></head>`) 
+    : `<style>${printCSS}</style>` + htmlString;
 
-  win.document.open();
-  win.document.write(injected);
-  win.document.close();
+  doc.open();
+  doc.write(injected);
+  doc.close();
 
-  win.document.fonts.ready.then(() => {
-    const checkImages = () => {
-      const imgs = win.document.querySelectorAll('img');
-      const promises = Array.from(imgs).map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise(resolve => {
-          img.onload = resolve;
-          img.onerror = resolve;
+  const win = iframe.contentWindow;
+  if (!win) return;
+
+  win.focus();
+  
+  // التأكد من تحميل الخطوط والصور
+  const checkReady = () => {
+    return Promise.all([
+      win.document.fonts.ready,
+      new Promise(resolve => {
+        const imgs = win.document.querySelectorAll('img');
+        if (imgs.length === 0) resolve(true);
+        let loaded = 0;
+        imgs.forEach(img => {
+          if (img.complete) {
+            loaded++;
+            if (loaded === imgs.length) resolve(true);
+          } else {
+            img.onload = () => {
+              loaded++;
+              if (loaded === imgs.length) resolve(true);
+            };
+            img.onerror = () => {
+              loaded++;
+              if (loaded === imgs.length) resolve(true);
+            };
+          }
         });
-      });
-      return Promise.all(promises);
-    };
+      })
+    ]);
+  };
 
-    checkImages().then(() => {
-      setTimeout(() => {
-        win.focus();
-        win.print();
-        setTimeout(() => win.close(), 1000);
-      }, 600);
-    });
+  checkReady().then(() => {
+    setTimeout(() => {
+      win.focus();
+      win.print();
+    }, 500);
   });
 };
 
