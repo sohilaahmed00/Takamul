@@ -94,7 +94,7 @@ export default function AddEmployeeModal({ isOpen, onClose, employee }: AddEmplo
                 <FieldLabel>
                   اسم الموظف <span className="text-red-500">*</span>
                 </FieldLabel>
-                <Input {...field} placeholder="مثال: أحمد محمد" />
+                <Input {...field} placeholder="مثال: أحمد " />
                 {errors.firstName && <FieldError>{errors.firstName.message}</FieldError>}
               </Field>
             )}
@@ -107,7 +107,7 @@ export default function AddEmployeeModal({ isOpen, onClose, employee }: AddEmplo
             render={({ field }) => (
               <Field>
                 <FieldLabel>رقم الجوال</FieldLabel>
-                <Input {...field} placeholder="مثال: 01012345678" />
+                <Input {...field} placeholder="مثال: 05xxxxxxxxx" />
                 {errors.mobile && <FieldError>{errors.mobile.message}</FieldError>}
               </Field>
             )}

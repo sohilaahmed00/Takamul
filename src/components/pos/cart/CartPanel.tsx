@@ -793,7 +793,7 @@ export default function CartPanel() {
               <div className="text-sm font-bold text-foreground mb-3">{t("order_discount")}</div>
               <div className="flex gap-2 mb-3 items-center">
                 <button onClick={() => setDiscType("flat")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "flat" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>
-                  $
+                  <SaudiRiyal size={18}/>
                 </button>
                 <button onClick={() => setDiscType("pct")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "pct" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>
                   %

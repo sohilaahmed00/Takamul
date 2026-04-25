@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, MoreHorizontal, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
@@ -19,14 +19,15 @@ import { Input } from "@/components/ui/input";
 
 export default function A4Sales() {
   type Payment = SalesOrder["payments"][number];
-  const { t, direction } = useLanguage();
+  const { t, direction, language } = useLanguage();
   const { printInvoice } = usePrint();
   const navigate = useNavigate();
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const { data: salesOrders } = useGetAllSales({ page: currentPage, limit: entriesPerPage, OrderType: "A4" });
   const [globalFilterValue, setGlobalFilterValue] = useState("");
-
+  console.log("current language:", language);
+  console.log("confirmed translation:", t("confirmed"));
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setGlobalFilterValue(value);
@@ -45,11 +46,13 @@ export default function A4Sales() {
     );
   };
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
-  const statusBodyTemplate = (rowData: SalesOrder) => {
-    const isActive = rowData?.orderStatus == "Confirmed";
-
-    return <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${isActive ? `text-[#09ad95] bg-[#00e6821a]` : `text-[#b40b09] bg-[#f50b0b1a]`}`}>{isActive ? "مؤكدة" : "غير مؤكدة"}</span>;
-  };
+  const statusBodyTemplate = useCallback(
+    (rowData: SalesOrder) => {
+      const isActive = rowData?.orderStatus == "Confirmed";
+      return <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${isActive ? "text-[#09ad95] bg-[#00e6821a]" : "text-[#b40b09] bg-[#f50b0b1a]"}`}>{isActive ? t("confirmed") : t("not_confirmed")}</span>;
+    },
+    [language, t],
+  );
   return (
     <div className="space-y-4 pb-12" dir={direction}>
       <Card>
@@ -63,6 +66,7 @@ export default function A4Sales() {
         </CardHeader>
         <CardContent>
           <DataTable
+          key={language}
             value={salesOrders?.items || []}
             lazy
             paginator
@@ -115,14 +119,14 @@ export default function A4Sales() {
                       </Link>
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => printInvoice(row, 'stock')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
-                        <Warehouse size={14} />
-                        سند مخزني
+                    <DropdownMenuItem onClick={() => printInvoice(row, "stock")} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
+                      <Warehouse size={14} />
+                      سند مخزني
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => printInvoice(row, 'claim')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
-                        <FileCheck size={14} />
-                        سند مطالبة
+                    <DropdownMenuItem onClick={() => printInvoice(row, "claim")} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
+                      <FileCheck size={14} />
+                      سند مطالبة
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator />

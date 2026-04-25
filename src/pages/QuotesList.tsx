@@ -71,11 +71,11 @@ export default function QuotesList() {
       <CardHeader className="">
         <CardTitle>{t("quotes")}</CardTitle>
         <CardDescription>{t("quotes_desc")}</CardDescription>
-        <CardAction>
+        {/* <CardAction>
           <Button size="xl" variant={"default"} asChild>
             <Link to={"/quotes/create"}>{t("add_quote")}</Link>
           </Button>
-        </CardAction>
+        </CardAction> */}
       </CardHeader>
       <CardContent>
         <DataTable
