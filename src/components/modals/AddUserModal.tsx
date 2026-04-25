@@ -149,7 +149,7 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
             render={({ field }) => (
               <Field>
                 <FieldLabel>رقم الجوال</FieldLabel>
-                <Input {...field} placeholder="مثال: 01012345678" />
+                <Input {...field} placeholder="مثال: 05xxxxxx" />
               </Field>
             )}
           />

@@ -179,7 +179,6 @@ export default function Expenses() {
               loading={isLoading || isDeleting}
               paginator
               rows={entriesPerPage}
-              rowsPerPageOptions={[5, 10, 20, 50]}
               first={(currentPage - 1) * entriesPerPage}
               totalRecords={totalItems}
               onPage={(e: DataTablePageEvent) => {

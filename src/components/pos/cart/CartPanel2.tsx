@@ -588,7 +588,6 @@ export default function CartPanel2() {
               <th className="whitespace-nowrap">الإجمالي قبل الضريبة</th>
               <th className="whitespace-nowrap">ضريبة القيمة المضافة</th>
               <th className="whitespace-nowrap">الإجمالي النهائي</th>
-              <th className="whitespace-nowrap">موظف الخدمة</th>
               <th className="whitespace-nowrap">ملاحظات</th>
               <th></th>
             </tr>
@@ -631,7 +630,6 @@ export default function CartPanel2() {
               <td className="whitespace-nowrap">--</td>
               <td className="whitespace-nowrap">--</td>
               {/* <td className="whitespace-nowrap">--</td> */}
-              <td className="whitespace-nowrap">--</td>
               <td className="whitespace-nowrap">--</td>
               <td className="whitespace-nowrap">-</td>
               <td></td>

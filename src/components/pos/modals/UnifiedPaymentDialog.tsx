@@ -160,7 +160,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
   const DiffCard = ({ change, large }: { change: number; large?: boolean }) => (
     <div className={cn("rounded-xl border px-4 py-3 flex flex-col gap-0.5", change >= 0 ? "border-green-100 bg-green-50" : "border-red-100 bg-red-50")}>
       <span className={cn("text-[10px] font-semibold", change >= 0 ? "text-green-500" : "text-red-400")}>{change >= 0 ? t("change") : t("remaining")}</span>
-      <span className={cn("font-black", large ? "text-xl" : "text-lg", change >= 0 ? "text-green-600" : "text-red-500")}>${fmtFloat(Math.abs(change))}</span>
+      <span className={cn("font-black", large ? "text-xl" : "text-lg", change >= 0 ? "text-green-600" : "text-red-500")}>{fmtFloat(Math.abs(change))}</span>
     </div>
   );
 
@@ -176,7 +176,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
           <div className="flex items-center gap-2">
             <div className="flex flex-col items-end">
               <span className="text-[10px] text-white/50">{t("payable_amount")}</span>
-              <span className="text-[18px] font-black text-green-400">${total.toFixed(2)}</span>
+              <span className="text-[18px] font-black text-green-400">{total.toFixed(2)}</span>
             </div>
             <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded flex items-center justify-center bg-white/15 hover:bg-white/25 transition-colors">
               <X size={14} />
@@ -218,7 +218,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
                         <span className={cn("text-[10px] font-semibold truncate", isActive ? "text-primary" : "text-muted-foreground")}>{vault?.name ?? `${t("vault")} ${idx + 1}`}</span>
                         <span className={cn("w-2 h-2 rounded-full flex-shrink-0", isActive ? "bg-primary" : "bg-muted")} />
                       </div>
-                      <div className={cn("rounded-lg px-2 py-2 text-center font-black text-base tracking-tight", isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground")}>${rawToFloat(sp.raw).toFixed(2)}</div>
+                      <div className={cn("rounded-lg px-2 py-2 text-center font-black text-base tracking-tight", isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground")}>{rawToFloat(sp.raw).toFixed(2)}</div>
                     </div>
                   );
                 })}
@@ -227,7 +227,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
               <div className="grid grid-cols-2 gap-2">
                 <div className="rounded-xl bg-muted/50 border border-border px-4 py-3 flex flex-col gap-0.5">
                   <span className="text-[10px] text-muted-foreground font-semibold">{t("total_entered")}</span>
-                  <span className="text-lg font-black text-foreground">${fmtFloat(splitPaid)}</span>
+                  <span className="text-lg font-black text-foreground">{fmtFloat(splitPaid)}</span>
                 </div>
                 <DiffCard change={change} />
               </div>
@@ -240,7 +240,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-xl border border-border bg-muted/50 px-4 py-3 flex flex-col gap-0.5">
                 <span className="text-[10px] text-muted-foreground font-semibold">{t("tendered")}</span>
-                <span className="text-xl font-black text-foreground">${fmtFloat(singlePaid)}</span>
+                <span className="text-xl font-black text-foreground">{fmtFloat(singlePaid)}</span>
               </div>
               <DiffCard change={change} large />
             </div>

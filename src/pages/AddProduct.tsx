@@ -606,7 +606,20 @@ export default function AddProduct() {
                         <FieldLabel className="">
                           التصنيف الرئيسي<span className="text-red-500">*</span>
                         </FieldLabel>
-                        <ComboboxField field={field} items={mainCategories} valueKey="id" labelKey="categoryNameAr" placeholder="اختر التصنيف الرئيسي" />
+                        <Select key={field.value} value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="اختر التصنيف الرئيسي" />
+                          </SelectTrigger>
+                          <SelectContent side="bottom">
+                            <SelectGroup>
+                              {mainCategories?.map((c) => (
+                                <SelectItem key={c.id} value={String(c.id)}>
+                                  {c.categoryNameAr}
+                                </SelectItem>
+                              ))}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
                         {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                       </Field>
                     )}
@@ -1121,19 +1134,6 @@ export default function AddProduct() {
                   إلغاء
                 </Button>
                 <div className="flex flex-col-reverse lg:flex-row items-center gap-3 w-full lg:w-auto">
-                  <Button
-                    loading={isLoading}
-                    variant="outline"
-                    size="lg"
-                    type="button"
-                    onClick={methods.handleSubmit((data) => {
-                      setSubmitType("saveAndNew");
-                      onSubmit(data);
-                    })}
-                    className="w-full lg:w-auto px-8 h-12 text-base"
-                  >
-                    حفظ وإضافة آخر
-                  </Button>
                   <Button loading={isLoading} size="lg" type="submit" className="w-full lg:w-auto px-8 h-12 text-base">
                     حفظ البيانات{" "}
                   </Button>
