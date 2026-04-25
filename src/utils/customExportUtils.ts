@@ -1465,7 +1465,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       <span class="label"><span>${t("recipient", "المستلم")}</span><span>:</span></span>
       <span class="val">
         ${order.customerName || order.customer || "-"}
-        ${order.mobile || order.customerPhone || order.phone ? `| ${order.mobile || order.customerPhone || order.phone}` : ""}
+    
       </span>
     </div>
     <div class="row">
