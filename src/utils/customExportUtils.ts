@@ -77,31 +77,51 @@ export const exportCustomPDF = async (title: string, htmlString: string, orienta
 // =============================================
 // Print Voucher - سند قبض / صرف (ورقة واحدة A4)
 // =============================================
-export const printVoucher = (htmlString: string) => {
-  // إنشاء iframe مخفي للطباعة لتجنب حظر النوافذ المنبثقة (Pop-up blockers)
-  const frameId = "print-iframe";
-  let iframe = document.getElementById(frameId) as HTMLIFrameElement;
-  
-  if (iframe) {
-    document.body.removeChild(iframe);
+const PRINT_CSS = `
+  @page { size: A4 portrait; margin: 10mm; }
+  @media print {
+    html, body {
+      width: 100% !important;
+      max-width: 100% !important;
+      margin: 0 !important;
+      padding: 0 5mm !important;
+      box-sizing: border-box !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
   }
-  
-  iframe = document.createElement("iframe");
-  iframe.id = frameId;
+`;
+
+const injectPrintCSS = (html: string): string => {
+  const styleTag = `<style>${PRINT_CSS}</style>`;
+  return html.includes("</head>") ? html.replace("</head>", `${styleTag}</head>`) : styleTag + html;
+};
+
+const waitForImages = (doc: Document): Promise<void[]> => {
+  const imgs = Array.from(doc.querySelectorAll("img"));
+  return Promise.all(
+    imgs.map(
+      (img) =>
+        new Promise<void>((resolve) => {
+          if (img.complete) return resolve();
+          img.onload = () => resolve();
+          img.onerror = () => resolve();
+        }),
+    ),
+  );
+};
+
+export const printVoucher = (htmlString: string): void => {
+  const iframe = document.createElement("iframe");
   Object.assign(iframe.style, {
     position: "fixed",
-    right: "0",
-    bottom: "0",
+    top: "0",
+    left: "0",
     width: "0",
     height: "0",
     border: "none",
     visibility: "hidden",
   });
-  
-  document.body.appendChild(iframe);
-  
-  const doc = iframe.contentWindow?.document || iframe.contentDocument;
-  if (!doc) return;
 
 
   
@@ -123,52 +143,30 @@ export const printVoucher = (htmlString: string) => {
     }
   `;
 
-  const injected = htmlString.includes("</head>") 
-    ? htmlString.replace("</head>", `<style>${printCSS}</style></head>`) 
-    : `<style>${printCSS}</style>` + htmlString;
+  const doc = iframe.contentDocument ?? iframe.contentWindow?.document;
+  if (!doc) {
+    document.body.removeChild(iframe);
+    return;
+  }
 
   doc.open();
-  doc.write(injected);
+  doc.write(injectPrintCSS(htmlString));
   doc.close();
 
-  const win = iframe.contentWindow;
-  if (!win) return;
+  (doc as any).fonts?.ready
+    ? doc.fonts.ready.then(async () => {
+        await waitForImages(doc);
+        await new Promise<void>((r) => setTimeout(r, 300));
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
 
-  win.focus();
-  
-  // التأكد من تحميل الخطوط والصور
-  const checkReady = () => {
-    return Promise.all([
-      win.document.fonts.ready,
-      new Promise(resolve => {
-        const imgs = win.document.querySelectorAll('img');
-        if (imgs.length === 0) resolve(true);
-        let loaded = 0;
-        imgs.forEach(img => {
-          if (img.complete) {
-            loaded++;
-            if (loaded === imgs.length) resolve(true);
-          } else {
-            img.onload = () => {
-              loaded++;
-              if (loaded === imgs.length) resolve(true);
-            };
-            img.onerror = () => {
-              loaded++;
-              if (loaded === imgs.length) resolve(true);
-            };
-          }
-        });
+        setTimeout(() => document.body.removeChild(iframe), 1000);
       })
-    ]);
-  };
-
-  checkReady().then(() => {
-    setTimeout(() => {
-      win.focus();
-      win.print();
-    }, 500);
-  });
+    : (() => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+        setTimeout(() => document.body.removeChild(iframe), 1000);
+      })();
 };
 
 // =============================================
@@ -196,7 +194,7 @@ export const exportVoucherPDF = (title: string, htmlString: string) => {
           window.print();
         }, 800);
       });
-    </script></body>`
+    </script></body>`,
   );
 
   document.body.appendChild(iframe);
@@ -818,19 +816,19 @@ export const generateReportHTML = (title: string, filtersInfo: string, summaryCa
     filtersArray.length > 0
       ? `<div class="filters-row">
         ${filtersArray
-        .map((f) => {
-          const parts = f.split(": ");
-          if (parts.length < 2) return "";
-          const label = parts[0];
-          const value = parts.slice(1).join(": ");
-          return `
+          .map((f) => {
+            const parts = f.split(": ");
+            if (parts.length < 2) return "";
+            const label = parts[0];
+            const value = parts.slice(1).join(": ");
+            return `
             <div class="filter-item">
               <span class="filter-label">${label}:</span>
               <span class="filter-value">${value || "-"}</span>
             </div>
           `;
-        })
-        .join("")}
+          })
+          .join("")}
        </div>`
       : "";
 
@@ -838,9 +836,9 @@ export const generateReportHTML = (title: string, filtersInfo: string, summaryCa
     summaryCards && summaryCards.length > 0
       ? `<div class="report-cards-container">
         ${summaryCards
-        .map((card) => {
-          const colorHex = card.color === "blue" ? "#3b82f6" : card.color === "green" ? "#10b981" : card.color === "orange" ? "#f59e0b" : card.color === "red" ? "#ef4444" : card.color === "purple" ? "#8b5cf6" : card.color === "teal" ? "#14b8a6" : "#3b82f6";
-          return `
+          .map((card) => {
+            const colorHex = card.color === "blue" ? "#3b82f6" : card.color === "green" ? "#10b981" : card.color === "orange" ? "#f59e0b" : card.color === "red" ? "#ef4444" : card.color === "purple" ? "#8b5cf6" : card.color === "teal" ? "#14b8a6" : "#3b82f6";
+            return `
             <div class="report-card ${card.color || "blue"}">
               <div class="card-accent" style="background-color: ${colorHex}"></div>
               <div class="card-content">
@@ -852,8 +850,8 @@ export const generateReportHTML = (title: string, filtersInfo: string, summaryCa
               </div>
             </div>
           `;
-        })
-        .join("")}
+          })
+          .join("")}
       </div>`
       : "";
 
@@ -1317,14 +1315,8 @@ export const getStockReceiptHTML = (order: any, t: any) => {
 // Claim Receipt HTML Template
 // =============================================
 export const getClaimReceiptHTML = (order: any, t: any) => {
-  let dateVal =
-    order.createdAt ||
-    order.date ||
-    order.invoiceDate ||
-    order.issueDate ||
-    order.created_at ||
-    order.saleDate;
- 
+  let dateVal = order.createdAt || order.date || order.invoiceDate || order.issueDate || order.created_at || order.saleDate;
+
   if (!dateVal) {
     for (const key in order) {
       if (key.toLowerCase().includes("date") && order[key]) {
@@ -1333,7 +1325,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       }
     }
   }
- 
+
   let formattedDate = "-";
   if (dateVal) {
     if (dateVal instanceof Date) {
@@ -1341,24 +1333,17 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
     } else if (typeof dateVal === "string") {
       const cleanDate = dateVal.split(" ")[0].split("T")[0];
       formattedDate = cleanDate;
-      const p = cleanDate.includes("/")
-        ? cleanDate.split("/")
-        : cleanDate.includes("-")
-        ? cleanDate.split("-")
-        : [];
+      const p = cleanDate.includes("/") ? cleanDate.split("/") : cleanDate.includes("-") ? cleanDate.split("-") : [];
       if (p.length === 3) {
-        const d =
-          p[0].length === 4
-            ? new Date(`${p[0]}-${p[1]}-${p[2]}`)
-            : new Date(`${p[2]}-${p[1]}-${p[0]}`);
+        const d = p[0].length === 4 ? new Date(`${p[0]}-${p[1]}-${p[2]}`) : new Date(`${p[2]}-${p[1]}-${p[0]}`);
         if (!isNaN(d.getTime())) formattedDate = d.toLocaleDateString("en-GB");
       }
     }
   }
- 
+
   const orderNo = order.orderNumber || order.invoiceNo || order.refNo || "-";
   const amount = order.totalAmount || order.grandTotal || 0;
- 
+
   return `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
 <head>
@@ -1467,7 +1452,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
 <body>
   <div class="header-grid">
     <div class="header-col">
-      <div class="company-title">${order.branchInfo?.name || "-" }</div>
+      <div class="company-title">${order.branchInfo?.name || "-"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("vat_number", "الرقم الضريبي")}</div>
         <div class="meta-value">${order.branchInfo?.taxNumber || "-"}</div>
@@ -1483,7 +1468,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       <div class="company-title">${order.branchInfo?.nameEn || "-"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
-        <div class="meta-value">${order.branchInfo?.commercialRegister ||"-"}</div>
+        <div class="meta-value">${order.branchInfo?.commercialRegister || "-"}</div>
         <div class="meta-label-en">Commercial No.</div>
       </div>
     </div>
@@ -1507,7 +1492,7 @@ export const getClaimReceiptHTML = (order: any, t: any) => {
       <span class="label"><span>${t("recipient", "المستلم")}</span><span>:</span></span>
       <span class="val">
         ${order.customerName || order.customer || "-"}
-    
+        ${order.mobile || order.customerPhone || order.phone ? `| ${order.mobile || order.customerPhone || order.phone}` : ""}
       </span>
     </div>
     <div class="row">

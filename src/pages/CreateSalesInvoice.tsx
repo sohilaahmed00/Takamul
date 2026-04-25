@@ -624,8 +624,8 @@ const CreateSalesInvoice: React.FC = () => {
 
                     <div className="flex justify-between items-center text-muted-foreground gap-3">
                       <span className="text-sm font-medium whitespace-nowrap">{t("discount")}</span>
-                      <div className="flex gap-2 w-full max-w-[170px]">
-                        <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" min={0} value={field.value ? field.value : undefined} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center flex-1" placeholder={t("value")} />} />
+                      <div className="flex gap-2 w-full max-w-[220px]">
+                        <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" min={0} value={field.value ? field.value : undefined} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center flex-1 min-w-[90px]" placeholder={t("value")} />} />
                         <Controller
                           control={form.control}
                           name="invoiceDiscountType"
