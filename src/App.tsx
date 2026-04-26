@@ -30,7 +30,6 @@ import EditPurchase from "@/pages/EditPurchase";
 import AddPurchaseCSV from "@/pages/AddPurchaseCSV";
 import CustomersList from "@/pages/CustomersList";
 import SuppliersList from "@/pages/SuppliersList";
-import ShiftsList from "@/pages/ShiftsList";
 
 import AddTaxInvoice from "@/pages/AddTaxInvoice";
 import AddSimplifiedTaxInvoice from "@/pages/AddSimplifiedTaxInvoice";
@@ -212,26 +211,26 @@ function AppRoutes() {
             <Route path="/products/quantity-adjustments/edit/:id" element={<AddQuantityAdjustment />} />
             <Route path="/products/quantity-adjustments/:mode/:id" element={<AddQuantityAdjustment />} />
 
-          {/* المبيعات */}
-          <Route path="/sales/a4-invoices" element={<A4Sales />} />
-          <Route path="/sales/a4-invoices/create" element={<CreateA4Invoice />} />
-          <Route path="/sales/add-tax-invoice" element={<AddTaxInvoice />} />
-          <Route path="/sales/add-simplified-tax-invoice" element={<AddSimplifiedTaxInvoice />} />
-          <Route path="/sales/import-csv" element={<ImportSales />} />
-          <Route path="/sales/create" element={<CreateSalesInvoice />} />
-          <Route path="/sales/edit/:id" element={<CreateSalesInvoice />} />
-          <Route path="/sales/all" element={<AllSales />} />
-          <Route path="/sales/pos-invoices" element={<PosSales />} />
-          <Route path="/sales/pos-invoices/:id" element={<POSInvoiceDetails />} />
-          <Route path="/sales/:id" element={<POSInvoiceDetails />} />
-          <Route path="/sales/pos-invoices/return/:id" element={<ReturnPOSSale />} />
-          <Route path="/sales/gift-cards" element={<GiftCards />} />
-          <Route path="/sales/deliveries" element={<Deliveries />} />
-          <Route path="/sales/create-from-quote" element={<CreateSalesInvoice />} />
-          <Route path="/sales/return" element={<SalesReturn />} />
-          <Route path="/sales/return/view/:id" element={<CreateReturnSalesInvoice />} />
-          <Route path="/sales/return/:id" element={<CreateReturnSalesInvoice />} />
-          <Route path="/sales/pos" element={<POS />} />
+            {/* المبيعات */}
+            <Route path="/sales/a4-invoices" element={<A4Sales />} />
+            <Route path="/sales/a4-invoices/create" element={<CreateA4Invoice />} />
+            <Route path="/sales/add-tax-invoice" element={<AddTaxInvoice />} />
+            <Route path="/sales/add-simplified-tax-invoice" element={<AddSimplifiedTaxInvoice />} />
+            <Route path="/sales/import-csv" element={<ImportSales />} />
+            <Route path="/sales/create" element={<CreateSalesInvoice />} />
+            <Route path="/sales/edit/:id" element={<CreateSalesInvoice />} />
+            <Route path="/sales/all" element={<AllSales />} />
+            <Route path="/sales/pos-invoices" element={<PosSales />} />
+            <Route path="/sales/pos-invoices/:id" element={<POSInvoiceDetails />} />
+            <Route path="/sales/:id" element={<POSInvoiceDetails />} />
+            <Route path="/sales/pos-invoices/return/:id" element={<ReturnPOSSale />} />
+            <Route path="/sales/gift-cards" element={<GiftCards />} />
+            <Route path="/sales/deliveries" element={<Deliveries />} />
+            <Route path="/sales/create-from-quote" element={<CreateSalesInvoice />} />
+            <Route path="/sales/return" element={<SalesReturn />} />
+            <Route path="/sales/return/view/:id" element={<CreateReturnSalesInvoice />} />
+            <Route path="/sales/return/:id" element={<CreateReturnSalesInvoice />} />
+            <Route path="/sales/pos" element={<POS />} />
 
             {/* نقطة البيع */}
 
@@ -239,9 +238,6 @@ function AppRoutes() {
             <Route path="/quotes" element={<QuotesList />} />
             <Route path="/quotes/create" element={<CreateQuote />} />
             <Route path="/quotes/edit/:id" element={<CreateQuote />} />
-
-            {/* الورديات */}
-            <Route path="/shifts" element={<ShiftsList />} />
 
             {/* المشتريات */}
             <Route path="/purchases" element={<PurchasesList />} />
@@ -388,7 +384,6 @@ function AppRoutes() {
           </Route>
         </Routes>
       </div>
-
     </>
   );
 }
