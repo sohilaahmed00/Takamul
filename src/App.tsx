@@ -232,7 +232,6 @@ function AppRoutes() {
             <Route path="/sales/return/:id" element={<CreateReturnSalesInvoice />} />
             <Route path="/sales/pos" element={<POS />} />
 
-            {/* نقطة البيع */}
 
             {/* العروض */}
             <Route path="/quotes" element={<QuotesList />} />
