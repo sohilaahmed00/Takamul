@@ -2,7 +2,7 @@
 
 import React, { useContext, ReactNode, useCallback } from "react";
 import { printVoucher, getClaimReceiptHTML } from "@/utils/customExportUtils";
-import { getAllCustomers } from "@/features/customers/services/customers";
+import { getAllCustomers, getCustomerById } from "@/features/customers/services/customers";
 import { useLanguage } from "./LanguageContext";
 import { useBranch } from "@/hooks/useBranch";
 import { getStockReceiptHTML } from "@/print/stockReceiptHTML";
@@ -10,6 +10,7 @@ import { getStockReceiptHTML } from "@/print/stockReceiptHTML";
 import { getA4InvoiceHTML } from "@/print/A4InvoiceTemplate";
 import { exportCustomPDF, exportToExcel, exportToCSV } from "@/utils/customExportUtils";
 import { printInvoice as thermalPrint } from "@/components/pos/orders/printInvoice";
+import { apiClient } from "@/api/client";
 import { itemBasePrice, calcItemTax, calcTotals, CartItem } from "@/constants/data";
 
 import { PrintContext, PrintContextType, PrintType, InvoiceData } from "./PrintContextDefinitions";
@@ -33,13 +34,42 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const { data: branchInfo } = useBranch();
 
   const prepareExtendedData = useCallback(async (data: InvoiceData) => {
+    let currentBranch = branchInfo;
+    
+    // If branchInfo from hook is missing, try fetching it once
+    if (!currentBranch) {
+      try {
+        const response = await apiClient.get("/Branch/Employeebranch");
+        currentBranch = response.data?.data || response.data;
+      } catch (err) {
+        console.error("[PrintContext] Failed to fetch branch info manually:", err);
+      }
+    }
+
     const extendedData: InvoiceData = {
       ...data,
-      branchInfo: branchInfo ?? null,
+      branchInfo: currentBranch ?? null,
     };
 
+    // Try fetching by customerId first (more reliable if permitted)
+    const cId = (data as any).customerId || (data as any).customerID;
+    if (cId && !extendedData.customerData) {
+      try {
+        const customer = await getCustomerById(Number(cId));
+        if (customer) {
+          extendedData.customerPhone = customer.mobile || customer.phone || "";
+          (extendedData as any).customerData = customer;
+          // If we found it by ID, we can return early
+          if (extendedData.customerData) return extendedData;
+        }
+      } catch (err) {
+        console.warn("[PrintContext] Failed to fetch customer by ID (likely 403), falling back to search:", err);
+      }
+    }
+
+    // Fallback: search by name
     const rawName = (data.customerName ?? data.customer ?? "").toString().trim();
-    if (!extendedData.customerPhone && rawName) {
+    if (!extendedData.customerData && rawName && rawName !== "—") {
       try {
         const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
         const customers = response?.items ?? [];
@@ -52,11 +82,12 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
 
         if (found) {
           extendedData.customerPhone = found.mobile ?? found.phone ?? "";
+          (extendedData as any).customerData = found;
         } else if (CASH_CUSTOMER_KEYWORDS.some((kw) => searchTerm.includes(kw))) {
           extendedData.customerPhone = DEFAULT_CUSTOMER_PHONE;
         }
       } catch (err) {
-        console.error("[PrintContext] Failed to fetch customer phone:", err);
+        console.error("[PrintContext] Failed to fetch customer by search:", err);
       }
     }
     return extendedData;

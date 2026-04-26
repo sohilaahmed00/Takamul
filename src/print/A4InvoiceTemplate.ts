@@ -1,6 +1,7 @@
 import { tafqeet } from "../utils/tafqeet";
 import type { BranchInfo } from "@/hooks/useBranch";
 import type { Customer } from "@/features/customers/types/customers.types";
+import { itemBasePrice, calcItemTax, calcTotals, type CartItem } from "@/constants/data";
 
 export const getA4InvoiceHTML = (order: any, t: any): string => {
   const branch: Partial<BranchInfo> = order.branchInfo   || {};
@@ -30,20 +31,53 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
   const custBuilding   = customer.buildingNumber     || order.customerBuildingNo    || "-";
   const invoiceNo      = order.orderNumber || order.invoiceNo || "-";
 
-  // ── Compute items once ───────────────────────────────────────────────────────
-  const computedItems = items.map((item: any) => {
-    const price    = Number(item.price || item.unitPrice || 0);
-    const qty      = Number(item.quantity || 0);
-    const subTotal = price * qty;
-    const taxAmt   = subTotal * 0.15;
-    const netTotal = subTotal + taxAmt;
-    return { item, price, qty, subTotal, taxAmt, netTotal };
+  // ── Compute items using standard logic ──────────────────────────────────────
+  const cart: CartItem[] = items.map((item: any) => {
+    const pct = Number(item?.discountPercentage ?? 0);
+    const flat = Number(item?.discountValue ?? 0);
+    const itemDiscount: CartItem["itemDiscount"] = pct > 0 ? { type: "pct", value: pct } : flat > 0 ? { type: "flat", value: flat } : null;
+
+    // Determine price based on tax calculation type (inclusive vs exclusive)
+    // taxCalculation: 2 is inclusive, others are usually exclusive or handled as exclusive base
+    const price = item.taxCalculation === 2 ? (item.unitPrice || item.price) : (item.priceBeforeTax ?? item.unitPrice ?? item.price ?? 0);
+
+    return {
+      productId: item.productId ?? 0,
+      name: item.productName || item.name || "-",
+      price: Number(price),
+      qty: Number(item.quantity ?? 1),
+      taxamount: Number(item.taxPercentage ?? item.taxamount ?? 15),
+      taxCalculation: Number(item.taxCalculation ?? 2),
+      itemDiscount,
+      note: "",
+      op: null,
+    };
   });
 
-  const totBeforeVAT = computedItems.reduce((s, r) => s + r.subTotal, 0);
-  const totalVAT     = totBeforeVAT * 0.15;
-  const discount     = Number(order.discount || 0);
-  const finalTotal   = totBeforeVAT + totalVAT - discount;
+  // Determine order-level discount
+  const discVal = Number(order.discountAmount || order.discountValue || order.discount || 0);
+  const discountObj = { type: "flat" as const, value: discVal };
+  
+  const totals = calcTotals(cart, discountObj);
+
+  const computedItems = cart.map((cItem, index) => {
+    const base = itemBasePrice(cItem);
+    const tax = calcItemTax(cItem);
+    const rowSubTotal = base; // This is (Price * Qty) - ItemDiscount
+    return { 
+      item: items[index], 
+      price: cItem.price, 
+      qty: cItem.qty, 
+      subTotal: rowSubTotal, 
+      taxAmt: tax, 
+      netTotal: rowSubTotal + tax 
+    };
+  });
+
+  const totBeforeVAT = totals.sub;
+  const totalVAT     = totals.tax;
+  const discount     = totals.discountAmount;
+  const finalTotal   = totals.total;
 
   const itemRows = computedItems.map(({ item, price, qty, subTotal, taxAmt, netTotal }) => `
     <tr>
@@ -81,6 +115,7 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
       color: #1a1a1a;
       font-size: 10px;
       line-height: 1.4;
+      padding: 15mm;
     }
 
     /* ══ HEADER ══ */
@@ -335,7 +370,7 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
 
     /* ══ PRINT ══ */
     @media print {
-      body { margin: 0; padding: 0; }
+      body { margin: 0; padding: 15mm; }
       * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
     }
   </style>
@@ -441,7 +476,7 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
     <div class="totals-box">
       <div class="tot-row">
         <div class="tot-ar">${t("items_count", "عدد المنتجات")}</div>
-        <div class="tot-num">${items.length}</div>
+        <div class="tot-num">عدد ${cart.reduce((s, i) => s + i.qty, 0)}</div>
         <div class="tot-en">Items</div>
       </div>
       <div class="tot-row">
