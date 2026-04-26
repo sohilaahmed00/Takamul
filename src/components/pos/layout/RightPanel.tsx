@@ -1,7 +1,6 @@
 import { usePos } from "@/context/PosContext";
 import CartPanel from "../cart/CartPanel";
 import CashierPanel from "../cashier/CashierPanel";
-import OrderDetailPanel from "../orders/OrderDetailPanel";
 
 const SCREENS_WITH_CART = ["home", "customers"];
 const SCREENS_WITH_CASHIER = ["cashier"];
@@ -13,8 +12,6 @@ export default function RightPanel() {
 
   if (SCREENS_WITH_CASHIER.includes(screen)) return <CashierPanel />;
   if (SCREENS_WITH_CART.includes(screen)) return <CartPanel />;
-  if (screen == "orders" && selectedOrderId) {
-    return <OrderDetailPanel />;
-  }
+
   return null;
 }

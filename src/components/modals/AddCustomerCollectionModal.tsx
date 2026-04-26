@@ -60,10 +60,7 @@ export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "ad
     setDescription("");
   }, [isOpen, isEditMode, editData]);
 
-  const selectedCustomer = useMemo(
-    () => customers?.items?.find((c: any) => c.id === customerId),
-    [customers, customerId]
-  );
+  const selectedCustomer = useMemo(() => customers?.items?.find((c: any) => c.id === customerId), [customers, customerId]);
   const currentBalance = Number(selectedCustomer?.balance ?? 0);
   const amountNumber = Number(amount || 0);
   const balanceAfter = currentBalance - amountNumber;
@@ -119,11 +116,7 @@ export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "ad
 
       onClose();
     } catch (error: any) {
-      notifyError(
-        error?.response?.data?.message ||
-        error?.message ||
-        t("save_error")
-      );
+      notifyError(error?.response?.data?.message || error?.message || t("save_error"));
     }
   };
 
@@ -137,7 +130,7 @@ export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "ad
         }
       }}
     >
-      <DialogContent dir={direction} onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => e.preventDefault()} className="w-full sm:max-w-[720px] p-0 overflow-hidden rounded-2xl">
+      <DialogContent dir={direction} className="w-full sm:max-w-[720px] p-0 overflow-hidden rounded-2xl">
         <DialogHeader className="px-5 py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold flex-wrap">
             {isEditMode ? <Pencil size={18} /> : <HandCoins size={18} />}
@@ -148,12 +141,7 @@ export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "ad
         <form id="customerCollectionForm" onSubmit={handleSubmit} className="px-5 space-y-3">
           <Field>
             <FieldLabel>{t("date")}</FieldLabel>
-            <Input
-              type="date"
-              value={transactionDate}
-              onChange={(e) => setTransactionDate(e.target.value)}
-              className="h-9"
-            />
+            <Input type="date" value={transactionDate} onChange={(e) => setTransactionDate(e.target.value)} className="h-9" />
           </Field>
 
           <div className="rounded-2xl border border-gray-200  p-3 space-y-3">
@@ -162,93 +150,48 @@ export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "ad
               <h3 className="text-sm font-semibold text-gray-800">{t("treasury")}</h3>
             </div>
 
-            <ComboboxField
-              value={treasuryId}
-              onChange={(val) => setTreasuryId(val ? Number(val) : undefined)}
-              items={treasurys ?? []}
-              valueKey="id"
-              labelKey="name"
-              placeholder={t("select_treasury")}
-            />
+            <ComboboxField value={treasuryId} onChange={(val) => setTreasuryId(val ? Number(val) : undefined)} items={treasurys ?? []} valueKey="id" labelKey="name" placeholder={t("select_treasury")} />
           </div>
 
           <div className="rounded-2xl border border-gray-200  p-3 space-y-3">
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
                 <FieldLabel>{t("customer_name")}</FieldLabel>
-                <ComboboxField
-                  value={customerId}
-                  onChange={(val) => setCustomerId(val ? Number(val) : undefined)}
-                  items={customers?.items ?? []}
-                  valueKey="id"
-                  labelKey="customerName"
-                  placeholder={t("select_customer")}
-                  disabled={isEditMode}
-                />
+                <ComboboxField value={customerId} onChange={(val) => setCustomerId(val ? Number(val) : undefined)} items={customers?.items ?? []} valueKey="id" labelKey="customerName" placeholder={t("select_customer")} disabled={isEditMode} />
               </Field>
 
               <Field>
                 <FieldLabel>{t("current_balance")}</FieldLabel>
-                <Input
-                  readOnly
-                  value={formatNumber(currentBalance)}
-                  className="h-9 bg-gray-50 text-center"
-                />
+                <Input readOnly value={formatNumber(currentBalance)} className="h-9 bg-gray-50 text-center" />
               </Field>
             </div>
           </div>
 
           <Field>
             <FieldLabel>{t("amount")}</FieldLabel>
-            <Input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
-              className="h-9"
-            />
+            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="h-9" />
           </Field>
 
           <Field>
             <FieldLabel>{t("balance_after")}</FieldLabel>
-            <Input
-              readOnly
-              value={formatNumber(balanceAfter)}
-              className="h-9 bg-gray-50 text-center text-[#2ecc71] font-semibold"
-            />
+            <Input readOnly value={formatNumber(balanceAfter)} className="h-9 bg-gray-50 text-center text-[#2ecc71] font-semibold" />
           </Field>
 
           <Field>
             <FieldLabel>{t("statement")}</FieldLabel>
-            <Input
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder={t("customer_collection_statement_placeholder")}
-              className="h-9"
-            />
+            <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder={t("customer_collection_statement_placeholder")} className="h-9" />
           </Field>
         </form>
 
         <DialogFooter className="px-5 py-7 border-t border-gray-100">
           <div className="flex justify-end gap-3 w-full px-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="h-10 px-6"
-            >
+            <Button type="button" variant="outline" onClick={onClose} className="h-10 px-6">
               {t("cancel")}
             </Button>
 
             <Button form="customerCollectionForm" type="submit" disabled={isPending} className="min-w-[150px] h-10 px-6">
               {isPending && <Loader2 size={16} className="animate-spin" />}
-              {isPending
-                ? isEditMode
-                  ? t("updating")
-                  : t("saving")
-                : isEditMode
-                  ? t("save_changes")
-                  : t("save_customer_collection")}
+              {isPending ? (isEditMode ? t("updating") : t("saving")) : isEditMode ? t("save_changes") : t("save_customer_collection")}
             </Button>
           </div>
         </DialogFooter>

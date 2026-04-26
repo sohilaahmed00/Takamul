@@ -16,7 +16,6 @@ import HomePage from "../pages/HomePage";
 import TablesPage from "../pages/TablesPage";
 import OrdersPage from "../pages/Orderspage";
 import CashierPage from "../pages/Cashierpage";
-import { HoldListPage } from "../pages/Holdlistpage";
 import { PlaceholderPage } from "../pages/PlaceholderPage";
 import { ToastContainer } from "react-toastify";
 import { TooltipProvider } from "@/components/ui/tooltip";

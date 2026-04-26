@@ -1,7 +1,7 @@
 import { createContext } from "react";
 
 export interface InvoiceData {
-  id: string | number;
+  id: string ;
   customerName?: string;
   customer?: string;
   customerPhone?: string;

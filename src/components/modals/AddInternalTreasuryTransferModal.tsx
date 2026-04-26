@@ -6,13 +6,7 @@ import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasury
 import { useCreateInternalTreasuryTransfer } from "@/features/internal-treasury-transfers/hooks/useCreateInternalTreasuryTransfer";
 import ComboboxField from "@/components/ui/ComboboxField";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Field, FieldLabel } from "@/components/ui/field";
@@ -22,16 +16,12 @@ type Props = {
   onClose: () => void;
 };
 
-export default function AddInternalTreasuryTransferModal({
-  isOpen,
-  onClose,
-}: Props) {
+export default function AddInternalTreasuryTransferModal({ isOpen, onClose }: Props) {
   const { direction, t } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
 
   const { data: treasurys } = useGetAllTreasurys();
-  const { mutateAsync: createTransfer, isPending } =
-    useCreateInternalTreasuryTransfer();
+  const { mutateAsync: createTransfer, isPending } = useCreateInternalTreasuryTransfer();
 
   const [date, setDate] = useState("");
   const [fromTreasuryId, setFromTreasuryId] = useState<number | undefined>();
@@ -49,18 +39,11 @@ export default function AddInternalTreasuryTransferModal({
     }
   }, [isOpen]);
 
-  const fromTreasury = useMemo(
-    () => treasurys?.find((item) => item.id === fromTreasuryId),
-    [treasurys, fromTreasuryId]
-  );
+  const fromTreasury = useMemo(() => treasurys?.find((item) => item.id === fromTreasuryId), [treasurys, fromTreasuryId]);
 
-  const toTreasury = useMemo(
-    () => treasurys?.find((item) => item.id === toTreasuryId),
-    [treasurys, toTreasuryId]
-  );
+  const toTreasury = useMemo(() => treasurys?.find((item) => item.id === toTreasuryId), [treasurys, toTreasuryId]);
 
-  const formatNumber = (value?: number) =>
-    Number(value ?? 0).toLocaleString("en-US");
+  const formatNumber = (value?: number) => Number(value ?? 0).toLocaleString("en-US");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,11 +86,7 @@ export default function AddInternalTreasuryTransferModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent
-        dir={direction}
-        onOpenAutoFocus={(e) => e.preventDefault()}
-        className="w-full sm:max-w-[750px] p-0 overflow-hidden rounded-2xl"
-      >
+      <DialogContent dir={direction} className="w-full sm:max-w-[750px] p-0 overflow-hidden rounded-2xl">
         <DialogHeader className="px-6 py-2 border-b border-gray-100">
           <DialogTitle className="flex items-center gap-2 text-[#2ecc71] text-lg font-semibold">
             <ArrowLeftRight size={18} />
@@ -115,49 +94,27 @@ export default function AddInternalTreasuryTransferModal({
           </DialogTitle>
         </DialogHeader>
 
-        <form
-          id="addInternalTransferForm"
-          onSubmit={handleSubmit}
-          className="px-6 space-y-2"
-        >
+        <form id="addInternalTransferForm" onSubmit={handleSubmit} className="px-6 space-y-2">
           <Field>
             <FieldLabel>{t("movement_date")}</FieldLabel>
-            <Input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="h-10"
-            />
+            <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-10" />
           </Field>
 
           <div className="rounded-2xl border border-gray-200  p-4">
             <div className="flex items-center gap-2 mb-3">
               <Wallet size={16} className="text-[#2ecc71]" />
-              <h3 className="text-sm font-semibold text-gray-800">
-                {t("from_treasury")}
-              </h3>
+              <h3 className="text-sm font-semibold text-gray-800">{t("from_treasury")}</h3>
             </div>
 
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
                 <FieldLabel>{t("select_treasury")}</FieldLabel>
-                <ComboboxField
-                  value={fromTreasuryId}
-                  onChange={(val) => setFromTreasuryId(val ? Number(val) : undefined)}
-                  items={treasurys ?? []}
-                  valueKey="id"
-                  labelKey="name"
-                  placeholder={t("select_treasury")}
-                />
+                <ComboboxField value={fromTreasuryId} onChange={(val) => setFromTreasuryId(val ? Number(val) : undefined)} items={treasurys ?? []} valueKey="id" labelKey="name" placeholder={t("select_treasury")} />
               </Field>
 
               <Field>
                 <FieldLabel>{t("current_balance")}</FieldLabel>
-                <Input
-                  readOnly
-                  value={formatNumber(fromTreasury?.currentBalance)}
-                  className="h-10 bg-gray-50 text-center"
-                />
+                <Input readOnly value={formatNumber(fromTreasury?.currentBalance)} className="h-10 bg-gray-50 text-center" />
               </Field>
             </div>
           </div>
@@ -165,74 +122,40 @@ export default function AddInternalTreasuryTransferModal({
           <div className="rounded-2xl border border-gray-200  p-4">
             <div className="flex items-center gap-2 mb-3">
               <Wallet size={16} className="text-[#2ecc71]" />
-              <h3 className="text-sm font-semibold text-gray-800">
-                {t("to_treasury")}
-              </h3>
+              <h3 className="text-sm font-semibold text-gray-800">{t("to_treasury")}</h3>
             </div>
 
             <div className="grid grid-cols-[2fr_1fr] gap-3">
               <Field>
                 <FieldLabel>{t("select_treasury")}</FieldLabel>
-                <ComboboxField
-                  value={toTreasuryId}
-                  onChange={(val) => setToTreasuryId(val ? Number(val) : undefined)}
-                  items={treasurys ?? []}
-                  valueKey="id"
-                  labelKey="name"
-                  placeholder={t("select_treasury")}
-                />
+                <ComboboxField value={toTreasuryId} onChange={(val) => setToTreasuryId(val ? Number(val) : undefined)} items={treasurys ?? []} valueKey="id" labelKey="name" placeholder={t("select_treasury")} />
               </Field>
 
               <Field>
                 <FieldLabel>{t("current_balance")}</FieldLabel>
-                <Input
-                  readOnly
-                  value={formatNumber(toTreasury?.currentBalance)}
-                  className="h-10 bg-gray-50 text-center"
-                />
+                <Input readOnly value={formatNumber(toTreasury?.currentBalance)} className="h-10 bg-gray-50 text-center" />
               </Field>
             </div>
           </div>
 
           <Field>
             <FieldLabel>{t("transfer_amount")}</FieldLabel>
-            <Input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0"
-              className="h-10"
-            />
+            <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="h-10" />
           </Field>
 
           <Field>
             <FieldLabel>{t("statement")}</FieldLabel>
-            <Input
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder={t("transfer_statement_placeholder")}
-              className="h-10"
-            />
+            <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t("transfer_statement_placeholder")} className="h-10" />
           </Field>
         </form>
 
         <DialogFooter className="px-6 py-8 border-t border-gray-100">
           <div className="flex justify-end gap-3 w-full px-1">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="h-10 px-6"
-            >
+            <Button type="button" variant="outline" onClick={onClose} className="h-10 px-6">
               {t("cancel")}
             </Button>
 
-            <Button
-              form="addInternalTransferForm"
-              type="submit"
-              disabled={isPending}
-              className="min-w-[150px] h-10 px-6"
-            >
+            <Button form="addInternalTransferForm" type="submit" disabled={isPending} className="min-w-[150px] h-10 px-6">
               {isPending && <Loader2 size={16} className="animate-spin" />}
               {isPending ? t("saving") : t("save_transfer")}
             </Button>

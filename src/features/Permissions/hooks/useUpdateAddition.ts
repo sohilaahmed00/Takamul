@@ -1,11 +1,11 @@
 import { QueryClient, useMutation, useQueryClient } from "@tanstack/react-query";
 import useToast from "@/hooks/useToast";
-import { updateAddition } from "../services/additions";
-import type { createAddition } from "../types/permissions.types";
-import { additionsKeys } from "../keys/additions.keys";
 import axios from "axios";
 import { handleApiError } from "@/lib/handleApiError";
 import { handleApiSuccess } from "@/lib/handleApiSuccess";
+import { createAddition } from "@/features/Additions/types/additions.types";
+import { updateAddition } from "@/features/Additions/services/additions";
+import { additionsKeys } from "@/features/Additions/keys/additions.keys";
 
 type UpdateCategoryPayload = {
   id: number;
