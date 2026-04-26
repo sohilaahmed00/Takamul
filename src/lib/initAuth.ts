@@ -1,15 +1,14 @@
-// auth/initAuth.ts
+// initAuth.ts
 import { useAuthStore } from "@/store/authStore";
-import { refreshToken } from "@/features/auth/services/auth";
 import { jwtDecode } from "jwt-decode";
 import { AppJwtPayload } from "@/types";
+import { LoginResponse } from "@/features/auth/types/auth.types";
+import { authClient } from "@/api/client";
 
 export const initAuth = async (): Promise<void> => {
   try {
-    const data = await refreshToken();
+    const { data } = await authClient.post<LoginResponse>("/Auth/refresh-token");
     const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
-    console.log("decoded token:", decoded);
-
     useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username);
   } catch {
     useAuthStore.getState().clearAuth();
