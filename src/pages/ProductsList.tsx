@@ -21,10 +21,15 @@ import { useDeleteProduct } from "@/features/products/hooks/useDeleteCustomer";
 import { useAuthStore } from "@/store/authStore";
 import { Permission, Permissions } from "@/lib/permissions";
 import { Input } from "@/components/ui/input";
+import { selectRowsPerPage, useSettingsStore } from "@/features/settings/store/settingsStore";
 
 export default function ProductsList() {
   const { direction, t } = useLanguage();
-  const [entriesPerPage, setEntriesPerPage] = useState(3000);
+  const rows = useSettingsStore(selectRowsPerPage);
+  const [entriesPerPage, setEntriesPerPage] = useState(rows ?? 5);
+  useEffect(() => {
+    setEntriesPerPage(rows ?? 5);
+  }, [rows]);
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   type ProductType = "Direct" | "Branched" | "Prepared" | "RawMatrial";

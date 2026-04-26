@@ -1,4 +1,9 @@
 import type { PaginationMeta } from "@/types";
+import { BranchedProductFormValues, DirectProductFormValues, PreparedProductFormValues, RawMaterialFormValues } from "../schemas";
+
+export type ProductType = "Direct" | "Branched" | "Prepared" | "RawMatrial";
+
+export type FormValues = DirectProductFormValues & BranchedProductFormValues & PreparedProductFormValues & RawMaterialFormValues;
 
 export type Product = {
   id: number;
@@ -129,7 +134,6 @@ export interface CreateProduct {
   taxId?: number;
   taxCalculation: string;
   image?: File | string;
-  //in Update Product
   ProductType?: "Direct" | "Prepared" | "Branched" | "RawMatrial";
 }
 
