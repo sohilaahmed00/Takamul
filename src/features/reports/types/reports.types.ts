@@ -277,8 +277,8 @@ export interface StockAlertItem {
 }
 
 export interface StockAlertReportParams {
-  branchId?: number | string;
-  customerId: string | number;
+  branchId?: string;
+  customerId?: string | number;
   from?: string;
   to?: string;
 }

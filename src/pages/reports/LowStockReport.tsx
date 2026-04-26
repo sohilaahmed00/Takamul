@@ -1,42 +1,19 @@
 import React, { useState } from "react";
-import {
-  AlertTriangle,
-  RotateCcw,
-  Search,
-  Printer,
-  FileText,
-  FileSpreadsheet,
-} from "lucide-react";
+import { AlertTriangle, RotateCcw, Search, Printer, FileText, FileSpreadsheet } from "lucide-react";
 import { DataTable, type DataTablePageEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/context/LanguageContext";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useGetStockAlertsReport } from "@/features/reports/hooks/useGetStockAlertsReport";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
 import { FinancialStatCard } from "@/components/FinancialStatCard";
-import {
-  generateReportHTML,
-  printCustomHTML,
-  exportCustomPDF,
-  exportToExcel
-} from "@/utils/customExportUtils";
+import { generateReportHTML, printCustomHTML, exportCustomPDF, exportToExcel } from "@/utils/customExportUtils";
 
 export default function LowStockReport() {
   const { t, direction } = useLanguage();
@@ -54,8 +31,12 @@ export default function LowStockReport() {
     branchId: " ",
   });
 
-  const { data: rows = [], isLoading, isFetching } = useGetStockAlertsReport({
-    branchId: submittedFilters.branchId.trim() || undefined,
+  const {
+    data: rows = [],
+    isLoading,
+    isFetching,
+  } = useGetStockAlertsReport({
+    branchId: submittedFilters.branchId.trim() || "",
   });
 
   const { data: branches = [] } = useGetAllBranches();
@@ -84,7 +65,7 @@ export default function LowStockReport() {
   const title = t("low_stock_alerts", "تنبيهات المخزون");
 
   const getFiltersInfo = () => {
-    const b = branches.find(x => String(x.id) === submittedFilters.branchId.trim());
+    const b = branches.find((x) => String(x.id) === submittedFilters.branchId.trim());
     return `${t("branch", "الفرع")}: ${b ? b.name : t("all", "الكل")}`;
   };
 
@@ -100,15 +81,7 @@ export default function LowStockReport() {
     if (!rows.length) return;
     setPdfLoading(true);
     try {
-      const html = generateReportHTML(
-        title,
-        getFiltersInfo(),
-        [],
-        exportColumns,
-        rows,
-        t,
-        direction
-      );
+      const html = generateReportHTML(title, getFiltersInfo(), [], exportColumns, rows, t, direction);
       await exportCustomPDF(title, html);
     } finally {
       setPdfLoading(false);
@@ -117,15 +90,7 @@ export default function LowStockReport() {
 
   const handlePrint = () => {
     if (!rows.length) return;
-    const html = generateReportHTML(
-      title,
-      getFiltersInfo(),
-      [],
-      exportColumns,
-      rows,
-      t,
-      direction
-    );
+    const html = generateReportHTML(title, getFiltersInfo(), [], exportColumns, rows, t, direction);
     printCustomHTML(title, html);
   };
 
@@ -146,25 +111,15 @@ export default function LowStockReport() {
           </div>
 
           <div className="flex items-center gap-4 text-sm font-medium">
-            <button
-              onClick={handlePrint}
-              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
-            >
+            <button onClick={handlePrint} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
               <Printer size={16} />
               <span className="hidden sm:inline">{t("print", "طباعة")}</span>
             </button>
-            <button
-              onClick={handleExportPDF}
-              disabled={pdfLoading}
-              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400 disabled:opacity-50"
-            >
+            <button onClick={handleExportPDF} disabled={pdfLoading} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400 disabled:opacity-50">
               <FileText size={16} />
               <span className="hidden sm:inline">PDF</span>
             </button>
-            <button
-              onClick={handleExportExcel}
-              className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400"
-            >
+            <button onClick={handleExportExcel} className="flex items-center gap-1.5 hover:text-[var(--primary)] transition-colors text-slate-600 dark:text-slate-400">
               <FileSpreadsheet size={16} />
               <span className="hidden sm:inline">Excel</span>
             </button>
@@ -172,7 +127,6 @@ export default function LowStockReport() {
         </CardHeader>
 
         <CardContent className="space-y-5">
-
           {/* Filters Card */}
           <div className="rounded-2xl border border-gray-100 dark:border-slate-800 bg-white dark:bg-transparent p-4 md:p-5 space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4 items-end">
@@ -208,62 +162,15 @@ export default function LowStockReport() {
           </div>
 
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
-            <DataTable
-              value={rows}
-              loading={isLoading || isFetching}
-              paginator
-              rows={entriesPerPage}
-              dataKey="productId"
-              className="custom-green-table custom-compact-table low-stock-table"
-              emptyMessage={t("no_data")}
-              responsiveLayout="stack"
-            >
-              <Column
-                header={t("serial", "م")}
-                body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>}
-                className="w-16"
-              />
-              <Column
-                field="barcode"
-                header={t("barcode", "باركود")}
-                sortable
-                body={(rowData) => (
-                  <span className="text-sm font-medium">{rowData.barcode}</span>
-                )}
-              />
+            <DataTable value={rows} loading={isLoading || isFetching} paginator rows={entriesPerPage} dataKey="productId" className="custom-green-table custom-compact-table low-stock-table" emptyMessage={t("no_data")} responsiveLayout="stack">
+              <Column header={t("serial", "م")} body={(_, opt) => <span className="text-sm font-semibold">{opt.rowIndex + 1}</span>} className="w-16" />
+              <Column field="barcode" header={t("barcode", "باركود")} sortable body={(rowData) => <span className="text-sm font-medium">{rowData.barcode}</span>} />
 
-              <Column
-                field="productName"
-                header={t("item_name", "اسم الصنف")}
-                sortable
-                body={(rowData) => (
-                  <span className="text-sm font-bold text-[var(--text-main)]">
-                    {rowData.productName}
-                  </span>
-                )}
-              />
+              <Column field="productName" header={t("item_name", "اسم الصنف")} sortable body={(rowData) => <span className="text-sm font-bold text-[var(--text-main)]">{rowData.productName}</span>} />
 
-              <Column
-                field="currentQty"
-                header={t("current_quantity", "الكمية الحالية")}
-                sortable
-                body={(rowData) => (
-                  <span className="text-sm border border-red-200 bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-bold inline-block">
-                    {formatNumber(rowData.currentQty)}
-                  </span>
-                )}
-              />
+              <Column field="currentQty" header={t("current_quantity", "الكمية الحالية")} sortable body={(rowData) => <span className="text-sm border border-red-200 bg-red-50 text-red-700 px-2 py-0.5 rounded-full font-bold inline-block">{formatNumber(rowData.currentQty)}</span>} />
 
-              <Column
-                field="minStockLevel"
-                header={t("min_stock_level", "حد الطلب")}
-                sortable
-                body={(rowData) => (
-                  <span className="text-sm font-semibold whitespace-nowrap">
-                    {formatNumber(rowData.minStockLevel)}
-                  </span>
-                )}
-              />
+              <Column field="minStockLevel" header={t("min_stock_level", "حد الطلب")} sortable body={(rowData) => <span className="text-sm font-semibold whitespace-nowrap">{formatNumber(rowData.minStockLevel)}</span>} />
             </DataTable>
           </div>
         </CardContent>
