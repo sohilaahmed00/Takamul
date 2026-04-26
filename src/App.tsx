@@ -5,13 +5,11 @@ import VerifyOTP from "@/pages/VerifyOTP";
 import ResetPassword from "@/pages/ResetPassword";
 import Dashboard from "@/pages/Dashboard";
 import ImportProducts from "@/pages/ImportProducts";
-import PrintBarcode from "@/pages/PrintBarcode";
 import A4Sales from "@/pages/A4Sales";
 import CreateA4Invoice from "@/pages/CreateA4Invoice";
 
 import AllSales from "@/pages/AllSales";
 import QuotesList from "@/pages/QuotesList";
-import AddQuote from "@/pages/AddQuote";
 
 import ViewQuote from "@/pages/ViewQuote";
 import CreateSalesInvoice from "@/pages/CreateSalesInvoice";
@@ -205,7 +203,6 @@ function AppRoutes() {
             <Route path="/products/create" element={<AddProduct />} />
             <Route path="/products/edit/:id" element={<AddProduct />} />
             <Route path="/products/import" element={<ImportProducts />} />
-            <Route path="/products/barcode" element={<PrintBarcode />} />
             <Route path="/products/units" element={<Units />} />
             <Route path="/products/additions" element={<Additions />} />
             <Route path="/products/groups" element={<CategoriesList />} />
