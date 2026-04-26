@@ -100,16 +100,17 @@ const injectPrintCSS = (html: string): string => {
 
 const waitForImages = (doc: Document): Promise<void[]> => {
   const imgs = Array.from(doc.querySelectorAll("img"));
-  return Promise.all(
-    imgs.map(
-      (img) =>
-        new Promise<void>((resolve) => {
-          if (img.complete) return resolve();
-          img.onload = () => resolve();
-          img.onerror = () => resolve();
-        }),
-    ),
+  const imgPromises = imgs.map(
+    (img) =>
+      new Promise<void>((resolve) => {
+        if (img.complete) return resolve();
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
+        // Individual image timeout
+        setTimeout(resolve, 1500);
+      }),
   );
+  return Promise.all(imgPromises);
 };
 
 export const printVoucher = (htmlString: string): void => {
@@ -138,20 +139,21 @@ export const printVoucher = (htmlString: string): void => {
   doc.write(injectPrintCSS(htmlString));
   doc.close();
 
-  (doc as any).fonts?.ready
-    ? doc.fonts.ready.then(async () => {
-        await waitForImages(doc);
-        await new Promise<void>((r) => setTimeout(r, 300));
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
+  const triggerPrint = async () => {
+    await waitForImages(doc);
+    iframe.contentWindow?.focus();
+    iframe.contentWindow?.print();
+    setTimeout(() => {
+      if (iframe.parentNode) document.body.removeChild(iframe);
+    }, 2000);
+  };
 
-        setTimeout(() => document.body.removeChild(iframe), 1000);
-      })
-    : (() => {
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
-        setTimeout(() => document.body.removeChild(iframe), 1000);
-      })();
+  const fontsReady = (doc as any).fonts?.ready || Promise.resolve();
+  
+  // Timeout for the whole preparation (fonts + images)
+  const timeoutPromise = new Promise(r => setTimeout(r, 1500));
+
+  Promise.race([fontsReady, timeoutPromise]).then(triggerPrint);
 };
 
 // =============================================
