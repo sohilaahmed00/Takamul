@@ -5,13 +5,6 @@ import { jwtDecode } from "jwt-decode";
 import { AppJwtPayload } from "@/types";
 import { LoginResponse } from "@/features/auth/types/auth.types";
 
-// ✅ instance عادية بدون interceptors للـ auth فقط
-export const authClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
-  withCredentials: true,
-});
-
-// ✅ instance للباقي
 export const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   withCredentials: true,
@@ -28,7 +21,7 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
-// Request interceptor
+// Request
 apiClient.interceptors.request.use((config) => {
   const { accessToken } = useAuthStore.getState();
   if (accessToken) {
@@ -37,11 +30,17 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor
+// Response
 apiClient.interceptors.response.use(
   (response) => response,
   async (err) => {
     const originalRequest = err.config;
+
+    // ✅ لو الـ request ده نفسه refresh-token → ارفضه فوراً بدون retry
+    if (originalRequest.url?.includes("/Auth/refresh-token")) {
+      useAuthStore.getState().clearAuth();
+      return Promise.reject(err);
+    }
 
     if (err.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
@@ -59,12 +58,18 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise((resolve, reject) => {
-        // ✅ authClient مش apiClient عشان منعملش loop
-        authClient
+        apiClient
           .post<LoginResponse>("/Auth/refresh-token")
           .then(({ data }) => {
             const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
-            useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username);
+            useAuthStore.getState().setAuth(
+              data.accessToken,
+              new Date(data.accessTokenExpiration).getTime(),
+              decoded.Permission,
+              decoded?.UserId,
+              decoded?.email,
+              decoded?.username,
+            );
             apiClient.defaults.headers.common["Authorization"] = "Bearer " + data.accessToken;
             originalRequest.headers["Authorization"] = "Bearer " + data.accessToken;
             processQueue(null, data.accessToken);
@@ -72,7 +77,6 @@ apiClient.interceptors.response.use(
           })
           .catch((err) => {
             processQueue(err, null);
-            // ✅ لو الـ refresh فشل → logout
             useAuthStore.getState().clearAuth();
             reject(err);
           })
