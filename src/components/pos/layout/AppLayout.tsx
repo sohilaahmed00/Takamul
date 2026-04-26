@@ -8,7 +8,6 @@ import HomePage from "../pages/HomePage";
 import TablesPage from "../pages/TablesPage";
 import OrdersPage from "../pages/Orderspage";
 import CashierPage from "../pages/Cashierpage";
-import { SuccessPage } from "../pages/SuccessPage";
 import { HoldListPage } from "../pages/Holdlistpage";
 import { PlaceholderPage } from "../pages/PlaceholderPage";
 import { ToastContainer } from "react-toastify";
@@ -29,8 +28,6 @@ function PageContent() {
       return <TablesPage />;
     case "orders":
       return <OrdersPage />;
-    case "success":
-      return <SuccessPage />;
     case "hold-list":
       return <HoldListPage />;
     case "reports":

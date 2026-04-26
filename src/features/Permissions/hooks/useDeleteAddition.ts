@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteAddition } from "../services/additions";
 import axios from "axios";
-import { additionsKeys } from "../keys/additions.keys";
 import useToast from "@/hooks/useToast";
 import { handleApiSuccess } from "@/lib/handleApiSuccess";
 import { handleApiError } from "@/lib/handleApiError";
+import { additionsKeys } from "@/features/Additions/keys/additions.keys";
+import { deleteAddition } from "@/features/Additions/services/additions";
 
 export function useDeleteAddition() {
   const queryClient = useQueryClient();

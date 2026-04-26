@@ -16,7 +16,6 @@ import HomePage from "../pages/HomePage";
 import TablesPage from "../pages/TablesPage";
 import OrdersPage from "../pages/Orderspage";
 import CashierPage from "../pages/Cashierpage";
-import { SuccessPage } from "../pages/SuccessPage";
 import { HoldListPage } from "../pages/Holdlistpage";
 import { PlaceholderPage } from "../pages/PlaceholderPage";
 import { ToastContainer } from "react-toastify";
@@ -30,7 +29,6 @@ import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHou
 import CartPanel2 from "../cart/CartPanel2";
 
 export default function AppLayout2() {
-  const { showHoldModal, setShowHoldModal, confirmHold } = usePos();
   useEffect(() => {
     const init = async () => {
       try {
@@ -45,8 +43,6 @@ export default function AppLayout2() {
   return (
     <div className="relative flex h-screen bg-gray-100 overflow-hidden rounded-xl border border-gray-200" style={{ minHeight: 600 }}>
       <ToastContainer pauseOnHover={false} />
-
-      {showHoldModal && <HoldModal open={showHoldModal} onClose={() => setShowHoldModal(false)} onConfirm={confirmHold} />}
 
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         <Topbar2 />
