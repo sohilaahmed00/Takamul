@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { calcItemTax, calcTotals, CartItem, itemBasePrice, itemBasePriceRaw } from "@/constants/data";
 import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL, usePos } from "@/context/PosContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { CheckCircle2, Clock, CreditCard, FileText, Mail, MessageCircle, Plus, Printer, SaudiRiyal, Save, Search, SlidersHorizontal, Tag, Trash2, User, Vault, X, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, CreditCard, FileText, Hash, Mail, MessageCircle, MoreVertical, Plus, Printer, SaudiRiyal, Save, Search, SlidersHorizontal, Tag, Trash2, User, Vault, X, XCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
@@ -23,6 +23,8 @@ import { Treasury } from "@/features/treasurys/types/treasurys.types";
 import { UnifiedPaymentDialog } from "../modals/UnifiedPaymentDialog";
 import { Switch } from "@/components/ui/switch";
 import { InvoiceData, printInvoice } from "../orders/printInvoice";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from "@/components/ui/drawer";
+import { Separator } from "@/components/ui/separator";
 
 function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   const [open, setOpen] = useState(false);
@@ -78,6 +80,265 @@ function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   );
 }
 
+function SwipeableOrderCard({ order, badgeCls, translatedStatus, onCardClick, onActionClick }: { order: SalesOrder; badgeCls: string; translatedStatus: string; onCardClick: () => void; onActionClick: (order: SalesOrder) => void }) {
+  const [swiped, setSwiped] = useState(false);
+  const startX = useRef(0);
+  const isDragging = useRef(false);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    startX.current = e.touches[0].clientX;
+    isDragging.current = true;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    const diff = startX.current - e.changedTouches[0].clientX;
+    if (diff > 50) setSwiped(true); // swipe لليسار → يظهر
+    if (diff < -50) setSwiped(false); // swipe لليمين → يخفي
+    isDragging.current = false;
+  };
+
+  return (
+    <div className="relative overflow-hidden border-b border-border">
+      {/* ===== أزرار الـ Actions (خلف الكارد) ===== */}
+      <div className="absolute inset-y-0 left-0 flex items-center gap-1 px-2 bg-muted">
+        {order.orderStatus === "Confirmed" ? (
+          <button onClick={() => onActionClick(order)} className="h-full px-3 flex flex-col items-center justify-center gap-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+            <Printer size={16} />
+            <span className="text-[9px]">طباعة</span>
+          </button>
+        ) : (
+          <>
+            <button onClick={() => onActionClick(order)} className="h-full px-3 flex flex-col items-center justify-center gap-1 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors">
+              <Plus size={16} />
+              <span className="text-[9px]">إضافة</span>
+            </button>
+            <button onClick={() => onActionClick(order)} className="h-full px-3 flex flex-col items-center justify-center gap-1 bg-[#000052] text-white rounded-lg transition-colors">
+              <CreditCard size={16} />
+              <span className="text-[9px]">دفع</span>
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* ===== الكارد نفسه ===== */}
+      <div
+        className="flex items-center gap-3 px-4 py-3 bg-card transition-transform duration-200 cursor-pointer"
+        style={{ transform: swiped ? "translateX(-90px)" : "translateX(0)" }}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onClick={() => {
+          if (swiped) {
+            setSwiped(false);
+            return;
+          }
+          onCardClick();
+        }}
+      >
+        {/* الأيقونة */}
+        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
+          <FileText size={14} />
+        </div>
+
+        {/* الوسط */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+              <User size={10} />
+              {order.customerName ?? "—"}
+            </span>
+            {translatedStatus && <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${badgeCls}`}>{translatedStatus}</span>}
+          </div>
+          <div className="flex items-center gap-2 mt-0.5">
+            <span className="text-[10px] text-muted-foreground/60 font-mono">{order.orderNumber ?? "—"}</span>
+            <span className="text-muted-foreground/30 text-[10px]">·</span>
+            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+              <Clock size={9} />
+              {formatDate(order.orderDate)}
+            </span>
+          </div>
+        </div>
+
+        {/* السعر */}
+        <span className="flex items-center gap-1 text-[12px] font-bold text-foreground shrink-0">
+          {order.grandTotal.toFixed(2)}
+          <SaudiRiyal size={11} />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// ===== Bottom Sheet Component =====
+function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen, setCart, setOrderType, setDineInMode, setSelectedOrderId, setSelectedTable, onOpenChange }: { order: SalesOrder | null; open: boolean; onClose: () => void; selectedCustomer: any; setScreen: any; setCart: any; setOrderType: any; setDineInMode: any; setSelectedOrderId: any; setSelectedTable: any; onOpenChange: (v: boolean) => void }) {
+  if (!order) return null;
+
+  const isConfirmed = order.orderStatus === "Confirmed";
+  const isInProgress = order.orderStatus === "InProgress";
+
+  const badgeCls = isConfirmed ? "bg-green-100 text-green-700" : order.orderStatus?.toLowerCase() === "unconfirmed" ? "bg-yellow-100 text-yellow-700" : order.orderStatus?.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600" : "bg-sky-100 text-sky-600";
+
+  const handleAddItems = () => {
+    setScreen("home");
+    setCart(
+      order.items.map((item) => ({
+        price: item?.unitPrice ?? 0,
+        qty: item?.quantity,
+        taxamount: item?.taxAmount,
+        taxCalculation: item.taxCalculation,
+        name: item?.productName,
+        productId: item?.productId,
+      })),
+    );
+    if (isInProgress) {
+      setOrderType("dine-in");
+      setDineInMode("add-items");
+      setSelectedOrderId(order?.id);
+    }
+    onClose();
+    onOpenChange(false);
+  };
+
+  const handleCheckout = () => {
+    setScreen("home");
+    setCart(
+      order.items.map((item) => ({
+        price: item?.unitPrice ?? 0,
+        qty: item?.quantity,
+        taxamount: item?.taxAmount,
+        taxCalculation: item.taxCalculation,
+        name: item?.productName,
+        productId: item?.productId,
+      })),
+    );
+    if (isInProgress) {
+      setOrderType("dine-in");
+      setDineInMode("checkout");
+      setSelectedOrderId(order?.id);
+      setSelectedTable(order?.tableId);
+    }
+    onClose();
+    onOpenChange(false);
+  };
+
+  const handlePrint = async () => {
+    const invoiceData: InvoiceData = {
+      logoUrl: LOGO_URL,
+      invoiceNumber: `—`,
+      institutionName: INSTITUTION_NAME,
+      institutionTaxNumber: INSTITUTION_TAX_NO,
+      invoiceDate: formatDate(new Date()),
+      institutionAddress: INSTITUTION_ADDRESS,
+      institutionPhone: INSTITUTION_PHONE,
+      customerName: selectedCustomer?.customerName ?? undefined,
+      customerPhone: undefined,
+      items: order?.items.map((item) => {
+        const tt: CartItem = {
+          price: item?.unitPrice,
+          qty: item?.quantity,
+          taxamount: item?.taxAmount,
+          taxCalculation: item?.taxCalculation,
+          productId: item?.id,
+          op: null,
+        };
+        const base = itemBasePrice(tt);
+        const tax = calcItemTax(tt);
+        return {
+          productName: tt.name,
+          quantity: tt.qty,
+          unitPrice: Number(base.toFixed(2)),
+          taxAmount: Number(tax.toFixed(2)),
+          total: Number((base + tax).toFixed(2)),
+        };
+      }),
+      subTotal: Number(order?.subTotal.toFixed(2)),
+      discountAmount: Number(order?.discountAmount.toFixed(2)),
+      taxAmount: order?.taxAmount,
+      grandTotal: order?.grandTotal,
+      notes: INSTITUTION_NOTES,
+    };
+    await printInvoice(invoiceData);
+    onClose();
+  };
+
+  return (
+    <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
+      <DrawerContent className="px-4 pb-6" style={{ direction: "rtl" }}>
+        {/* Header */}
+        <DrawerHeader className="px-0 pt-4 pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-0.5">
+              <DrawerTitle className="text-[14px] font-semibold text-foreground">{order.orderNumber}</DrawerTitle>
+              <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                <User size={10} />
+                {order.customerName ?? "—"}
+              </span>
+            </div>
+            <div className="flex flex-col items-end gap-1">
+              <span className="text-[16px] font-bold text-foreground flex items-center gap-1">
+                {order.grandTotal.toFixed(2)}
+                <SaudiRiyal size={13} />
+              </span>
+              <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${badgeCls}`}>{order.orderStatus}</span>
+            </div>
+          </div>
+
+          {/* التاريخ */}
+          <div className="flex items-center gap-1 mt-2 text-[11px] text-muted-foreground">
+            <Clock size={10} />
+            {formatDate(order.orderDate)}
+          </div>
+
+          <Separator className="mt-3" />
+        </DrawerHeader>
+
+        {/* Actions */}
+        <div className="flex flex-col gap-2">
+          {isConfirmed ? (
+            <button onClick={handlePrint} className="w-full h-13 flex items-center gap-3 px-4 py-3.5 rounded-xl border border-border hover:bg-muted text-foreground text-[13px] font-medium transition-colors">
+              <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <Printer size={15} />
+              </div>
+              <div className="flex flex-col items-start">
+                <span className="text-[13px] font-medium">طباعة الفاتورة</span>
+                <span className="text-[10px] text-muted-foreground">طباعة نسخة من الفاتورة</span>
+              </div>
+            </button>
+          ) : (
+            <>
+              <button onClick={handleAddItems} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-border hover:bg-muted text-foreground text-[13px] font-medium transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-500 flex items-center justify-center shrink-0">
+                  <Plus size={15} />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-[13px] font-medium">إضافة عناصر</span>
+                  <span className="text-[10px] text-muted-foreground">إضافة منتجات للطلب</span>
+                </div>
+              </button>
+
+              <button onClick={handleCheckout} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[#000052] hover:bg-[#000075] text-white text-[13px] font-medium transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                  <CreditCard size={15} />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-[13px] font-medium">استكمال الدفع</span>
+                  <span className="text-[10px] text-white/60">إتمام عملية الدفع</span>
+                </div>
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* Cancel */}
+        <DrawerFooter className="px-0 pt-3 pb-0">
+          <button onClick={onClose} className="w-full h-10 text-[12px] text-muted-foreground hover:text-foreground border border-border rounded-xl transition-colors">
+            إلغاء
+          </button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
+  );
+}
 export type SaveAction = "pdf" | "whatsapp" | "email" | "save_only" | "save_print";
 
 interface InvoicesDialogProps {
@@ -86,7 +347,7 @@ interface InvoicesDialogProps {
   onSelect?: (invoice: SalesOrder) => void;
 }
 
-export type InvoiceType = "الفواتير" | "الفواتير المعلقة";
+export type InvoiceType = "الكل" | "الفواتير" | "الفواتير المعلقة";
 
 interface InvoicesDialogProps {
   open: boolean;
@@ -95,20 +356,15 @@ interface InvoicesDialogProps {
 }
 
 const TYPE_TABS: { key: InvoiceType; label: string }[] = [
+  { key: "الكل", label: "الكل" },
   { key: "الفواتير", label: "الفواتير" },
   { key: "الفواتير المعلقة", label: "الفواتير المعلقة" },
 ];
 
-const TYPE_MAP: Record<InvoiceType, SalesOrder["orderStatus"]> = {
+const TYPE_MAP: Record<InvoiceType, SalesOrder["orderStatus"] | null> = {
+  الكل: null,
   الفواتير: "Confirmed",
   "الفواتير المعلقة": "UnConfirmed",
-};
-
-const STATUS_BADGE: Record<SalesOrder["orderStatus"], { label: string; cls: string }> = {
-  InProgress: { label: "معلقة", cls: "bg-amber-100 text-amber-700" },
-  Confirmed: { label: "مكتملة", cls: "bg-green-100 text-green-700" },
-  Canceled: { label: "ملغية", cls: "bg-gray-100 text-gray-600" },
-  UnConfirmed: { label: "غير مدفوعة", cls: "bg-red-100 text-red-600" },
 };
 
 interface InvoicesDialogProps {
@@ -119,9 +375,10 @@ interface InvoicesDialogProps {
 
 export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogProps) {
   const { selectedCustomer, setCart, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen } = usePos();
-  const [activeType, setActiveType] = useState<InvoiceType>("الفواتير");
+  const [activeType, setActiveType] = useState<InvoiceType>("الكل");
   const [search, setSearch] = useState("");
-  const { data: quotations } = useGetAllQuotations();
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+
   const { data: invoices } = useGetAllSales({
     page: 1,
     limit: 10,
@@ -130,29 +387,21 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
   const { t } = useLanguage();
   const fallbackBadge = { label: "", cls: "bg-sky-100 text-sky-600" };
 
-  type OrderStatusType = "الكل" | "مكتملة" | "معلقة" | "قيد التجهيز";
-
   const filtered = useMemo(() => {
     return (invoices?.items || []).filter((inv) => {
-      const matchType = inv.orderStatus === TYPE_MAP[activeType];
+      const matchType = TYPE_MAP[activeType] == null || inv.orderStatus === TYPE_MAP[activeType];
       const q = search.trim().toLowerCase();
       const matchSearch = !q || inv.orderNumber?.toLowerCase().includes(q) || inv.customerName?.toLowerCase().includes(q) || inv.orderStatus?.toLowerCase().includes(q);
       return matchType && matchSearch;
     });
   }, [invoices, search, activeType]);
 
+  const selectedOrder = filtered.find((o) => o.id === Number(openMenuId));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        showCloseButton={false}
-        className="p-0 overflow-hidden gap-0 flex flex-col"
-        style={{
-          maxWidth: 560,
-          width: "95vw",
-          maxHeight: "88vh",
-          direction: "rtl",
-        }}
-      >
+      <DialogContent showCloseButton={false} className="p-0 overflow-hidden gap-0 flex flex-col" style={{ maxWidth: 560, width: "95vw", maxHeight: "88vh", direction: "rtl" }}>
+        {/* ===== Header ===== */}
         <div className="flex items-center justify-between px-4 py-3 text-white shrink-0" style={{ background: "#000052" }}>
           <div className="flex items-center gap-2">
             <FileText size={15} />
@@ -163,7 +412,7 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
           </button>
         </div>
 
-        {/* تبويبات النوع */}
+        {/* ===== Tabs ===== */}
         <div className="flex items-center gap-1.5 px-4 py-3 flex-wrap shrink-0 border-b border-gray-100 bg-white">
           {TYPE_TABS.map((tab) => (
             <button key={tab.key} onClick={() => setActiveType(tab.key)} className={`text-[11px] font-medium px-3 py-1.5 rounded-full border transition-all ${activeType === tab.key ? "bg-[#000052] text-white border-[#000052]" : "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50"}`}>
@@ -172,22 +421,22 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
           ))}
         </div>
 
-        {/* شريط البحث */}
+        {/* ===== Search ===== */}
         <div className="flex items-center gap-2 px-4 py-2.5 shrink-0 border-b border-gray-100 bg-white">
           <div className="flex-1 relative">
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث ب# / كود الفاتورة / العميل / المورد / المبلغ / النوع / الرقم الضريبي / تاريخ الفتح / تاريخ الدفع / ملاحظات" className="w-full h-8 text-[11px] border border-gray-200 rounded-lg pr-3 pl-3 outline-none focus:border-blue-400 bg-gray-50 placeholder:text-gray-300" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="بحث برقم الفاتورة / العميل / الحالة" className="w-full h-8 text-[11px] border border-gray-200 rounded-lg pr-3 pl-3 outline-none focus:border-blue-400 bg-gray-50 placeholder:text-gray-300" />
           </div>
           <button className="h-8 w-8 flex items-center justify-center bg-[#000052] rounded-lg text-white hover:bg-blue-900 transition-colors">
             <Search size={13} />
           </button>
         </div>
 
-        {/* عدد النتائج */}
+        {/* ===== Count ===== */}
         <div className="px-4 py-1.5 bg-white border-b border-gray-100 shrink-0">
           <span className="text-[11px] text-gray-400">{filtered.length} إجمالي نتائج</span>
         </div>
 
-        {/* ===== المحتوى ===== */}
+        {/* ===== List ===== */}
         <div className="flex-1 overflow-auto bg-gray-50">
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-gray-400 gap-2">
@@ -195,172 +444,40 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
               <p className="text-sm">لا توجد فواتير</p>
             </div>
           ) : (
-            /* ===== وضع البطاقات ===== */
             <div className="flex flex-col divide-y divide-gray-100">
               {filtered.map((order: SalesOrder) => {
-                const badgeCls = order.orderStatus?.toLowerCase() === "confirmed" ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400" : order.orderStatus?.toLowerCase() === "unconfirmed" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400" : order.orderStatus?.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400" : fallbackBadge.cls;
+                const badgeCls = order.orderStatus?.toLowerCase() === "confirmed" ? "bg-green-100 text-green-700" : order.orderStatus?.toLowerCase() === "unconfirmed" ? "bg-yellow-100 text-yellow-700" : order.orderStatus?.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600" : fallbackBadge.cls;
 
                 const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus?.toLowerCase() === "inprogress" ? t("قيد التجهيز") : order.orderStatus;
 
                 return (
-                  <div
+                  <SwipeableOrderCard
                     key={order.id}
-                    className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors border-b border-border cursor-pointer"
-                    onClick={() => {
+                    order={order}
+                    badgeCls={badgeCls}
+                    translatedStatus={translatedStatus}
+                    onCardClick={() => {
                       onSelect?.(order);
                       onOpenChange(false);
                     }}
-                  >
-                    {/* اليمين: أيقونة + اسم العميل + التاريخ + الحالة */}
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
-                      <FileText size={14} />
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <User size={10} />
-                          {order.customerName ?? "—"}
-                        </span>
-                        {translatedStatus && <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${badgeCls}`}>{translatedStatus}</span>}
-                      </div>
-                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground mt-0.5">
-                        <Clock size={9} />
-                        {formatDate(order.orderDate)}
-                      </span>
-                    </div>
-
-                    {/* الشمال: رقم الأوردر + البادج + الزرارين */}
-                    <div className="flex flex-col items-end shrink-0 gap-1.5">
-                      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                        {order.orderStatus === "Confirmed" ? (
-                          <>
-                            <span className="flex items-center gap-1 text-[12px] font-bold text-foreground">
-                              {order.grandTotal.toFixed(2)}
-                              <SaudiRiyal size={11} />
-                            </span>
-                            <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                const invoiceData: InvoiceData = {
-                                  logoUrl: LOGO_URL,
-                                  invoiceNumber: `—`,
-                                  institutionName: INSTITUTION_NAME,
-                                  institutionTaxNumber: INSTITUTION_TAX_NO,
-                                  invoiceDate: formatDate(new Date()),
-                                  institutionAddress: INSTITUTION_ADDRESS,
-                                  institutionPhone: INSTITUTION_PHONE,
-                                  customerName: selectedCustomer?.customerName ?? undefined,
-                                  customerPhone: undefined,
-                                  items: order?.items.map((item) => {
-                                    const tt: CartItem = {
-                                      price: item?.unitPrice,
-                                      qty: item?.quantity,
-                                      taxamount: item?.taxAmount,
-                                      taxCalculation: item?.taxCalculation,
-                                      productId: item?.id,
-                                      op: null,
-                                    };
-                                    const base = itemBasePrice(tt);
-                                    const tax = calcItemTax(tt);
-                                    return {
-                                      productName: tt.name,
-                                      quantity: tt.qty,
-                                      unitPrice: Number(base.toFixed(2)),
-                                      taxAmount: Number(tax.toFixed(2)),
-                                      total: Number((base + tax).toFixed(2)),
-                                    };
-                                  }),
-                                  subTotal: Number(order?.subTotal.toFixed(2)),
-                                  discountAmount: Number(order?.discountAmount.toFixed(2)),
-                                  taxAmount: order?.taxAmount,
-                                  grandTotal: order?.grandTotal,
-                                  notes: INSTITUTION_NOTES,
-                                };
-                                await printInvoice(invoiceData);
-                              }}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors"
-                            >
-                              <Printer size={13} />
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <span className="flex items-center gap-1 text-[12px] font-bold text-foreground">
-                              {order.grandTotal.toFixed(2)}
-                              <SaudiRiyal size={11} />
-                            </span>
-                            <button
-                              title="إضافة عناصر"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setScreen("home");
-                                setCart(
-                                  order.items.map((item) => ({
-                                    price: item?.unitPrice ?? 0,
-                                    qty: item?.quantity,
-                                    taxamount: item?.taxAmount,
-                                    taxCalculation: item.taxCalculation,
-                                    name: item?.productName,
-                                    productId: item?.productId,
-                                  })),
-                                );
-                                onOpenChange(false);
-                                if (order.orderStatus === "InProgress") {
-                                  setOrderType("dine-in");
-                                  setDineInMode("add-items");
-                                  setSelectedOrderId(order?.id);
-                                }
-                              }}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors"
-                            >
-                              <Plus size={13} />
-                            </button>
-                            <button
-                              title="استكمال الدفع"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setScreen("home");
-                                setCart(
-                                  order.items.map((item) => ({
-                                    price: item?.unitPrice ?? 0,
-                                    qty: item?.quantity,
-                                    taxamount: item?.taxAmount,
-                                    taxCalculation: item.taxCalculation,
-                                    name: item?.productName,
-                                    productId: item?.productId,
-                                  })),
-                                );
-                                onOpenChange(false);
-                                if (order.orderStatus === "InProgress") {
-                                  setOrderType("dine-in");
-                                  setDineInMode("checkout");
-                                  setSelectedOrderId(order?.id);
-                                  setSelectedTable(order?.tableId);
-                                }
-                              }}
-                              className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors"
-                            >
-                              <CreditCard size={13} />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+                    onActionClick={(order) => setOpenMenuId(String(order.id))}
+                  />
                 );
               })}
             </div>
           )}
         </div>
 
-        {/* تذييل */}
+        {/* ===== Footer ===== */}
         <div className="px-4 py-2.5 border-t border-gray-100 bg-white shrink-0 flex items-center justify-between">
           <span className="text-[11px] text-gray-400">{filtered.length} فاتورة</span>
           <button onClick={() => onOpenChange(false)} className="text-[11px] text-gray-500 hover:text-gray-700 px-3 py-1.5 rounded border border-gray-200 hover:bg-gray-50 transition-colors">
             إغلاق
           </button>
         </div>
+
+        {/* ===== Bottom Sheet ===== */}
+        <OrderActionsDrawer order={selectedOrder ?? null} open={!!openMenuId} onClose={() => setOpenMenuId(null)} selectedCustomer={selectedCustomer} setScreen={setScreen} setCart={setCart} setOrderType={setOrderType} setDineInMode={setDineInMode} setSelectedOrderId={setSelectedOrderId} setSelectedTable={setSelectedTable} onOpenChange={onOpenChange} />
       </DialogContent>
     </Dialog>
   );
@@ -769,7 +886,7 @@ export default function CartPanel2() {
                   <td className="whitespace-nowrap">{tax.toFixed(2)}</td>
                   <td className="whitespace-nowrap font-bold">{rowTotal.toFixed(2)}</td>
 
-                  <td className="whitespace-nowrap">--</td>
+                  {/* <td className="whitespace-nowrap">--</td> */}
                   <td>
                     {noteIndex === idx ? (
                       <Input

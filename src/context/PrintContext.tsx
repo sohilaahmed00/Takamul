@@ -12,7 +12,6 @@ import { exportCustomPDF, exportToExcel, exportToCSV } from "@/utils/customExpor
 
 import { PrintContext, PrintContextType, PrintType, InvoiceData } from "./PrintContextDefinitions";
 
-// ✅ نقلنا normalize برا الـ component عشان مش محتاجة تتعمل كل render
 const normalize = (str: string): string => {
   if (!str) return "";
   return str
@@ -126,4 +125,4 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const usePrint = () => useContext(PrintContext);
+export const usePrint = () => useContext(PrintContext);

@@ -214,7 +214,7 @@ export default function Layout() {
           <AnimatePresence>
             {openSubmenu === "products" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                 <SubmenuItem label={t("products_list")} icon={List} path="/products" />
+                {hasAnyPermission([Permissions?.products?.BranchedView, Permissions?.products?.DirectView, Permissions?.products?.PreparedView, Permissions?.products?.RawMaterialView, Permissions?.products?.view]) && <SubmenuItem label={t("products_list")} icon={List} path="/products" />}
                 {(hasPermission(Permissions?.products?.add) || hasPermission(Permissions?.products?.addDirect) || hasPermission(Permissions?.products?.addVariant) || hasPermission(Permissions?.products?.addReady) || hasPermission(Permissions?.products?.addRaw)) && <SubmenuItem label={t("add_product")} icon={PlusCircle} path="/products/create" />}
                 {/* <SubmenuItem label={t("print_barcode")} icon={Tag} path="/products/barcode" /> */}
                 {hasAnyPermission([Permissions?.stockInventory?.view, Permissions?.stockInventory?.all]) && <SubmenuItem label={t("quantity_adjustments")} icon={SlidersHorizontal} path="/products/quantity-adjustments" />}

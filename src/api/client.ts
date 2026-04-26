@@ -17,9 +17,50 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Source - https://stackoverflow.com/a/58282767
-// Posted by Burak SARI
-// Retrieved 2026-04-25, License - CC BY-SA 4.0
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (err) => {
+    const originalRequest = err.config;
+
+    if (err.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            originalRequest.headers["Authorization"] = "Bearer " + token;
+            return apiClient(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      return new Promise((resolve, reject) => {
+        apiClient
+          .post<LoginResponse>("/Auth/refresh-token")
+          .then(({ data }) => {
+            const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
+            useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username);
+            apiClient.defaults.headers.common["Authorization"] = "Bearer " + data.accessToken;
+            originalRequest.headers["Authorization"] = "Bearer " + data.accessToken;
+            processQueue(null, data.accessToken);
+            resolve(apiClient(originalRequest));
+          })
+          .catch((err) => {
+            processQueue(err, null);
+            reject(err);
+          })
+          .finally(() => {
+            isRefreshing = false;
+          });
+      });
+    }
+
+    return Promise.reject(err);
+  },
+);
 
 let isRefreshing = false;
 let failedQueue = [];
@@ -36,7 +77,7 @@ const processQueue = (error, token = null) => {
   failedQueue = [];
 };
 
-apiClient.interceptors.response.use(
+axios.interceptors.response.use(
   (response) => {
     return response;
   },
@@ -61,14 +102,15 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       return new Promise(function (resolve, reject) {
-        apiClient
+        axios
           .post<LoginResponse>("/Auth/refresh-token")
           .then(({ data }) => {
             const decoded = jwtDecode<AppJwtPayload>(data.accessToken);
             useAuthStore.getState().setAuth(data.accessToken, new Date(data.accessTokenExpiration).getTime(), decoded.Permission, decoded?.UserId, decoded?.email, decoded?.username);
+            axios.defaults.headers.common["Authorization"] = "Bearer " + data.accessToken;
             originalRequest.headers["Authorization"] = "Bearer " + data.accessToken;
             processQueue(null, data.accessToken);
-            resolve(apiClient(originalRequest));
+            resolve(axios(originalRequest));
           })
           .catch((err) => {
             processQueue(err, null);
