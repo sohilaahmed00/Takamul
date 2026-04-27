@@ -2,7 +2,24 @@ import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Monitor, MapPin, KeySquare, ShieldCheck, ShieldPlus, CheckCircle2, ChevronLeft, ChevronRight, Copy, ExternalLink, Loader2, AlertCircle, RefreshCw, Eye, EyeOff, Barcode } from "lucide-react";
+import {
+  Monitor,
+  MapPin,
+  KeySquare,
+  ShieldCheck,
+  ShieldPlus,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  ExternalLink,
+  Loader2,
+  AlertCircle,
+  RefreshCw,
+  Eye,
+  EyeOff,
+  Barcode,
+} from "lucide-react";
 
 import { useLanguage } from "@/context/LanguageContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,7 +27,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CreateDevicePOS, DeviceType, POSDevice } from "@/features/pos/types/pos.types";
 import { useGetAllBranches } from "@/features/Branches/hooks/Usegetallbranches";
 import { useGenereateSerial } from "@/features/pos/hooks/useGenereateSerial";
@@ -45,10 +69,6 @@ interface PCSIDResult {
 }
 
 // ─── Status → Step mapping ────────────────────────────────────────────────────
-// NotRegistered  → step 1 (معلومات الجهاز) — لم يُنشأ بعد
-// PendingOTP     → step 2 (توليد CSR) — أُنشئ الجهاز، لم يُولَّد CSR أو في انتظار OTP
-// CCSIDRegistered→ step 4 (تسجيل PCSID) — CCSID جاهز، باقي PCSID
-// PCSIDRegistered→ step 5 (اكتمل)
 
 const statusToStep: Record<DeviceStatus, number> = {
   NotRegistered: 1,
@@ -77,27 +97,27 @@ const STEP_FIELDS: Record<number, (keyof FormValues)[]> = {
 // ─── Steps ────────────────────────────────────────────────────────────────────
 
 const STEPS = [
-  { id: 1, label: "معلومات الجهاز", icon: Monitor },
-  { id: 2, label: "توليد CSR", icon: KeySquare },
-  { id: 3, label: "تسجيل CCSID", icon: ShieldCheck },
-  { id: 4, label: "تسجيل PCSID", icon: ShieldPlus },
-  { id: 5, label: "اكتمل", icon: CheckCircle2 },
+  { id: 1, label: "معلومات الجهاز", labelShort: "الجهاز", icon: Monitor },
+  { id: 2, label: "توليد CSR", labelShort: "CSR", icon: KeySquare },
+  { id: 3, label: "تسجيل CCSID", labelShort: "CCSID", icon: ShieldCheck },
+  { id: 4, label: "تسجيل PCSID", labelShort: "PCSID", icon: ShieldPlus },
+  { id: 5, label: "اكتمل", labelShort: "اكتمل", icon: CheckCircle2 },
 ];
 
-function isStepComplete(clickedGeneratedCSR: boolean, step: number, createdDeviceId: number | undefined, ccsid: CCSIDResult | undefined, pcsid: PCSIDResult | undefined): boolean {
+function isStepComplete(
+  clickedGeneratedCSR: boolean,
+  step: number,
+  createdDeviceId: number | undefined,
+  ccsid: CCSIDResult | undefined,
+  pcsid: PCSIDResult | undefined
+): boolean {
   switch (step) {
-    case 1:
-      return true;
-    case 2:
-      return clickedGeneratedCSR;
-    case 3:
-      return !!ccsid;
-    case 4:
-      return !!pcsid;
-    case 5:
-      return true;
-    default:
-      return false;
+    case 1: return true;
+    case 2: return clickedGeneratedCSR;
+    case 3: return !!ccsid;
+    case 4: return !!pcsid;
+    case 5: return true;
+    default: return false;
   }
 }
 
@@ -105,34 +125,54 @@ function isStepComplete(clickedGeneratedCSR: boolean, step: number, createdDevic
 
 function StepperHeader({ current }: { current: number }) {
   return (
-    <div className="flex items-center justify-between px-0 pb-6 pt-1 overflow-x-auto no-scrollbar">
+    <div className="flex items-center justify-between pb-5 pt-1 overflow-x-auto">
       {STEPS.map((step, idx) => {
         const Icon = step.icon;
         const isDone = current > step.id;
         const isActive = current === step.id;
         return (
           <React.Fragment key={step.id}>
-            <div className="flex flex-col items-center gap-1.5 min-w-[48px]">
+            <div className="flex flex-col items-center gap-1 min-w-0 flex-shrink-0">
+              {/* Circle */}
               <div
                 className={`
-                  w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 flex-shrink-0
+                  w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center
+                  transition-all duration-300 flex-shrink-0
                   ${isDone ? "bg-[#2ecc71] text-white shadow-sm shadow-green-200" : ""}
                   ${isActive ? "bg-white border-2 border-[#2ecc71] text-[#2ecc71] shadow-md shadow-green-100 scale-110" : ""}
                   ${!isDone && !isActive ? "bg-gray-100 text-gray-400 border border-gray-200" : ""}
                 `}
               >
-                {isDone ? <CheckCircle2 size={15} /> : <Icon size={14} />}
+                {isDone ? <CheckCircle2 size={14} /> : <Icon size={13} />}
               </div>
+              {/* Label — hidden on xs, visible from sm */}
               <span
-                className={`text-[10px] font-medium text-center leading-tight transition-colors whitespace-nowrap
-                  ${isActive ? "text-[#2ecc71] font-bold" : isDone ? "text-gray-500" : "text-gray-400"}`}
+                className={`
+                  hidden sm:block text-[10px] font-medium text-center leading-tight
+                  transition-colors whitespace-nowrap
+                  ${isActive ? "text-[#2ecc71] font-bold" : isDone ? "text-gray-500" : "text-gray-400"}
+                `}
               >
                 {step.label}
               </span>
+              {/* Short label — visible on xs only */}
+              <span
+                className={`
+                  block sm:hidden text-[9px] font-medium text-center leading-tight
+                  transition-colors whitespace-nowrap
+                  ${isActive ? "text-[#2ecc71] font-bold" : isDone ? "text-gray-500" : "text-gray-400"}
+                `}
+              >
+                {step.labelShort}
+              </span>
             </div>
+
             {idx < STEPS.length - 1 && (
-              <div className="flex-1 h-[2px] mx-1 rounded-full overflow-hidden bg-gray-100 mb-5 min-w-[8px]">
-                <div className="h-full bg-[#2ecc71] transition-all duration-500 ease-out" style={{ width: current > step.id ? "100%" : "0%" }} />
+              <div className="flex-1 h-[2px] mx-1 sm:mx-2 rounded-full overflow-hidden bg-gray-100 mb-5 min-w-[6px]">
+                <div
+                  className="h-full bg-[#2ecc71] transition-all duration-500 ease-out"
+                  style={{ width: current > step.id ? "100%" : "0%" }}
+                />
               </div>
             )}
           </React.Fragment>
@@ -145,7 +185,11 @@ function StepperHeader({ current }: { current: number }) {
 // ─── UI Helpers ───────────────────────────────────────────────────────────────
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
-  return <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest py-2 border-b border-gray-100 mb-0.5">{children}</p>;
+  return (
+    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest py-2 border-b border-gray-100 mb-0.5">
+      {children}
+    </p>
+  );
 }
 
 function CopyButton({ text }: { text: string }) {
@@ -156,7 +200,11 @@ function CopyButton({ text }: { text: string }) {
     setTimeout(() => setCopied(false), 2000);
   };
   return (
-    <button type="button" onClick={copy} className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#2ecc71] transition-colors">
+    <button
+      type="button"
+      onClick={copy}
+      className="flex items-center gap-1 text-xs text-gray-400 hover:text-[#2ecc71] transition-colors touch-manipulation"
+    >
       {copied ? <CheckCircle2 size={13} className="text-[#2ecc71]" /> : <Copy size={13} />}
       {copied ? "تم النسخ" : "نسخ"}
     </button>
@@ -168,17 +216,23 @@ function SecretBlock({ label, value }: { label: string; value?: string }) {
   if (!value) return null;
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</span>
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setShow(!show)} className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors">
+          <button
+            type="button"
+            onClick={() => setShow(!show)}
+            className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors touch-manipulation"
+          >
             {show ? <EyeOff size={12} /> : <Eye size={12} />}
             {show ? "إخفاء" : "إظهار"}
           </button>
           <CopyButton text={value} />
         </div>
       </div>
-      <div className="bg-gray-900 rounded-xl px-4 py-3 font-mono text-xs text-green-400 leading-relaxed break-all max-h-[90px] overflow-y-auto select-all">{show ? value : "•".repeat(Math.min(value.length, 48))}</div>
+      <div className="bg-gray-900 rounded-xl px-3 sm:px-4 py-3 font-mono text-xs text-green-400 leading-relaxed break-all max-h-[90px] overflow-y-auto select-all">
+        {show ? value : "•".repeat(Math.min(value.length, 48))}
+      </div>
     </div>
   );
 }
@@ -189,11 +243,15 @@ function CodeBlock({ label, value, secret }: { label: string; value?: string; se
   const display = secret && !show ? "•".repeat(Math.min(value.length, 40)) : value;
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</span>
         <div className="flex items-center gap-2">
           {secret && (
-            <button type="button" onClick={() => setShow(!show)} className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setShow(!show)}
+              className="text-xs text-gray-400 hover:text-gray-600 flex items-center gap-1 touch-manipulation"
+            >
               {show ? <EyeOff size={12} /> : <Eye size={12} />}
               {show ? "إخفاء" : "إظهار"}
             </button>
@@ -201,7 +259,9 @@ function CodeBlock({ label, value, secret }: { label: string; value?: string; se
           <CopyButton text={value} />
         </div>
       </div>
-      <div className="bg-gray-900 rounded-xl px-4 py-3 font-mono text-xs text-green-400 leading-relaxed break-all max-h-[100px] overflow-y-auto">{display}</div>
+      <div className="bg-gray-900 rounded-xl px-3 sm:px-4 py-3 font-mono text-xs text-green-400 leading-relaxed break-all max-h-[100px] overflow-y-auto">
+        {display}
+      </div>
     </div>
   );
 }
@@ -218,7 +278,13 @@ function StatusBadge({ status, expired }: { status?: string; expired?: boolean }
   if (!status) return null;
   const isActive = status.toLowerCase().includes("active") || status === "فعال";
   return (
-    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${isActive ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-50 text-gray-600 border-gray-200"}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
+        isActive
+          ? "bg-green-50 text-green-700 border-green-200"
+          : "bg-gray-50 text-gray-600 border-gray-200"
+      }`}
+    >
       <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-[#2ecc71]" : "bg-gray-400"}`} />
       {status}
     </span>
@@ -228,9 +294,9 @@ function StatusBadge({ status, expired }: { status?: string; expired?: boolean }
 function ReviewRow({ label, value }: { label: string; value?: string | number | boolean }) {
   const display = value === true ? "نعم" : value === false ? "لا" : (value ?? "—");
   return (
-    <div className="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0">
-      <span className="text-sm text-gray-500">{label}</span>
-      <span className="text-sm font-semibold text-gray-800">{String(display)}</span>
+    <div className="flex justify-between items-center py-2.5 border-b border-gray-50 last:border-0 gap-2">
+      <span className="text-sm text-gray-500 shrink-0">{label}</span>
+      <span className="text-sm font-semibold text-gray-800 text-left break-all">{String(display)}</span>
     </div>
   );
 }
@@ -277,7 +343,6 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
     },
   });
 
-  // ── عند فتح الـ modal: إما reset أو استكمال من الـ status ──
   useEffect(() => {
     if (!isOpen) {
       setStep(1);
@@ -301,7 +366,6 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
         isActive: device.isActive,
       });
       setCreatedDeviceId(device.id);
-
       const resumeStep = statusToStep[device.status as DeviceStatus] ?? 1;
       setStep(resumeStep);
     } else {
@@ -317,9 +381,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
       if (!valid) return;
     }
 
-    if (!isStepComplete(clickedGeneratedCSR, step, createdDeviceId, ccsid, pcsid)) {
-      return;
-    }
+    if (!isStepComplete(clickedGeneratedCSR, step, createdDeviceId, ccsid, pcsid)) return;
 
     if (step === 1 && !createdDeviceId) {
       try {
@@ -351,10 +413,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
   };
 
   const handleRegisterCCSID = async () => {
-    if (!otp.trim()) {
-      setOtpError("يرجى إدخال رمز OTP");
-      return;
-    }
+    if (!otp.trim()) { setOtpError("يرجى إدخال رمز OTP"); return; }
     if (!createdDeviceId) return;
     setOtpError("");
     try {
@@ -394,22 +453,40 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent dir={direction} className="sm:max-w-[600px] p-0 overflow-hidden rounded-2xl gap-0">
-        <div className="px-6 pt-5 pb-6">
-          <DialogHeader className="mb-4">
-            <DialogTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">{isEdit ? "استكمال تسجيل نقطة البيع" : "إضافة نقطة بيع جديدة"}</DialogTitle>
+      <DialogContent
+        dir={direction}
+        className={`
+          /* Mobile: full-screen sheet */
+          fixed inset-x-0 bottom-0 top-auto max-h-[92dvh] w-full rounded-t-2xl rounded-b-none
+          /* sm+: centered modal */
+          sm:relative sm:inset-auto sm:max-w-[600px] sm:rounded-2xl sm:max-h-none
+          p-0 overflow-hidden gap-0
+        `}
+      >
+        {/* Drag handle — mobile only */}
+        <div className="flex justify-center pt-3 pb-1 sm:hidden">
+          <div className="w-10 h-1 rounded-full bg-gray-200" />
+        </div>
+
+        <div className="px-4 sm:px-6 pt-3 sm:pt-5 pb-4 sm:pb-6 flex flex-col">
+          <DialogHeader className="mb-3 sm:mb-4">
+            <DialogTitle className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+              {isEdit ? "استكمال تسجيل نقطة البيع" : "إضافة نقطة بيع جديدة"}
+            </DialogTitle>
           </DialogHeader>
 
           <StepperHeader current={step} />
 
-          <div className="max-h-[52vh] overflow-y-auto no-scrollbar pr-1">
+          {/* Scrollable content area */}
+          <div className="flex-1 overflow-y-auto max-h-[52dvh] sm:max-h-[52vh] pr-0.5 -mr-0.5">
+            {/* ── Step 1 ── */}
             {step === 1 && (
-              <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 <Controller
                   name="deviceName"
                   control={form.control}
                   render={({ field, fieldState }) => (
-                    <Field data-invalid={fieldState.invalid} className="col-span-2">
+                    <Field data-invalid={fieldState.invalid} className="col-span-1 sm:col-span-2">
                       <FieldLabel>
                         اسم الجهاز <span className="text-red-500">*</span>
                       </FieldLabel>
@@ -419,7 +496,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                   )}
                 />
 
-                <div className="col-span-2">
+                <div className="col-span-1 sm:col-span-2">
                   <Controller
                     name="branchId"
                     control={form.control}
@@ -428,7 +505,10 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                         <FieldLabel>
                           الفرع <span className="text-red-500">*</span>
                         </FieldLabel>
-                        <Select value={field.value ? String(field.value) : ""} onValueChange={(v) => field.onChange(Number(v))}>
+                        <Select
+                          value={field.value ? String(field.value) : ""}
+                          onValueChange={(v) => field.onChange(Number(v))}
+                        >
                           <SelectTrigger className="w-full">
                             <SelectValue placeholder="اختر الفرع" />
                           </SelectTrigger>
@@ -462,7 +542,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                           type="button"
                           variant="outline"
                           size="icon-xl"
-                          className="shrink-0 px-3"
+                          className="shrink-0 px-3 touch-manipulation"
                           onClick={async () => {
                             try {
                               const { data } = await refetch();
@@ -489,7 +569,10 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                       <FieldLabel>
                         نوع الجهاز <span className="text-red-500">*</span>
                       </FieldLabel>
-                      <Select value={field.value ? String(field.value) : ""} onValueChange={(v) => field.onChange(Number(v))}>
+                      <Select
+                        value={field.value ? String(field.value) : ""}
+                        onValueChange={(v) => field.onChange(Number(v))}
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="اختر النوع" />
                         </SelectTrigger>
@@ -510,11 +593,14 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
               </div>
             )}
 
+            {/* ── Step 2 ── */}
             {step === 2 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 flex gap-3">
+                <div className="rounded-xl border border-blue-100 bg-blue-50 p-3 sm:p-4 flex gap-3">
                   <KeySquare size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-blue-700 leading-relaxed">سيتم توليد مفتاح خاص وCSR تلقائياً — يُخزَّن المفتاح مشفّراً ولن يُعرض مجدداً</p>
+                  <p className="text-sm text-blue-700 leading-relaxed">
+                    سيتم توليد مفتاح خاص وCSR تلقائياً — يُخزَّن المفتاح مشفّراً ولن يُعرض مجدداً
+                  </p>
                 </div>
 
                 {!ccsid ? (
@@ -523,19 +609,35 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                       <KeySquare size={28} className="text-gray-400" />
                     </div>
                     <p className="text-sm text-gray-500">لم يتم توليد CSR بعد</p>
-                    <Button type="button" onClick={handleGenerateCSR} disabled={isGeneratingCSR} className="flex items-center gap-2 bg-[#2ecc71] hover:bg-[#27ae60] text-white px-6">
-                      {isGeneratingCSR ? <Loader2 size={16} className="animate-spin" /> : <KeySquare size={16} />}
+                    <Button
+                      type="button"
+                      onClick={handleGenerateCSR}
+                      disabled={isGeneratingCSR}
+                      className="flex items-center gap-2 bg-[#2ecc71] hover:bg-[#27ae60] text-white px-6 touch-manipulation"
+                    >
+                      {isGeneratingCSR ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <KeySquare size={16} />
+                      )}
                       {isGeneratingCSR ? "جاري التوليد..." : "توليد CSR"}
                     </Button>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-2">
                       <div className="flex items-center gap-2 text-sm text-[#2ecc71] font-semibold">
                         <CheckCircle2 size={16} />
                         تم توليد CSR بنجاح
                       </div>
-                      <Button type="button" variant="outline" size="sm" onClick={handleGenerateCSR} disabled={isGeneratingCSR} className="flex items-center gap-1.5 text-xs h-7">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleGenerateCSR}
+                        disabled={isGeneratingCSR}
+                        className="flex items-center gap-1.5 text-xs h-7 touch-manipulation"
+                      >
                         <RefreshCw size={11} />
                         إعادة التوليد
                       </Button>
@@ -545,34 +647,22 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                     <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
                       <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
                       شبله في مكان كويس عشان مش هتشوفه تاني
-                      {/* احتفظ بالمفتاح الخاص في مكان آمن. */}
                     </div>
                   </div>
                 )}
               </div>
             )}
 
+            {/* ── Step 3 ── */}
             {step === 3 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
                 {!ccsid ? (
                   <>
-                    <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 space-y-2.5">
+                    <div className="rounded-xl border border-amber-100 bg-amber-50 p-3 sm:p-4 space-y-2.5">
                       <p className="text-sm font-semibold text-amber-800 flex items-center gap-2">
                         <ShieldCheck size={16} />
                         كيفية الحصول على رمز OTP
                       </p>
-                      <ol className="space-y-2">
-                        {[].map((s, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <span className="w-4 h-4 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">{i + 1}</span>
-                            <span className="text-xs text-amber-700">{s}</span>
-                          </li>
-                        ))}
-                      </ol>
-                      {/* <a href="https://portal.zatca.gov.sa" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 hover:text-amber-900 underline underline-offset-2">
-                        <ExternalLink size={12} />
-                        فتح بوابة هيئة الزكاة (portal.zatca.gov.sa)
-                      </a> */}
                     </div>
 
                     <Field data-invalid={!!otpError}>
@@ -587,7 +677,8 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                         }}
                         placeholder="• • • • • •"
                         maxLength={6}
-                        className="font-mono text-center text-2xl tracking-[0.6em] h-14"
+                        /* Slightly smaller on mobile so it doesn't overflow */
+                        className="font-mono text-center text-xl sm:text-2xl tracking-[0.5em] sm:tracking-[0.6em] h-12 sm:h-14"
                         autoComplete="one-time-code"
                         inputMode="numeric"
                       />
@@ -599,7 +690,12 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                       )}
                     </Field>
 
-                    <Button type="button" onClick={handleRegisterCCSID} disabled={isRegisteringCCSID || otp.length < 4} className="w-full flex items-center justify-center gap-2 bg-[#2ecc71] hover:bg-[#27ae60] text-white h-11">
+                    <Button
+                      type="button"
+                      onClick={handleRegisterCCSID}
+                      disabled={isRegisteringCCSID || otp.length < 4}
+                      className="w-full flex items-center justify-center gap-2 bg-[#2ecc71] hover:bg-[#27ae60] text-white h-11 touch-manipulation"
+                    >
                       {isRegisteringCCSID && <Loader2 size={16} className="animate-spin" />}
                       {isRegisteringCCSID ? "جاري التحقق والتسجيل..." : "تأكيد OTP وتسجيل CCSID"}
                     </Button>
@@ -610,9 +706,9 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                       <CheckCircle2 size={16} />
                       تم تسجيل CCSID بنجاح
                     </div>
-                    <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-1">
+                    <div className="rounded-xl border border-gray-100 bg-gray-50 px-3 sm:px-4 py-1">
                       <SectionTitle>حالة CCSID</SectionTitle>
-                      <div className="flex justify-between items-center py-2.5 border-b border-gray-50">
+                      <div className="flex justify-between items-center py-2.5 border-b border-gray-50 flex-wrap gap-2">
                         <span className="text-sm text-gray-500">الحالة</span>
                         <StatusBadge status={ccsid.status} expired={ccsid.isExpired} />
                       </div>
@@ -622,30 +718,38 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                     <SecretBlock label="CCSID Secret" value={ccsid.secret} />
                     <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
                       <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
-                      احفظ الـ Token والـ Secret  - عشان مش هتشوفهم تاني
+                      احفظ الـ Token والـ Secret - عشان مش هتشوفهم تاني
                     </div>
                   </div>
                 )}
               </div>
             )}
 
+            {/* ── Step 4 ── */}
             {step === 4 && (
               <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-1">
+                <div className="rounded-xl border border-gray-100 bg-gray-50 px-3 sm:px-4 py-1">
                   <SectionTitle>CCSID Token (مطلوب لتسجيل PCSID)</SectionTitle>
-                  <div className="flex justify-between items-center py-2.5 border-b border-gray-50">
+                  <div className="flex justify-between items-center py-2.5 border-b border-gray-50 flex-wrap gap-2">
                     <span className="text-sm text-gray-500">الحالة</span>
                     <StatusBadge status={ccsid?.status} expired={ccsid?.isExpired} />
                   </div>
                   <ReviewRow label="ينتهي في" value={formatDate(ccsid?.expiresAt)} />
-                  <div className="py-2 flex items-center justify-between">
-                    <span className="text-xs font-mono text-gray-500 truncate max-w-[300px]">{ccsid?.token?.slice(0, 38)}…</span>
+                  <div className="py-2 flex items-center justify-between gap-2 flex-wrap">
+                    <span className="text-xs font-mono text-gray-500 truncate max-w-[200px] sm:max-w-[300px]">
+                      {ccsid?.token?.slice(0, 38)}…
+                    </span>
                     {ccsid?.token && <CopyButton text={ccsid.token} />}
                   </div>
                 </div>
 
                 {!pcsid ? (
-                  <Button type="button" onClick={handleRegisterPCSID} disabled={isRegisteringPCSID || !ccsid?.token || ccsid?.isExpired} className="w-full flex items-center justify-center gap-2 bg-[#2ecc71] hover:bg-[#27ae60] text-white h-11">
+                  <Button
+                    type="button"
+                    onClick={handleRegisterPCSID}
+                    disabled={isRegisteringPCSID || !ccsid?.token || ccsid?.isExpired}
+                    className="w-full flex items-center justify-center gap-2 bg-[#2ecc71] hover:bg-[#27ae60] text-white h-11 touch-manipulation"
+                  >
                     {isRegisteringPCSID && <Loader2 size={16} className="animate-spin" />}
                     {isRegisteringPCSID ? "جاري تسجيل PCSID..." : "تسجيل PCSID"}
                   </Button>
@@ -655,9 +759,9 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                       <CheckCircle2 size={16} />
                       تم تسجيل PCSID بنجاح
                     </div>
-                    <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-1">
+                    <div className="rounded-xl border border-gray-100 bg-gray-50 px-3 sm:px-4 py-1">
                       <SectionTitle>حالة PCSID</SectionTitle>
-                      <div className="flex justify-between items-center py-2.5 border-b border-gray-50">
+                      <div className="flex justify-between items-center py-2.5 border-b border-gray-50 flex-wrap gap-2">
                         <span className="text-sm text-gray-500">الحالة</span>
                         <StatusBadge status={pcsid.status} expired={pcsid.isExpired} />
                       </div>
@@ -675,6 +779,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
               </div>
             )}
 
+            {/* ── Step 5 ── */}
             {step === 5 && (
               <div className="flex flex-col items-center text-center py-6 gap-5 animate-in fade-in zoom-in-95 duration-400">
                 <div className="w-20 h-20 rounded-full bg-green-50 border-4 border-[#2ecc71] flex items-center justify-center">
@@ -682,13 +787,24 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-gray-800">تم تسجيل الجهاز بنجاح!</h3>
-                  <p className="text-sm text-gray-500 mt-1">الجهاز جاهز للفوترة الإلكترونية المتوافقة مع زاتكا</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    الجهاز جاهز للفوترة الإلكترونية المتوافقة مع زاتكا
+                  </p>
                 </div>
               </div>
             )}
           </div>
-          <div className="flex justify-between items-center mt-5 pt-4 border-t border-gray-100">
-            <Button size="2xl" type="button" variant="outline" onClick={() => (step === 1 || step === 5 ? onOpenChange(false) : handleBack())} disabled={anyLoading} className="flex items-center gap-1.5">
+
+          {/* ── Footer ── */}
+          <div className="flex justify-between items-center mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-gray-100 gap-3">
+            <Button
+              size="2xl"
+              type="button"
+              variant="outline"
+              onClick={() => (step === 1 || step === 5 ? onOpenChange(false) : handleBack())}
+              disabled={anyLoading}
+              className="flex items-center gap-1.5 flex-1 sm:flex-none touch-manipulation"
+            >
               {step === 5 ? (
                 "إغلاق"
               ) : (
@@ -700,7 +816,13 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
             </Button>
 
             {step < 5 && (
-              <Button size="2xl" type="button" onClick={handleNext} disabled={nextDisabled} className="flex items-center gap-1.5 bg-[#2ecc71] hover:bg-[#27ae60] text-white">
+              <Button
+                size="2xl"
+                type="button"
+                onClick={handleNext}
+                disabled={nextDisabled}
+                className="flex items-center gap-1.5 bg-[#2ecc71] hover:bg-[#27ae60] text-white flex-1 sm:flex-none touch-manipulation"
+              >
                 {isCreating || isUpdating ? (
                   <>
                     <Loader2 size={15} className="animate-spin" />
@@ -719,4 +841,4 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
       </DialogContent>
     </Dialog>
   );
-}
+          }
