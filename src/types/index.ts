@@ -1,6 +1,12 @@
 import { Permission } from "@/lib/permissions";
 import { JwtPayload } from "jwt-decode";
 
+export type ApiResponse<T> = {
+  success: boolean;
+  message: string;
+  data: T;
+  errors: string[];
+};
 export const PurchaseStatus = {
   RECEIVED: "RECEIVED",
   PENDING: "PENDING",

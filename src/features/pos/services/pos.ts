@@ -1,11 +1,29 @@
 import { httpClient } from "@/api/httpClient";
-import { CheckoutDineInOrder, CreateDeliveryOrder, CreateDineInOrder, CreateTakeawayOrder, GetAllTablesResponse, GetOrderByTableIdResponse, UpdateDineInOrder } from "../types/pos.types";
+import { CheckoutDineInOrder, CreateDeliveryOrder, CreateDevicePOS, CreateDevicePOSResponse, CreateDineInOrder, CreateTakeawayOrder, DeleteDevicePOSResponse, GenereateSerialResponse, GetAllDeviceTypesResponse, GetAllPOSDevicesResponse, GetOrderByTableIdResponse, GetPOSDevicesResponse, UpdateDevicePOS, UpdateDineInOrder } from "../types/pos.types";
+import { GetAllTablesResponse } from "@/features/tables/types/tables.types";
 
 // ===================
 // GET
 // ===================
 
-// export const getAllSalesOrders = (page: number, limit: number) => httpClient<GetAllSalesOrderResponse>(`/sales-orders?page=${page}&pageSize=${limit}`);
+export const getAllPOSDevices = () => httpClient<GetAllPOSDevicesResponse>(`/pos-devices`);
+export const updatePOSDevice = ({ id, data }: { id: number; data: UpdateDevicePOS }) =>
+  httpClient<GetAllPOSDevicesResponse>(`/pos-devices/${id}`, {
+    method: "PUT",
+    data,
+  });
+export const genereateSerial = () => httpClient<GenereateSerialResponse>(`/pos-devices/generate-serial`);
+export const getAllDevicesTypes = () => httpClient<GetAllDeviceTypesResponse>(`/pos-devices/device-types`);
+export const CreateDevice = (data: CreateDevicePOS) =>
+  httpClient<CreateDevicePOSResponse>(`/pos-devices`, {
+    method: "POST",
+    data,
+  });
+export const DeleteDevicePOS = (id: number) =>
+  httpClient<DeleteDevicePOSResponse>(`/pos-devices/${id}`, {
+    method: "DELETE",
+  });
+export const getPOSDeviceById = (id: number) => httpClient<GetPOSDevicesResponse>(`/pos-devices/${id}`);
 // export const getCategoryClient = (idOrSlug: string | number) =>
 //   httpClient<Category>(`/categories/${idOrSlug}`);
 

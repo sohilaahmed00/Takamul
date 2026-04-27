@@ -13,6 +13,7 @@ import { useUpdateDineInOrder } from "@/features/pos/hooks/useUpdateDineInOrder"
 import { InvoiceData, printInvoice } from "@/components/pos/orders/printInvoice";
 import formatDate from "@/lib/formatDate";
 import { BonData, printPreparationBon } from "@/components/pos/orders/printPreparationBon";
+import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 
 // ─── CONTEXT SHAPE ────────────────────────────────────────────────────────────
 interface PosContextValue {
@@ -107,6 +108,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const [dineInMode, setDineInMode] = useState<DineInMode>(null);
   const [selectedItemIdx, setSelectedItemIdx] = useState<number | null>(null);
   const [search, setSearch] = useState("");
+  const { data: customers } = useGetAllCustomers();
 
   useEffect(() => {
     const connection = (navigator as any).connection;
@@ -315,7 +317,9 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
       setCart([]);
       setDiscount({ type: "pct", value: 0 });
-      setSelectedCustomer(null);
+      if (customers?.items?.length) {
+        setSelectedCustomer(customers.items[0]);
+      }
       setSelectedGiftCardId(null);
       setSelectedVaultId(null);
       setScreen("home");

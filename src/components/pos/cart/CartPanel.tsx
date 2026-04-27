@@ -131,8 +131,6 @@ interface ItemNumPadDialogProps {
 
 type Tab = "qty" | "disc" | "extras";
 
-// ── Main Component ─────────────────────────────────────────────────────────────
-
 export function ItemNumPadDialog({ item, open, onOpenChange, additions, onQtyChange, onDiscountChange, onSaveExtras }: ItemNumPadDialogProps) {
   const [activeTab, setActiveTab] = useState<Tab>("qty");
   const [inputBuffer, setInputBuffer] = useState("0");
@@ -433,7 +431,6 @@ export default function CartPanel() {
         <div className="px-3  border-b border-border flex items-center justify-between  py-3 shrink-0">
           <div className="flex items-center gap-4 ">
             {/* Home */}
-          
 
             {/* Network */}
             <div className="flex items-center gap-1">
@@ -499,10 +496,10 @@ export default function CartPanel() {
             </DropdownMenu>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-             <Button size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 dark:bg-muted dark:text-foreground dark:hover:bg-muted/70 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
-                <Pause className="w-3 h-3" />
-                غلق الوردية
-              </Button>
+            <Button size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 dark:bg-muted dark:text-foreground dark:hover:bg-muted/70 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
+              <Pause className="w-3 h-3" />
+              غلق الوردية
+            </Button>
             <Select
               value={orderType}
               onValueChange={(val: OrderType) => {
@@ -793,7 +790,7 @@ export default function CartPanel() {
               <div className="text-sm font-bold text-foreground mb-3">{t("order_discount")}</div>
               <div className="flex gap-2 mb-3 items-center">
                 <button onClick={() => setDiscType("flat")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "flat" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>
-                  <SaudiRiyal size={18}/>
+                  <SaudiRiyal size={18} />
                 </button>
                 <button onClick={() => setDiscType("pct")} className={`w-12 h-12 rounded-xl flex items-center justify-center text-base font-bold border-2 transition-all flex-shrink-0 ${discType === "pct" ? "border-primary bg-primary/10 text-primary" : "border-gray-200 bg-white text-gray-400"}`}>
                   %

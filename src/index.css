@@ -808,7 +808,7 @@ input[type="number"] {
   .print-hidden {
     display: none !important;
   }
-  
+
   .print-block {
     display: block !important;
     position: absolute !important;
@@ -817,7 +817,8 @@ input[type="number"] {
     width: 100% !important;
   }
 
-  body, html {
+  body,
+  html {
     margin: 0 !important;
     padding: 0 !important;
     height: auto !important;
@@ -827,14 +828,14 @@ input[type="number"] {
 
   /* Hide everything else */
   #root > *:not(.print-block) {
-     display: none !important;
+    display: none !important;
   }
 }
 
 /* تغيير خلفية اليوم المختار */
-.react-datepicker__day--selected, 
+.react-datepicker__day--selected,
 .react-datepicker__day--keyboard-selected {
-  background-color: #2ECC71 !important;
+  background-color: #2ecc71 !important;
   color: white !important;
   border-radius: 0.375rem; /* لجعل الزوايا متناسقة مع التصميم */
 }
@@ -847,7 +848,7 @@ input[type="number"] {
 /* تغيير لون النقاط الصغيرة أو التحديد في حالة النطاق (اختياري) */
 .react-datepicker__day--in-range {
   background-color: rgba(46, 204, 113, 0.1) !important;
-  color: #2ECC71 !important;
+  color: #2ecc71 !important;
 }
 .react-datepicker-popper {
   z-index: 9999 !important;
@@ -855,3 +856,19 @@ input[type="number"] {
 /* .react-datepicker {
   font-family: inherit !important;
 } */
+
+[data-sonner-toast] {
+  font-family: "Cairo", sans-serif !important;
+}
+
+[data-sonner-toast] [data-title] {
+  font-family: "Cairo", sans-serif !important;
+}
+
+[data-sonner-toast] [data-description] {
+  font-family: "Cairo", sans-serif !important;
+}
+
+[data-sonner-toast] button {
+  font-family: "Cairo", sans-serif !important;
+}

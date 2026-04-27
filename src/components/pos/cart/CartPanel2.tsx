@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { calcItemTax, calcTotals, CartItem, itemBasePrice, itemBasePriceRaw } from "@/constants/data";
@@ -80,94 +80,6 @@ function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   );
 }
 
-function SwipeableOrderCard({ order, badgeCls, translatedStatus, onCardClick, onActionClick }: { order: SalesOrder; badgeCls: string; translatedStatus: string; onCardClick: () => void; onActionClick: (order: SalesOrder) => void }) {
-  const [swiped, setSwiped] = useState(false);
-  const startX = useRef(0);
-  const isDragging = useRef(false);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startX.current = e.touches[0].clientX;
-    isDragging.current = true;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isDragging.current) return;
-    const diff = startX.current - e.changedTouches[0].clientX;
-    if (diff > 50) setSwiped(true); // swipe لليسار → يظهر
-    if (diff < -50) setSwiped(false); // swipe لليمين → يخفي
-    isDragging.current = false;
-  };
-
-  return (
-    <div className="relative overflow-hidden border-b border-border">
-      {/* ===== أزرار الـ Actions (خلف الكارد) ===== */}
-      <div className="absolute inset-y-0 left-0 flex items-center gap-1 px-2 bg-muted">
-        {order.orderStatus === "Confirmed" ? (
-          <button onClick={() => onActionClick(order)} className="h-full px-3 flex flex-col items-center justify-center gap-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-            <Printer size={16} />
-            <span className="text-[9px]">طباعة</span>
-          </button>
-        ) : (
-          <>
-            <button onClick={() => onActionClick(order)} className="h-full px-3 flex flex-col items-center justify-center gap-1 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors">
-              <Plus size={16} />
-              <span className="text-[9px]">إضافة</span>
-            </button>
-            <button onClick={() => onActionClick(order)} className="h-full px-3 flex flex-col items-center justify-center gap-1 bg-[#000052] text-white rounded-lg transition-colors">
-              <CreditCard size={16} />
-              <span className="text-[9px]">دفع</span>
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* ===== الكارد نفسه ===== */}
-      <div
-        className="flex items-center gap-3 px-4 py-3 bg-card transition-transform duration-200 cursor-pointer"
-        style={{ transform: swiped ? "translateX(-90px)" : "translateX(0)" }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onClick={() => {
-          if (swiped) {
-            setSwiped(false);
-            return;
-          }
-          onCardClick();
-        }}
-      >
-        {/* الأيقونة */}
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
-          <FileText size={14} />
-        </div>
-
-        {/* الوسط */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-              <User size={10} />
-              {order.customerName ?? "—"}
-            </span>
-            {translatedStatus && <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${badgeCls}`}>{translatedStatus}</span>}
-          </div>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-[10px] text-muted-foreground/60 font-mono">{order.orderNumber ?? "—"}</span>
-            <span className="text-muted-foreground/30 text-[10px]">·</span>
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Clock size={9} />
-              {formatDate(order.orderDate)}
-            </span>
-          </div>
-        </div>
-
-        {/* السعر */}
-        <span className="flex items-center gap-1 text-[12px] font-bold text-foreground shrink-0">
-          {order.grandTotal.toFixed(2)}
-          <SaudiRiyal size={11} />
-        </span>
-      </div>
-    </div>
-  );
-}
 
 // ===== Bottom Sheet Component =====
 function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen, setCart, setOrderType, setDineInMode, setSelectedOrderId, setSelectedTable, onOpenChange }: { order: SalesOrder | null; open: boolean; onClose: () => void; selectedCustomer: any; setScreen: any; setCart: any; setOrderType: any; setDineInMode: any; setSelectedOrderId: any; setSelectedTable: any; onOpenChange: (v: boolean) => void }) {
@@ -451,17 +363,57 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
                 const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus?.toLowerCase() === "inprogress" ? t("قيد التجهيز") : order.orderStatus;
 
                 return (
-                  <SwipeableOrderCard
+                  <div
                     key={order.id}
-                    order={order}
-                    badgeCls={badgeCls}
-                    translatedStatus={translatedStatus}
-                    onCardClick={() => {
+                    className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors border-b border-border cursor-pointer"
+                    onClick={() => {
                       onSelect?.(order);
                       onOpenChange(false);
                     }}
-                    onActionClick={(order) => setOpenMenuId(String(order.id))}
-                  />
+                  >
+                    {/* الأيقونة */}
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
+                      <FileText size={14} />
+                    </div>
+
+                    {/* الوسط */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <User size={10} />
+                          {order.customerName ?? "—"}
+                        </span>
+                        {translatedStatus && <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${badgeCls}`}>{translatedStatus}</span>}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] text-muted-foreground/60 font-mono">{order.orderNumber ?? "—"}</span>
+                        <span className="text-muted-foreground/30 text-[10px]">·</span>
+                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <Clock size={9} />
+                          {formatDate(order.orderDate)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* اليسار */}
+                    <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="flex items-center gap-1 text-[12px] font-bold text-foreground">
+                          {order.grandTotal.toFixed(2)}
+                          <SaudiRiyal size={11} />
+                        </span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(String(order?.id));
+                        }}
+                        className="w-10 h-10 flex items-center justify-center rounded-xl border border-border hover:bg-muted text-muted-foreground transition-colors"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+                    </div>
+                  </div>
                 );
               })}
             </div>

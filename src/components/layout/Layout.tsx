@@ -17,6 +17,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
 import ChangePasswordDialog from "../modals/Changepassworddialog";
 import { useLogout } from "@/features/auth/hooks/useLogout";
+import { Toaster } from "../ui/sonner";
 
 interface SidebarItemProps {
   icon: LucideIcon;
@@ -173,9 +174,26 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen flex transition-colors duration-300" dir={direction}>
+    <div className="min-h-screen flex transition-colors duration-300 font-cairo" dir={direction}>
       <ToastContainer pauseOnHover={false} />
-
+      <Toaster
+        position="bottom-center"
+        dir="rtl"
+        style={{ fontFamily: "inherit" }}
+        toastOptions={{
+          classNames: {
+            toast: "!bg-[var(--bg-card)] !border !border-[var(--border)] !text-[var(--text-main)] !shadow-md !rounded-xl !font-sans",
+            title: "!text-[var(--text-main)] !font-medium !text-sm",
+            description: "!text-[var(--text-muted)] !text-xs",
+            actionButton: "!bg-[var(--primary)] !text-white hover:!bg-[var(--primary-hover)] !rounded-lg !text-xs !font-medium !px-3 !py-1.5",
+            cancelButton: "!bg-transparent !text-[var(--text-muted)] hover:!text-[var(--text-main)] !text-xs",
+            success: "!border-l-4 !border-l-[var(--primary)]",
+            error: "!border-l-4 !border-l-red-500",
+            warning: "!border-l-4 !border-l-amber-500",
+            info: "!border-l-4 !border-l-blue-500",
+          },
+        }}
+      />
       <AnimatePresence>{isMobileMenuOpen && isMobile && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-black/50 z-40 lg:hidden" />}</AnimatePresence>
 
       <motion.aside
@@ -260,7 +278,7 @@ export default function Layout() {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 {hasAnyPermission([Permissions?.users?.view, Permissions?.users?.all]) && <SubmenuItem label={t("users_list")} icon={List} path="/users" />}
                 {/* <SubmenuItem label={t("user_groups")} icon={Users} path="/users/groups" /> */}
-                <SubmenuItem label={t("pos_devices")} icon={Monitor} path="/users/pos-devices" />
+                <SubmenuItem label={t("pos_devices")} icon={Monitor} path="/pos-devices" />
                 {hasAnyPermission([Permissions?.roles?.view, Permissions?.roles?.all]) && <SubmenuItem label={"الصلاحيات"} icon={Shield} path="/roles" />}
                 {hasAnyPermission([Permissions?.employees?.view, Permissions?.employees?.all]) && <SubmenuItem label={"الموظفين"} icon={Users} path="/employyes" />}
               </motion.div>

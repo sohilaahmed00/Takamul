@@ -1,41 +1,49 @@
 type FormatType = "default" | "dateOnly" | "timeOnly" | "longDate" | "shortDate" | "custom";
 
-const formatDate = (dateString: string | Date, formatType: FormatType = "default", locale: string = "en-US", options: Intl.DateTimeFormatOptions = {}): string => {
-  if (!dateString) {
-    return "";
-  }
-  
+const formatDate = (dateString: string | Date, formatType: FormatType = "default", locale: string = "en-GB", options: Intl.DateTimeFormatOptions = {}): string => {
+  if (!dateString) return "";
 
-  const date = typeof dateString === "string" ? new Date(dateString) : dateString;
+  let date: Date;
+
+  if (typeof dateString === "string") {
+    const cleaned = dateString.replace(/(\.\d{3})\d+/, "$1");
+    date = new Date(cleaned);
+  } else {
+    date = dateString;
+  }
+
+  if (isNaN(date.getTime())) return "";
 
   const formatOptions: Record<FormatType, Intl.DateTimeFormatOptions> = {
     default: {
-      year: "numeric",
-      month: "numeric",
       day: "numeric",
+      month: "numeric",
+      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
+      hour12: true,
     },
     dateOnly: {
-      year: "numeric",
-      month: "numeric",
       day: "numeric",
+      month: "numeric",
+      year: "numeric",
     },
     timeOnly: {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",
+      hour12: true,
     },
     longDate: {
-      year: "numeric",
-      month: "long",
       day: "numeric",
+      month: "long",
+      year: "numeric",
     },
     shortDate: {
-      year: "2-digit",
-      month: "short",
       day: "numeric",
+      month: "short",
+      year: "2-digit",
     },
     custom: options,
   };
@@ -47,7 +55,7 @@ const formatDate = (dateString: string | Date, formatType: FormatType = "default
     ...options,
   };
 
-  return date.toLocaleString(locale, mergedOptions);
+  return new Intl.DateTimeFormat(locale, mergedOptions).format(date);
 };
 
 export default formatDate;
