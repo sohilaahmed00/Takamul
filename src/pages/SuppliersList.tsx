@@ -98,9 +98,9 @@ export default function SuppliersList() {
             stripedRows={false}
             emptyMessage={t("no_data")}
           >
+            <Column field="id" header={t("code")} sortable />
             <Column field="supplierName" header={t("name")} sortable />
             <Column field="phone" header={t("phone")} />
-            <Column field="taxNumber" header={t("tax_number")} />
             <Column
               header={t("actions")}
               body={(supplier) => (

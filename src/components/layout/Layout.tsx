@@ -599,10 +599,11 @@ export default function Layout() {
 
             <div className="relative">
               <button onClick={() => setActiveDropdown(activeDropdown === "user" ? null : "user")} className="flex items-center gap-2 p-1 hover:bg-[var(--bg-main)] rounded-lg">
-                <img src="https://picsum.photos/seed/avatar/100/100" alt="User" className="w-8 h-8 rounded-full border border-[var(--border)]" />
+                <div className="w-8 h-8 rounded-full border border-[var(--border)] flex items-center justify-center bg-[var(--bg-main)]">
+                  <User size={18} className="text-[var(--text-muted)]" />
+                </div>
                 <div className="hidden md:block text-right">
-                  <p className="text-sm font-medium text-[var(--text-main)]">{t("admin")}</p>
-                  <p className="text-xs text-[var(--text-muted)]">{userName}</p>
+                  <p className="text-sm font-medium text-[var(--text-main)]">{userName}</p>
                 </div>
                 <ChevronDown size={16} className="text-[var(--text-muted)]" />
               </button>

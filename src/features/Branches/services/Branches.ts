@@ -3,7 +3,7 @@ import type { Branch, BranchListItem, CreateBranchPayload, UpdateBranchPayload }
 
 export const getAllBranches = () => httpClient<BranchListItem[]>("/Branch");
 export const getBranchById = (id: number) => httpClient<Branch>(`/Branch/${id}`);
-export const createBranch = (data: CreateBranchPayload) => httpClient<string>("/Branch", { method: "POST", data });
-export const updateBranch = (id: number, data: UpdateBranchPayload) => httpClient<string>(`/Branch/${id}`, { method: "PUT", data });
+export const createBranch = (data: FormData) => httpClient<string>("/Branch", { method: "POST", data });
+export const updateBranch = (id: number, data: FormData) => httpClient<string>(`/Branch/${id}`, { method: "PUT", data });
 export const toggleBranchStatus = (id: number) => httpClient<string>(`/Branch/toggle-status/${id}`, { method: "PATCH" });
 export const deleteBranch = (id: number) => httpClient<string>(`/Branch/${id}`, { method: "DELETE" });

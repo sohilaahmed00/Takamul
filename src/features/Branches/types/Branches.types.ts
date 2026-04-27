@@ -2,12 +2,12 @@ export interface Branch {
   id: number;
   code: string;
   name: string;
+  nameEn: string | null;
   imageUrl: string | null;
   businessName: string | null;
   commercialRegister: string | null;
   taxNumber: string | null;
   footerNote: string | null;
-  email: string | null;
   phone: string | null;
   countryId: number | null;
   cityId: number | null;
@@ -35,7 +35,7 @@ export interface CreateBranchPayload {
   commercialRegister?: string;
   taxNumber?: string;
   footerNote?: string;
-  email?: string;
+  nameEn?: string;
   phone?: string;
   countryId?: number | null;
   cityId?: number | null;

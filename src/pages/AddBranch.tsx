@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, ArrowRight, Building2, Loader2, MapPin, Pencil, Save, Upload, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, Upload, X } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import useToast from "@/hooks/useToast";
 import { Button } from "@/components/ui/button";
@@ -34,13 +34,14 @@ export default function AddBranch() {
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [businessName, setBusinessName] = useState("");
-  const [email, setEmail] = useState("");
+  const [nameEn, setNameEn] = useState("");
   const [phone, setPhone] = useState("");
   const [taxNumber, setTaxNumber] = useState("");
   const [commercialRegister, setCommercialRegister] = useState("");
   const [footerNote, setFooterNote] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   const [countryId, setCountryId] = useState<number | null>(null);
@@ -57,13 +58,16 @@ export default function AddBranch() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ✅ إصلاح: قراءة nameEn مباشرة من branchDetail بدون fallback خاطئ
   useEffect(() => {
     if (!branchDetail) return;
 
     setCode(branchDetail.code ?? "");
     setName(branchDetail.name ?? "");
     setBusinessName(branchDetail.businessName ?? "");
-    setEmail(branchDetail.email ?? "");
+    // Smart search for NameEn field (case-insensitive and ignores underscores)
+    const nameEnKey = Object.keys(branchDetail).find((k) => k.toLowerCase().replace(/_/g, "") === "nameen");
+    setNameEn(nameEnKey ? (branchDetail as any)[nameEnKey] ?? "" : "");
     setPhone(branchDetail.phone ?? "");
     setTaxNumber(branchDetail.taxNumber ?? "");
     setCommercialRegister(branchDetail.commercialRegister ?? "");
@@ -78,8 +82,6 @@ export default function AddBranch() {
     setSubNumber(branchDetail.subNumber ?? "");
     setPostalCode(branchDetail.postalCode ?? "");
   }, [branchDetail]);
-
-  // Synced by ComboboxField internallly now
 
   const handleCountryChange = (val: string | number | null) => {
     setCountryId(val ? Number(val) : null);
@@ -98,7 +100,7 @@ export default function AddBranch() {
         notifyError(t("invalid_image") || "يرجى اختيار ملف صورة");
         return;
       }
-
+      setImageFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
@@ -127,42 +129,79 @@ export default function AddBranch() {
       notifyError(t("branch_code_required") || "كود الفرع مطلوب");
       return;
     }
-
     if (!name.trim()) {
       notifyError(t("branch_name_required") || "اسم الفرع مطلوب");
       return;
     }
+    if (!countryId) {
+      notifyError(t("country_required") || "البلد مطلوب");
+      return;
+    }
+    if (!cityId) {
+      notifyError(t("city_required") || "المدينة مطلوبة");
+      return;
+    }
+    if (!stateId) {
+      notifyError(t("district_required") || "الحي مطلوب");
+      return;
+    }
+    if (!street.trim()) {
+      notifyError(t("street_required") || "اسم الشارع مطلوب");
+      return;
+    }
 
-    const payload = {
-      code: code.trim(),
-      name: name.trim(),
-      imageUrl: imageUrl || undefined,
-      businessName: businessName.trim() || undefined,
-      commercialRegister: commercialRegister.trim() || undefined,
-      taxNumber: taxNumber.trim() || undefined,
-      footerNote: footerNote.trim() || undefined,
-      email: email.trim() || undefined,
-      phone: phone.trim() || undefined,
-      countryId: countryId ?? undefined,
-      cityId: cityId ?? undefined,
-      stateId: stateId ?? undefined,
-      street: street.trim() || undefined,
-      buildingNumber: buildingNumber.trim() || undefined,
-      subNumber: subNumber.trim() || undefined,
-      postalCode: postalCode.trim() || undefined,
-    };
+    // ✅ إصلاح: بناء FormData بشكل صحيح
+    const formData = new FormData();
+    formData.append("Code", code.trim());
+    formData.append("Name", name.trim());
+    formData.append("NameEn", nameEn.trim());
+    if (imageFile) formData.append("Image", imageFile);
+    formData.append("BusinessName", businessName.trim());
+    formData.append("CommercialRegister", commercialRegister.trim());
+    formData.append("TaxNumber", taxNumber.trim());
+    formData.append("FooterNote", footerNote.trim());
+    formData.append("Email", "");
+    formData.append("Phone", phone.trim());
+    formData.append("CountryId", String(countryId));
+    formData.append("CityId", String(cityId));
+    formData.append("StateId", String(stateId));
+    formData.append("Street", street.trim());
+    formData.append("District", "");
+    formData.append("BuildingNumber", buildingNumber.trim());
+    formData.append("SubNumber", subNumber.trim());
+    formData.append("PostalCode", postalCode.trim());
+    formData.append("AdditionalNumber", "");
+    formData.append("OrganizationName", "");
+    formData.append("OrganizationUnitName", "");
+    formData.append("LocationAddress", "");
+    formData.append("IndustryBusinessCategory", "");
+
+    if (isEditMode && branchId) {
+      formData.append("Id", String(branchId));
+      formData.append("IsActive", String(branchDetail?.isActive ?? true));
+    }
 
     try {
       if (isEditMode && branchId) {
-        await updateBranch({ id: branchId, ...payload });
+        // ✅ إصلاح: تمرير { id, data } بشكل صريح
+        await updateBranch({ id: branchId, data: formData });
         notifySuccess(t("branch_updated") || "تم تعديل الفرع بنجاح");
       } else {
-        await createBranch(payload);
+        await createBranch(formData);
         notifySuccess(t("branch_created") || "تم إضافة الفرع بنجاح");
       }
       navigate("/branches");
     } catch (error: any) {
-      notifyError(error?.response?.data?.message || error?.message || t("error_occurred") || "حدث خطأ أثناء الحفظ");
+      let errorMsg = t("error_occurred") || "حدث خطأ أثناء الحفظ";
+      if (error?.errors) {
+        const details = Object.entries(error.errors)
+          .map(([field, msgs]) => `${field}: ${(msgs as string[]).join(", ")}`)
+          .join(" | ");
+        errorMsg = `${errorMsg} (${details})`;
+      } else if (error?.message) {
+        errorMsg = error.message;
+      }
+      notifyError(errorMsg);
     }
   };
 
@@ -178,9 +217,13 @@ export default function AddBranch() {
         <Card>
           <CardHeader>
             <CardTitle>
-              <h1 className="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">{isViewMode ? t("view_branch") || "عرض الفرع" : isEditMode ? t("edit_branch") || "تعديل الفرع" : t("add_branch") || "إضافة فرع جديد"}</h1>
+              <h1 className="text-xl font-bold text-[var(--text-main)] flex items-center gap-2">
+                {isViewMode ? t("view_branch") || "عرض الفرع" : isEditMode ? t("edit_branch") || "تعديل الفرع" : t("add_branch") || "إضافة فرع جديد"}
+              </h1>
             </CardTitle>
-            <CardDescription>{isViewMode ? t("branch_details") || "تفاصيل بيانات الفرع" : t("branch_form_desc") || "أدخل بيانات الفرع الخاصة بالمنشأة"}</CardDescription>
+            <CardDescription>
+              {isViewMode ? t("branch_details") || "تفاصيل بيانات الفرع" : t("branch_form_desc") || "أدخل بيانات الفرع الخاصة بالمنشأة"}
+            </CardDescription>
             <CardAction>
               <Button form="branchForm" size="xl" asChild>
                 <Link to={"/branches"}>
@@ -201,19 +244,37 @@ export default function AddBranch() {
                     <Field>
                       <FieldLabel>
                         {t("business_name") || "اسم النشاط"}
-                        <span className="text-red-500 ">*</span>
+                        <span className="text-red-500">*</span>
                       </FieldLabel>
-                      <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("business_name_placeholder") || "اسم الفرع / النشاط"} className="h-10" readOnly={isViewMode} />
+                      <Input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder={t("business_name_placeholder") || "اسم الفرع / النشاط"}
+                        className="h-10"
+                        readOnly={isViewMode}
+                      />
                     </Field>
 
                     <Field>
-                      <FieldLabel>{t("email") || "البريد الإلكتروني"}</FieldLabel>
-                      <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@example.com" className="h-10" readOnly={isViewMode} />
+                      <FieldLabel>{t("name_en") || "اسم الفرع باللغة الثانية"}</FieldLabel>
+                      <Input
+                        value={nameEn}
+                        onChange={(e) => setNameEn(e.target.value)}
+                        placeholder={t("name_en_placeholder") || "Branch Name (En)"}
+                        className="h-10"
+                        readOnly={isViewMode}
+                      />
                     </Field>
 
                     <Field>
                       <FieldLabel>{t("phone") || "رقم الجوال"}</FieldLabel>
-                      <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="05xxxxxxxx" className="h-10" readOnly={isViewMode} />
+                      <Input
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="05xxxxxxxx"
+                        className="h-10"
+                        readOnly={isViewMode}
+                      />
                     </Field>
                   </div>
 
@@ -223,19 +284,36 @@ export default function AddBranch() {
                         {t("branch_code") || "كود الفرع"}
                         <span className="text-red-500">*</span>
                       </FieldLabel>
-                      <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="BR-001" className="h-10" readOnly={isViewMode} />
+                      <Input
+                        value={code}
+                        onChange={(e) => setCode(e.target.value)}
+                        placeholder="BR-001"
+                        className="h-10"
+                        readOnly={isViewMode}
+                      />
                     </Field>
 
                     <Field>
                       <FieldLabel>{t("tax_number") || "الرقم الضريبي"}</FieldLabel>
-                      <Input value={taxNumber} onChange={(e) => setTaxNumber(e.target.value)} className="h-10" readOnly={isViewMode} />
+                      <Input
+                        value={taxNumber}
+                        onChange={(e) => setTaxNumber(e.target.value)}
+                        className="h-10"
+                        readOnly={isViewMode}
+                      />
                     </Field>
 
                     <Field>
                       <FieldLabel>{t("commercial_register") || "السجل التجاري"}</FieldLabel>
-                      <Input value={commercialRegister} onChange={(e) => setCommercialRegister(e.target.value)} className="h-10" readOnly={isViewMode} />
+                      <Input
+                        value={commercialRegister}
+                        onChange={(e) => setCommercialRegister(e.target.value)}
+                        className="h-10"
+                        readOnly={isViewMode}
+                      />
                     </Field>
                   </div>
+
                   <div>
                     <p className="text-sm font-medium text-gray-700 mb-2">{t("company_logo") || "شعار الشركة"}</p>
                     <div
@@ -258,6 +336,7 @@ export default function AddBranch() {
                                 e.stopPropagation();
                                 setImagePreview(null);
                                 setImageUrl("");
+                                setImageFile(null);
                               }}
                               className="absolute -top-1 -right-1 bg-white dark:bg-zinc-900 rounded-full border border-gray-200 dark:border-zinc-800 p-0.5 shadow"
                             >
@@ -272,7 +351,10 @@ export default function AddBranch() {
                           </div>
                           <p className="text-sm font-medium text-gray-600">{t("drag_drop_image") || "اسحب وأفلت الصورة هنا"}</p>
                           <p className="text-xs">{t("or_browse") || "أو اضغط للتصفح"}</p>
-                          <button type="button" className="mt-1 text-xs border border-gray-300 dark:border-zinc-700 rounded-lg px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-600 dark:text-gray-400 transition-colors">
+                          <button
+                            type="button"
+                            className="mt-1 text-xs border border-gray-300 dark:border-zinc-700 rounded-lg px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-zinc-800 text-gray-600 dark:text-gray-400 transition-colors"
+                          >
                             {t("browse_files") || "تصفح الملفات"}
                           </button>
                         </div>
@@ -292,7 +374,14 @@ export default function AddBranch() {
 
                   <Field>
                     <FieldLabel>{t("invoice_footer") || "ملاحظات على الفاتورة"}</FieldLabel>
-                    <textarea value={footerNote} onChange={(e) => setFooterNote(e.target.value)} placeholder={t("invoice_footer_placeholder") || "شكراً لزيارتكم..."} rows={3} readOnly={isViewMode} className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] resize-none disabled:bg-gray-50" />
+                    <textarea
+                      value={footerNote}
+                      onChange={(e) => setFooterNote(e.target.value)}
+                      placeholder={t("invoice_footer_placeholder") || "شكراً لزيارتكم..."}
+                      rows={3}
+                      readOnly={isViewMode}
+                      className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] resize-none disabled:bg-gray-50"
+                    />
                   </Field>
                 </CardContent>
               </Card>
@@ -300,7 +389,6 @@ export default function AddBranch() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
-                    {/* <MapPin size={17} className="text-[var(--primary)]" /> */}
                     {t("address_settings") || "إعدادات العنوان"}
                   </CardTitle>
                 </CardHeader>
@@ -311,7 +399,15 @@ export default function AddBranch() {
                         {t("country") || "البلد"}
                         <span className="text-red-500 ms-1">*</span>
                       </FieldLabel>
-                      <ComboboxField value={countryId ?? undefined} onChange={handleCountryChange} items={countries ?? []} valueKey="id" labelKey="countryName" placeholder={t("select_country")} disabled={isViewMode} />
+                      <ComboboxField
+                        value={countryId ?? undefined}
+                        onChange={handleCountryChange}
+                        items={countries ?? []}
+                        valueKey="id"
+                        labelKey="countryName"
+                        placeholder={t("select_country")}
+                        disabled={isViewMode}
+                      />
                     </Field>
 
                     <Field>
@@ -319,7 +415,15 @@ export default function AddBranch() {
                         {t("city") || "المدينة"}
                         <span className="text-red-500 ms-1">*</span>
                       </FieldLabel>
-                      <ComboboxField value={cityId ?? undefined} onChange={handleCityChange} items={cities ?? []} valueKey="id" labelKey="cityName" placeholder={!countryId ? t("select_country_first") : t("select_city")} disabled={!countryId || isViewMode} />
+                      <ComboboxField
+                        value={cityId ?? undefined}
+                        onChange={handleCityChange}
+                        items={cities ?? []}
+                        valueKey="id"
+                        labelKey="cityName"
+                        placeholder={!countryId ? t("select_country_first") : t("select_city")}
+                        disabled={!countryId || isViewMode}
+                      />
                     </Field>
 
                     <Field>
@@ -327,7 +431,15 @@ export default function AddBranch() {
                         {t("district") || "الحي"}
                         <span className="text-red-500 ms-1">*</span>
                       </FieldLabel>
-                      <ComboboxField value={stateId ?? undefined} onChange={(val) => setStateId(val ? Number(val) : null)} items={states ?? []} valueKey="id" labelKey="statesName" placeholder={!cityId ? t("select_city_first") : t("select_district")} disabled={!cityId || isViewMode} />
+                      <ComboboxField
+                        value={stateId ?? undefined}
+                        onChange={(val) => setStateId(val ? Number(val) : null)}
+                        items={states ?? []}
+                        valueKey="id"
+                        labelKey="statesName"
+                        placeholder={!cityId ? t("select_city_first") : t("select_district")}
+                        disabled={!cityId || isViewMode}
+                      />
                     </Field>
 
                     <Field>
@@ -335,24 +447,48 @@ export default function AddBranch() {
                         {t("street_name") || "اسم الشارع"}
                         <span className="text-red-500 ms-1">*</span>
                       </FieldLabel>
-                      <Input value={street} onChange={(e) => setStreet(e.target.value)} placeholder={t("street_placeholder") || "الشارع"} className="h-10" readOnly={isViewMode} />
+                      <Input
+                        value={street}
+                        onChange={(e) => setStreet(e.target.value)}
+                        placeholder={t("street_placeholder") || "الشارع"}
+                        className="h-10"
+                        readOnly={isViewMode}
+                      />
                     </Field>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Field>
                       <FieldLabel>{t("postal_code") || "الرمز البريدي"} (ex:12345)</FieldLabel>
-                      <Input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="00000" className="h-10" readOnly={isViewMode} />
+                      <Input
+                        value={postalCode}
+                        onChange={(e) => setPostalCode(e.target.value)}
+                        placeholder="00000"
+                        className="h-10"
+                        readOnly={isViewMode}
+                      />
                     </Field>
 
                     <Field>
                       <FieldLabel>{t("building_number") || "رقم المبنى"} (ex:1234)</FieldLabel>
-                      <Input value={buildingNumber} onChange={(e) => setBuildingNumber(e.target.value)} placeholder="0000" className="h-10" readOnly={isViewMode} />
+                      <Input
+                        value={buildingNumber}
+                        onChange={(e) => setBuildingNumber(e.target.value)}
+                        placeholder="0000"
+                        className="h-10"
+                        readOnly={isViewMode}
+                      />
                     </Field>
 
                     <Field>
                       <FieldLabel>{t("sub_number") || "الرقم الفرعي"} (ex:1234)</FieldLabel>
-                      <Input value={subNumber} onChange={(e) => setSubNumber(e.target.value)} placeholder="0000" className="h-10" readOnly={isViewMode} />
+                      <Input
+                        value={subNumber}
+                        onChange={(e) => setSubNumber(e.target.value)}
+                        placeholder="0000"
+                        className="h-10"
+                        readOnly={isViewMode}
+                      />
                     </Field>
                   </div>
                 </CardContent>
@@ -363,7 +499,7 @@ export default function AddBranch() {
                   <Button size="2xl" type="button" variant="outline" asChild>
                     <Link to="/branches">{t("cancel") || "إلغاء"}</Link>
                   </Button>
-                  <Button size="2xl" type="submit" form="branchForm" loading={isPending} >
+                  <Button size="2xl" type="submit" form="branchForm" loading={isPending}>
                     {isEditMode ? t("save_changes") || "حفظ التعديلات" : t("add_branch") || "إضافة الفرع"}
                   </Button>
                 </div>

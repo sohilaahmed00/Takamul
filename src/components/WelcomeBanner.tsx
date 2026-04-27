@@ -2,9 +2,11 @@ import { useState } from 'react';
 import { Calendar, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuthStore } from '../store/authStore';
 
 export default function WelcomeBanner() {
     const { t, direction } = useLanguage();
+    const userName = useAuthStore(s => s.userName);
     const [showToast, setShowToast] = useState(false);
 
     const handleRenew = () => {
@@ -42,7 +44,7 @@ export default function WelcomeBanner() {
                         <Calendar size={24} />
                     </div>
                     <div>
-                        <h2 className="font-bold text-[var(--primary)]">{t('welcome_admin')}</h2>
+                        <h2 className="font-bold text-[var(--primary)]">{t('welcome')} {userName}</h2>
                         <p className="text-sm text-[var(--text-muted)] dark:text-gray-400">{t('total_operations_date')} ({currentDateFormatted})</p>
                     </div>
                 </div>

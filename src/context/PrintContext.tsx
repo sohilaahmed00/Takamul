@@ -2,12 +2,15 @@
 
 import React, { useContext, ReactNode, useCallback } from "react";
 import { printVoucher, getClaimReceiptHTML } from "@/utils/customExportUtils";
-import { getAllCustomers, getCustomerById } from "@/features/customers/services/customers";
 import { useLanguage } from "./LanguageContext";
 import { useBranch } from "@/hooks/useBranch";
 import { getStockReceiptHTML } from "@/print/stockReceiptHTML";
+import { getAllSuppliers, getSupplierById } from "@/features/suppliers/services/suppliers";
+import { getAllProducts } from "@/features/products/services/products";
+import { getCustomerById, getAllCustomers } from "@/features/customers/services/customers";
 
 import { getA4InvoiceHTML } from "@/print/A4InvoiceTemplate";
+import { getA4PrintHTML } from "@/print/GenericA4Template";
 import { exportCustomPDF, exportToExcel, exportToCSV } from "@/utils/customExportUtils";
 import { printInvoice as thermalPrint } from "@/components/pos/orders/printInvoice";
 import { apiClient } from "@/api/client";
@@ -51,44 +54,59 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     // If we already have customerData, don't do anything else
     if (extendedData.customerData) return extendedData;
 
-    // 2. Identify Customer (Optimize Search)
-    const rawName = (data.customerName ?? data.customer ?? "").toString().trim();
+    // 2. Identify Party (Customer or Supplier)
+    const rawName = data.customerName || data.name || data.customer || data.supplierName || "";
     const searchTerm = normalize(rawName);
 
-    // FAST LANE: Skip search for Cash/General customers
-    if (!searchTerm || CASH_CUSTOMER_KEYWORDS.some((kw) => searchTerm.includes(kw))) {
-      extendedData.customerPhone = DEFAULT_CUSTOMER_PHONE;
-      return extendedData;
-    }
+    // Try fetching by ID first (Most reliable)
+    const cId = (data as any).customerId || (data as any).customerID || (data as any).customer_id;
+    const sId = (data as any).supplierId || (data as any).supplierID || (data as any).supplier_id;
 
-    // Try fetching by customerId (Fastest API call)
-    const cId = (data as any).customerId || (data as any).customerID;
     if (cId) {
       try {
         const customer = await getCustomerById(Number(cId));
         if (customer) {
-          extendedData.customerPhone = customer.mobile || customer.phone || "";
           (extendedData as any).customerData = customer;
+          extendedData.customerPhone = customer.mobile || customer.phone || "";
           return extendedData;
         }
-      } catch (err) { /* fallback */ }
+      } catch (e) { console.error("Customer ID fetch failed", e); }
     }
 
-    // SLOW LANE: Only search if we really have to
-    try {
-      const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
-      const customers = response?.items ?? [];
-      const found = customers.find((c) => {
-        const cName = normalize(c.customerName ?? "");
-        return cName === searchTerm || cName.includes(searchTerm) || searchTerm.includes(cName);
-      });
+    if (sId) {
+      try {
+        const supplier = await getSupplierById(Number(sId));
+        if (supplier) {
+          (extendedData as any).customerData = supplier;
+          extendedData.customerPhone = supplier.mobile || supplier.phone || "";
+          return extendedData;
+        }
+      } catch (e) { console.error("Supplier ID fetch failed", e); }
+    }
 
-      if (found) {
-        extendedData.customerPhone = found.mobile ?? found.phone ?? "";
-        (extendedData as any).customerData = found;
-      }
-    } catch (err) {
-      console.error("[PrintContext] Search failed:", err);
+    // Fallback: Search by Name
+    if (searchTerm) {
+      // Search Customers
+      try {
+        const cResponse = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
+        const foundC = cResponse?.items?.find((c: any) => normalize(c.customerName || "") === searchTerm || normalize(c.customerName || "").includes(searchTerm));
+        if (foundC) {
+          (extendedData as any).customerData = foundC;
+          extendedData.customerPhone = foundC.mobile || foundC.phone || "";
+          return extendedData;
+        }
+      } catch (e) { /* ignore */ }
+
+      // Search Suppliers
+      try {
+        const sResponse = await getAllSuppliers();
+        const suppliers = (sResponse as any)?.items || sResponse || [];
+        const foundS = suppliers.find((s: any) => normalize(s.supplierName || "") === searchTerm || normalize(s.supplierName || "").includes(searchTerm));
+        if (foundS) {
+          (extendedData as any).customerData = foundS;
+          extendedData.customerPhone = foundS.mobile || foundS.phone || "";
+        }
+      } catch (e) { /* ignore */ }
     }
 
     return extendedData;
@@ -164,12 +182,32 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const extendedData = await prepareExtendedData(data);
+      
+      // Enrich items with names if missing (common in Purchases)
+      const rawItems = (extendedData.items || extendedData.orderItems || extendedData.quotationItems || extendedData.purchaseItems || []) as any[];
+      if (rawItems.length > 0 && rawItems.some(item => !item.productName && !item.name)) {
+        try {
+          const productsResponse = await getAllProducts({ page: 1, limit: 1000 });
+          const products = productsResponse?.items || [];
+          rawItems.forEach(item => {
+            if (!item.productName && !item.name && item.productId) {
+              const p = products.find((prod: any) => prod.id === item.productId);
+              if (p) {
+                item.productName = p.productNameAr || p.name || p.productName;
+                item.unitName = item.unitName || p.baseUnitName;
+              }
+            }
+          });
+        } catch (e) { console.error("Enrichment failed", e); }
+      }
 
       const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
       const htmlGetters: Record<string, () => string> = {
         invoice: () => getA4InvoiceHTML(extendedData, t, apiBase),
         stock: () => getStockReceiptHTML(extendedData, t),
         claim: () => getClaimReceiptHTML(extendedData, t),
+        quotation: () => getA4PrintHTML(extendedData, "quotation", t, apiBase),
+        purchase: () => getA4PrintHTML(extendedData, "purchase", t, apiBase),
       };
 
       const html = (htmlGetters[type] || htmlGetters["invoice"])();
