@@ -29,6 +29,13 @@ export interface InvoiceData {
   qrCodeUrl?: string;
 }
 
+function arabicToEntities(str: string): string {
+  return str
+    .split("")
+    .map((c) => `&#${c.charCodeAt(0)};`)
+    .join("");
+}
+
 export async function printInvoice(data: InvoiceData): Promise<void> {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
   const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
@@ -410,7 +417,7 @@ html, body {
       return;
     }
     win.document.write(html);
-    win.document.close();
+    win.document.close()
     win.onload = () => {
       win.focus();
       win.print();

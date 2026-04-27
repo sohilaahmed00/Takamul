@@ -3,10 +3,12 @@ import type { BranchInfo } from "@/hooks/useBranch";
 import type { Customer } from "@/features/customers/types/customers.types";
 import { itemBasePrice, calcItemTax, calcTotals, type CartItem } from "@/constants/data";
 
-export const getA4InvoiceHTML = (order: any, t: any): string => {
+export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): string => {
   const branch: Partial<BranchInfo> = order.branchInfo   || {};
   const customer: Partial<Customer> = order.customerData || {};
   const items: any[]                = order.items || order.orderItems || [];
+  
+  const apiBase = passedApiBase || "";
 
   // ── Date formatting ──────────────────────────────────────────────────────────
   let dateVal = order.createdAt || order.date || order.orderDate || order.invoiceDate;
@@ -25,11 +27,44 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
   const custPhone      = customer.mobile             || customer.phone             || order.customerPhone || "-";
   const custTaxNo      = customer.taxNumber          || order.customerTaxNo        || "-";
   const custCommercial = customer.commercialRegister || order.customerCommercialNo || "-";
-  const custAddress    = customer.address            || order.customerAddress       || "-";
+  const country        = customer.countryName || "";
+  const city           = customer.city || "";
+  const state          = customer.state || "";
+  const street         = customer.address || order.customerAddress || "";
+  const custAddress    = [country, city, state, street].filter(Boolean).join(" / ") || "-";
   const custPostal     = customer.postalCode         || order.customerZipCode       || "-";
   const custSubNo      = customer.additionalNumber   || order.customerSubNo         || "-";
   const custBuilding   = customer.buildingNumber     || order.customerBuildingNo    || "-";
   const invoiceNo      = order.orderNumber || order.invoiceNo || "-";
+
+  // ── Helper to fix Image URLs ────────────────────────────────────────────────
+  const getFullImageUrl = (url: string | null | undefined): string => {
+    if (!url || typeof url !== "string") return "";
+    let finalUrl = url;
+    
+    try {
+      // If it contains a known image path pattern, extract it and use the correct base
+      if (url.includes("/Images/")) {
+        const pathPart = url.substring(url.indexOf("/Images/"));
+        if (apiBase) return `${apiBase}${pathPart}`;
+      }
+
+      if (!url.startsWith("http")) {
+        if (apiBase) finalUrl = `${apiBase}/${url.replace(/^\/+/, "")}`;
+      } else if (url.includes("localhost") && apiBase && !apiBase.includes("localhost")) {
+        const urlObj = new URL(url);
+        const baseObj = new URL(apiBase);
+        urlObj.protocol = baseObj.protocol;
+        urlObj.host = baseObj.host;
+        finalUrl = urlObj.toString();
+      }
+    } catch (e) { 
+      console.warn("[A4Template] Image URL fix failed:", e);
+    }
+    return finalUrl;
+  };
+
+  const branchLogo = getFullImageUrl(branch.imageUrl);
 
   // ── Compute items using standard logic ──────────────────────────────────────
   const cart: CartItem[] = items.map((item: any) => {
@@ -81,7 +116,7 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
 
   const itemRows = computedItems.map(({ item, price, qty, subTotal, taxAmt, netTotal }) => `
     <tr>
-      <td style="text-align:right; padding-right:10px;">${item.productName || item.name || "-"}</td>
+      <td style="text-align:center;">${item.productName || item.name || "-"}</td>
       <td>${item.unitName || "قطعة"}</td>
       <td>${qty}</td>
       <td>${price.toFixed(2)}</td>
@@ -112,10 +147,16 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
     body {
       background: #fff;
       width: 100%;
+      min-height: 277mm; /* Slightly less than 297mm to account for padding/margins */
+      display: flex;
+      flex-direction: column;
       color: #1a1a1a;
       font-size: 10px;
       line-height: 1.4;
-      padding: 15mm;
+      padding: 10mm 15mm;
+    }
+    .main-content {
+      flex: 1;
     }
 
     /* ══ HEADER ══ */
@@ -126,91 +167,112 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
       margin-bottom: 8px;
     }
     .header-col {
-      flex: 1;
+      flex: 1 0 0;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
       gap: 4px;
+      align-self: stretch;
     }
     .company-title {
-      font-size: 13px;
-      font-weight: 600;
+      flex: 1;
+      font-size: 11px;
+      font-weight: 700;
       text-align: center;
       padding: 4px;
       color: #000;
+      background: #f2f2f2;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .meta-row {
+      flex: 1;
       display: flex;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      overflow: hidden;
-      min-height: 24px;
+      width: 100%;
+      background: transparent;
+      overflow: visible;
       align-items: stretch;
+      gap: 4px;
     }
     .meta-label-ar {
-      width: 75px;
-      font-size: 9px;
-      padding: 3px 5px;
-      background: #f0f0f0;
-      border-left: 1px solid #ccc;
+      flex: 1.2;
+      font-size: 9.5px;
+      padding: 6px 4px;
+      background: #f2f2f2;
+      border-radius: 3px;
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-      color: #333;
+      color: #000;
+      font-weight: 600;
+      white-space: nowrap;
     }
     .meta-value {
-      flex: 1;
-      font-size: 9px;
-      padding: 3px 5px;
-      background: #fff;
-      border-left: 1px solid #ccc;
+      flex: 2;
+      font-size: 11px;
+      padding: 6px 4px;
+      background: #f2f2f2;
+      border-radius: 3px;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #000;
       white-space: nowrap;
+      font-weight: 700;
     }
     .meta-label-en {
-      width: 60px;
+      flex: 1;
       font-size: 7.5px;
-      padding: 3px 4px;
-      color: #555;
-      background: #fafafa;
+      padding: 6px 4px;
+      color: #000;
+      background: #f2f2f2;
+      border-radius: 3px;
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
+      font-weight: 600;
+      white-space: nowrap;
     }
     .logo-container {
-      flex: 0.8;
-      border: 1px solid #ccc;
+      flex: 0.8 0 0;
+      border: none;
       border-radius: 3px;
       display: flex;
       align-items: center;
       justify-content: center;
-      min-height: 80px;
-      background: #fafafa;
+      min-height: 90px;
+      background: #f2f2f2;
+      align-self: stretch;
     }
 
-    /* ══ DOC TYPE BAR ══ */
-    .doc-type-bar {
-      background: #f0f0f0;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      padding: 6px 12px;
-      margin-bottom: 10px;
+    /* ══ DOC TYPE SECTION ══ */
+    .doc-type-container {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      font-size: 10px;
-      color: #1a1a1a;
+      gap: 8px;
+      margin-bottom: 10px;
     }
-    .doc-title {
-      font-size: 16px;
-      font-weight: 600;
+    .doc-type-item {
+      background: #f2f2f2;
+      border: none;
+      border-radius: 3px;
+      padding: 8px;
+      font-size: 11px;
       color: #000;
-      text-align: center;
-      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+    .doc-type-item:nth-child(1), .doc-type-item:nth-child(3) {
+      flex: 1 0 0;
+    }
+    .doc-type-item:nth-child(2) {
+      flex: 0.8 0 0;
     }
 
     /* ══ CUSTOMER BOX ══ */
@@ -219,14 +281,14 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
       padding: 3px 12px;
       font-size: 11px;
       font-weight: 600;
-      border: 1px solid #ccc;
+      border: 1.5px solid #000;
       border-bottom: none;
       display: inline-block;
       border-radius: 3px 3px 0 0;
       color: #000;
     }
     .customer-box {
-      border: 1px solid #ccc;
+      border: none;
       margin-bottom: 10px;
       border-radius: 0 3px 3px 3px;
       overflow: hidden;
@@ -237,20 +299,21 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
       table-layout: fixed;
     }
     .cust-tbl td {
-      border: 1px solid #ccc;
+      border: 1px solid #000;
       vertical-align: middle;
     }
     .cust-lbl {
-      width: 105px;
+      width: 20%;
       background: #f8f8f8;
       padding: 10px 8px;
-      font-size: 9.5px;
+      font-size: 10px;
       color: #444;
       text-align: right;
-      border-left: 1px solid #ccc;
+      border-left: 1.5px solid #000;
       white-space: nowrap;
     }
     .cust-val {
+      width: 30%;
       padding: 10px 10px;
       font-size: 10px;
       color: #000;
@@ -272,7 +335,7 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
     }
     .items-table th {
       background: #f0f0f0;
-      border: 1px solid #ccc;
+      border: 1px solid #000;
       padding: 6px 4px;
       font-size: 10px;
       font-weight: 600;
@@ -286,7 +349,7 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
       margin-top: 1px;
     }
     .items-table td {
-      border: 1px solid #ccc;
+      border: 1px solid #000;
       padding: 7px 4px;
       text-align: center;
       font-size: 10px;
@@ -296,77 +359,93 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
     /* ══ FOOTER SECTION ══ */
     .footer-section {
       display: flex;
-      flex-direction: row;
-      gap: 12px;
-      margin-bottom: 10px;
+      gap: 10px;
+      margin-top: 15px;
       align-items: stretch;
     }
 
-    /* QR — صغير على اليمين */
-    .qr-section {
-      width: 26%;
+    .totals-table {
+      flex: 1;
+      border-collapse: collapse;
+      border: 1.5px solid #000;
+    }
+    .totals-table td {
+      border: 1px solid #000;
+      padding: 5px;
+      text-align: center;
+      font-size: 10px;
+      color: #000;
+      vertical-align: middle;
+    }
+    .totals-table .lbl-en {
+      width: 100px;
+      background: #fff;
+      font-weight: 600;
+    }
+    .totals-table .val-cell {
+      width: 90px;
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .totals-table .lbl-ar {
+      background: #fafafa;
+      text-align: center;
+      font-weight: 600;
+    }
+    .totals-table .net-total-row td {
+      background: #f2f2f2;
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .qr-barcode-container {
+      width: 140px;
+      border: 1.5px solid #000;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      padding: 10px 8px;
-      gap: 6px;
-      background: #fafafa;
+      padding: 8px;
+      gap: 8px;
+      background: #fff;
     }
-    .qr-code     { width: 75px; height: 75px; }
-    .barcode-img { width: 115px; height: 30px; object-fit: contain; }
-    .inv-lbl     { font-size: 8px; color: #555; }
+    .qr-code-final {
+      width: 80px;
+      height: 80px;
+    }
+    .barcode-final {
+      width: 110px;
+      height: 35px;
+      object-fit: contain;
+    }
+    .inv-no-small {
+      font-size: 8px;
+      font-weight: 700;
+      margin-top: -4px;
+    }
 
-    /* الإجماليات — أكبر على الشمال */
-    .totals-box {
-      flex: 1;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      overflow: hidden;
-    }
-    .tot-row {
-      display: grid;
-      grid-template-columns: 1fr 80px 70px;
-      border-bottom: 1px solid #ccc;
-      align-items: center;
-    }
-    .tot-row:last-child { border-bottom: none; }
-    .tot-ar  { padding: 8px 12px; font-size: 10px; color: #1a1a1a; text-align: right; background: #f8f8f8; }
-    .tot-num { padding: 8px 10px; font-size: 11px; color: #000; text-align: center; border-right: 1px solid #ccc; border-left: 1px solid #ccc; background: #fff; }
-    .tot-en  { padding: 8px 8px;  font-size: 8.5px; color: #555; text-align: left; background: #fafafa; }
-    .tot-row.hl .tot-ar  { background: #e8e8e8; font-size: 11px; font-weight: 600; }
-    .tot-row.hl .tot-num { font-size: 14px; font-weight: 600; background: #f0f0f0; }
-    .tot-row.hl .tot-en  { background: #f0f0f0; font-size: 9px; }
-
-    /* ══ NOTES ══ */
-    .notes-section {
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      padding: 8px 12px;
-      margin-bottom: 10px;
-      min-height: 40px;
-      background: #fafafa;
-    }
-    .notes-title {
-      font-size: 11px;
+    .full-width-bar {
+      border: 1.5px solid #000;
+      background: #f2f2f2;
+      padding: 8px;
+      margin-top: 10px;
+      text-align: center;
       font-weight: 600;
-      margin-bottom: 4px;
-      color: #1a1a1a;
-      text-align: center;
-    }
-
-    /* ══ FINAL FOOTER ══ */
-    .final-footer {
-      text-align: center;
-      font-size: 10px;
-      padding: 10px 15px;
-      background: #f0f0f0;
-      border: 1px solid #ccc;
-      border-radius: 3px;
+      font-size: 11px;
       color: #000;
     }
+    .notes-box {
+      background: #fafafa;
+      padding: 8px 12px;
+      border: 1.5px solid #000;
+      margin-top: 10px;
+      font-size: 11px;
+      color: #000;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+
 
     /* ══ PRINT ══ */
     @media print {
@@ -376,7 +455,7 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
   </style>
 </head>
 <body>
-
+  <div class="main-content">
   <!-- ══ HEADER ══ -->
   <div class="header-grid">
     <div class="header-col">
@@ -393,7 +472,7 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
       </div>
     </div>
     <div class="logo-container">
-      <img src="${branch.imageUrl || ""}" style="max-height:65px; max-width:100%; object-fit:contain;" />
+      <img src="${branchLogo}" onerror="this.style.display='none'" style="max-height:65px; max-width:100%; object-fit:contain;" />
     </div>
     <div class="header-col">
       <div class="company-title">${branch.nameEn || "-"}</div>
@@ -410,11 +489,11 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
     </div>
   </div>
 
-  <!-- ══ DOC TYPE BAR ══ -->
-  <div class="doc-type-bar">
-    <div>${t("cash_sales_invoice", "فاتورة مبيعات نقدية")}</div>
-    <div class="doc-title">${t("tax_invoice", "فاتورة ضريبية")}</div>
-    <div>${t("seller_name", "اسم البائع")} : ${order.createdBy || order.sellerName || order.cashier || "-"}</div>
+  <!-- ══ DOC TYPE SECTION ══ -->
+  <div class="doc-type-container">
+    <div class="doc-type-item">${t("cash_sales_invoice", "فاتورة مبيعات نقدية")}</div>
+    <div class="doc-type-item">${t("tax_invoice", "فاتورة ضريبية")}</div>
+    <div class="doc-type-item">${t("seller_name", "اسم البائع")} : ${order.createdBy || order.sellerName || order.cashier || "-"}</div>
   </div>
 
   <!-- ══ CUSTOMER INFO ══ -->
@@ -437,8 +516,8 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
           <td class="cust-val">${custCommercial}</td>
         </tr>
         <tr class="addr-row">
-          <td colspan="2" style="border-left: 1px solid #ccc;">
-            ${t("national_address", "العنوان الوطني")}: ${custAddress}
+          <td colspan="2" style="border-left: 1px solid #000;">
+            ${t("national_address", "العنوان الوطني")} : ${custAddress}
           </td>
           <td colspan="2">
             ${t("zip_code", "الرمز البريدي")}: ${custPostal} ،
@@ -465,52 +544,54 @@ export const getA4InvoiceHTML = (order: any, t: any): string => {
     </thead>
     <tbody>${itemRows}</tbody>
   </table>
+  </div> <!-- end of main-content -->
 
-  <!-- ══ FOOTER: QR (يمين صغير) + إجماليات (شمال أكبر) ══ -->
+  <!-- ══ FOOTER SECTION ══ -->
   <div class="footer-section">
-    <div class="qr-section">
-      <img src="https://api.qrserver.com/v1/create-qr-code/?size=75x75&data=${encodeURIComponent(invoiceNo)}" class="qr-code" alt="QR"/>
-      <div class="inv-lbl">${invoiceNo}</div>
-      <img src="https://www.barcodesinc.com/generator/image.php?code=${encodeURIComponent(invoiceNo)}&style=196&type=C128B&width=115&height=30&xres=1&font=3" class="barcode-img" alt="Barcode"/>
+    <div class="qr-barcode-container">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(invoiceNo)}" onerror="this.style.display='none'" class="qr-code-final" alt="QR"/>
+      <div class="inv-no-small">${invoiceNo}</div>
+      <img src="https://www.barcodesinc.com/generator/image.php?code=${encodeURIComponent(invoiceNo)}&style=196&type=C128B&width=110&height=35&xres=1&font=3" onerror="this.style.display='none'" class="barcode-final" alt="Barcode"/>
     </div>
-    <div class="totals-box">
-      <div class="tot-row">
-        <div class="tot-ar">${t("items_count", "عدد المنتجات")}</div>
-        <div class="tot-num">عدد ${cart.reduce((s, i) => s + i.qty, 0)}</div>
-        <div class="tot-en">Items</div>
-      </div>
-      <div class="tot-row">
-        <div class="tot-ar">${t("tot_before_vat", "اجمالي السعر قبل الضريبة")}</div>
-        <div class="tot-num">${totBeforeVAT.toFixed(2)}</div>
-        <div class="tot-en">Tot Before VAT</div>
-      </div>
-      <div class="tot-row">
-        <div class="tot-ar">${t("total_discount", "اجمالي الخصم")}</div>
-        <div class="tot-num">${discount.toFixed(2)}</div>
-        <div class="tot-en">Discount</div>
-      </div>
-      <div class="tot-row">
-        <div class="tot-ar">${t("total_vat", "ضريبة القيمة المضافة")}</div>
-        <div class="tot-num">${totalVAT.toFixed(2)}</div>
-        <div class="tot-en">Total VAT %15</div>
-      </div>
-      <div class="tot-row hl">
-        <div class="tot-ar">${t("final_total", "الاجمالي النهائي")}</div>
-        <div class="tot-num">${finalTotal.toFixed(2)}</div>
-        <div class="tot-en">NET TOTAL</div>
-      </div>
-    </div>
+
+    <table class="totals-table">
+      <tr>
+        <td class="lbl-ar">${t("items_count", "عدد المنتجات")}</td>
+        <td class="val-cell">${cart.reduce((s, i) => s + i.qty, 0)}</td>
+        <td class="lbl-en">Items</td>
+      </tr>
+      <tr>
+        <td class="lbl-ar">${t("tot_before_vat", "اجمالي السعر قبل الضريبة")}</td>
+        <td class="val-cell">${totBeforeVAT.toFixed(2)}</td>
+        <td class="lbl-en">Tot Before VAT</td>
+      </tr>
+      <tr>
+        <td class="lbl-ar">${t("total_discount", "اجمالي الخصم")}</td>
+        <td class="val-cell">${discount.toFixed(2)}</td>
+        <td class="lbl-en">Discount</td>
+      </tr>
+      <tr>
+        <td class="lbl-ar">${t("total_vat", "ضريبة القيمة المضافة")}</td>
+        <td class="val-cell">${totalVAT.toFixed(2)}</td>
+        <td class="lbl-en">Total VAT %15</td>
+      </tr>
+      <tr class="net-total-row">
+        <td class="lbl-ar">${t("final_total", "الاجمالي النهائي")}</td>
+        <td class="val-cell">${finalTotal.toFixed(2)}</td>
+        <td class="lbl-en">NET TOTAL</td>
+      </tr>
+    </table>
   </div>
 
   <!-- ══ NOTES ══ -->
-  <div class="notes-section">
-    <div class="notes-title">${t("invoice_notes", "ملاحظات علي الفاتورة")}</div>
-    <div style="font-size:9.5px; color:#444;">${order.notes || t("no_notes", "لا توجد ملاحظات")}</div>
+  <div class="notes-box">
+    <div style="font-weight:700;">${t("invoice_notes", "ملاحظات علي الفاتورة")} : </div>
+    <div>${order.notes || t("no_notes", "لا توجد ملاحظات")}</div>
   </div>
 
-  <!-- ══ FINAL FOOTER ══ -->
-  <div class="final-footer">
-    ${t("branch_address", "عنوان المؤسسة")} : ${branch.address || branch.street || "-"}
+  <!-- ══ ADDRESS BAR ══ -->
+  <div class="full-width-bar">
+    ${t("branch_address", "عنوان المؤسسة")} : ${branch.address || branch.street || branch.cityName || "-"}
   </div>
 
 </body>

@@ -34,16 +34,13 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const { data: branchInfo } = useBranch();
 
   const prepareExtendedData = useCallback(async (data: InvoiceData) => {
+    // 1. Branch Info (Fast)
     let currentBranch = branchInfo;
-    
-    // If branchInfo from hook is missing, try fetching it once
     if (!currentBranch) {
       try {
         const response = await apiClient.get("/Branch/Employeebranch");
         currentBranch = response.data?.data || response.data;
-      } catch (err) {
-        console.error("[PrintContext] Failed to fetch branch info manually:", err);
-      }
+      } catch (err) { /* silent */ }
     }
 
     const extendedData: InvoiceData = {
@@ -51,45 +48,49 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
       branchInfo: currentBranch ?? null,
     };
 
-    // Try fetching by customerId first (more reliable if permitted)
+    // If we already have customerData, don't do anything else
+    if (extendedData.customerData) return extendedData;
+
+    // 2. Identify Customer (Optimize Search)
+    const rawName = (data.customerName ?? data.customer ?? "").toString().trim();
+    const searchTerm = normalize(rawName);
+
+    // FAST LANE: Skip search for Cash/General customers
+    if (!searchTerm || CASH_CUSTOMER_KEYWORDS.some((kw) => searchTerm.includes(kw))) {
+      extendedData.customerPhone = DEFAULT_CUSTOMER_PHONE;
+      return extendedData;
+    }
+
+    // Try fetching by customerId (Fastest API call)
     const cId = (data as any).customerId || (data as any).customerID;
-    if (cId && !extendedData.customerData) {
+    if (cId) {
       try {
         const customer = await getCustomerById(Number(cId));
         if (customer) {
           extendedData.customerPhone = customer.mobile || customer.phone || "";
           (extendedData as any).customerData = customer;
-          // If we found it by ID, we can return early
-          if (extendedData.customerData) return extendedData;
+          return extendedData;
         }
-      } catch (err) {
-        console.warn("[PrintContext] Failed to fetch customer by ID (likely 403), falling back to search:", err);
-      }
+      } catch (err) { /* fallback */ }
     }
 
-    // Fallback: search by name
-    const rawName = (data.customerName ?? data.customer ?? "").toString().trim();
-    if (!extendedData.customerData && rawName && rawName !== "—") {
-      try {
-        const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
-        const customers = response?.items ?? [];
-        const searchTerm = normalize(rawName);
+    // SLOW LANE: Only search if we really have to
+    try {
+      const response = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
+      const customers = response?.items ?? [];
+      const found = customers.find((c) => {
+        const cName = normalize(c.customerName ?? "");
+        return cName === searchTerm || cName.includes(searchTerm) || searchTerm.includes(cName);
+      });
 
-        const found = customers.find((c) => {
-          const cName = normalize(c.customerName ?? "");
-          return cName === searchTerm || cName.includes(searchTerm) || searchTerm.includes(cName);
-        });
-
-        if (found) {
-          extendedData.customerPhone = found.mobile ?? found.phone ?? "";
-          (extendedData as any).customerData = found;
-        } else if (CASH_CUSTOMER_KEYWORDS.some((kw) => searchTerm.includes(kw))) {
-          extendedData.customerPhone = DEFAULT_CUSTOMER_PHONE;
-        }
-      } catch (err) {
-        console.error("[PrintContext] Failed to fetch customer by search:", err);
+      if (found) {
+        extendedData.customerPhone = found.mobile ?? found.phone ?? "";
+        (extendedData as any).customerData = found;
       }
+    } catch (err) {
+      console.error("[PrintContext] Search failed:", err);
     }
+
     return extendedData;
   }, [branchInfo]);
 
@@ -164,8 +165,9 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
 
       const extendedData = await prepareExtendedData(data);
 
+      const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
       const htmlGetters: Record<string, () => string> = {
-        invoice: () => getA4InvoiceHTML(extendedData, t),
+        invoice: () => getA4InvoiceHTML(extendedData, t, apiBase),
         stock: () => getStockReceiptHTML(extendedData, t),
         claim: () => getClaimReceiptHTML(extendedData, t),
       };
@@ -178,7 +180,8 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
 
   const exportPDF = useCallback(async (data: InvoiceData) => {
     const extendedData = await prepareExtendedData(data);
-    const html = getA4InvoiceHTML(extendedData, t);
+    const apiBase = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
+    const html = getA4InvoiceHTML(extendedData, t, apiBase);
     await exportCustomPDF(`Invoice_${extendedData.invoiceNo || extendedData.orderNumber || extendedData.id}`, html);
   }, [prepareExtendedData, t]);
 
