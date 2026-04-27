@@ -233,7 +233,6 @@ export default function POSDevicesList() {
               style={{ width: "10%" }}
               body={(row: POSDevice) => (
                 <div className="flex items-center gap-1">
-                  {/* تعديل / استكمال — نفس الزرار */}
                   <button
                     onClick={() => {
                       setSelectedDevice(row);
@@ -248,6 +247,7 @@ export default function POSDevicesList() {
                   <DeleteDeviceButton device={row} onDelete={deleteDevice} setHiddenIds={setHiddenIds} />
                   {/* OTP */}
                   <button
+                    disabled={row?.id == 1}
                     onClick={() => {
                       setSelectedDevice(row);
                       // setIsOTPModalOpen(true);
