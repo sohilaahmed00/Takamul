@@ -468,15 +468,6 @@ export default function POSSales() {
                                 <FileSpreadsheet size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تحميل كملف إكسل</span>
                               </button>
                               {/* 11 */}
-                              <button
-                                onClick={() => {
-                                  exportCSV(sale);
-                                  setActiveActionMenu(null);
-                                }}
-                                className="w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-3 transition-colors font-medium"
-                              >
-                                <FileJson size={16} className="text-gray-400 shrink-0" /> <span className="flex-1 text-start">تحميل بصيغة CSV</span>
-                              </button>
                               {/* 12 */}
                               <button
                                 onClick={() => {

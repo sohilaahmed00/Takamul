@@ -77,10 +77,9 @@ export default function CustomersList() {
             dataKey="id"
             stripedRows={false}
           >
-            <Column field="customerCode" header={t("code")} sortable style={{ width: "10%" }} />
+            <Column field="id" header={t("code")} sortable style={{ width: "10%" }} />
             <Column field="customerName" header={t("name")} sortable style={{ width: "30%" }} />
             <Column field="phone" header={t("phone")} style={{ width: "20%" }} />
-            <Column field="city" header={t("city")} style={{ width: "20%" }} />
             <Column
               header={t("actions")}
               style={{ width: "20%" }}

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import { Link } from 'react-router-dom';
@@ -70,7 +71,7 @@ export default function RecentTransactions() {
               dataKey="id"
               emptyMessage={t("no_data")}
             >
-              <Column header={t("invoice_number")} field="orderNumber" />
+              <Column header={t("code")} field="id" />
               <Column header={t("date")} body={(row) => new Date(row.orderDate).toLocaleDateString("ar-EG")} />
               <Column header={t("customer_name")} field="customerName" />
               <Column header={t("cashier")} field="createdBy" />
@@ -98,7 +99,7 @@ export default function RecentTransactions() {
               emptyMessage={t("no_data")}
             >
               <Column header={t("date")} body={(row) => formatDate(row.orderDate)} />
-              <Column header={t("invoice_number")} field="purchaseOrderNumber" />
+              <Column header={t("code")} field="id" />
               <Column header={t("supplier_name")} field="supplierName" />
               <Column 
                 header={t("purchase_order_status")} 
@@ -121,7 +122,7 @@ export default function RecentTransactions() {
               dataKey="id"
               emptyMessage={t("no_data")}
             >
-              <Column header={t("invoice_number")} field="quotationNumber" />
+              <Column header={t("code")} field="id" />
               <Column header={t("date")} body={(row) => formatDate(row.quotationDate)} />
               <Column header={t("customer_name")} field="customerName" />
               <Column 
@@ -149,9 +150,9 @@ export default function RecentTransactions() {
               dataKey="id"
               emptyMessage={t("no_data")}
             >
+              <Column field="id" header={t("code")} sortable />
               <Column field="supplierName" header={t("name")} />
               <Column field="phone" header={t("phone")} />
-              <Column field="taxNumber" header={t("tax_number")} />
             </DataTable>
           </div>
         )}
@@ -164,10 +165,9 @@ export default function RecentTransactions() {
               dataKey="id"
               emptyMessage={t("no_data")}
             >
-              <Column field="customerCode" header={t("code")} sortable />
+              <Column field="id" header={t("code")} sortable />
               <Column field="customerName" header={t("name")} sortable />
               <Column field="phone" header={t("phone")} />
-              <Column field="city" header={t("city")} />
             </DataTable>
         )}
       </div>

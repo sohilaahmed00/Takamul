@@ -1,8 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { FileText, Search, PlusCircle, Edit2, Trash2 } from "lucide-react";
+import { FileText, Search, PlusCircle, Edit2, Trash2, Printer } from "lucide-react";
 import { useLanguage } from "../context/LanguageContext";
 import { cn } from "../lib/utils";
 import { Link, useNavigate } from "react-router-dom";
+import { usePrint } from "@/context/PrintContext";
+import { getQuotationById } from "@/features/quotation/services/quotations";
 import { jsPDF } from "jspdf";
 import html2canvas from "html2canvas";
 import EmailQuoteModal from "@/components/modals/EmailQuoteModal";
@@ -26,6 +28,7 @@ export default function QuotesList() {
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
+  const { printInvoice } = usePrint();
   const [searchTerm, setSearchTerm] = useState("");
   const [showCount, setShowCount] = useState(10);
   const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
@@ -105,7 +108,20 @@ export default function QuotesList() {
           <Column
             header={t("actions")}
             body={(row) => (
-              <div className="flex gap-2">
+              <div className="flex gap-2 justify-center items-center">
+                <button
+                  onClick={async () => {
+                    try {
+                      const fullData = await getQuotationById(row.id);
+                      printInvoice(fullData, "quotation");
+                    } catch (err) {
+                      console.error("Print failed", err);
+                    }
+                  }}
+                  className="btn-minimal-action btn-compact-action text-blue-500"
+                >
+                  <Printer size={16} />
+                </button>
                 <Link to={`/quotes/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
                   <Edit2 size={16} />
                 </Link>

@@ -585,8 +585,7 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
 
   <!-- ══ NOTES ══ -->
   <div class="notes-box">
-    <div style="font-weight:700;">${t("invoice_notes", "ملاحظات علي الفاتورة")} : </div>
-    <div>${order.notes || t("no_notes", "لا توجد ملاحظات")}</div>
+    <div>${order.notes || "-"}</div>
   </div>
 
   <!-- ══ ADDRESS BAR ══ -->

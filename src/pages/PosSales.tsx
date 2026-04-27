@@ -145,10 +145,6 @@ export default function PosSales() {
                       {t("download_excel")}
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => exportCSV(row)} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
-                      <FileSpreadsheet size={14} />
-                      {t("download_csv")}
-                    </DropdownMenuItem>
 
                     <DropdownMenuSeparator />
 

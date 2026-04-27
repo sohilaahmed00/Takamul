@@ -8,7 +8,7 @@ export interface InvoiceData {
   [key: string]: unknown;
 }
 
-export type PrintType = "invoice" | "stock" | "claim" | "roll";
+export type PrintType = "invoice" | "stock" | "claim" | "roll" | "quotation" | "purchase";
 
 export interface PrintContextType {
   printInvoice: (data: InvoiceData, type?: PrintType) => Promise<void>;

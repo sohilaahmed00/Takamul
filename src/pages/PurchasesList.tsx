@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, Edit2, Trash2 } from "lucide-react";
+import { Search, Edit2, Trash2, Printer } from "lucide-react";
+import { usePrint } from "@/context/PrintContext";
+import { getPurchaseOrderById } from "@/features/purchases/services/purchases";
 import { DataTable, type DataTablePageEvent } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +21,7 @@ export default function PurchasesList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const { mutate: deletePurchaseOrder } = useDeletePurchaseOrder();
+  const { printInvoice } = usePrint();
 
   const { data: purchases } = useGetAllPurchases({
     page: currentPage,
@@ -86,7 +89,20 @@ export default function PurchasesList() {
           <Column
             header={t("actions")}
             body={(purchase) => (
-              <div className="space-x-2">
+              <div className="flex gap-2 justify-center items-center">
+                <button
+                  onClick={async () => {
+                    try {
+                      const fullData = await getPurchaseOrderById(purchase.id);
+                      printInvoice(fullData, "purchase");
+                    } catch (err) {
+                      console.error("Print failed", err);
+                    }
+                  }}
+                  className="btn-minimal-action btn-compact-action text-blue-500"
+                >
+                  <Printer size={16} />
+                </button>
                 <Link to={`/purchases/edit/${purchase?.id}`} className="btn-minimal-action btn-edit">
                   <Edit2 size={16} />
                 </Link>

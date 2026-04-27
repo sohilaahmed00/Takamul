@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Moon, Sun, CheckCircle } from "lucide-react";
+import { Moon, Sun, CheckCircle, Eye, EyeOff } from "lucide-react";
 import axios from "axios";
 
 import { useTheme } from "@/context/ThemeContext";
@@ -9,6 +9,7 @@ import Logo from "@/components/Logo";
 import { useLogin } from "@/features/auth/hooks/useLogin";
 import useToast from "@/hooks/useToast";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 type Lang = "ar" | "en" | "ur";
 
@@ -86,6 +87,7 @@ export default function Login() {
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -210,7 +212,26 @@ export default function Login() {
           <form onSubmit={handleLogin} className="space-y-4">
             <Input type="text" placeholder={t.userPh} className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]" value={username} onChange={(e) => setUsername(e.target.value)} required />
 
-            <Input type="password" placeholder={t?.passPh} className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]" value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder={t?.passPh}
+                className="w-full p-4 rounded-xl outline-none transition-colors text-sm border focus:ring-2 focus:ring-[var(--primary)]/20 focus:border-[var(--primary)] bg-[var(--input-bg)] border-[var(--border)] text-[var(--text-main)] placeholder-[var(--text-muted)]"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className={cn(
+                  "absolute top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--primary)] transition-colors",
+                  t.dir === "rtl" ? "left-4" : "right-4"
+                )}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
+            </div>
 
             {error && <p className="text-sm text-red-500 py-1 text-center">{error}</p>}
 
