@@ -244,10 +244,9 @@ export default function POSDevicesList() {
                     <Edit2 size={16} />
                   </button>
 
-                  <DeleteDeviceButton device={row} onDelete={deleteDevice} setHiddenIds={setHiddenIds} />
+                  {row?.id !== 1 && <DeleteDeviceButton device={row} onDelete={deleteDevice} setHiddenIds={setHiddenIds} />}
                   {/* OTP */}
                   <button
-                    disabled={row?.id == 1}
                     onClick={() => {
                       setSelectedDevice(row);
                       // setIsOTPModalOpen(true);
