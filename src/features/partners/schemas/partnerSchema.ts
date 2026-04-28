@@ -6,14 +6,7 @@ export const createPartnerSchema = (t: (key: string) => string) =>
     .object({
       name: z.string().min(3, t("validation_name_min_3")),
 
-      phone: z.string().regex(/^\d+$/, t("validation_numbers_only")).min(10, t("validation_phone_invalid")),
-
-      mobile: z
-        .string()
-        .optional()
-        .refine((val) => !val || /^\d+$/.test(val), {
-          message: t("validation_numbers_only"),
-        }),
+      phone: z.string().regex(/^05\d{8}$/, t("validation_phone_invalid")),
 
       commercialRegister: z.string().optional(),
 

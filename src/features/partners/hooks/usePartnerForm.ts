@@ -26,7 +26,6 @@ interface UsePartnerFormProps {
 const defaultValues: PartnerFormValues = {
   name: "",
   phone: "",
-  mobile: "",
   district: "",
   streetName: "",
   postalCode: "",
@@ -76,7 +75,6 @@ export function usePartnerForm({ isOpen, onClose, partner, type = "customer" }: 
       form.reset({
         name: partner.customerName ?? "",
         phone: partner.phone ?? "",
-        mobile: partner.mobile ?? "",
         district: "",
         streetName: partner?.address,
         postalCode: partner.postalCode ?? "",
@@ -93,7 +91,6 @@ export function usePartnerForm({ isOpen, onClose, partner, type = "customer" }: 
       form.reset({
         name: partner.supplierName ?? "",
         phone: partner.phone ?? "",
-        mobile: partner.mobile ?? "",
         district: "",
         streetName: partner?.streetName,
         postalCode: partner.postalCode ?? "",
