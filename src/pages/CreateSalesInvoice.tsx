@@ -177,8 +177,8 @@ const CreateSalesInvoice: React.FC = () => {
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
       const afterDisc = Math.max(0, gross - discount);
-      const vatAmount = calcVat(afterDisc, taxRate, taxCalc);
-      const beforeTax = afterDisc - vatAmount;
+      const vatAmount = taxCalc === 1 ? 0 : qty * taxRate;
+      const beforeTax = afterDisc - vatAmount; // في الحالتين نطرح لأن السعر شامل الضريبة دايماً
 
       beforeTaxTotal += beforeTax;
       totalVat += vatAmount;
@@ -188,7 +188,7 @@ const CreateSalesInvoice: React.FC = () => {
   }, [items, products]);
 
   const finalTotal = useMemo(() => {
-    let total = beforeTaxTotal + totalVat;
+    let total = beforeTaxTotal + totalVat; // = مجموع afterDisc لكل الآيتمز
 
     if (invoiceDiscountType === "fixed") {
       total -= invoiceDiscountValue || 0;
@@ -423,10 +423,10 @@ const CreateSalesInvoice: React.FC = () => {
                           const gross = qty * price;
                           const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                           const afterDiscount = Math.max(0, gross - discount);
-                          const beforeTax = taxCalc === 3 ? afterDiscount / (1 + taxRate / 100) : taxCalc === 2 ? afterDiscount / (1 + taxRate / 100) : afterDiscount;
-                          const vatAmount = taxCalc === 2 ? calcVat(afterDiscount, taxRate, taxCalc) : calcVat(beforeTax, taxRate, taxCalc);
-                          const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة " : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
-                          const grandTotal = beforeTax + vatAmount;
+                          const vatAmount = taxCalc === 1 ? 0 : qty * taxRate;
+                          const beforeTax = taxCalc === 2 ? afterDiscount - vatAmount : afterDiscount;
+                          const grandTotal = afterDiscount;
+                          const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                           const isDiscOpen = !!discountOpen[index];
 
                           return (
