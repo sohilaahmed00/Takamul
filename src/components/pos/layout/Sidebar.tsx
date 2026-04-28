@@ -205,13 +205,13 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         <div className="flex items-center gap-x-4">
                           <button
                             title="إضافة عناصر"
-                            onClick={async (e) => {
+                            onClick={(e) => {
                               setScreen("home");
                               setCart(
                                 order.items.map((item) => ({
-                                  price: item?.priceAfterTax ?? 0,
+                                  price: item?.unitPrice + item?.taxAmount,
                                   qty: item?.quantity,
-                                  taxamount: item?.taxAmount,
+                                  taxamount: item?.quantity ? (item?.taxAmount ?? 0) / item?.quantity : 0,
                                   taxCalculation: item.taxCalculation,
                                   name: item?.productName,
                                   productId: item?.productId,

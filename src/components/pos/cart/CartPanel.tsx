@@ -425,6 +425,7 @@ export default function CartPanel() {
     "high-contrast": t("high_contrast"),
   };
   const GRID = "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_45px_50px_85px] gap-2 px-2";
+  
   return (
     <>
       <div className="flex  flex-col border-r border-border" style={{ width: 550, flexShrink: 0 }}>
