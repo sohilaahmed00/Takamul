@@ -41,6 +41,9 @@ export default function Dashboard() {
   const { purchases } = usePurchases();
   const { expenses } = useExpenses();
   const navigate = useNavigate();
+  const currentDateFormatted = new Date().toLocaleDateString("en-GB").replace(/\//g, "-");
+  const hasPermission = useAuthStore((s) => s.hasPermission);
+  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
 
   const totalSalesValue = sales.reduce((sum, s) => sum + s.grandTotal, 0);
   const totalPurchasesValue = purchases.reduce((sum, p) => sum + p.total, 0);
@@ -65,9 +68,6 @@ export default function Dashboard() {
   }
 
   // Get current date formatted like 20-02-2026
-  const currentDateFormatted = new Date().toLocaleDateString("en-GB").replace(/\//g, "-");
-  const hasPermission = useAuthStore((s) => s.hasPermission);
-  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
 
   return (
     <>
