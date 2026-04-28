@@ -1,4 +1,4 @@
-import { Clock, CreditCard, Eye, FileText, LogOut, Plus, Printer, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
+import { Clock, CreditCard, Eye, FileText, LogOut, Play, Plus, Printer, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
 import { calcItemTax, calcTotals, itemBasePrice, NAV_ITEMS } from "@/constants/data";
 import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL, usePos } from "@/context/PosContext";
 import type { CartItem, Screen } from "@/constants/data";
@@ -10,15 +10,13 @@ import formatDate from "@/lib/formatDate";
 import { useGetAllSales } from "@/features/sales/hooks/useGetAllSales";
 import { InvoiceData, printInvoice } from "../orders/printInvoice";
 import { useNavigate } from "react-router-dom";
+import { UnifiedPaymentDialog } from "../modals/UnifiedPaymentDialog";
 
 interface OrdersDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSelect?: (order: SalesOrder) => void;
 }
-// ── Status / Tab config ────────────────────────────────────────────────────────
-
-
 
 const fallbackBadge = { label: "", cls: "bg-sky-100 text-sky-600" };
 
@@ -34,9 +32,10 @@ const STATUS_MAP: Record<OrderStatusType, string | null> = {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
-  const { selectedCustomer, setCart, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen } = usePos();
+  const { selectedCustomer, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen } = usePos();
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
   const { t } = useLanguage();
+  const [cashierOpen, setCashierOpen] = useState(false);
 
   const STATUS_TABS: { key: OrderStatusType; label: string }[] = useMemo(
     () => [
@@ -70,141 +69,199 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
   // }, [activeStatus, search]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent showCloseButton={false} className="p-0 overflow-hidden gap-0 flex flex-col" style={{ maxWidth: 580, width: "95vw", maxHeight: "88vh" }}>
-        {/* ── Header ── */}
-        <div className="flex items-center justify-between px-4 py-3 shrink-0 bg-sidebar border-b border-sidebar-foreground/10">
-          <div className="flex items-center gap-2">
-            <DialogTitle className="text-[14px] font-semibold text-sidebar-foreground">{t("orders")}</DialogTitle>
-          </div>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent showCloseButton={false} className="p-0 overflow-hidden gap-0 flex flex-col" style={{ maxWidth: 580, width: "95vw", maxHeight: "88vh" }}>
+          {/* ── Header ── */}
+          <div className="flex items-center justify-between px-4 py-3 shrink-0 bg-sidebar border-b border-sidebar-foreground/10">
+            <div className="flex items-center gap-2">
+              <DialogTitle className="text-[14px] font-semibold text-sidebar-foreground">{t("orders")}</DialogTitle>
+            </div>
 
-          <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded-lg flex items-center justify-center bg-sidebar-foreground/10 hover:bg-sidebar-foreground/20 transition-colors text-sidebar-foreground">
-            <X size={14} />
-          </button>
-        </div>
-
-        {/* ── Status Tabs ── */}
-        <div className="flex items-center gap-1.5 px-4 py-3 flex-wrap shrink-0 border-b border-border bg-card">
-          {STATUS_TABS.map((tab) => (
-            <button key={tab.key} onClick={() => setActiveStatus(tab.key)} className={`text-[11px] font-medium px-3 py-1.5 rounded-full border transition-all ${activeStatus === tab.key ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:bg-muted"}`}>
-              {tab.label}
+            <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded-lg flex items-center justify-center bg-sidebar-foreground/10 hover:bg-sidebar-foreground/20 transition-colors text-sidebar-foreground">
+              <X size={14} />
             </button>
-          ))}
-        </div>
-
-        {/* ── Search ── */}
-        <div className="flex items-center gap-2 px-4 py-2.5 shrink-0 border-b border-border bg-card">
-          <div className="flex-1 relative">
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("search_orders_placeholder")} className="w-full h-8 text-[11px] border border-border rounded-lg pr-3 pl-3 outline-none focus:border-primary bg-input text-foreground placeholder:text-muted-foreground" />
           </div>
-          <button className="h-8 w-8 flex items-center justify-center bg-primary hover:bg-primary/80 rounded-lg text-primary-foreground transition-colors">
-            <Search size={13} />
-          </button>
-        </div>
 
-        {/* ── Count ── */}
-        <div className="px-4 py-1.5 bg-card border-b border-border shrink-0">
-          <span className="text-[11px] text-muted-foreground">
-            {filtered.length} {t("order")}
-          </span>
-        </div>
+          {/* ── Status Tabs ── */}
+          <div className="flex items-center gap-1.5 px-4 py-3 flex-wrap shrink-0 border-b border-border bg-card">
+            {STATUS_TABS.map((tab) => (
+              <button key={tab.key} onClick={() => setActiveStatus(tab.key)} className={`text-[11px] font-medium px-3 py-1.5 rounded-full border transition-all ${activeStatus === tab.key ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:bg-muted"}`}>
+                {tab.label}
+              </button>
+            ))}
+          </div>
 
-        {/* ── List ── */}
-        <div className="flex-1 overflow-auto bg-background">
-          {filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
-              <FileText size={32} className="opacity-30" />
-              <p className="text-sm">{t("no_orders_found")}</p>
+          {/* ── Search ── */}
+          <div className="flex items-center gap-2 px-4 py-2.5 shrink-0 border-b border-border bg-card">
+            <div className="flex-1 relative">
+              <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("search_orders_placeholder")} className="w-full h-8 text-[11px] border border-border rounded-lg pr-3 pl-3 outline-none focus:border-primary bg-input text-foreground placeholder:text-muted-foreground" />
             </div>
-          ) : (
-            <div className="flex flex-col divide-y divide-border">
-              {filtered.map((order: SalesOrder) => {
-                const badgeCls = order.orderStatus?.toLowerCase() === "confirmed" ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400" : order.orderStatus?.toLowerCase() === "unconfirmed" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400" : order.orderStatus?.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400" : fallbackBadge.cls;
+            <button className="h-8 w-8 flex items-center justify-center bg-primary hover:bg-primary/80 rounded-lg text-primary-foreground transition-colors">
+              <Search size={13} />
+            </button>
+          </div>
 
-                const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus?.toLowerCase() === "inprogress" ? t("قيد التجهيز") : order.orderStatus;
-                return (
-                  <div key={order.id} className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors text-right w-full">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
-                      <FileText size={14} />
-                    </div>
+          {/* ── Count ── */}
+          <div className="px-4 py-1.5 bg-card border-b border-border shrink-0">
+            <span className="text-[11px] text-muted-foreground">
+              {filtered.length} {t("order")}
+            </span>
+          </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-primary text-[12px] truncate">{order.orderNumber}</span>
-                        {translatedStatus && <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${badgeCls}`}>{translatedStatus}</span>}
+          {/* ── List ── */}
+          <div className="flex-1 overflow-auto bg-background">
+            {filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
+                <FileText size={32} className="opacity-30" />
+                <p className="text-sm">{t("no_orders_found")}</p>
+              </div>
+            ) : (
+              <div className="flex flex-col divide-y divide-border">
+                {filtered.map((order: SalesOrder) => {
+                  const badgeCls = order.orderStatus?.toLowerCase() === "confirmed" ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400" : order.orderStatus?.toLowerCase() === "unconfirmed" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400" : order.orderStatus?.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400" : fallbackBadge.cls;
+
+                  const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus?.toLowerCase() === "inprogress" ? t("قيد التجهيز") : order.orderStatus;
+                  return (
+                    <div key={order.id} className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors text-right w-full">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
+                        <FileText size={14} />
                       </div>
-                      <div className="flex items-center gap-3 mt-0.5">
-                        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <User size={10} />
-                          {order.customerName ?? "—"}
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-primary text-[12px] truncate">{order.orderNumber}</span>
+                          {translatedStatus && <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full shrink-0 ${badgeCls}`}>{translatedStatus}</span>}
+                        </div>
+                        <div className="flex items-center gap-3 mt-0.5">
+                          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                            <User size={10} />
+                            {order.customerName ?? "—"}
+                          </span>
+                          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                            <Tag size={10} />
+                            {translatedStatus}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end shrink-0 gap-0.5">
+                        <span className="flex items-center gap-1 text-[12px] font-bold text-foreground">
+                          {order.grandTotal.toFixed(2)}
+                          <SaudiRiyal size={11} />
                         </span>
-                        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                          <Tag size={10} />
-                          {translatedStatus}
+                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <Clock size={9} />
+                          {formatDate(order.orderDate)}
                         </span>
                       </div>
-                    </div>
 
-                    <div className="flex flex-col items-end shrink-0 gap-0.5">
-                      <span className="flex items-center gap-1 text-[12px] font-bold text-foreground">
-                        {order.grandTotal.toFixed(2)}
-                        <SaudiRiyal size={11} />
-                      </span>
-                      <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                        <Clock size={9} />
-                        {formatDate(order.orderDate)}
-                      </span>
-                    </div>
-
-                    {order?.orderStatus == "Confirmed" ? (
-                      <button
-                        onClick={async (e) => {
-                          const invoiceData: InvoiceData = {
-                            logoUrl: LOGO_URL,
-                            invoiceNumber: `—`,
-                            institutionName: INSTITUTION_NAME,
-                            institutionTaxNumber: INSTITUTION_TAX_NO,
-                            invoiceDate: formatDate(new Date()),
-                            institutionAddress: INSTITUTION_ADDRESS,
-                            institutionPhone: INSTITUTION_PHONE,
-                            customerName: selectedCustomer?.customerName ?? undefined,
-                            customerPhone: undefined,
-                            items: order?.items.map((item) => {
-                              const tt: CartItem = {
-                                price: item?.unitPrice,
-                                qty: item?.quantity,
-                                taxamount: item?.taxAmount,
-                                taxCalculation: item?.taxCalculation,
-                                productId: item?.id,
-                                op: null,
-                              };
-                              const base = itemBasePrice(tt);
-                              const tax = calcItemTax(tt);
-                              return {
-                                productName: tt.name,
-                                quantity: tt.qty,
-                                unitPrice: Number(base.toFixed(2)),
-                                taxAmount: Number(tax.toFixed(2)),
-                                total: Number((base + tax).toFixed(2)),
-                              };
-                            }),
-                            subTotal: Number(order?.subTotal.toFixed(2)),
-                            discountAmount: Number(order?.discountAmount.toFixed(2)),
-                            taxAmount: order?.taxAmount,
-                            grandTotal: order?.grandTotal,
-                            notes: INSTITUTION_NOTES,
-                          };
-                          await printInvoice(invoiceData);
-                        }}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
-                      >
-                        <Printer size={13} />
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-x-4">
+                      {order?.orderStatus == "Confirmed" ? (
                         <button
-                          title="إضافة عناصر"
                           onClick={async (e) => {
+                            const invoiceData: InvoiceData = {
+                              logoUrl: LOGO_URL,
+                              invoiceNumber: `—`,
+                              institutionName: INSTITUTION_NAME,
+                              institutionTaxNumber: INSTITUTION_TAX_NO,
+                              invoiceDate: formatDate(new Date()),
+                              institutionAddress: INSTITUTION_ADDRESS,
+                              institutionPhone: INSTITUTION_PHONE,
+                              customerName: selectedCustomer?.customerName ?? undefined,
+                              customerPhone: undefined,
+                              items: order?.items.map((item) => {
+                                const tt: CartItem = {
+                                  price: item?.unitPrice,
+                                  qty: item?.quantity,
+                                  taxamount: item?.taxAmount,
+                                  taxCalculation: item?.taxCalculation,
+                                  productId: item?.id,
+                                  op: null,
+                                };
+                                const base = itemBasePrice(tt);
+                                const tax = calcItemTax(tt);
+                                return {
+                                  productName: tt.name,
+                                  quantity: tt.qty,
+                                  unitPrice: Number(base.toFixed(2)),
+                                  taxAmount: Number(tax.toFixed(2)),
+                                  total: Number((base + tax).toFixed(2)),
+                                };
+                              }),
+                              subTotal: Number(order?.subTotal.toFixed(2)),
+                              discountAmount: Number(order?.discountAmount.toFixed(2)),
+                              taxAmount: order?.taxAmount,
+                              grandTotal: order?.grandTotal,
+                              notes: INSTITUTION_NOTES,
+                            };
+                            await printInvoice(invoiceData);
+                          }}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                        >
+                          <Printer size={13} />
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-x-4">
+                          <button
+                            title="إضافة عناصر"
+                            onClick={async (e) => {
+                              setScreen("home");
+                              setCart(
+                                order.items.map((item) => ({
+                                  price: item?.unitPrice ?? 0,
+                                  qty: item?.quantity,
+                                  taxamount: item?.taxAmount,
+                                  taxCalculation: item.taxCalculation,
+                                  name: item?.productName,
+                                  productId: item?.productId,
+                                })),
+                              );
+                              onOpenChange(false);
+                              if (order.orderStatus == "InProgress") {
+                                setOrderType("dine-in");
+                                setDineInMode("add-items");
+                                setSelectedOrderId(order?.id);
+                              }
+                              // await printInvoice(invoiceData);
+                            }}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                          >
+                            <Plus size={13} />
+                          </button>
+                          <button
+                            title="استكمال الدفع"
+                            onClick={async (e) => {
+                              setScreen("home");
+                              setCart(
+                                order.items.map((item) => ({
+                                  price: item?.unitPrice ?? 0,
+                                  qty: item?.quantity,
+                                  taxamount: item?.taxAmount,
+                                  taxCalculation: item.taxCalculation,
+                                  name: item?.productName,
+                                  productId: item?.productId,
+                                })),
+                              );
+                              onOpenChange(false);
+                              if (order.orderStatus == "InProgress") {
+                                setOrderType("dine-in");
+                                setDineInMode("checkout");
+                                setSelectedOrderId(order?.id);
+                                setSelectedTable(order?.tableId);
+                              }
+                              // await printInvoice(invoiceData);
+                            }}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                          >
+                            <CreditCard size={13} />
+                          </button>
+                        </div>
+                      )}
+                      {order.orderStatus == "UnConfirmed" && (
+                        <button
+                          title="استكمال الفاتورة"
+                          onClick={(e) => {
+                            setHoldingOrderId(order?.id);
                             setScreen("home");
                             setCart(
                               order.items.map((item) => ({
@@ -217,64 +274,34 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                               })),
                             );
                             onOpenChange(false);
-                            if (order.orderStatus == "InProgress") {
-                              setOrderType("dine-in");
-                              setDineInMode("add-items");
-                              setSelectedOrderId(order?.id);
-                            }
+                            setCashierOpen(true);
                             // await printInvoice(invoiceData);
                           }}
                           className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
                         >
-                          <Plus size={13} />
+                          <Play size={13} />
                         </button>
-                        <button
-                          title="استكمال الدفع"
-                          onClick={async (e) => {
-                            setScreen("home");
-                            setCart(
-                              order.items.map((item) => ({
-                                price: item?.unitPrice ?? 0,
-                                qty: item?.quantity,
-                                taxamount: item?.taxAmount,
-                                taxCalculation: item.taxCalculation,
-                                name: item?.productName,
-                                productId: item?.productId,
-                              })),
-                            );
-                            onOpenChange(false);
-                            if (order.orderStatus == "InProgress") {
-                              setOrderType("dine-in");
-                              setDineInMode("checkout");
-                              setSelectedOrderId(order?.id);
-                              setSelectedTable(order?.tableId);
-                            }
-                            // await printInvoice(invoiceData);
-                          }}
-                          className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
-                        >
-                          <CreditCard size={13} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-        {/* ── Footer ── */}
-        <div className="px-4 py-2.5 border-t border-border bg-card shrink-0 flex items-center justify-between">
-          <span className="text-[11px] text-muted-foreground">
-            {filtered.length} {t("order")}
-          </span>
-          <button onClick={() => onOpenChange(false)} className="text-[11px] text-muted-foreground hover:text-foreground px-3 py-1.5 rounded border border-border hover:bg-muted transition-colors">
-            {t("close")}
-          </button>
-        </div>
-      </DialogContent>
-    </Dialog>
+          {/* ── Footer ── */}
+          <div className="px-4 py-2.5 border-t border-border bg-card shrink-0 flex items-center justify-between">
+            <span className="text-[11px] text-muted-foreground">
+              {filtered.length} {t("order")}
+            </span>
+            <button onClick={() => onOpenChange(false)} className="text-[11px] text-muted-foreground hover:text-foreground px-3 py-1.5 rounded border border-border hover:bg-muted transition-colors">
+              {t("close")}
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      <UnifiedPaymentDialog open={cashierOpen} onOpenChange={setCashierOpen} mode="cashier" onCancel={() => setCashierOpen(false)} />
+    </>
   );
 }
 

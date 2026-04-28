@@ -41,3 +41,9 @@ export const createSalesOrders = (data: CreateSalesOrder) =>
 export function getSalesOrderById(id: number) {
   return httpClient<SalesOrder>(`/sales-orders/${id}`);
 }
+export function releaseHolding({ id, data }: { id: number; data: CreateSalesOrder["payments"] }) {
+  return httpClient<{ message: string }>(`/sales-orders/${id}/release-holding`, {
+    method: "POST",
+    data,
+  });
+}

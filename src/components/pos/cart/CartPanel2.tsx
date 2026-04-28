@@ -80,7 +80,6 @@ function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   );
 }
 
-
 // ===== Bottom Sheet Component =====
 function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen, setCart, setOrderType, setDineInMode, setSelectedOrderId, setSelectedTable, onOpenChange }: { order: SalesOrder | null; open: boolean; onClose: () => void; selectedCustomer: any; setScreen: any; setCart: any; setOrderType: any; setDineInMode: any; setSelectedOrderId: any; setSelectedTable: any; onOpenChange: (v: boolean) => void }) {
   if (!order) return null;
@@ -442,6 +441,7 @@ interface QuotationDialogProps {
 export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
   const [search, setSearch] = useState("");
   const { data: quotations } = useGetAllQuotations();
+  const { data: products } = useGetAllProducts({ page: 1, limit: 10000 });
   const { setCart } = usePos();
 
   const found = search.trim() ? quotations?.find((q) => q.quotationNumber === search.trim()) : null;
@@ -449,17 +449,21 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
   const handleLoad = () => {
     if (!found) return;
     setCart(
-      found.items.map((item) => ({
-        productId: item.productId,
-        name: item.productName,
-        price: item.unitPrice,
-        qty: item.quantity,
-        note: "",
-        op: null,
-        taxamount: item.taxPercentage,
-        taxCalculation: item.taxPercentage > 0 ? 3 : 1,
-        itemDiscount: item.discountPercentage > 0 ? { type: "pct" as const, value: item.discountPercentage } : item.discountAmount > 0 ? { type: "flat" as const, value: item.discountAmount } : null,
-      })),
+      found.items.map((item) => {
+        const product = products?.items?.find((p) => p.id === item.productId);
+
+        return {
+          productId: item.productId,
+          name: item.productName,
+          price: product.sellingPrice,
+          qty: item.quantity,
+          note: "",
+          op: null,
+          taxamount: product?.taxAmount,
+          taxCalculation: product?.taxCalculation ?? 0,
+          itemDiscount: item.discountPercentage > 0 ? { type: "pct" as const, value: item.discountPercentage } : item.discountAmount > 0 ? { type: "flat" as const, value: item.discountAmount } : null,
+        };
+      }),
     );
     onOpenChange(false);
     setSearch("");
@@ -757,7 +761,6 @@ export default function CartPanel2() {
               const tax = calcItemTax(item);
               const rowTotal = base + tax;
               const discVal = item.itemDiscount ? (item.itemDiscount.type === "pct" ? (itemBasePrice({ ...item, itemDiscount: null }) * item.itemDiscount.value) / 100 : item.itemDiscount.value) : 0;
-
               const discPctVal = item.itemDiscount?.type === "pct" ? item.itemDiscount.value : 0;
 
               return (

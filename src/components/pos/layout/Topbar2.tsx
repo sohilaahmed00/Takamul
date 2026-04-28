@@ -64,7 +64,7 @@ export default function Topbar2() {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
-    numberingSystem: "latn", 
+    numberingSystem: "latn",
   });
 
   return (
@@ -74,11 +74,11 @@ export default function Topbar2() {
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1">
-                <Button asChild variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white dark:border-border dark:text-foreground dark:hover:bg-muted dark:hover:text-foreground transition-colors duration-200" title="الصفحة الرئيسية">
+                {/* <Button asChild variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white dark:border-border dark:text-foreground dark:hover:bg-muted dark:hover:text-foreground transition-colors duration-200" title="الصفحة الرئيسية">
                   <Link to={"/dashboard"}>
                     <Home size={13} />
                   </Link>
-                </Button>
+                </Button> */}
                 <Button onClick={toggleFullScreen} variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white dark:border-border dark:text-foreground dark:hover:bg-muted dark:hover:text-foreground transition-colors duration-200" title="ملء الشاشة">
                   <Maximize size={13} />
                 </Button>
@@ -113,9 +113,11 @@ export default function Topbar2() {
                 <Pause className="w-3 h-3" />
                 غلق الوردية
               </Button>
-              <Button size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 dark:bg-muted dark:text-foreground dark:hover:bg-muted/70 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
-                تسجيل الخروج
-                <LogOut className="w-3 h-3" />
+              <Button asChild size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 dark:bg-muted dark:text-foreground dark:hover:bg-muted/70 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
+                <Link to={"/dashboard"}>
+                  تسجيل الخروج
+                  <LogOut className="w-3 h-3" />
+                </Link>
               </Button>
             </div>
           </div>

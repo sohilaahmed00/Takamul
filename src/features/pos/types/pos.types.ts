@@ -1,3 +1,4 @@
+import { CreateSalesOrder } from "@/features/sales/types/sales.types";
 import type { ApiResponse, PaginationMeta } from "@/types";
 
 export interface POSDevice {
@@ -61,12 +62,7 @@ export type CreateTakeawayOrder = {
     discountPercentage: number;
     discountValue: number;
   }[];
-  payments: {
-    amount: number;
-    treasuryId: number;
-    paymentMethod?: "Cash";
-    notes: string;
-  }[];
+  payments: CreateSalesOrder["payments"];
   additionIds: number[];
 };
 

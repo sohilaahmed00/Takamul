@@ -345,7 +345,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
   const handleGenerateCSR = async () => {
     if (!createdDeviceId) return;
     try {
-      await generateCSR({ deviceId: 1 });
+      await generateCSR({ deviceId: createdDeviceId });
       setClickedGeneratedCSR(true);
     } catch {}
   };
@@ -358,7 +358,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
     if (!createdDeviceId) return;
     setOtpError("");
     try {
-      const res = await registerCCSID({ deviceId: 1, otp });
+      const res = await registerCCSID({ deviceId: createdDeviceId, otp });
       const expiresAt = res?.data?.expiresAt;
       const isExpired = !expiresAt || new Date(expiresAt) <= new Date();
       setCcsid({
@@ -376,7 +376,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
   const handleRegisterPCSID = async () => {
     if (!createdDeviceId) return;
     try {
-      const res = await registerPCSID({ deviceId: 1 });
+      const res = await registerPCSID({ deviceId: createdDeviceId });
       const expiresAt = res?.data?.expiresAt;
       const isExpired = !expiresAt || new Date(expiresAt) <= new Date();
       setPcsid({

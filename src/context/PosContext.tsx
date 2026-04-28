@@ -14,6 +14,8 @@ import { InvoiceData, printInvoice } from "@/components/pos/orders/printInvoice"
 import formatDate from "@/lib/formatDate";
 import { BonData, printPreparationBon } from "@/components/pos/orders/printPreparationBon";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
+import { useReleaseHolding } from "@/features/pos/hooks/useReleaseHolding";
+import { CreateSalesOrder, SalesOrder } from "@/features/sales/types/sales.types";
 
 // ─── CONTEXT SHAPE ────────────────────────────────────────────────────────────
 interface PosContextValue {
@@ -30,7 +32,7 @@ interface PosContextValue {
   // Hold
 
   // Payment success
-  handleConfirmPayment: (params?: { printKitchenBon?: boolean; isHolding?: boolean }) => void;
+  handleConfirmPayment: (params?: { printKitchenBon?: boolean; isHolding?: boolean; payments?: { amount: number; treasuryId: number; notes: string }[] }) => void;
   // Order type
   orderType: OrderType;
   setOrderType: (t: OrderType) => void;
@@ -68,6 +70,8 @@ interface PosContextValue {
 
   selectedItemIdx: number | null;
   setSelectedItemIdx: (idx: number | null) => void;
+  holdingOrderId: number | null;
+  setHoldingOrderId: (id: number | null) => void;
 }
 
 const PosContext = createContext<PosContextValue | null>(null);
@@ -100,6 +104,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
   const { mutateAsync: createDeliveryOrder } = useCreateDeliveryOrder();
   const { mutateAsync: createDineInOrderyOrder } = useCreateDineInOrder();
+  const { mutateAsync: releaseHolding } = useReleaseHolding();
   const { mutateAsync: checkoutDineInOrder } = useCheckoutDineInOrder();
   const [selectedGiftCardId, setSelectedGiftCardId] = useState<number | null>(null);
   const [selectedVaultId, setSelectedVaultId] = useState<number | null>(null);
@@ -109,6 +114,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const [selectedItemIdx, setSelectedItemIdx] = useState<number | null>(null);
   const [search, setSearch] = useState("");
   const { data: customers } = useGetAllCustomers();
+  const [holdingOrderId, setHoldingOrderId] = useState<number | null>(null);
 
   useEffect(() => {
     const connection = (navigator as any).connection;
@@ -123,8 +129,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
     connection.addEventListener("change", update);
     return () => connection.removeEventListener("change", update);
   }, []);
-
-  const handleHold = () => setShowHoldModal(true);
 
   const addToCart = (item: { id: number; productNameAr: string; sellingPrice: number; taxAmount: number; taxCalculation: number }) => {
     setCart((prev) => {
@@ -214,18 +218,26 @@ export function PosProvider({ children }: { children: ReactNode }) {
       setScreen("home");
     } catch {}
   };
-  const handleConfirmPayment = async ({ printKitchenBon = true, isHolding = false }) => {
-    if (!isHolding) {
-      if (orderType !== "dine-in") {
-        if (!selectedVaultId) {
-          notifyError("اختر الخزنة");
-          return;
-        }
-      }
-    }
+  const handleConfirmPayment = async ({ printKitchenBon = true, isHolding = false, payments: externalPayments }) => {
+    // if (!isHolding) {
+    //   if (orderType !== "dine-in") {
+    //     if (!selectedVaultId) {
+    //       notifyError("اختر الخزنة");
+    //       return;
+    //     }
+    //   }
+    // }
 
-    const payments = isHolding ? [] : [{ amount: paidAmount, treasuryId: selectedVaultId, notes: "" }];
-
+    const payments: CreateSalesOrder["payments"] = isHolding
+      ? []
+      : (externalPayments ?? [
+          {
+            amount: paidAmount,
+            paymentMethod: "Cash" as const,
+            treasuryId: selectedVaultId!,
+            notes: "",
+          },
+        ]);
     const items = cart.map((cat) => ({
       productId: cat?.productId,
       quantity: cat?.qty,
@@ -248,7 +260,17 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
     try {
       if (orderType === "takeaway") {
-        await createTakwayOrder(basePayload);
+        if (holdingOrderId) {
+          // console.log(payments)
+          // console.log(holdingOrderId)
+          // return
+          await releaseHolding({
+            id: holdingOrderId,
+            data: payments,
+          });
+        } else {
+          await createTakwayOrder(basePayload);
+        }
       } else if (orderType === "dine-in") {
         await checkoutDineInOrder({
           tableId: Number(selectedTable),
@@ -331,6 +353,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
   return (
     <PosContext.Provider
       value={{
+        holdingOrderId,
+        setHoldingOrderId,
         selectedItemIdx,
         setSelectedItemIdx,
         search,
