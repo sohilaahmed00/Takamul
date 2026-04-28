@@ -95,7 +95,7 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
       order.items.map((item) => ({
         price: item?.priceAfterTax,
         qty: item?.quantity,
-        taxamount: item?.taxAmount,
+        taxamount: item?.quantity ? (item?.taxAmount ?? 0) / item?.quantity : 0,
         taxCalculation: item.taxCalculation,
         name: item?.productName,
         productId: item?.productId,

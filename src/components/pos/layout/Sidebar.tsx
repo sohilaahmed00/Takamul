@@ -238,7 +238,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                 order.items.map((item) => ({
                                   price: item?.priceAfterTax,
                                   qty: item?.quantity,
-                                  taxamount: item?.taxAmount,
+                                  taxamount: item?.quantity ? (item?.taxAmount ?? 0) / item?.quantity : 0,
                                   taxCalculation: item.taxCalculation,
                                   name: item?.productName,
                                   productId: item?.productId,
@@ -269,7 +269,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                               order.items.map((item) => ({
                                 price: item?.priceAfterTax,
                                 qty: item?.quantity,
-                                taxamount: item?.taxAmount,
+                                taxamount: item?.quantity ? (item?.taxAmount ?? 0) / item?.quantity : 0,
                                 taxCalculation: item.taxCalculation,
                                 name: item?.productName,
                                 productId: item?.productId,
