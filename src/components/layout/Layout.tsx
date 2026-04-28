@@ -174,10 +174,6 @@ export default function Layout() {
     setActiveDropdown(null);
   };
 
-console.log("permissions type:", typeof permissions);
-console.log("is array:", Array.isArray(permissions));
-console.log("permissions:", JSON.stringify(permissions));
-
   return (
     <div className="min-h-screen flex transition-colors duration-300 font-cairo" dir={direction}>
       <ToastContainer pauseOnHover={false} />
@@ -435,11 +431,12 @@ console.log("permissions:", JSON.stringify(permissions));
 
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2">
-              <button onClick={() => navigate("/sales/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
-                <LayoutGrid size={16} />
-                <span>{t("sales_a4_quick")}</span>
-              </button>
-
+              {hasPermission(Permissions?.salesOrders?.addA4) && (
+                <button onClick={() => navigate("/sales/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+                  <LayoutGrid size={16} />
+                  <span>{t("sales_a4_quick")}</span>
+                </button>
+              )}
               <button onClick={() => navigate("/pos")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                 <ShoppingCart size={16} />
                 <span>{t("pos_quick")}</span>

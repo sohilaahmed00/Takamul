@@ -148,8 +148,8 @@ const CreateReturnSalesInvoice: React.FC = () => {
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
       const afterDisc = Math.max(0, gross - discount);
-      const vatAmount = calcVat(afterDisc, taxRate, taxCalc);
-      const beforeTax = afterDisc - vatAmount;
+      const vatAmount = taxCalc === 1 ? 0 : qty * taxRate;
+      const beforeTax = afterDisc - vatAmount; // في الحالتين نطرح لأن السعر شامل الضريبة دايماً
 
       beforeTaxTotal += beforeTax;
       totalVat += vatAmount;
@@ -159,7 +159,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
   }, [items, products]);
 
   const finalTotal = useMemo(() => {
-    let total = beforeTaxTotal + totalVat;
+    let total = beforeTaxTotal + totalVat; // = مجموع afterDisc لكل الآيتمز
 
     if (invoiceDiscountType === "fixed") {
       total -= invoiceDiscountValue || 0;
@@ -203,8 +203,8 @@ const CreateReturnSalesInvoice: React.FC = () => {
       orderDate: salesReturnOrderDetails?.returnDate ? salesReturnOrderDetails?.returnDate?.split("T")[0] : detailsSalesOrder?.orderDate?.split("T")[0],
       items: items.map((item) => {
         return {
-          price: item?.unitPrice,
           productId: item?.productId,
+          price: item?.unitPrice,
           unitName: units?.items?.find((unit) => unit?.id == item?.unitId)?.name,
           discountType: item?.discountValue ? "fixed" : "percentage",
           discountValue: item?.discountValue ? item?.discountValue : item?.discountPercentage,
@@ -317,19 +317,20 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
                 <div className="space-y-3 mt-3">
                   {itemFields.map((item, index) => {
-                    const qty = Number(form.watch(`items.${index}.quantity`) || 0);
-                    const price = Number(form.watch(`items.${index}.price`) || 0);
+                    const qty = Number(items[index]?.quantity || 0);
+                    const price = Number(items[index]?.price || 0);
                     const discType = form.watch(`items.${index}.discountType`) || "fixed";
                     const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
                     const productId = form.watch(`items.${index}.productId`);
                     const product = products?.items?.find((p) => p.id === Number(productId));
                     const taxRate = product?.taxAmount || 0;
-                    const taxCalc = product?.taxCalculation ?? 1;
+                    const taxCalc = product?.taxCalculation ?? 0;
                     const gross = qty * price;
                     const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
-                    const afterTax = Math.max(0, gross - discount);
-                    const vatAmount = calcVat(afterTax, taxRate, taxCalc);
-                    const beforeTax = afterTax - vatAmount;
+                    const afterDiscount = Math.max(0, gross - discount);
+                    const vatAmount = taxCalc === 1 ? 0 : qty * taxRate;
+                    const beforeTax = afterDiscount - vatAmount;
+                    const grandTotal = afterDiscount;
                     const isDiscOpen = !!discountOpen[index];
 
                     return (
@@ -400,7 +401,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
                           <div className="text-center text-orange-500 font-medium">{vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
 
-                          <div className="text-center text-green-500 font-bold">{afterTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                          <div className="text-center text-green-500 font-bold">{grandTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
 
                           <div className="flex items-center justify-center gap-2">
                             <button type="button" onClick={() => removeItem(index)} disabled={itemFields.length === 1} className="p-2 text-muted-foreground hover:text-red-500 disabled:opacity-30">
