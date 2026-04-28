@@ -4,9 +4,13 @@ import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { useLanguage } from "@/context/LanguageContext";
 import { PartnerFormValues } from "../schemas/partnerSchema";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useEffect } from "react";
 
 export function PartnerBasicFields({ control, isSupplier, countriesData, citiesData, statesData, setValue }: { control: Control<PartnerFormValues>; isSupplier: boolean; countriesData: any[]; citiesData: any[]; statesData: any[]; setValue: UseFormSetValue<PartnerFormValues> }) {
   const { t } = useLanguage();
+  useEffect(() => {
+    setValue("countryId", countriesData[0]?.id);
+  }, [countriesData]);
 
   return (
     <>
