@@ -81,9 +81,9 @@ export default function UsersList() {
             className="custom-green-table custom-compact-table"
             dataKey="id"
           >
-            <Column header="الإسم" field="firstName" />
-            <Column header="اسم المستخدم" field="userName" />
-            <Column field="رقم الجوال" header="mobile" />
+            {/* <Column header="الإسم" field="firstName" /> */}
+            <Column header="اسم المستخدم" field="اسم المستخدم" />
+            <Column field="رقم الجوال" header="رقم الجوال" />
             <Column
               header="العمليات"
               body={(raw: User) => (

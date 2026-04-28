@@ -210,9 +210,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
         taxNumber: partner.taxNumber ?? "",
         commercialRegister: partner?.commercialRegister,
         isTaxable: !!partner.taxNumber,
-        countryId: 0,
-        cityId: 0,
-        stateId: 0,
+        countryId: partner?.countryId,
+        cityId: partner?.cityId,
+        stateId: partner?.stateId,
         buildingNumber: partner?.buildingNumber,
         additionalNumber: partner?.additionalNumber,
       });
@@ -227,9 +227,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
         taxNumber: partner.taxNumber ?? "",
         commercialRegister: partner.commercialRegister ?? "",
         isTaxable: !!partner.taxNumber,
-        countryId: 0,
-        cityId: 0,
-        stateId: 0,
+        countryId: partner?.countryId,
+        cityId: partner?.cityId,
+        stateId: partner?.stateId,
         buildingNumber: partner?.buildingNumber,
         additionalNumber: partner?.additionalNumber,
       });
@@ -281,6 +281,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
           buildingNumber: data.buildingNumber ?? "",
           additionalNumber: data.additionalNumber ?? "",
           commercialRegister: data.commercialRegister ?? "",
+          countryId: data?.countryId,
+          cityId: data?.cityId,
+          stateId: data?.stateId,
         };
       } else {
         payload = {
@@ -295,6 +298,9 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
           additionalNumber: data?.additionalNumber,
           buildingNumber: data?.buildingNumber,
           commercialRegister: data?.commercialRegister,
+          countryId: data?.countryId,
+          cityId: data?.cityId,
+          stateId: data?.stateId,
         };
       }
 
