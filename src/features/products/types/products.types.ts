@@ -12,7 +12,6 @@ export type Product = {
   productNameEn: string;
   productNameUr: string;
   categoryName: string;
-  categoryId: number;
   barcode: string;
   minStockLevel: number;
   description: string | null;
@@ -22,7 +21,7 @@ export type Product = {
   isActive: boolean;
   imageUrl: string;
   parentProductId: number;
-  parentCategoryId: number;
+  categoryId: number;
   productType: "Direct" | "Prepared" | "Branched" | "RawMatrial";
   taxAmount: number;
   taxId: number;
@@ -37,7 +36,7 @@ export type ProductDirect = {
   productNameAr: string;
   productNameEn: string;
   productNameUr: string;
-  parentCategoryId: number;
+  categoryId: number;
   barcode: string;
   description: string | null;
   categoryName: string;
@@ -62,7 +61,7 @@ export type ProductBranch = {
   productNameUr: string;
   description: string | null;
   categoryName: string;
-  parentCategoryId: number;
+  categoryId: number;
   imageUrl: string | null;
   isActive: boolean;
   children: {

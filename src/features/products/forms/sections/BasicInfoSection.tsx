@@ -1,7 +1,7 @@
 import { Controller, useFormContext } from "react-hook-form";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import type { FormValues } from "../../schemas";
+import { FormValues } from "../../types/products.types";
 
 export function BasicInfoSection() {
   const { control } = useFormContext<FormValues>();
