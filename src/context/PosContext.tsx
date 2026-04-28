@@ -72,6 +72,9 @@ interface PosContextValue {
   setSelectedItemIdx: (idx: number | null) => void;
   holdingOrderId: number | null;
   setHoldingOrderId: (id: number | null) => void;
+
+  orderNote: string;
+  setOrderNote: (note: string) => void;
 }
 
 const PosContext = createContext<PosContextValue | null>(null);
@@ -115,6 +118,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
   const [search, setSearch] = useState("");
   const { data: customers } = useGetAllCustomers();
   const [holdingOrderId, setHoldingOrderId] = useState<number | null>(null);
+  const [orderNote, setOrderNote] = useState("");
 
   useEffect(() => {
     const connection = (navigator as any).connection;
@@ -163,7 +167,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
     const payload = {
       customerId: selectedCustomer?.id,
       warehouseId: 1,
-      notes: "",
+      notes: orderNote,
       globalDiscountValue: 0,
       globalDiscountPercentage: discount,
       giftCardId: selectedGiftCardId,
@@ -248,7 +252,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
     const basePayload = {
       customerId: selectedCustomer?.id,
       warehouseId: 1,
-      notes: "zzz",
+      notes: orderNote,
       globalDiscountValue: discount.type === "flat" ? discount.value : 0,
       globalDiscountPercentage: discount.type === "pct" ? discount.value : 0,
       giftCardId: selectedGiftCardId,
@@ -353,6 +357,8 @@ export function PosProvider({ children }: { children: ReactNode }) {
   return (
     <PosContext.Provider
       value={{
+        orderNote,
+        setOrderNote,
         holdingOrderId,
         setHoldingOrderId,
         selectedItemIdx,

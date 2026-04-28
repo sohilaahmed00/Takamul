@@ -332,7 +332,7 @@ function ExtrasGrid({ additions, selectedIds, onToggle }: { additions: Addition[
 export default function CartPanel() {
   const { language, direction, setLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
-  const { cart, setCart, setSelectedTable, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder } = usePos();
+  const { cart, setCart, setSelectedTable, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setOrderNote, orderNote } = usePos();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [discInput, setDiscInput] = useState("");
@@ -348,8 +348,6 @@ export default function CartPanel() {
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<"idle" | "valid" | "invalid" | "used">("idle");
   const [appliedCard, setAppliedCard] = useState<GiftCard | null>(null);
-  const [orderNote, setOrderNote] = useState("");
-  const [noteInput, setNoteInput] = useState("");
   function ThemeIcon({ theme }: { theme: string }) {
     if (theme === "dark") return <Moon className="h-3.5 w-3.5" />;
     if (theme === "light") return <Sun className="h-3.5 w-3.5" />;
@@ -822,14 +820,13 @@ export default function CartPanel() {
 
           {activeTab === "note" && (
             <div className="p-3">
-              <textarea value={noteInput} onChange={(e) => setNoteInput(e.target.value)} className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 resize-none focus:border-primary/40" rows={2} placeholder={t("add_order_note")} />
+              <textarea value={orderNote} onChange={(e) => setOrderNote(e.target.value)} className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 resize-none focus:border-primary/40" rows={2} placeholder={t("add_order_note")} />
               <div className="flex gap-2">
                 <Button
                   size={"2xl"}
                   className="flex-1"
                   variant="destructive"
                   onClick={() => {
-                    setNoteInput("");
                     setOrderNote("");
                   }}
                 >
@@ -839,7 +836,6 @@ export default function CartPanel() {
                   size={"2xl"}
                   className="flex-1"
                   onClick={() => {
-                    setOrderNote(noteInput);
                     setActiveTab("add");
                   }}
                 >
