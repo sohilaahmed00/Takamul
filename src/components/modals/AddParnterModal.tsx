@@ -416,6 +416,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                         {t("country")} <span className="text-red-500">*</span>
                       </FieldLabel>
                       <Select
+                        key={field?.value}
                         value={field.value ? String(field.value) : ""}
                         onValueChange={(value) => {
                           field.onChange(Number(value));
@@ -450,6 +451,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                         {t("region")} <span className="text-red-500">*</span>
                       </FieldLabel>
                       <Select
+                        key={field?.value}
                         value={field.value ? String(field.value) : ""}
                         onValueChange={(value) => {
                           field.onChange(Number(value));
@@ -482,7 +484,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                       <FieldLabel>
                         {t("city")} <span className="text-red-500">*</span>
                       </FieldLabel>
-                      <Select value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
+                      <Select key={field?.value} value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder={t("select_city")} />
                         </SelectTrigger>
