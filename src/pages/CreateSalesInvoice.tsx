@@ -429,13 +429,11 @@ const CreateSalesInvoice: React.FC = () => {
                           const taxCalc = product?.taxCalculation ?? 0;
                           const gross = qty * price;
                           const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
-                          const afterDiscount = Math.max(0, gross - discount);
-                          const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
-                          const beforeTax = afterDiscount - vatAmount;
-                          const grandTotal = afterDiscount;
+                          const beforeTax = Math.max(0, gross - discount);
+                          const vatAmount = taxCalc === 1 ? 0 : beforeTax * taxPercentage;
+                          const grandTotal = beforeTax + vatAmount;
                           const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                           const isDiscOpen = !!discountOpen[index];
-
                           return (
                             <div key={item.id}>
                               <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_1fr_1fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group">
@@ -453,7 +451,7 @@ const CreateSalesInvoice: React.FC = () => {
                                         onValueChange={(val) => {
                                           const selectedProduct = filterProducts.find((p) => p.id === Number(val));
                                           if (selectedProduct) {
-                                            form.setValue(`items.${index}.price`, selectedProduct.sellingPrice);
+                                            form.setValue(`items.${index}.price`, selectedProduct.priceBeforeTax);
                                             const unitProduct = units?.items?.find((unit) => unit?.id == selectedProduct?.baseUnitId);
                                             form.setValue(`items.${index}.unitName`, unitProduct?.name);
                                           }
