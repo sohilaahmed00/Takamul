@@ -26,13 +26,13 @@ interface TableCardProps {
 
 export function TableCard({ table, selected, onClick }: TableCardProps) {
   return (
-<div
-  onClick={onClick}
-  className={`bg-card rounded-xl overflow-hidden transition-all border flex flex-col h-[200px]
+    <div
+      onClick={onClick}
+      className={`bg-card rounded-xl overflow-hidden transition-all border flex flex-col h-[200px]
     ${selected ? "border-primary border-2 cursor-pointer" : "border-border hover:border-primary/30 cursor-pointer"}`}
->
-  <div className="flex-1 flex items-center justify-center p-2 min-h-0">
-    <svg viewBox="0 0 260 210" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" style={{ overflow: "visible" }}>
+    >
+      <div className="flex-1 flex items-center justify-center p-2 min-h-0">
+        <svg viewBox="0 0 260 210" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" style={{ overflow: "visible" }}>
           {/* Table surface */}
           <rect x="65" y="58" width="130" height="90" rx="12" style={{ fill: "var(--bg-card)", stroke: "var(--border)" }} strokeWidth="1.5" />
 
@@ -158,7 +158,7 @@ export default function TablesPage() {
                           detailsOrder.items.map((item) => ({
                             productId: item.productId,
                             name: item.productName,
-                            price: item.unitPrice,
+                            price: item.unitPrice + item.taxAmount,
                             qty: item.quantity,
                             note: "",
                             taxamount: item.taxAmount,
@@ -186,7 +186,7 @@ export default function TablesPage() {
                           detailsOrder.items.map((item) => ({
                             productId: item.productId,
                             name: item.productName,
-                            price: item.unitPrice,
+                            price: item.unitPrice + item?.taxAmount,
                             qty: item.quantity,
                             note: "",
                             taxamount: item.taxAmount,
