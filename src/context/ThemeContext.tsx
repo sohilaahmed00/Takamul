@@ -34,6 +34,10 @@ export function ThemeProvider({ children, defaultTheme = "system", storageKey = 
     }
 
     root.classList.add(theme);
+
+    if (["dark", "red", "blue", "yellow", "high-contrast"].includes(theme)) {
+      root.classList.add("dark");
+    }
   }, [theme]);
 
   const value = {

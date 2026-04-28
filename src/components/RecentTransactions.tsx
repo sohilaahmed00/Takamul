@@ -48,7 +48,7 @@ export default function RecentTransactions() {
                 className={cn(
                   "flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors",
                   activeTab === tab.id
-                    ? "bg-[var(--primary)] text-white shadow-sm"
+                    ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-sm"
                     : "bg-[var(--bg-card)] text-[var(--text-main)] border border-[var(--border)] hover:bg-[var(--bg-main)]"
                 )}
               >

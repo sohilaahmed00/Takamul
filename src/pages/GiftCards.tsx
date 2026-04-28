@@ -50,7 +50,18 @@ export default function GiftCards() {
   const statusBodyTemplate = (rowData: GiftCard) => {
     const isActive = rowData?.isActive;
 
-    return <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ${isActive ? `text-[#09ad95] bg-[#00e6821a]` : `text-[#b40b09] bg-[#f50b0b1a]`}`}>{isActive ? "نشط" : "غير نشط"}</span>;
+    return (
+      <span
+        className="inline-flex items-center rounded-md px-2 py-1 text-xs font-bold shadow-sm"
+        style={{
+          backgroundColor: isActive ? "var(--status-active-bg)" : "var(--status-inactive-bg)",
+          color: isActive ? "var(--status-active-text)" : "var(--status-inactive-text)",
+          border: !isActive ? "var(--status-inactive-border)" : "none"
+        }}
+      >
+        {isActive ? "نشط" : "غير نشط"}
+      </span>
+    );
   };
 
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);

@@ -58,73 +58,12 @@ import ItemsSettings from "@/pages/settings/ItemsSettings";
 import SalesSettings from "@/pages/settings/SalesSettings";
 import BarcodeSettings from "@/pages/settings/BarcodeSettings";
 import EmailSettings from "@/pages/settings/EmailSettings";
-import Promotions from "@/pages/Promotions";
-import PaymentCompanies from "@/pages/PaymentCompanies";
-import PaymentMethods from "@/pages/PaymentMethods";
-import POSSettings from "@/pages/POSSettings";
+import DeliveryCompanies from "@/pages/DeliveryCompanies";
 import Currencies from "@/pages/Currencies";
 import CustomerGroups from "@/pages/CustomerGroups";
 import PriceGroups from "@/pages/PriceGroups";
-import Categories from "@/pages/Categories";
-import ExpenseCategories from "@/pages/ExpenseCategories";
-import DeliveryCompanies from "@/pages/DeliveryCompanies";
-import Delegates from "@/pages/Delegates";
+
 import Tables from "@/pages/Tables";
-import Warehouses from "@/pages/Warehouses";
-import Branches from "@/pages/Branches";
-
-// Reports
-// import ItemsReport from "@/pages/reports/ItemsReport";
-// import PromotionsReport from "@/pages/reports/PromotionsReport";
-
-// import ExpiryReport from "@/pages/reports/ExpiryReport";
-// import SalesPurchasesReport from "@/pages/reports/SalesPurchasesReport";
-
-// import ItemSupplyReport from "@/pages/reports/ItemSupplyReport";
-// import ListItemsReport from "@/pages/reports/ListItemsReport";
-// import OutOfStockReport from "@/pages/reports/OutOfStockReport";
-// import StagnantItemsReport from "@/pages/reports/StagnantItemsReport";
-// import CategoriesReport from "@/pages/reports/CategoriesReport";
-// import BrandsReport from "@/pages/reports/BrandsReport";
-// import TaxReport from "@/pages/reports/TaxReport";
-
-// import MonthlyPurchasesReport from "@/pages/reports/MonthlyPurchasesReport";
-// import ExpensesReport from "@/pages/reports/ExpensesReport";
-// import ChartsOverview from "@/pages/reports/ChartsOverview";
-// import InventoryChart from "@/pages/reports/InventoryChart";
-
-// import QuantityAdjustmentsReport from "@/pages/reports/QuantityAdjustmentsReport";
-// import MachineQuantityAdjustments from "@/pages/reports/MachineQuantityAdjustments";
-// import InventoryTransfersReport from "@/pages/reports/InventoryTransfersReport";
-
-// import ListReport from "@/pages/reports/ListReport";
-// import PaymentsReport from "@/pages/reports/PaymentsReport";
-// import SummaryMovementsReport from "@/pages/reports/SummaryMovementsReport";
-// import BankReport from "@/pages/reports/BankReport";
-
-// import VendorsReport from "@/pages/reports/VendorsReport";
-// import VendorAgingReport from "@/pages/reports/VendorAgingReport";
-// import EmployeesReport from "@/pages/reports/EmployeesReport";
-// import RepsReport from "@/pages/reports/RepsReport";
-// import DailySalesReport from "@/pages/reports/DailySalesReport";
-// import MonthlySalesReport from "@/pages/reports/MonthlySalesReport";
-
-// import DetailedDailySalesReport from "@/pages/reports/DetailedDailySalesReport";
-// import CashierSalesSummaryReport from "@/pages/reports/CashierSalesSummaryReport";
-// import SalesByItemInvoiceReport from "@/pages/reports/SalesByItemInvoiceReport";
-// import RepsSalesReport from "@/pages/reports/RepsSalesReport";
-// import InfluencerPercentsReport from "@/pages/reports/InfluencerPercentsReport";
-// import SalesByCategoryReport from "@/pages/reports/SalesByCategoryReport";
-// import SearchInvoiceReport from "@/pages/reports/SearchInvoiceReport";
-// import UnpaidInvoicesReport from "@/pages/reports/UnpaidInvoicesReport";
-// import ReservationsReport from "@/pages/reports/ReservationsReport";
-
-// Financial Reports
-// import BalanceSheet from "@/pages/reports/accounts/BalanceSheet";
-// import IncomeStatement from "@/pages/reports/accounts/IncomeStatement";
-// import LedgerStatement from "@/pages/reports/accounts/LedgerStatement";
-// import TrialBalance from "@/pages/reports/accounts/TrialBalance";
-// import SubsidiaryLedger from "@/pages/reports/accounts/SubsidiaryLedger";
 
 import LowStockReport from "@/pages/reports/LowStockReport";
 import StockBalanceReport from "@/pages/reports/StockBalanceReport";
@@ -142,8 +81,6 @@ import ExpensesDetailReport from "@/pages/reports/ExpensesDetailReport";
 import ProfitReport from "@/pages/reports/ProfitReport";
 import BestSellersChart from "@/pages/reports/BestSellersChart";
 import ShiftsReport from "@/pages/reports/ShiftsReport";
-// import CustomersReport from "@/pages/reports/CustomersReport";
-// import CustomerAgingReport from "@/pages/reports/CustomerAgingReport";
 import SalesReport from "@/pages/reports/SalesReport";
 import ItemsReportsCategory from "@/pages/reports/ItemsReportsCategory";
 import SalesReportsCategory from "@/pages/reports/SalesReportsCategory";
@@ -278,62 +215,19 @@ function AppRoutes() {
             <Route path="/settings/sales" element={<SalesSettings />} />
             <Route path="/settings/barcode" element={<BarcodeSettings />} />
             <Route path="/settings/email" element={<EmailSettings />} />
-            <Route path="/promotions" element={<Promotions />} />
-            <Route path="/settings/payment-companies" element={<PaymentCompanies />} />
-            <Route path="/settings/payment-methods" element={<PaymentMethods />} />
-            <Route path="/settings/pos" element={<POSSettings />} />
+            <Route path="/settings/delivery-companies" element={<DeliveryCompanies />} />
             <Route path="/settings/currencies" element={<Currencies />} />
             <Route path="/settings/customer-groups" element={<CustomerGroups />} />
             <Route path="/settings/price-groups" element={<PriceGroups />} />
-            <Route path="/settings/basic-categories" element={<Categories />} />
-            <Route path="/settings/expense-categories" element={<ExpenseCategories />} />
-            <Route path="/settings/delivery-companies" element={<DeliveryCompanies />} />
-            <Route path="/settings/delegates" element={<Delegates />} />
+        
+           
+           
+         
+           
+        
+      
+         
             <Route path="/settings/tables" element={<Tables />} />
-            <Route path="/settings/warehouses" element={<Warehouses />} />
-            <Route path="/settings/branches" element={<Branches />} />
-
-            {/* التقارير */}
-            {/* <Route path="/reports/sales-by-category" element={<SalesByCategoryReport />} />
-          <Route path="/reports/items" element={<ItemsReport />} />
-          <Route path="/reports/promotions" element={<PromotionsReport />} /> */}
-            {/* <Route path="/reports/expiry-alert" element={<ExpiryReport />} />
-          <Route path="/reports/expiry-dates" element={<ExpiryReport />} />
-          <Route path="/reports/sales-purchases" element={<SalesPurchasesReport />} /> */}
-            {/* <Route path="/reports/item-supply" element={<ItemSupplyReport />} />
-          <Route path="/reports/list-items" element={<ListItemsReport />} />
-          <Route path="/reports/out-of-stock" element={<OutOfStockReport />} />
-          <Route path="/reports/losing-items" element={<OutOfStockReport />} />
-          <Route path="/reports/stagnant-items" element={<StagnantItemsReport />} />
-          <Route path="/reports/categories" element={<CategoriesReport />} />
-          <Route path="/reports/brands" element={<BrandsReport />} />
-          <Route path="/reports/taxes" element={<TaxReport />} /> */}
-            {/* <Route path="/reports/monthly-purchases" element={<MonthlyPurchasesReport />} />
-          <Route path="/reports/expenses" element={<ExpensesReport />} />
-          <Route path="/reports/charts-overview" element={<ChartsOverview />} />
-          <Route path="/reports/inventory-chart" element={<InventoryChart />} /> */}
-            {/* <Route path="/reports/quantity-adjustments" element={<QuantityAdjustmentsReport />} />
-          <Route path="/reports/machine-adjustments" element={<MachineQuantityAdjustments />} />
-          <Route path="/reports/inventory-transfers" element={<InventoryTransfersReport />} /> */}
-            {/* <Route path="/reports/list" element={<ListReport />} />
-          <Route path="/reports/payments" element={<PaymentsReport />} />
-          <Route path="/reports/summary-movements" element={<SummaryMovementsReport />} />
-          <Route path="/reports/bank" element={<BankReport />} /> */}
-            {/* <Route path="/reports/vendors" element={<VendorsReport />} />
-          <Route path="/reports/vendor-aging" element={<VendorAgingReport />} />
-          <Route path="/reports/employees" element={<EmployeesReport />} />
-          <Route path="/reports/reps" element={<RepsReport />} /> */}
-            {/* <Route path="/reports/daily-sales" element={<DailySalesReport />} />
-          <Route path="/reports/monthly-sales" element={<MonthlySalesReport />} /> */}
-            {/* <Route path="/reports/detailed-daily-sales" element={<DetailedDailySalesReport />} />
-          <Route path="/reports/cashier-sales-summary" element={<CashierSalesSummaryReport />} />
-          <Route path="/reports/sales-by-item-invoice" element={<SalesByItemInvoiceReport />} />
-          <Route path="/reports/reps-sales" element={<RepsSalesReport />} />
-          <Route path="/reports/influencer-percents" element={<InfluencerPercentsReport />} />
-          <Route path="/reports/search-invoice" element={<SearchInvoiceReport />} />
-          <Route path="/reports/unpaid-invoices" element={<UnpaidInvoicesReport />} />
-          <Route path="/reports/reservations" element={<ReservationsReport />} /> */}
-
             <Route path="/reports/low-stock" element={<LowStockReport />} />
             <Route path="/reports/stock-balance" element={<StockBalanceReport />} />
             <Route path="/reports/item-movement" element={<ItemMovementReport />} />
@@ -366,13 +260,7 @@ function AppRoutes() {
             <Route path="/reports/category/expenses" element={<ExpensesReportsCategory />} />
             <Route path="/reports/category/profits" element={<ProfitsReportsCategory />} />
 
-            {/* التقارير المالية */}
-            {/* <Route path="/reports/balance-sheet" element={<BalanceSheet />} />
-          <Route path="/reports/income-statement" element={<IncomeStatement />} />
-          <Route path="/reports/ledger-statement" element={<LedgerStatement />} />
-          <Route path="/reports/trial-balance" element={<TrialBalance />} />
-          <Route path="/reports/subsidiary-ledger" element={<SubsidiaryLedger />} /> */}
-
+       
             <Route path="/revenues" element={<Revenues />} />
             <Route path="/expenses" element={<Expenses />} />
             <Route path="/items" element={<Items />} />

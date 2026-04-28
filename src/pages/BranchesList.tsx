@@ -70,7 +70,14 @@ export default function Branches() {
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
 
   const statusBody = (row: BranchListItem) => (
-    <span className={`inline-flex rounded-full px-3 py-1 text-xs font-medium ${row.isActive ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+    <span
+      className="inline-flex rounded-full px-3 py-1 text-xs font-bold shadow-sm"
+      style={{
+        backgroundColor: row.isActive ? "var(--status-active-bg)" : "var(--status-inactive-bg)",
+        color: row.isActive ? "var(--status-active-text)" : "var(--status-inactive-text)",
+        border: !row.isActive ? "var(--status-inactive-border)" : "none"
+      }}
+    >
       {row.isActive ? (t("active") || "نشط") : (t("inactive") || "غير نشط")}
     </span>
   );

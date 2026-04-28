@@ -23,7 +23,7 @@ import { formatCurrency } from '@/lib/format';
 
 
 
-const StatCard = ({ title, value, icon: Icon, colorClass, bgClass, delay, onClick }: any) => {
+const StatCard = ({ title, value, icon: Icon, colorClass, bgClass, textColor = "text-white", delay, onClick }: any) => {
   const { t, direction, language } = useLanguage();
   return (
     <motion.div
@@ -31,22 +31,19 @@ const StatCard = ({ title, value, icon: Icon, colorClass, bgClass, delay, onClic
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
       onClick={onClick}
-      className={`rounded-xl p-4 text-white shadow-lg relative overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform ${bgClass}`}
+      className={`rounded-xl p-4 shadow-lg relative overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform ${bgClass} ${textColor}`}
     >
       <div className="relative z-10">
-        <p className="text-white/80 text-base font-bold mb-1 truncate">{title}</p>
+        <p className="opacity-80 text-base font-bold mb-1 truncate">{title}</p>
         <h3 className="text-2xl md:text-3xl font-bold flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
           {value}
           {language === "ar" ? (
-            <SaudiRiyal size={30} className="text-white opacity-90" />
+            <SaudiRiyal size={30} className="opacity-90" />
           ) : (
             <span className="text-2xl font-bold opacity-90 ml-1">SAR</span>
           )}
         </h3>
       </div>
-      {/* <div className={`absolute ${direction === 'rtl' ? 'left-4' : 'right-4'} top-1/2 -translate-y-1/2 p-3 rounded-full bg-white/20 backdrop-blur-sm`}>
-        <Icon size={24} className="text-white" />
-      </div> */}
       <div className={`absolute ${direction === 'rtl' ? '-left-6' : '-right-6'} -bottom-6 opacity-10`}>
         <Icon size={120} />
       </div>
@@ -99,21 +96,24 @@ export default function Dashboard() {
           title={t('total_sales')}
           value={`${formatCurrency(totalSalesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}`}
           icon={SaudiRiyal}
-          bgClass="bg-[#000052]"
+          bgClass="bg-[var(--dashboard-sales)]"
+          textColor="text-[var(--dashboard-sales-text)]"
           delay={0.1}
         />
         <StatCard
           title={t('total_expenses')}
           value={formatCurrency(totalExpensesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}
           icon={Banknote}
-          bgClass="bg-[#6B7280]"
+          bgClass="bg-[var(--dashboard-expenses)]"
+          textColor="text-[var(--dashboard-expenses-text)]"
           delay={0.2}
         />
         <StatCard
           title={t('net_profit')}
           value={formatCurrency(netProfitValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}
           icon={TrendingUp}
-          bgClass="bg-[var(--dashboard-purple)]"
+          bgClass="bg-[var(--dashboard-profit)]"
+          textColor="text-[var(--dashboard-profit-text)]"
           delay={0.3}
           onClick={() => navigate("/reports/profit")}
         />
@@ -121,7 +121,8 @@ export default function Dashboard() {
           title={t('total_purchases')}
           value={formatCurrency(totalPurchasesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}
           icon={ShoppingBag}
-          bgClass="bg-[#CE2029]"
+          bgClass="bg-[var(--dashboard-purchases)]"
+          textColor="text-[var(--dashboard-purchases-text)]"
           delay={0.4}
         />
 
