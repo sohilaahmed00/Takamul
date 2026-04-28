@@ -173,13 +173,15 @@ const CreateSalesInvoice: React.FC = () => {
       const price = item.price || 0;
       const discType = item.discountType || "fixed";
       const discValue = item.discountValue || 0;
-      const taxRate = product?.taxAmount || 0;
+      const originalPrice = product?.sellingPrice || 1;
+      const originalTax = product?.taxAmount || 0;
+      const taxPercentage = originalTax / originalPrice;
       const taxCalc = product?.taxCalculation ?? 1;
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
       const afterDisc = Math.max(0, gross - discount);
-      const vatAmount = taxCalc === 1 ? 0 : qty * taxRate;
-      const beforeTax = afterDisc - vatAmount; // في الحالتين نطرح لأن السعر شامل الضريبة دايماً
+      const vatAmount = taxCalc === 1 ? 0 : afterDisc * taxPercentage;
+      const beforeTax = afterDisc - vatAmount;
 
       beforeTaxTotal += beforeTax;
       totalVat += vatAmount;
