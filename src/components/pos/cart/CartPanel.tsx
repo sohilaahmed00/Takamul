@@ -496,60 +496,65 @@ export default function CartPanel() {
             </DropdownMenu>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Button size="sm" className="rounded-full h-7 text-[11px]     transition-all duration-200">
+            <Button size="sm" className="rounded-full h-7 text-[11px] transition-all duration-200 shrink-0">
               <Pause className="w-3 h-3" />
               غلق الوردية
             </Button>
-            <Select
-              value={orderType}
-              onValueChange={(val: OrderType) => {
-                setOrderType(val);
-                setSelectedTable(null);
-                setSelectedDelivery(null);
-              }}
-            >
-              <SelectTrigger className="h-8 text-xs w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="takeaway">{t("order_takeaway")}</SelectItem>
-                <SelectItem value="dine-in">{t("order_dine_in")}</SelectItem>
-                <SelectItem value="delivery">{t("order_delivery")}</SelectItem>
-              </SelectContent>
-            </Select>
 
-            {orderType === "dine-in" && (
-              <Select value={selectedTable ? String(selectedTable) : ""} onValueChange={(value) => setSelectedTable(Number(value))}>
-                <SelectTrigger className="h-8 text-xs w-28">
-                  <SelectValue placeholder={"اختر الطاولة"} />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {freeTables?.map((t) => (
-                    <SelectItem key={t.id} value={String(t.id)}>
-                      {t.tableName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {orderType === "delivery" && (
-              <Select value={selectedDelivery ?? ""} onValueChange={setSelectedDelivery}>
-                <SelectTrigger className="h-8 text-xs w-32">
-                  <SelectValue placeholder={t("delivery_company")} />
+            <div className="flex items-center gap-2 shrink-0">
+              <Select
+                value={orderType}
+                onValueChange={(val: OrderType) => {
+                  setOrderType(val);
+                  setSelectedTable(null);
+                  setSelectedDelivery(null);
+                }}
+              >
+                <SelectTrigger className="h-8 text-xs w-32 shrink-0">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {DELIVERY_COMPANIES.map((d) => (
-                    <SelectItem key={d} value={d}>
-                      {d}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="takeaway">{t("order_takeaway")}</SelectItem>
+                  <SelectItem value="dine-in">{t("order_dine_in")}</SelectItem>
+                  <SelectItem value="delivery">{t("order_delivery")}</SelectItem>
                 </SelectContent>
               </Select>
-            )}
+
+              {orderType === "dine-in" && (
+                <div className=" shrink-0">
+                  <Select value={selectedTable ? String(selectedTable) : ""} onValueChange={(value) => setSelectedTable(Number(value))}>
+                    <SelectTrigger className="h-8 text-xs w-full">
+                      <SelectValue placeholder="اختر الطاولة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {freeTables?.map((t) => (
+                        <SelectItem key={t.id} value={String(t.id)}>
+                          {t.tableName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              {orderType === "delivery" && (
+                <div className="shrink-0">
+                  <Select value={selectedDelivery ?? ""} onValueChange={setSelectedDelivery}>
+                    <SelectTrigger className="h-8 text-xs w-full">
+                      <SelectValue placeholder={t("delivery_company")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DELIVERY_COMPANIES.map((d) => (
+                        <SelectItem key={d} value={d}>
+                          {d}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
           </div>
-        </div>{" "}
+        </div>
         <div className="px-3 py-[14.75px]  border-b border-border flex items-center gap-2">
           {!selectedCustomer ? (
             <div className="w-full">
