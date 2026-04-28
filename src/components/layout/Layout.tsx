@@ -98,6 +98,7 @@ export default function Layout() {
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
   const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
+  const permissions = useAuthStore((s) => s.permissions);
 
   const toggleSubmenu = (menu: string) => {
     if (!isSidebarOpen && !isMobile) {
@@ -173,6 +174,10 @@ export default function Layout() {
     setActiveDropdown(null);
   };
 
+console.log("permissions type:", typeof permissions);
+console.log("is array:", Array.isArray(permissions));
+console.log("permissions:", JSON.stringify(permissions));
+
   return (
     <div className="min-h-screen flex transition-colors duration-300 font-cairo" dir={direction}>
       <ToastContainer pauseOnHover={false} />
@@ -242,7 +247,8 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object.values(Permissions?.salesOrders)) && <SidebarItem icon={ShoppingCart} label={t("sales")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "sales"} onClick={() => toggleSubmenu("sales")} />}{" "}
+          {/* {hasAnyPermission(Object.values(Permissions?.salesOrders)) && }{" "} */}
+          <SidebarItem icon={ShoppingCart} label={t("sales")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "sales"} onClick={() => toggleSubmenu("sales")} />
           <AnimatePresence>
             {openSubmenu === "sales" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
