@@ -593,7 +593,7 @@ const CreateSalesInvoice: React.FC = () => {
                           name={`payments.${index}.treasuryId`}
                           render={({ field, fieldState }) => (
                             <Field>
-                              <Select value={field.value?.toString()} onValueChange={(val) => field.onChange(Number(val))}>
+                              <Select key={field.value} value={field.value?.toString()} onValueChange={(val) => field.onChange(Number(val))}>
                                 <SelectTrigger>
                                   <SelectValue placeholder={t("choose")} />
                                 </SelectTrigger>
