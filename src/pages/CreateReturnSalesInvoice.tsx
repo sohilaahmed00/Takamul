@@ -143,13 +143,15 @@ const CreateReturnSalesInvoice: React.FC = () => {
       const price = item.price || 0;
       const discType = item.discountType || "fixed";
       const discValue = item.discountValue || 0;
-      const taxRate = product?.taxAmount || 0;
+      const originalPrice = product?.sellingPrice || 1;
+      const originalTax = product?.taxAmount || 0;
+      const taxPercentage = originalTax / originalPrice;
       const taxCalc = product?.taxCalculation ?? 1;
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
       const afterDisc = Math.max(0, gross - discount);
-      const vatAmount = taxCalc === 1 ? 0 : qty * taxRate;
-      const beforeTax = afterDisc - vatAmount; // في الحالتين نطرح لأن السعر شامل الضريبة دايماً
+      const vatAmount = taxCalc === 1 ? 0 : afterDisc * taxPercentage;
+      const beforeTax = afterDisc - vatAmount;
 
       beforeTaxTotal += beforeTax;
       totalVat += vatAmount;
@@ -204,7 +206,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
       items: items.map((item) => {
         return {
           productId: item?.productId,
-          price: item?.unitPrice,
+          price: item?.priceAfterTax,
           unitName: units?.items?.find((unit) => unit?.id == item?.unitId)?.name,
           discountType: item?.discountValue ? "fixed" : "percentage",
           discountValue: item?.discountValue ? item?.discountValue : item?.discountPercentage,
@@ -317,20 +319,23 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
                 <div className="space-y-3 mt-3">
                   {itemFields.map((item, index) => {
-                    const qty = Number(items[index]?.quantity || 0);
-                    const price = Number(items[index]?.price || 0);
+                    const qty = Number(form.watch(`items.${index}.quantity`) || 0);
+                    const price = Number(form.watch(`items.${index}.price`) || 0);
                     const discType = form.watch(`items.${index}.discountType`) || "fixed";
                     const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
                     const productId = form.watch(`items.${index}.productId`);
                     const product = products?.items?.find((p) => p.id === Number(productId));
-                    const taxRate = product?.taxAmount || 0;
+                    const originalPrice = product?.sellingPrice || 1;
+                    const originalTax = product?.taxAmount || 0;
+                    const taxPercentage = originalTax / originalPrice;
                     const taxCalc = product?.taxCalculation ?? 0;
                     const gross = qty * price;
                     const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                     const afterDiscount = Math.max(0, gross - discount);
-                    const vatAmount = taxCalc === 1 ? 0 : qty * taxRate;
+                    const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
                     const beforeTax = afterDiscount - vatAmount;
                     const grandTotal = afterDiscount;
+                    const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                     const isDiscOpen = !!discountOpen[index];
 
                     return (
@@ -448,7 +453,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">{t("subtotal_before_tax")}</span>
-                    <span className="font-semibold text-foreground tabular-nums">{beforeTaxTotal.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                    <span className="font-semibold text-foreground tabular-nums">{beforeTaxTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-sm">
