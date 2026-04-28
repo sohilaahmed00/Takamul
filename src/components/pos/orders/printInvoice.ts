@@ -14,7 +14,9 @@ export interface InvoiceData {
   logoUrl?: string;
   invoiceNumber: string;
   institutionName: string;
+  institutionNameEn?: string;
   institutionTaxNumber: string;
+  institutionCommercialRegister?: string;
   invoiceDate: string;
   institutionAddress: string;
   institutionPhone: string;
@@ -46,7 +48,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
       <tr>
         <td class="td-name">${item.productName ?? ""}</td>
         <td>${item.quantity ?? 0}</td>
-        <td>${fmt(item.unitPrice)}</td>
+        <td>${fmt(item.unitPrice )}</td>
         <td>${fmt(item.taxAmount)}</td>
         <td>${fmt(item.total)}</td>
       </tr>`,
@@ -276,49 +278,58 @@ html, body {
 
   <!-- LOGO -->
 <div class="logo">
-  ${
-    data.logoUrl
+  ${data.logoUrl
       ? `<img src="${data.logoUrl}" alt="logo"/>`
       : `<h3>اللوجو</h3>
 `
-  }
+    }
 </div>
 
   <!-- INFO GRID -->
   <table class="info-grid">
     <!-- اسم المؤسسة -->
     <tr class="full">
-      <td colspan="2">اسم المؤسسة: <strong>${data.institutionName}</strong></td>
+      <td colspan="2">
+        <div style="font-size: 8pt;">${data.institutionName}</div>
+        ${data.institutionNameEn ? `<div style="font-size: 7pt;">${data.institutionNameEn}</div>` : ""}
+      </td>
     </tr>
     <!-- الرقم الضريبي -->
     <tr>
-      <td class="lbl">الرقم الضريبي</td>
+      <td class="lbl">الرقم الضريبي <br/><small>VAT No.</small></td>
       <td class="val sep">${data.institutionTaxNumber}</td>
     </tr>
+    ${data.institutionCommercialRegister ? `
+    <!-- سجل التجاري -->
+    <tr>
+      <td class="lbl">سجل التجاري <br/><small>Comm. No.</small></td>
+      <td class="val sep">${data.institutionCommercialRegister}</td>
+    </tr>` : ""}
     <!-- فاتورة ضريبية مبسطة -->
     <tr class="title-row">
-<td colspan="2">
-فاتورة ضريبية مبسطة
-</td>
+      <td colspan="2">
+        فاتورة ضريبية مبسطة <br/>
+        <small style="font-size: 6pt; font-weight: 700;">Simplified Tax Invoice</small>
+      </td>
     </tr>
     <!-- رقم الفاتورة -->
     <tr>
-      <td class="lbl">رقم الفاتورة</td>
+      <td class="lbl">رقم الفاتورة <br/><small>INV No.</small></td>
       <td class="val sep">${data.invoiceNumber}</td>
     </tr>
     <!-- الوقت / التاريخ -->
     <tr>
-      <td class="lbl">الوقت / التاريخ</td>
+      <td class="lbl">الوقت / التاريخ <br/><small>Date / Time</small></td>
       <td class="val sep">${data.invoiceDate}</td>
     </tr>
     <!-- اسم العميل -->
     <tr>
-      <td class="lbl">اسم العميل</td>
+      <td class="lbl">اسم العميل <br/><small>Customer Name</small></td>
       <td class="val sep">${data.customerName ?? "—"}</td>
     </tr>
     <!-- رقم الجوال -->
     <tr>
-      <td class="lbl">رقم الجوال</td>
+      <td class="lbl">رقم الجوال <br/><small>Mobile No.</small></td>
       <td class="val sep">${data.customerPhone ?? "—"}</td>
     </tr>
   </table>
@@ -362,9 +373,9 @@ html, body {
   </table>
 
   <!-- FOOTER -->
-  <div class="footer-row">عنوان المؤسسة: ${data.institutionAddress}</div>
-  <div class="footer-row">رقم جوال المؤسسة: ${data.institutionPhone}</div>
-  <div class="footer-row">ملاحظات علي الفاتورة: ${data.notes ?? ""}</div>
+  <div class="footer-row">عنوان المؤسسة: ${data.institutionAddress || "—"}</div>
+  <div class="footer-row">رقم جوال المؤسسة: ${data.institutionPhone || "—"}</div>
+  <div class="footer-row">ملاحظات علي الفاتورة: ${data.notes || "—"}</div>
 
   <!-- QR -->
   <div class="qr-wrap">

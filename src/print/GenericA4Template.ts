@@ -103,19 +103,31 @@ export const getA4PrintHTML = (
   const discVal = Number(data.discountAmount || data.discountValue || data.discount || data.globalDiscountAmount || 0);
   const totals = calcTotals(cart, { type: "flat", value: discVal });
 
-  const itemRows = cart.map((cItem) => {
-    const base = itemBasePrice(cItem);
-    const tax = calcItemTax(cItem);
-    const net = base + tax;
+  const totBeforeVAT = data.subTotal !== undefined ? Number(data.subTotal) : totals.sub;
+  const totalVAT     = data.taxAmount !== undefined ? Number(data.taxAmount) : totals.tax;
+  const discount     = data.discountAmount !== undefined ? Number(data.discountAmount) : totals.discountAmount;
+  const finalTotal   = data.grandTotal !== undefined ? Number(data.grandTotal) : totals.total;
+
+  const itemRows = items.map((item: any, index: number) => {
+    const qty      = Number(item.quantity ?? 1);
+    const price    = item.priceAfterTax !== undefined 
+      ? Number(item.priceAfterTax) 
+      : (item.lineTotal !== undefined && qty > 0 
+          ? Number(item.lineTotal) / qty 
+          : Number(item.unitPrice || item.price || 0));
+    const subTotal = item.subTotal !== undefined ? Number(item.subTotal) : itemBasePrice(cart[index]);
+    const taxAmt   = item.taxAmount !== undefined ? Number(item.taxAmount) : calcItemTax(cart[index]);
+    const netTotal = item.lineTotal !== undefined ? Number(item.lineTotal) : (subTotal + taxAmt);
+
     return `
       <tr>
-        <td style="text-align:center;">${cItem.name}</td>
-        <td>${(items.find(i => (i.productName || i.name) === cItem.name) as any)?.unitName || (items.find(i => (i.productName || i.name) === cItem.name) as any)?.baseUnitName || "قطعة"}</td>
-        <td>${cItem.qty}</td>
-        <td>${cItem.price.toFixed(2)}</td>
-        <td>${base.toFixed(2)}</td>
-        <td>${tax.toFixed(2)}</td>
-        <td>${net.toFixed(2)}</td>
+        <td style="text-align:center;">${item.productName || item.name || "-"}</td>
+        <td>${item.unitName || item.baseUnitName || "قطعة"}</td>
+        <td>${qty}</td>
+        <td>${price.toFixed(2)}</td>
+        <td>${subTotal.toFixed(2)}</td>
+        <td>${taxAmt.toFixed(2)}</td>
+        <td>${netTotal.toFixed(2)}</td>
       </tr>`;
   }).join("");
 
@@ -257,22 +269,22 @@ export const getA4PrintHTML = (
       </tr>
       <tr>
         <td class="lbl-ar">${t("tot_before_vat", "اجمالي السعر قبل الضريبة")}</td>
-        <td class="val-cell">${totals.sub.toFixed(2)}</td>
+        <td class="val-cell">${totBeforeVAT.toFixed(2)}</td>
         <td class="lbl-en">Before VAT</td>
       </tr>
       <tr>
         <td class="lbl-ar">${t("total_discount", "اجمالي الخصم")}</td>
-        <td class="val-cell">${totals.discountAmount.toFixed(2)}</td>
+        <td class="val-cell">${discount.toFixed(2)}</td>
         <td class="lbl-en">Discount</td>
       </tr>
       <tr>
         <td class="lbl-ar">${t("total_vat", "ضريبة القيمة المضافة")}</td>
-        <td class="val-cell">${totals.tax.toFixed(2)}</td>
+        <td class="val-cell">${totalVAT.toFixed(2)}</td>
         <td class="lbl-en">VAT %15</td>
       </tr>
       <tr class="net-total-row">
         <td class="lbl-ar">${t("final_total", "الاجمالي النهائي")}</td>
-        <td class="val-cell">${totals.total.toFixed(2)}</td>
+        <td class="val-cell">${finalTotal.toFixed(2)}</td>
         <td class="lbl-en">NET TOTAL</td>
       </tr>
     </table>

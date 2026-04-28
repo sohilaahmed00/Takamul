@@ -59,14 +59,14 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     const searchTerm = normalize(rawName);
 
     // Try fetching by ID first (Most reliable)
-    const cId = (data as any).customerId || (data as any).customerID || (data as any).customer_id;
-    const sId = (data as any).supplierId || (data as any).supplierID || (data as any).supplier_id;
+    const cId = data.customerId || data.customerID || data.customer_id;
+    const sId = data.supplierId || data.supplierID || data.supplier_id;
 
     if (cId) {
       try {
         const customer = await getCustomerById(Number(cId));
         if (customer) {
-          (extendedData as any).customerData = customer;
+          extendedData.customerData = customer;
           extendedData.customerPhone = customer.mobile || customer.phone || "";
           return extendedData;
         }
@@ -77,7 +77,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
       try {
         const supplier = await getSupplierById(Number(sId));
         if (supplier) {
-          (extendedData as any).customerData = supplier;
+          extendedData.customerData = supplier;
           extendedData.customerPhone = supplier.mobile || supplier.phone || "";
           return extendedData;
         }
@@ -91,7 +91,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
         const cResponse = await getAllCustomers({ page: 1, limit: 10, searchTerm: rawName });
         const foundC = cResponse?.items?.find((c: any) => normalize(c.customerName || "") === searchTerm || normalize(c.customerName || "").includes(searchTerm));
         if (foundC) {
-          (extendedData as any).customerData = foundC;
+          extendedData.customerData = foundC;
           extendedData.customerPhone = foundC.mobile || foundC.phone || "";
           return extendedData;
         }
@@ -113,8 +113,8 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
   }, [branchInfo]);
 
   const printRoll = useCallback(async (data: InvoiceData) => {
-    const extendedData = (await prepareExtendedData(data)) as any;
-    const branch = (extendedData.branchInfo as any) || {};
+    const extendedData = await prepareExtendedData(data);
+    const branch = extendedData.branchInfo || {};
     const rawItems = (extendedData.items || extendedData.orderItems || []) as any[];
 
     // Map raw items to CartItem format for calculation helpers
@@ -138,63 +138,75 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
 
     const discVal = Number(extendedData.discountAmount || extendedData.discountValue || 0);
     const discount = discVal > 0 ? { type: "flat" as const, value: discVal } : { type: "pct" as const, value: 0 };
-    
+
     const totals = calcTotals(cart, discount);
 
     const thermalData = {
       logoUrl: branch.imageUrl || "",
-      invoiceNumber: (extendedData.invoiceNo || extendedData.orderNumber || extendedData.id || "").toString(),
+      invoiceNumber: (extendedData.orderNumber || extendedData.invoiceNo || extendedData.id || "").toString(),
       institutionName: branch.name || "",
+      institutionNameEn: branch.nameEn || "",
       institutionTaxNumber: branch.taxNumber || "",
-      invoiceDate: extendedData.createdAt ? new Date(extendedData.createdAt).toLocaleString("en-GB") : (extendedData.date || new Date().toLocaleString("en-GB")),
-      institutionAddress: branch.address || "",
+      institutionCommercialRegister: branch.commercialRegister || "",
+      invoiceDate: extendedData.createdAt 
+        ? new Date(extendedData.createdAt).toLocaleString("en-GB") 
+        : (extendedData.orderDate || extendedData.date 
+            ? new Date((extendedData.orderDate || extendedData.date) as any).toLocaleString("en-GB") 
+            : new Date().toLocaleString("en-GB")),
+      institutionAddress: branch.address || [branch.street, branch.cityName, branch.stateName].filter(Boolean).join(" - ") || "",
       institutionPhone: branch.phone || "",
       customerName: extendedData.customerName || extendedData.customer || "",
       customerPhone: extendedData.customerPhone || "",
-      items: cart.map((item) => {
-        const base = itemBasePrice(item);
-        const tax = calcItemTax(item);
+      items: rawItems.map((item, index) => {
+        const qty = Number(item.quantity ?? 1);
+        const subTotal = item.subTotal !== undefined ? Number(item.subTotal) : itemBasePrice(cart[index]);
+        const taxAmt = item.taxAmount !== undefined ? Number(item.taxAmount) : calcItemTax(cart[index]);
+        const lineTot = item.lineTotal !== undefined ? Number(item.lineTotal) : (subTotal + taxAmt);
+        const finalPrice = item.priceAfterTax !== undefined 
+          ? Number(item.priceAfterTax) 
+          : (lineTot / qty);
+
         return {
-          productName: item.name || "-",
-          quantity: item.qty,
-          unitPrice: Number(base.toFixed(2)),
-          taxAmount: Number(tax.toFixed(2)),
-          total: Number((base + tax).toFixed(2)),
+          productName: item.productName || item.name || "-",
+          quantity: qty,
+          unitPrice: finalPrice,
+          taxAmount: Number(taxAmt.toFixed(2)),
+          total: Number(lineTot.toFixed(2)),
         };
       }),
-      subTotal: Number(totals.sub.toFixed(2)),
-      discountAmount: Number(totals.discountAmount.toFixed(2)),
-      taxAmount: Number(totals.tax.toFixed(2)),
-      grandTotal: Number(totals.total.toFixed(2)),
-      notes: (extendedData.notes || extendedData.orderNotes || "") as string,
-      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent((extendedData.invoiceNo || extendedData.orderNumber || extendedData.id || "").toString())}`,
+      subTotal: Number((extendedData.subTotal !== undefined ? extendedData.subTotal : totals.sub).toFixed(2)),
+      discountAmount: Number((extendedData.discountAmount !== undefined ? extendedData.discountAmount : totals.discountAmount).toFixed(2)),
+      taxAmount: Number((extendedData.taxAmount !== undefined ? extendedData.taxAmount : totals.tax).toFixed(2)),
+      grandTotal: Number((extendedData.grandTotal !== undefined ? extendedData.grandTotal : totals.total).toFixed(2)),
+      notes: extendedData.notes || extendedData.orderNotes || "",
+      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent((extendedData.orderNumber || extendedData.invoiceNo || extendedData.id || "").toString())}`,
     };
 
-    await thermalPrint(thermalData);
+    await thermalPrint(thermalData as any);
   }, [prepareExtendedData]);
 
   const printInvoice = useCallback(
     async (data: InvoiceData, type: PrintType = "invoice") => {
       if (!data?.id) return;
-      
+
       if (type === "roll") {
         return printRoll(data);
       }
 
       const extendedData = await prepareExtendedData(data);
-      
+
       // Enrich items with names if missing (common in Purchases)
       const rawItems = (extendedData.items || extendedData.orderItems || extendedData.quotationItems || extendedData.purchaseItems || []) as any[];
       if (rawItems.length > 0 && rawItems.some(item => !item.productName && !item.name)) {
         try {
-          const productsResponse = await getAllProducts({ page: 1, limit: 1000 });
+          const productsResponse = await getAllProducts(1, 1000);
           const products = productsResponse?.items || [];
           rawItems.forEach(item => {
             if (!item.productName && !item.name && item.productId) {
               const p = products.find((prod: any) => prod.id === item.productId);
               if (p) {
-                item.productName = p.productNameAr || p.name || p.productName;
-                item.unitName = item.unitName || p.baseUnitName;
+                item.productName = (p as any).productNameAr || (p as any).name || (p as any).productName;
+                item.unitName = item.unitName || (p as any).baseUnitName || (p as any).unitName;
               }
             }
           });
