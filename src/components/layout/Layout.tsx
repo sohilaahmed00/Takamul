@@ -38,7 +38,7 @@ interface SubmenuItemProps {
 
 const SidebarItem = ({ icon: Icon, label, active, hasSubmenu, isOpen, isSidebarOpen = true, onClick }: SidebarItemProps) => {
   return (
-    <button onClick={onClick} className={cn("w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200", active ? "bg-[var(--primary)] text-white shadow-md scale-[1.02]" : "text-[var(--text-main)] hover:bg-[var(--bg-main)] hover:text-[var(--primary)] hover:scale-[1.02]", !isSidebarOpen && "justify-center")} title={!isSidebarOpen ? label : undefined}>
+    <button onClick={onClick} className={cn("w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all duration-200", active ? "bg-[var(--primary)] text-[var(--primary-foreground)] shadow-md scale-[1.02]" : "text-[var(--text-main)] hover:bg-[var(--bg-main)] hover:text-[var(--primary)] hover:scale-[1.02]", !isSidebarOpen && "justify-center")} title={!isSidebarOpen ? label : undefined}>
       <div className="flex items-center gap-4">
         <Icon size={24} />
         {isSidebarOpen && <span className="font-bold text-base tracking-wide">{label}</span>}
@@ -133,10 +133,10 @@ export default function Layout() {
           }
           if (isMobile) setIsMobileMenuOpen(false);
         }}
-        className={cn("w-full flex items-center justify-between p-2 text-sm rounded-md transition-colors group", isActive ? "bg-[var(--primary)] text-white" : "text-[var(--text-main)] hover:text-[var(--primary)] hover:bg-[var(--bg-main)]")}
+        className={cn("w-full flex items-center justify-between p-2 text-sm rounded-md transition-colors group", isActive ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : "text-[var(--text-main)] hover:text-[var(--primary)] hover:bg-[var(--bg-main)]")}
       >
         <div className="flex items-center gap-2 w-full">
-          <Icon size={16} className={cn(isActive ? "text-white" : "text-[var(--text-main)] group-hover:text-[var(--primary)]")} />
+          <Icon size={16} className={cn(isActive ? "text-[var(--primary-foreground)]" : "text-[var(--text-main)] group-hover:text-[var(--primary)]")} />
           <span>{label}</span>
         </div>
       </button>
@@ -356,21 +356,19 @@ export default function Layout() {
                 <SubmenuItem label={t("sales_settings") || "إعدادات المبيعات"} icon={ShoppingCart} path="/settings/sales" />
                 <SubmenuItem label={t("barcode_scale") || "ميزان الباركود"} icon={Barcode} path="/settings/barcode" />
                 <SubmenuItem label={t("email_settings") || "البريد الإلكتروني"} icon={Mail} path="/settings/email" />
-                <SubmenuItem label={t("payment_companies")} icon={CreditCard} path="/settings/payment-companies" />
-                <SubmenuItem label={t("payment_methods")} icon={CreditCard} path="/settings/payment-methods" />
-                <SubmenuItem label={t("pos_settings")} icon={Store} path="/settings/pos" />
-                <SubmenuItem label={t("delivery_companies")} icon={Truck} path="/settings/delivery-companies" />
-                <SubmenuItem label={t("delegates_and_employees")} icon={Users} path="/settings/delegates" />
-                <SubmenuItem label={t("promotions")} icon={Percent} path="/promotions" />
-                <SubmenuItem
+                {/* <SubmenuItem label={t("delivery_companies")} icon={Truck} path="/settings/delivery-companies" />
+                <SubmenuItem label={t("currencies")} icon={Coins} path="/settings/currencies" />
+                <SubmenuItem label={t("customer_groups")} icon={Users} path="/settings/customer-groups" />
+                <SubmenuItem label={t("price_groups")} icon={DollarSign} path="/settings/price-groups" /> */}
+                {/* <SubmenuItem
                   label={t("change_logo")}
                   icon={Upload}
                   onClick={() => {
                     setIsLogoModalOpen(true);
                     if (isMobile) setIsMobileMenuOpen(false);
                   }}
-                />
-                <SubmenuItem label={t("currencies")} icon={Coins} path="/settings/currencies" />
+                /> */}
+                {/* <SubmenuItem label={t("currencies")} icon={Coins} path="/settings/currencies" />
                 <SubmenuItem label={t("customer_groups")} icon={Link} path="/settings/customer-groups" />
                 <SubmenuItem label={t("pricing_groups")} icon={DollarSign} path="/settings/price-groups" />
                 <SubmenuItem label={t("basic_categories")} icon={Briefcase} path="/settings/basic-categories" />
@@ -387,7 +385,7 @@ export default function Layout() {
                 <SubmenuItem label={t("production_machines")} icon={Factory} path="/settings/production-machines" />
                 <SubmenuItem label={t("group_permissions")} icon={Key} path="/settings/groups" />
                 <SubmenuItem label={t("site_logins")} icon={FileText} />
-                <SubmenuItem label={t("reports")} icon={BarChart} path="/reports" />
+                <SubmenuItem label={t("reports")} icon={BarChart} path="/reports" /> */}
               </motion.div>
             )}
           </AnimatePresence>
@@ -405,30 +403,39 @@ export default function Layout() {
               <Menu size={24} />
             </button>
 
-            <div className="hidden md:flex items-center bg-[var(--input-bg)] rounded-xl px-4 py-2 w-72 border border-[var(--border)] focus-within:border-[var(--primary)] transition-all">
-              <Search size={18} className="text-[var(--text-muted)]" />
-              <Input type="text" placeholder={t("search")} className="bg-transparent border-none outline-none text-sm w-full text-[var(--text-main)] placeholder-[var(--text-muted)] px-2" dir={direction} />
+            <div className="hidden md:flex items-center bg-[var(--input-bg)] rounded-full px-3 py-1.5 w-60 border border-[var(--border)] focus-within:border-[var(--primary)] focus-within:ring-1 focus-within:ring-[var(--primary)]/20 transition-all">
+              <Search size={16} className="text-[var(--text-muted)]" />
+              <Input
+                type="text"
+                placeholder={t("search")}
+                className="bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 h-7 text-xs w-full text-[var(--text-main)] placeholder-[var(--text-muted)] px-2"
+                dir={direction}
+              />
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2">
-              <button onClick={() => navigate("/sales/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+              <button
+                onClick={() => navigate("/sales/create")}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
+              >
                 <LayoutGrid size={16} />
                 <span>{t("sales_a4_quick")}</span>
               </button>
 
-              <button onClick={() => navigate("/pos")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+              <button
+                onClick={() => navigate("/pos")}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
+              >
                 <ShoppingCart size={16} />
                 <span>{t("pos_quick")}</span>
               </button>
 
-              {/* <button onClick={() => navigate("/sales/all")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 hover:bg-violet-100 dark:hover:bg-violet-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
-                <List size={16} />
-                <span>{t("all_sales")}</span>
-              </button> */}
-
-              <button onClick={() => navigate("/products/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+              <button
+                onClick={() => navigate("/products/create")}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
+              >
                 <Package size={16} />
                 <span>{t("add_product")}</span>
               </button>

@@ -16,7 +16,7 @@ export default function Logo({ className = "", style, onClick }: LogoProps) {
   const navigate = useNavigate();
 
   const lang = language === "ar" ? "ar" : "en";
-  const shade = theme === "dark" ? "dark" : "light";
+  const shade = ["dark", "red", "blue", "yellow", "high-contrast"].includes(theme) ? "dark" : "light";
   const logoSrc = `/logo_${lang}_${shade}.png`;
 
   const handleClick = (e: React.MouseEvent) => {

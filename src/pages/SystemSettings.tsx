@@ -15,7 +15,6 @@ import DeliveryCompanies from "./DeliveryCompanies";
 import Currencies from "./Currencies";
 import CustomerGroups from "./CustomerGroups";
 import PriceGroups from "./PriceGroups";
-import Tables from "./Tables";
 import TablesList from "./Tables";
 
 interface SettingSectionProps {
@@ -110,7 +109,7 @@ export default function SystemSettings() {
               </div>
               <nav className="p-2 space-y-1">
                 {sections.map((section) => (
-                  <button key={section.id} onClick={() => setActiveSection(section.id)} className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-sm", direction === "rtl" ? "text-right" : "text-left", activeSection === section.id ? "bg-[var(--primary)] text-white font-bold" : "text-[var(--text-main)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] font-medium")}>
+                  <button key={section.id} onClick={() => setActiveSection(section.id)} className={cn("w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-sm", direction === "rtl" ? "text-right" : "text-left", activeSection === section.id ? "bg-[var(--primary)] text-[var(--primary-foreground)] font-bold" : "text-[var(--text-main)] hover:bg-[var(--primary)]/10 hover:text-[var(--primary)] font-medium")}>
                     <section.icon size={18} />
                     <span>{section.title}</span>
                   </button>
@@ -255,6 +254,7 @@ export default function SystemSettings() {
                 </div>
               </SettingSection>
             )}
+
 
             {activeSection === "delivery" && (
               <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">

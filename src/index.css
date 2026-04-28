@@ -95,10 +95,20 @@
   --stat-slate: #64748b;
 
   /* Dashboard Cards Initial Colors */
-  --dashboard-blue: #3b82f6;
-  --dashboard-orange: #f59e0b;
-  --dashboard-purple: #8b5cf6;
-  --dashboard-yellow: #eab308;
+  --dashboard-sales: #000052;
+  --dashboard-sales-text: #ffffff;
+  --dashboard-expenses: #6b7280;
+  --dashboard-expenses-text: #ffffff;
+  --dashboard-profit: #8b5cf6;
+  --dashboard-profit-text: #ffffff;
+  --dashboard-purchases: #ce2029;
+  --dashboard-purchases-text: #ffffff;
+
+  /* Status Badges */
+  --status-active-bg: rgba(16, 185, 129, 0.1);
+  --status-active-text: #059669;
+  --status-inactive-bg: rgba(239, 68, 68, 0.1);
+  --status-inactive-text: #dc2626;
 }
 
 /* =========================
@@ -370,6 +380,20 @@ body {
   --table-row-bg: #2d1111;
   --table-row-hover: rgba(239, 68, 68, 0.08);
 
+  --dashboard-sales: #450a0a;
+  --dashboard-sales-text: #fca5a5;
+  --dashboard-expenses: #7f1d1d;
+  --dashboard-expenses-text: #fecaca;
+  --dashboard-profit: #ef4444;
+  --dashboard-profit-text: #ffffff;
+  --dashboard-purchases: #991b1b;
+  --dashboard-purchases-text: #fca5a5;
+
+  --status-active-bg: rgba(52, 211, 153, 0.15);
+  --status-active-text: #34d399;
+  --status-inactive-bg: rgba(248, 113, 113, 0.15);
+  --status-inactive-text: #f87171;
+
   --sidebar: #2d1111;
   --sidebar-foreground: #fef2f2;
   --sidebar-primary: #ef4444;
@@ -414,6 +438,20 @@ body {
   --table-header-text: #93c5fd;
   --table-row-bg: #0f172a;
   --table-row-hover: rgba(59, 130, 246, 0.08);
+
+  --dashboard-sales: #000052;
+  --dashboard-sales-text: #ffffff;
+  --dashboard-expenses: #1e293b;
+  --dashboard-expenses-text: #ffffff;
+  --dashboard-profit: #3b82f6;
+  --dashboard-profit-text: #ffffff;
+  --dashboard-purchases: #1e3a8a;
+  --dashboard-purchases-text: #ffffff;
+
+  --status-active-bg: rgba(52, 211, 153, 0.15);
+  --status-active-text: #34d399;
+  --status-inactive-bg: rgba(248, 113, 113, 0.15);
+  --status-inactive-text: #f87171;
 
   --sidebar: #0f172a;
   --sidebar-foreground: #eff6ff;
@@ -460,6 +498,20 @@ body {
   --table-row-bg: #1c1a00;
   --table-row-hover: rgba(234, 179, 8, 0.08);
 
+  --dashboard-sales: #1c1a00;
+  --dashboard-sales-text: #fefce8;
+  --dashboard-expenses: #3d3500;
+  --dashboard-expenses-text: #fefce8;
+  --dashboard-profit: #eab308;
+  --dashboard-profit-text: #1c1a00;
+  --dashboard-purchases: #422006;
+  --dashboard-purchases-text: #fefce8;
+
+  --status-active-bg: rgba(254, 240, 138, 0.15);
+  --status-active-text: #fde047;
+  --status-inactive-bg: rgba(254, 202, 202, 0.15);
+  --status-inactive-text: #f87171;
+
   --sidebar: #1c1a00;
   --sidebar-foreground: #fefce8;
   --sidebar-primary: #eab308;
@@ -504,6 +556,21 @@ body {
   --table-header-text: #d4d4d4;
   --table-row-bg: #000000;
   --table-row-hover: rgba(255, 255, 255, 0.1);
+
+  --dashboard-sales: #000000;
+  --dashboard-sales-text: #ffffff;
+  --dashboard-expenses: #000000;
+  --dashboard-expenses-text: #ffffff;
+  --dashboard-profit: #000000;
+  --dashboard-profit-text: #ffffff;
+  --dashboard-purchases: #000000;
+  --dashboard-purchases-text: #ffffff;
+
+  --status-active-bg: #ffffff;
+  --status-active-text: #000000;
+  --status-inactive-bg: #000000;
+  --status-inactive-text: #ffffff;
+  --status-inactive-border: 1px solid #ffffff;
 
   --sidebar: #000000;
   --sidebar-foreground: #ffffff;
@@ -591,13 +658,13 @@ body {
 }
 
 .custom-green-table .p-datatable-thead > tr > th {
-  background-color: white !important;
-  color: #9ca3af !important;
+  background-color: var(--table-header) !important;
+  color: var(--table-header-text) !important;
   font-weight: 600 !important;
   font-size: 14px;
   padding: 0.7rem 1.5rem;
   border: none;
-  border-bottom: 1px solid #e2e8f0 !important;
+  border-bottom: 1px solid var(--table-header-border) !important;
   text-align: center !important;
 }
 
@@ -657,7 +724,7 @@ body {
 .dark .p-paginator .p-paginator-page.p-highlight,
 .dark .custom-compact-table .p-paginator .p-paginator-page.p-highlight {
   background: var(--primary) !important;
-  color: white !important;
+  color: var(--primary-foreground) !important;
 }
 
 .dark .p-column-filter-row .p-inputtext {
@@ -715,6 +782,10 @@ body {
   transition: all 0.2s ease;
 }
 
+.custom-green-table .p-checkbox .p-checkbox-box.p-highlight .p-checkbox-icon {
+  color: var(--primary-foreground) !important;
+}
+
 .custom-green-table .p-checkbox .p-checkbox-box.p-highlight {
   border-color: #10b981 !important;
   background-color: #10b981 !important;
@@ -736,7 +807,7 @@ body {
 
 .dark .custom-compact-table .p-paginator .p-paginator-page.p-highlight {
   background-color: var(--primary) !important;
-  color: white !important;
+  color: var(--primary-foreground) !important;
 }
 
 .custom-compact-table .p-datatable-thead > tr > th,
@@ -747,7 +818,7 @@ body {
 .p-datatable-header {
   background-color: transparent;
   border: none;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   border-bottom: none;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
@@ -767,7 +838,7 @@ body {
 .custom-green-table .p-column-filter-row .p-inputtext {
   font-size: 14px;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border);
   transition: all 0.2s;
   text-align: center;
 }
