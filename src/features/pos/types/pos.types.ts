@@ -106,6 +106,7 @@ export interface OrderItem {
   discountValue: number;
   lineTotal: number;
   taxCalculation: number;
+  priceAfterTax: number;
 }
 
 export interface OrderPayment {

@@ -209,7 +209,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                               setScreen("home");
                               setCart(
                                 order.items.map((item) => ({
-                                  price: item?.unitPrice + item?.taxAmount,
+                                  price: item?.priceAfterTax,
                                   qty: item?.quantity,
                                   taxamount: item?.quantity ? (item?.taxAmount ?? 0) / item?.quantity : 0,
                                   taxCalculation: item.taxCalculation,
@@ -217,6 +217,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                   productId: item?.productId,
                                 })),
                               );
+
                               onOpenChange(false);
                               if (order.orderStatus == "InProgress") {
                                 setOrderType("dine-in");
@@ -235,7 +236,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                               setScreen("home");
                               setCart(
                                 order.items.map((item) => ({
-                                  price: item?.unitPrice + item?.taxAmount,
+                                  price: item?.priceAfterTax,
                                   qty: item?.quantity,
                                   taxamount: item?.taxAmount,
                                   taxCalculation: item.taxCalculation,
@@ -266,7 +267,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                             setScreen("home");
                             setCart(
                               order.items.map((item) => ({
-                                price: item?.unitPrice + item?.taxAmount,
+                                price: item?.priceAfterTax,
                                 qty: item?.quantity,
                                 taxamount: item?.taxAmount,
                                 taxCalculation: item.taxCalculation,

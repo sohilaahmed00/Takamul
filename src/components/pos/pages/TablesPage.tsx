@@ -158,7 +158,7 @@ export default function TablesPage() {
                           detailsOrder.items.map((item) => ({
                             productId: item.productId,
                             name: item.productName,
-                            price: item.unitPrice + item.taxAmount,
+                            price: item?.priceAfterTax,
                             qty: item.quantity,
                             note: "",
                             taxamount: item.taxAmount,
@@ -186,7 +186,7 @@ export default function TablesPage() {
                           detailsOrder.items.map((item) => ({
                             productId: item.productId,
                             name: item.productName,
-                            price: item.unitPrice + item?.taxAmount,
+                            price: item?.priceAfterTax,
                             qty: item.quantity,
                             note: "",
                             taxamount: item.taxAmount,

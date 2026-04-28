@@ -93,7 +93,7 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
     setScreen("home");
     setCart(
       order.items.map((item) => ({
-        price: item?.unitPrice + item?.taxAmount,
+        price: item?.priceAfterTax,
         qty: item?.quantity,
         taxamount: item?.taxAmount,
         taxCalculation: item.taxCalculation,
@@ -114,7 +114,7 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
     setScreen("home");
     setCart(
       order.items.map((item) => ({
-        price: item?.unitPrice + item?.taxAmount,
+        price: item?.priceAfterTax,
         qty: item?.quantity,
         taxamount: item?.taxAmount,
         taxCalculation: item.taxCalculation,
@@ -176,7 +176,7 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
     setHoldingOrderId(order?.id);
     setCart(
       order.items.map((item) => ({
-        price: item?.unitPrice + item?.taxAmount,
+        price: item?.priceAfterTax,
         qty: item?.quantity,
         taxamount: item?.taxAmount,
         taxCalculation: item.taxCalculation,
