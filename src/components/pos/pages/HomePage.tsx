@@ -241,8 +241,8 @@ export default function HomePage() {
                     id: child?.id,
                     productNameAr: child?.productNameAr,
                     sellingPrice: child?.sellingPrice,
-                    taxAmount: 0,
-                    taxCalculation: 1,
+                    taxAmount: child?.taxAmount,
+                    taxCalculation: child?.taxCalculation,
                     productNameEn: child?.productNameEn,
                     productNameUr: child?.productNameUr,
                   });
