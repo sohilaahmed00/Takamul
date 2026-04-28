@@ -458,7 +458,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">{t("vat")}</span>
-                    <span className="font-semibold text-amber-600 tabular-nums">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                    <span className="font-semibold text-amber-600 tabular-nums">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
 
                   <hr className="border-border" />

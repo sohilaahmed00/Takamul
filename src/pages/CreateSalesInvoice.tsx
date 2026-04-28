@@ -190,16 +190,25 @@ const CreateSalesInvoice: React.FC = () => {
     return { beforeTaxTotal, totalVat };
   }, [items, products]);
 
-  const finalTotal = useMemo(() => {
-    let total = beforeTaxTotal + totalVat; // = مجموع afterDisc لكل الآيتمز
-
+  const { finalTotal, adjustedVat, adjustedBeforeTax } = useMemo(() => {
+    let discountedBeforeTax = beforeTaxTotal; // السعر الاجمالي قبل الضريبة قبل الخصم
     if (invoiceDiscountType === "fixed") {
-      total -= invoiceDiscountValue || 0;
+      discountedBeforeTax = Math.max(0, beforeTaxTotal - (invoiceDiscountValue || 0));
     } else {
-      total -= total * ((invoiceDiscountValue || 0) / 100);
+      discountedBeforeTax = beforeTaxTotal * (1 - (invoiceDiscountValue || 0) / 100);
     }
 
-    return Math.max(0, total);
+    const ratio = beforeTaxTotal > 0 ? discountedBeforeTax / beforeTaxTotal : 0;
+
+    const adjustedVat = totalVat * ratio;
+
+    const finalTotal = discountedBeforeTax + adjustedVat;
+
+    return {
+      finalTotal: Math.max(0, finalTotal),
+      adjustedVat,
+      adjustedBeforeTax: discountedBeforeTax,
+    };
   }, [beforeTaxTotal, totalVat, invoiceDiscountType, invoiceDiscountValue]);
 
   const totalPaid = useMemo(() => {
@@ -632,18 +641,18 @@ const CreateSalesInvoice: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center text-muted-foreground">
                       <span className="text-sm font-medium">{t("subtotal_before_tax")}</span>
-                      <span className="font-semibold text-foreground">{beforeTaxTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="font-semibold text-foreground">{adjustedBeforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-muted-foreground">
                       <span className="text-sm font-medium">{t("vat")}</span>
-                      <span className="font-semibold text-orange-500">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="font-semibold text-orange-500">{adjustedVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-muted-foreground gap-3">
                       <span className="text-sm font-medium whitespace-nowrap">{t("discount")}</span>
                       <div className="flex gap-2 w-full max-w-[220px]">
-                        <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" min={0} value={field.value ? field.value : undefined} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center flex-1 min-w-[90px]" placeholder={t("value")} />} />
+                        <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" step={"any"} min={0} value={field.value ? field.value : undefined} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center flex-1 min-w-[90px]" placeholder={t("value")} />} />
                         <Controller
                           control={form.control}
                           name="invoiceDiscountType"

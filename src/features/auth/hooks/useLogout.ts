@@ -12,7 +12,7 @@ export const useLogout = () => {
   const { notifyError, notifySuccess } = useToast();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: string) => logout(data),
+    mutationFn: () => logout(),
     onSuccess: (response) => {
       handleApiSuccess(response, notifySuccess);
       useAuthStore.getState().clearAuth();

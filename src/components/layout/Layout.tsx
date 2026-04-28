@@ -641,7 +641,7 @@ export default function Layout() {
                     <button
                       type="button"
                       onClick={async () => {
-                        await logout(email);
+                        await logout();
                         navigate("/");
                         closeAllMenus();
                       }}
