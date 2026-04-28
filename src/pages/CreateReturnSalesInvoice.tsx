@@ -306,7 +306,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
                       <FieldLabel>{t("discount_amount_value")} </FieldLabel>
-                      <Input type="number" value={field.value ?? ""} disabled={!enableDiscountAmount} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                      <Input type="number" value={field.value ?? ""} readOnly={!enableDiscountAmount} onChange={(e) => field.onChange(Number(e.target.value))} className={`text-center ${!enableDiscountAmount && "cursor-not-allowed"}`} />
                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                     </Field>
                   )}
