@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { calcItemTax, calcTotals, CartItem, itemBasePrice, itemBasePriceRaw } from "@/constants/data";
 import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL, usePos } from "@/context/PosContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { CheckCircle2, Clock, CreditCard, FileText, Hash, Mail, MessageCircle, MoreVertical, Plus, Printer, SaudiRiyal, Save, Search, SlidersHorizontal, Tag, Trash2, User, Vault, X, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, CreditCard, FileCheck, FileText, Hash, Mail, MessageCircle, MoreVertical, Plus, Printer, SaudiRiyal, Save, Search, SlidersHorizontal, Tag, Trash2, User, Vault, X, XCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
@@ -81,7 +81,7 @@ function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
 }
 
 // ===== Bottom Sheet Component =====
-function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen, setCart, setOrderType, setDineInMode, setSelectedOrderId, setSelectedTable, onOpenChange }: { order: SalesOrder | null; open: boolean; onClose: () => void; selectedCustomer: any; setScreen: any; setCart: any; setOrderType: any; setDineInMode: any; setSelectedOrderId: any; setSelectedTable: any; onOpenChange: (v: boolean) => void }) {
+function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen, setCart, setOrderType, setDineInMode, setSelectedOrderId, setSelectedTable, setHoldingOrderId, onOpenChange }: { order: SalesOrder | null; open: boolean; onClose: () => void; selectedCustomer: any; setScreen: any; setHoldingOrderId: (id: number) => void; setCart: any; setOrderType: any; setDineInMode: any; setSelectedOrderId: any; setSelectedTable: any; onOpenChange: (v: boolean) => void }) {
   if (!order) return null;
 
   const isConfirmed = order.orderStatus === "Confirmed";
@@ -172,6 +172,22 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
     onClose();
   };
 
+  const handleCompleteInvoice = () => {
+    setHoldingOrderId(order?.id);
+    setCart(
+      order.items.map((item) => ({
+        price: item?.unitPrice ?? 0,
+        qty: item?.quantity,
+        taxamount: item?.taxAmount,
+        taxCalculation: item.taxCalculation,
+        name: item?.productName,
+        productId: item?.productId,
+      })),
+    );
+    onClose();
+    onOpenChange(false);
+  };
+
   return (
     <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
       <DrawerContent className="px-4 pb-6" style={{ direction: "rtl" }}>
@@ -194,7 +210,6 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
             </div>
           </div>
 
-          {/* التاريخ */}
           <div className="flex items-center gap-1 mt-2 text-[11px] text-muted-foreground">
             <Clock size={10} />
             {formatDate(order.orderDate)}
@@ -203,7 +218,6 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
           <Separator className="mt-3" />
         </DrawerHeader>
 
-        {/* Actions */}
         <div className="flex flex-col gap-2">
           {isConfirmed ? (
             <button onClick={handlePrint} className="w-full h-13 flex items-center gap-3 px-4 py-3.5 rounded-xl border border-border hover:bg-muted text-foreground text-[13px] font-medium transition-colors">
@@ -227,15 +241,27 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
                 </div>
               </button>
 
-              <button onClick={handleCheckout} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[#000052] hover:bg-[#000075] text-white text-[13px] font-medium transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+              <button onClick={handleCheckout} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-border hover:bg-muted text-foreground text-[13px] font-medium transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                   <CreditCard size={15} />
                 </div>
                 <div className="flex flex-col items-start">
                   <span className="text-[13px] font-medium">استكمال الدفع</span>
-                  <span className="text-[10px] text-white/60">إتمام عملية الدفع</span>
+                  <span className="text-[10px] text-muted-foreground">إتمام عملية الدفع</span>
                 </div>
               </button>
+
+              {order?.orderStatus == "UnConfirmed" && (
+                <button onClick={handleCompleteInvoice} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-border hover:bg-muted text-foreground text-[13px] font-medium transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                    <FileCheck size={15} />
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-[13px] font-medium">استكمال الفاتورة</span>
+                    <span className="text-[10px] text-muted-foreground">إتمام وتأكيد الفاتورة</span>
+                  </div>
+                </button>
+              )}
             </>
           )}
         </div>
@@ -285,7 +311,7 @@ interface InvoicesDialogProps {
 }
 
 export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogProps) {
-  const { selectedCustomer, setCart, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen } = usePos();
+  const { selectedCustomer, setCart, setDineInMode, setOrderType, setSelectedOrderId, setHoldingOrderId, setSelectedTable, setScreen } = usePos();
   const [activeType, setActiveType] = useState<InvoiceType>("الكل");
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -428,7 +454,7 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
         </div>
 
         {/* ===== Bottom Sheet ===== */}
-        <OrderActionsDrawer order={selectedOrder ?? null} open={!!openMenuId} onClose={() => setOpenMenuId(null)} selectedCustomer={selectedCustomer} setScreen={setScreen} setCart={setCart} setOrderType={setOrderType} setDineInMode={setDineInMode} setSelectedOrderId={setSelectedOrderId} setSelectedTable={setSelectedTable} onOpenChange={onOpenChange} />
+        <OrderActionsDrawer order={selectedOrder ?? null} open={!!openMenuId} onClose={() => setOpenMenuId(null)} selectedCustomer={selectedCustomer} setHoldingOrderId={setHoldingOrderId} setScreen={setScreen} setCart={setCart} setOrderType={setOrderType} setDineInMode={setDineInMode} setSelectedOrderId={setSelectedOrderId} setSelectedTable={setSelectedTable} onOpenChange={onOpenChange} />
       </DialogContent>
     </Dialog>
   );
