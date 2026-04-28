@@ -661,17 +661,15 @@ const CreateSalesInvoice: React.FC = () => {
                           control={form.control}
                           name="invoiceDiscountType"
                           render={({ field }) => (
-                            <ComboboxField
-                              field={field}
-                              items={[
-                                { value: "fixed", label: t("value") },
-                                { value: "percentage", label: t("percentage") },
-                              ]}
-                              valueKey="value"
-                              labelKey="label"
-                              placeholder={t("choose_discount_type")}
-                              className="w-[120px]"
-                            />
+                            <Select value={field.value} onValueChange={field.onChange}>
+                              <SelectTrigger className="w-[120px]">
+                                <SelectValue placeholder={t("choose_discount_type")} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="fixed">{t("value")}</SelectItem>
+                                <SelectItem value="percentage">{t("percentage")}</SelectItem>
+                              </SelectContent>
+                            </Select>
                           )}
                         />
                       </div>
