@@ -198,6 +198,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
 
   useEffect(() => {
     if (!isOpen) return;
+    if (!countriesData) return;
 
     if (partner && "customerName" in partner) {
       form.reset({
@@ -205,7 +206,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
         phone: partner.phone ?? "",
         mobile: partner.mobile ?? "",
         district: "",
-        streetName: partner?.additionalNumber,
+        streetName: partner?.address,
         postalCode: partner.postalCode ?? "",
         taxNumber: partner.taxNumber ?? "",
         commercialRegister: partner?.commercialRegister,
@@ -222,7 +223,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
         phone: partner.phone ?? "",
         mobile: partner.mobile ?? "",
         district: "",
-        streetName: "",
+        streetName: partner?.streetName,
         postalCode: partner.postalCode ?? "",
         taxNumber: partner.taxNumber ?? "",
         commercialRegister: partner.commercialRegister ?? "",
@@ -251,7 +252,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
         additionalNumber: "",
       });
     }
-  }, [partner, isOpen, form]);
+  }, [partner, isOpen, form, countriesData]);
 
   const countryId = form.watch("countryId");
   const cityId = form.watch("cityId");
@@ -416,7 +417,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
                         {t("country")} <span className="text-red-500">*</span>
                       </FieldLabel>
                       <Select
-                        key={field?.value}
+                        key={`country-${field.value}-${countriesData?.length}`}
                         value={field.value ? String(field.value) : ""}
                         onValueChange={(value) => {
                           field.onChange(Number(value));

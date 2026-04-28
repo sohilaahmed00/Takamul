@@ -8,6 +8,7 @@ export interface Supplier {
   phone?: string | null;
   mobile?: string | null;
   address?: string | null;
+  streetName: string;
   buildingNumber?: string | null;
   additionalNumber?: string | null;
   city?: string | null;
