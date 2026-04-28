@@ -269,8 +269,6 @@ const CreateSalesInvoice: React.FC = () => {
       })),
     };
 
-    console.log(payload);
-    return;
     await createSalesOrders(payload);
     form.reset();
     navigate("/sales/all");
