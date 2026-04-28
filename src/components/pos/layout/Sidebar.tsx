@@ -172,7 +172,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                               items: order?.items.map((item) => {
                                 const tt: CartItem = {
                                   name: item?.productName,
-                                  price: item?.unitPrice,
+                                  price: item?.priceAfterTax,
                                   qty: item?.quantity,
                                   taxamount: item?.taxAmount,
                                   taxCalculation: item?.taxCalculation,
