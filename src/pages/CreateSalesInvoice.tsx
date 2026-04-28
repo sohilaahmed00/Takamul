@@ -283,7 +283,7 @@ const CreateSalesInvoice: React.FC = () => {
           <form onSubmit={form.handleSubmit(handleSubmit, (errors) => console.log(errors))} className="space-y-6">
             <div className="bg-background p-6 rounded-sm border border-border">
               <h2 className="text-lg font-bold text-foreground mb-6">{t("basic_data")}</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <Controller
                   name="orderDate"
                   control={form.control}
@@ -371,7 +371,7 @@ const CreateSalesInvoice: React.FC = () => {
                   )}
                 />
 
-                <div className="lg:col-span-4  col-span-1">
+                <div className="lg:col-span-5  col-span-1">
                   <Controller
                     name="notes"
                     control={form.control}
