@@ -27,7 +27,7 @@ export const updateSupplier = (id: number, data: createSupplier) =>
   });
 
 export const deleteSupplier = (id: number) =>
-  httpClient<string>(`/Suppliers/${id}`, {
+  httpClient<{ message: string }>(`/Suppliers/${id}`, {
     method: "DELETE",
   });
 

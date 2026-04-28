@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Supplier } from "@/features/suppliers/types/suppliers.types";
+import { useDeleteSupplier } from "@/features/suppliers/hooks/useDeleteSupplier";
 
 export default function SuppliersList() {
   const { t, direction } = useLanguage();
@@ -20,7 +21,7 @@ export default function SuppliersList() {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
-
+  const { mutateAsync: deleteSupplier } = useDeleteSupplier();
   const { data: suppliers } = useGetAllSuppliers();
 
   const filteredSuppliers = useMemo(() => {
@@ -114,7 +115,12 @@ export default function SuppliersList() {
                   >
                     <Edit2 size={16} />
                   </button>
-                  <button className="btn-minimal-action btn-compact-action">
+                  <button
+                    onClick={async () => {
+                      await deleteSupplier(supplier?.id);
+                    }}
+                    className="btn-minimal-action btn-compact-action"
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>
