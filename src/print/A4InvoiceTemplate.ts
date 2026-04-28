@@ -66,14 +66,12 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
 
   const branchLogo = getFullImageUrl(branch.imageUrl);
 
-  // ── Compute items using standard logic ──────────────────────────────────────
+  // ── Compute items using standard logic (Fallback) ──────────────────────────
   const cart: CartItem[] = items.map((item: any) => {
     const pct = Number(item?.discountPercentage ?? 0);
     const flat = Number(item?.discountValue ?? 0);
     const itemDiscount: CartItem["itemDiscount"] = pct > 0 ? { type: "pct", value: pct } : flat > 0 ? { type: "flat", value: flat } : null;
 
-    // Determine price based on tax calculation type (inclusive vs exclusive)
-    // taxCalculation: 2 is inclusive, others are usually exclusive or handled as exclusive base
     const price = item.taxCalculation === 2 ? (item.unitPrice || item.price) : (item.priceBeforeTax ?? item.unitPrice ?? item.price ?? 0);
 
     return {
@@ -89,30 +87,38 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
     };
   });
 
-  // Determine order-level discount
   const discVal = Number(order.discountAmount || order.discountValue || order.discount || 0);
   const discountObj = { type: "flat" as const, value: discVal };
   
   const totals = calcTotals(cart, discountObj);
 
-  const computedItems = cart.map((cItem, index) => {
-    const base = itemBasePrice(cItem);
-    const tax = calcItemTax(cItem);
-    const rowSubTotal = base; // This is (Price * Qty) - ItemDiscount
+  // ── Final values prioritized by API data ────────────────────────────────────
+  const computedItems = items.map((item: any, index: number) => {
+    // If API provides these fields, use them. Otherwise fallback to calc logic.
+    const qty      = Number(item.quantity ?? 1);
+    const price    = item.priceAfterTax !== undefined 
+      ? Number(item.priceAfterTax) 
+      : (item.lineTotal !== undefined && qty > 0 
+          ? Number(item.lineTotal) / qty 
+          : Number(item.unitPrice || item.price || 0));
+    const subTotal = item.subTotal !== undefined ? Number(item.subTotal) : itemBasePrice(cart[index]);
+    const taxAmt   = item.taxAmount !== undefined ? Number(item.taxAmount) : calcItemTax(cart[index]);
+    const netTotal = item.lineTotal !== undefined ? Number(item.lineTotal) : (subTotal + taxAmt);
+
     return { 
-      item: items[index], 
-      price: cItem.price, 
-      qty: cItem.qty, 
-      subTotal: rowSubTotal, 
-      taxAmt: tax, 
-      netTotal: rowSubTotal + tax 
+      item, 
+      price, 
+      qty, 
+      subTotal, 
+      taxAmt, 
+      netTotal 
     };
   });
 
-  const totBeforeVAT = totals.sub;
-  const totalVAT     = totals.tax;
-  const discount     = totals.discountAmount;
-  const finalTotal   = totals.total;
+  const totBeforeVAT = order.subTotal !== undefined ? Number(order.subTotal) : totals.sub;
+  const totalVAT     = order.taxAmount !== undefined ? Number(order.taxAmount) : totals.tax;
+  const discount     = order.discountAmount !== undefined ? Number(order.discountAmount) : totals.discountAmount;
+  const finalTotal   = order.grandTotal !== undefined ? Number(order.grandTotal) : totals.total;
 
   const itemRows = computedItems.map(({ item, price, qty, subTotal, taxAmt, netTotal }) => `
     <tr>

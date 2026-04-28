@@ -38,7 +38,7 @@ export const createPartnerSchema = (t: (key: string) => string) =>
     .object({
       name: z.string().min(3, t("validation_name_min_3")),
 
-      phone: z.string().regex(/^\d+$/, t("validation_numbers_only")).min(10, t("validation_phone_invalid")),
+      phone: z.string().regex(/^\d+$/, t("validation_numbers_only")).min(8, t("validation_phone_invalid")),
 
       mobile: z
         .string()
