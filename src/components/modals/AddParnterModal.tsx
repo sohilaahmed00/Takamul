@@ -33,11 +33,11 @@ export default function AddPartnerModal({ isOpen, onClose, partner, type = "cust
 
         <form id="addPartnerForm" onSubmit={form.handleSubmit(onSubmit, (errors) => console.log(errors))} className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-2">
-            <PartnerBasicFields control={form.control} isSupplier={isSupplier} />
+            <PartnerBasicFields control={form.control} isSupplier={isSupplier} countriesData={countriesData ?? []} citiesData={citiesData ?? []} statesData={statesData ?? []} setValue={form.setValue} />
 
             <NationalAddressSection control={form.control} isTaxable={isTaxable} />
 
-            {isTaxable && <LocationFields control={form.control} setValue={form.setValue} countriesData={countriesData ?? []} citiesData={citiesData ?? []} statesData={statesData ?? []} />}
+            {isTaxable && <LocationFields control={form.control} setValue={form.setValue} />}
           </div>
         </form>
 
