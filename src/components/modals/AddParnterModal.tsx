@@ -196,6 +196,16 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
     },
   });
 
+  const countryId = form.watch("countryId");
+  const cityId = form.watch("cityId");
+  const isTaxable = form.watch("isTaxable");
+  const stateId = form.watch("stateId");
+  const { data: citiesData } = useGetCityWithCountryId(countryId);
+  const { data: statesData } = useGetStatesWithCityId(cityId);
+  const selectedCountry = useMemo(() => countriesData?.find((c) => c.id === countryId), [countriesData, countryId]);
+  const selectedCity = useMemo(() => citiesData?.find((c) => c.id === cityId), [citiesData, cityId]);
+  const selectedState = useMemo(() => statesData?.find((s) => s.id === form.getValues("stateId")), [statesData, stateId]);
+
   useEffect(() => {
     if (!isOpen) return;
     if (!countriesData) return;
@@ -204,7 +214,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
       form.reset({
         name: partner.customerName ?? "",
         phone: partner.phone ?? "",
-        mobile: partner.mobile ?? "",
         district: "",
         streetName: partner?.address,
         postalCode: partner.postalCode ?? "",
@@ -221,7 +230,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
       form.reset({
         name: partner.supplierName ?? "",
         phone: partner.phone ?? "",
-        mobile: partner.mobile ?? "",
         district: "",
         streetName: partner?.streetName,
         postalCode: partner.postalCode ?? "",
@@ -254,16 +262,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
     }
   }, [partner, isOpen, form, countriesData]);
 
-  const countryId = form.watch("countryId");
-  const cityId = form.watch("cityId");
-  const isTaxable = form.watch("isTaxable");
-  const stateId = form.watch("stateId");
-  const { data: citiesData } = useGetCityWithCountryId(countryId);
-  const { data: statesData } = useGetStatesWithCityId(cityId);
-  const selectedCountry = useMemo(() => countriesData?.find((c) => c.id === countryId), [countriesData, countryId]);
-  const selectedCity = useMemo(() => citiesData?.find((c) => c.id === cityId), [citiesData, cityId]);
-  const selectedState = useMemo(() => statesData?.find((s) => s.id === form.getValues("stateId")), [statesData, stateId]);
-
   const onSubmit = async (data: z.infer<typeof schema>) => {
     try {
       type CreatePartnerPayload = createCustomer | createSupplier;
@@ -273,7 +271,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
         payload = {
           supplierName: data.name,
           phone: data.phone,
-          mobile: data.mobile ?? "",
           city: selectedCity?.cityName ?? "",
           state: selectedState?.statesName ?? "",
           country: selectedCountry?.countryName ?? "",
@@ -285,12 +282,12 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
           countryId: data?.countryId,
           cityId: data?.cityId,
           stateId: data?.stateId,
+          address: data?.streetName,
         };
       } else {
         payload = {
           customerName: data.name,
           phone: data.phone,
-          mobile: data.mobile || "",
           postalCode: data.postalCode || "",
           taxNumber: data.taxNumber ?? "",
           country: selectedCountry?.countryName ?? "",
@@ -302,6 +299,7 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
           countryId: data?.countryId,
           cityId: data?.cityId,
           stateId: data?.stateId,
+          address: data?.streetName,
         };
       }
 
@@ -323,7 +321,6 @@ export default function AddParnterModal({ isOpen, onClose, partner, type = "cust
       onClose();
     } catch (error) {}
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent dir={direction} className="sm:max-w-[800px] md:max-w-[1000px] lg:max-w-screen-sm">

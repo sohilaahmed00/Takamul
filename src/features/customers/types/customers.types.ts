@@ -30,12 +30,10 @@ export interface Customer {
   isActive: boolean;
 
   createdAt: string;
-  
 }
 export interface createCustomer {
   customerName: string;
   phone: string;
-  mobile?: string;
   buildingNumber: string;
   additionalNumber: string;
   commercialRegister: string;
@@ -46,6 +44,7 @@ export interface createCustomer {
   cityId: number;
   stateId: number;
   countryId: number;
+  address: string;
 }
 
 export interface GetAllCustomersResponse extends PaginationMeta {

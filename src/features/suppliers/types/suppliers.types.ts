@@ -30,7 +30,6 @@ export interface createSupplier {
   supplierName: string;
   email?: string;
   phone: string;
-  mobile: string;
   city: string;
   state: string;
   country: string;
@@ -43,6 +42,7 @@ export interface createSupplier {
   cityId: number;
   stateId: number;
   countryId: number;
+  address: string;
 }
 
 export interface GetAllSuppliersResponse extends PaginationMeta {
