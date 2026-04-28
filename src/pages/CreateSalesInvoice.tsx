@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { calcVat } from "@/utils/calcVat";
 import { useGetAllEmployees } from "@/features/employees/hooks/useGetAllEmployees";
 import z from "zod";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 const SalesInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -263,6 +264,8 @@ const CreateSalesInvoice: React.FC = () => {
     navigate("/sales/all");
   };
 
+  const allowPriceChangeOnSale = useSettingsStore((s) => s.settings?.items?.allowPriceChangeOnSale);
+
   return (
     <>
       <Card dir={direction}>
@@ -412,18 +415,20 @@ const CreateSalesInvoice: React.FC = () => {
 
                       <div className="space-y-3 mt-3">
                         {itemFields.map((item, index) => {
-                          const qty = Number(items[index]?.quantity || 0);
-                          const price = Number(items[index]?.price || 0);
+                          const qty = Number(form.watch(`items.${index}.quantity`) || 0);
+                          const price = Number(form.watch(`items.${index}.price`) || 0);
                           const discType = form.watch(`items.${index}.discountType`) || "fixed";
                           const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
                           const productId = form.watch(`items.${index}.productId`);
                           const product = products?.items?.find((p) => p.id === Number(productId));
-                          const taxRate = product?.taxAmount || 0;
+                          const originalPrice = product?.sellingPrice || 1;
+                          const originalTax = product?.taxAmount || 0;
+                          const taxPercentage = originalTax / originalPrice;
                           const taxCalc = product?.taxCalculation ?? 0;
                           const gross = qty * price;
                           const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                           const afterDiscount = Math.max(0, gross - discount);
-                          const vatAmount = taxCalc === 1 ? 0 : qty * taxRate;
+                          const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
                           const beforeTax = afterDiscount - vatAmount;
                           const grandTotal = afterDiscount;
                           const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
@@ -475,7 +480,7 @@ const CreateSalesInvoice: React.FC = () => {
                                   name={`items.${index}.price`}
                                   render={({ field, fieldState }) => (
                                     <Field>
-                                      <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                                      <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className={`text-center ${!allowPriceChangeOnSale ? "cursor-not-allowed opacity-70" : ""}`} />
                                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                     </Field>
                                   )}
