@@ -10,18 +10,18 @@ import AddParnterModal from "@/components/modals/AddParnterModal";
 import { Input } from "@/components/ui/input";
 
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Supplier } from "@/features/suppliers/types/suppliers.types";
 
 export default function SuppliersList() {
   const { t, direction } = useLanguage();
 
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedSupplier, setSelectedSupplier] = useState<number>();
+  const [selectedSupplier, setSelectedSupplier] = useState<Supplier | undefined>(undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
 
   const { data: suppliers } = useGetAllSuppliers();
-  const { data: supplierData } = useGetSupplierById(selectedSupplier);
 
   const filteredSuppliers = useMemo(() => {
     const items = suppliers?.items || [];
@@ -107,7 +107,7 @@ export default function SuppliersList() {
                 <div className="space-x-2">
                   <button
                     onClick={() => {
-                      setSelectedSupplier(supplier?.id);
+                      setSelectedSupplier(supplier);
                       setIsModalOpen(true);
                     }}
                     className="btn-minimal-action btn-compact-action"
@@ -125,7 +125,7 @@ export default function SuppliersList() {
       </Card>
 
       <AddParnterModal
-        partner={supplierData}
+        partner={selectedSupplier}
         isOpen={isModalOpen}
         type={"supplier"}
         onClose={() => {
