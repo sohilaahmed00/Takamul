@@ -159,7 +159,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
   }, [items, products]);
 
   const finalTotal = useMemo(() => {
-    let total = beforeTaxTotal + totalVat; // = مجموع afterDisc لكل الآيتمز
+    let total = beforeTaxTotal + totalVat;
 
     if (invoiceDiscountType === "fixed") {
       total -= invoiceDiscountValue || 0;
