@@ -7,16 +7,17 @@ import { createDeliveryOrder } from "../services/pos";
 import { CreateDeliveryOrder } from "../types/pos.types";
 import { salesKeys } from "@/features/sales/keys/sales.keys";
 
-export function useCreateDeliveryOrder() {
+export function useCreateDeliveryOrder({ showSuccess = true }: { showSuccess?: boolean } = {}) {
   const queryClient = useQueryClient();
   const { notifyError, notifySuccess } = useToast();
   return useMutation({
     mutationFn: (data: CreateDeliveryOrder) => createDeliveryOrder(data),
     onSuccess: (response) => {
-      console.log(response);
       queryClient.invalidateQueries({ queryKey: salesKeys.all });
       queryClient.invalidateQueries({ queryKey: posKeys.all });
-      handleApiSuccess(response?.message, notifySuccess);
+      if (showSuccess) {
+        handleApiSuccess(response?.message, notifySuccess);
+      }
     },
     onError: (error) => handleApiError(error, notifyError),
   });

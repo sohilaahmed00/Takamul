@@ -529,20 +529,23 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
                     </div>
 
                     <div className="max-h-44 overflow-y-auto divide-y divide-gray-100">
-                      {found.items.map((item, i) => (
-                        <div
-                          key={i}
-                          className={`grid text-[11px] text-center items-center ${i % 2 === 0 ? "bg-white" : "bg-[#f6f9fc]"}`}
-                          style={{
-                            gridTemplateColumns: "1fr 60px 80px 80px",
-                          }}
-                        >
-                          <div className="px-2 py-1.5 text-right text-gray-800 font-medium truncate">{item.productName}</div>
-                          <div className="py-1.5 text-gray-600">{item.quantity}</div>
-                          <div className="py-1.5 text-gray-600">{item.unitPrice.toFixed(2)}</div>
-                          <div className="py-1.5 font-semibold text-gray-800">{item.lineTotal.toFixed(2)}</div>
-                        </div>
-                      ))}
+                      {found.items.map((item, i) => {
+                        const product = products?.items.find((product) => product?.id == item?.productId);
+                        return (
+                          <div
+                            key={i}
+                            className={`grid text-[11px] text-center items-center ${i % 2 === 0 ? "bg-white" : "bg-[#f6f9fc]"}`}
+                            style={{
+                              gridTemplateColumns: "1fr 60px 80px 80px",
+                            }}
+                          >
+                            <div className="px-2 py-1.5 text-right text-gray-800 font-medium truncate">{item.productName}</div>
+                            <div className="py-1.5 text-gray-600">{item.quantity}</div>
+                            <div className="py-1.5 text-gray-600">{item.unitPrice.toFixed(2)}</div>
+                            <div className="py-1.5 font-semibold text-gray-800">{(product?.priceBeforeTax * item?.quantity).toFixed(2)}</div>
+                          </div>
+                        );
+                      })}
                     </div>
 
                     <div className="border-t border-gray-200 bg-gray-50 flex justify-between px-3 py-2 text-[11px]">
