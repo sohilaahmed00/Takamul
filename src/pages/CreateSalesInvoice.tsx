@@ -661,7 +661,7 @@ const CreateSalesInvoice: React.FC = () => {
                           control={form.control}
                           name="invoiceDiscountType"
                           render={({ field }) => (
-                            <Select value={field.value} onValueChange={field.onChange}>
+                            <Select key={field.value} value={field.value} onValueChange={field.onChange}>
                               <SelectTrigger className="w-[120px]">
                                 <SelectValue placeholder={t("choose_discount_type")} />
                               </SelectTrigger>
