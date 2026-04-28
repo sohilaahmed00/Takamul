@@ -246,13 +246,21 @@ const CreateSalesInvoice: React.FC = () => {
       description: "",
       globalDiscountPercentage: data.invoiceDiscountType === "percentage" ? (data.invoiceDiscountValue ?? 0) : 0,
       globalDiscountValue: data.invoiceDiscountType === "fixed" ? (data.invoiceDiscountValue ?? 0) : 0,
-      items: data.items.map((item) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.price,
-        discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
-        discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
-      })),
+      items: data.items.map((item) => {
+        const product = products?.items?.find((p) => p.id === Number(item.productId));
+        const originalPrice = product?.sellingPrice || 1;
+        const originalTax = product?.taxAmount || 0;
+        const taxCalc = product?.taxCalculation ?? 0;
+        const beforeTax = taxCalc === 1 ? item.price : originalPrice - originalTax;
+
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: beforeTax,
+          discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
+          discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
+        };
+      }),
       payments: data.payments.map((p) => ({
         amount: p.amount,
         treasuryId: p.treasuryId,
@@ -261,6 +269,8 @@ const CreateSalesInvoice: React.FC = () => {
       })),
     };
 
+    console.log(payload);
+    return;
     await createSalesOrders(payload);
     form.reset();
     navigate("/sales/all");
@@ -429,11 +439,13 @@ const CreateSalesInvoice: React.FC = () => {
                           const taxCalc = product?.taxCalculation ?? 0;
                           const gross = qty * price;
                           const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
-                          const beforeTax = Math.max(0, gross - discount);
-                          const vatAmount = taxCalc === 1 ? 0 : beforeTax * taxPercentage;
-                          const grandTotal = beforeTax + vatAmount;
+                          const afterDiscount = Math.max(0, gross - discount);
+                          const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
+                          const beforeTax = afterDiscount - vatAmount;
+                          const grandTotal = afterDiscount;
                           const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                           const isDiscOpen = !!discountOpen[index];
+
                           return (
                             <div key={item.id}>
                               <div className="grid grid-cols-1 md:grid-cols-[1.5fr_0.9fr_0.8fr_1fr_0.7fr_1fr_1fr_1fr_0.9fr_60px] gap-3 p-4 md:p-2 bg-muted/40 md:bg-transparent rounded-xl md:rounded-none border md:border-none border-border items-center group">
@@ -451,7 +463,7 @@ const CreateSalesInvoice: React.FC = () => {
                                         onValueChange={(val) => {
                                           const selectedProduct = filterProducts.find((p) => p.id === Number(val));
                                           if (selectedProduct) {
-                                            form.setValue(`items.${index}.price`, selectedProduct.priceBeforeTax);
+                                            form.setValue(`items.${index}.price`, selectedProduct.sellingPrice);
                                             const unitProduct = units?.items?.find((unit) => unit?.id == selectedProduct?.baseUnitId);
                                             form.setValue(`items.${index}.unitName`, unitProduct?.name);
                                           }
@@ -480,7 +492,7 @@ const CreateSalesInvoice: React.FC = () => {
                                   name={`items.${index}.price`}
                                   render={({ field, fieldState }) => (
                                     <Field>
-                                      <Input type="number" value={field.value ?? 0} readOnly={!allowPriceChangeOnSale} onChange={(e) => field.onChange(Number(e.target.value))} className={`text-center ${!allowPriceChangeOnSale ? "cursor-not-allowed opacity-70" : ""}`} />
+                                      <Input type="number" readOnly={!allowPriceChangeOnSale} value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className={`text-center ${!allowPriceChangeOnSale ? "cursor-not-allowed opacity-70" : ""}`} />
                                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                     </Field>
                                   )}

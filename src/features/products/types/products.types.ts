@@ -26,6 +26,7 @@ export type Product = {
   taxAmount: number;
   taxId: number;
   priceBeforeTax: number;
+  priceAfterTax: number;
   balance: number;
   baseUnitId: number;
   unitId: number;
