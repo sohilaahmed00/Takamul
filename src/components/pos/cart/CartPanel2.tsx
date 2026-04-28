@@ -176,7 +176,7 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
     setHoldingOrderId(order?.id);
     setCart(
       order.items.map((item) => ({
-        price: item?.unitPrice ?? 0,
+        price: item?.unitPrice + item?.taxAmount,
         qty: item?.quantity,
         taxamount: item?.taxAmount,
         taxCalculation: item.taxCalculation,
