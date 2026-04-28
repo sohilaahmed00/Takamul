@@ -226,7 +226,7 @@ export default function HomePage() {
         ))}
       </div>
       {/* Children variant modal */}
-      <Dialog open={!!childrenModal} onOpenChange={(open) => !open && setChildrenModal(null)}>
+      <Dialog modal={false} open={!!childrenModal} onOpenChange={(open) => !open && setChildrenModal(null)}>
         <DialogContent className="w-80 rounded-2xl p-0 overflow-hidden">
           <DialogHeader className="px-5 pt-5 pb-3 border-b border-border">
             <DialogTitle className="text-sm font-black text-foreground">{modalTitle}</DialogTitle>
