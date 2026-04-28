@@ -424,7 +424,7 @@ const CreateSalesInvoice: React.FC = () => {
                           const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                           const afterDiscount = Math.max(0, gross - discount);
                           const vatAmount = taxCalc === 1 ? 0 : qty * taxRate;
-                          const beforeTax = taxCalc === 2 ? afterDiscount - vatAmount : afterDiscount;
+                          const beforeTax = afterDiscount - vatAmount;
                           const grandTotal = afterDiscount;
                           const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                           const isDiscOpen = !!discountOpen[index];
