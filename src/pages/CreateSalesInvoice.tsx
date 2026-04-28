@@ -482,7 +482,7 @@ const CreateSalesInvoice: React.FC = () => {
                                   name={`items.${index}.price`}
                                   render={({ field, fieldState }) => (
                                     <Field>
-                                      <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className={`text-center ${!allowPriceChangeOnSale ? "cursor-not-allowed opacity-70" : ""}`} />
+                                      <Input type="number" value={field.value ?? 0} readOnly={!allowPriceChangeOnSale} onChange={(e) => field.onChange(Number(e.target.value))} className={`text-center ${!allowPriceChangeOnSale ? "cursor-not-allowed opacity-70" : ""}`} />
                                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                     </Field>
                                   )}
