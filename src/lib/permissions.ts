@@ -51,13 +51,14 @@ export const Permissions = {
     delete: "الموظفين.حذف",
   },
   users: {
-    all: "المستخدمين.الكل",
+    all: "المستخدمين.الكل", // ✅ أضفنا all
     view: "المستخدمين.عرض",
     add: "المستخدمين.إضافة",
     edit: "المستخدمين.تعديل",
     delete: "المستخدمين.حذف",
   },
   expenses: {
+    all: "المصروفات.الكل", // ✅ أضفنا all
     view: "المصروفات.عرض",
     add: "المصروفات.إضافة",
     edit: "المصروفات.تعديل",
@@ -82,7 +83,7 @@ export const Permissions = {
     all: "الأدوار.الكل",
     view: "الأدوار.عرض",
     add: "الأدوار.إضافة",
-    edit: "الأدوار.تعديل",
+    edit: "الأدوار.تعديل", // ✅ أضفنا edit
     delete: "الأدوار.حذف",
     viewPermissions: "الأدوار.عرض الصلاحيات",
   },
@@ -96,10 +97,10 @@ export const Permissions = {
   products: {
     all: "المنتجات.الكل",
     view: "المنتجات.عرض",
-    DirectView: "المنتجات.عرض الاصناف المباشرة",
-    RawMaterialView: "المنتجات.عرض الخامات",
-    PreparedView: "المنتجات.عرض الاصناف المجهزة",
-    BranchedView: "المنتجات.عرض الاصناف المتفرعه",
+    DirectView: "المنتجات.عرض الاصناف المباشرة", // ✅ شيلنا الـ space
+    RawMaterialView: "المنتجات.عرض الخامات", // ✅ شيلنا الـ space
+    PreparedView: "المنتجات.عرض الاصناف المجهزة", // ✅ شيلنا الـ space
+    BranchedView: "المنتجات.عرض الاصناف المتفرعه", // ✅ شيلنا الـ space
     add: "المنتجات.إضافة",
     edit: "المنتجات.تعديل",
     delete: "المنتجات.حذف",
@@ -138,16 +139,16 @@ export const Permissions = {
     delete: "الإيرادات.حذف",
   },
   salesOrders: {
-    all: "مبيعات.الكل",
     view: "مبيعات.عرض",
     add: "مبيعات.إضافة",
     confirm: "مبيعات.تأكيد",
     cancel: "مبيعات.إلغاء",
     addA4: "مبيعات.إضافة فاتورة ضريبية",
     addTakeAway: "مبيعات.إضافة تيك أواي",
-
     update: "مبيعات.تعديل",
-    pos: "مبيعات.ضريبية مبسطه",
+    pos: "مبيعات.عرض فاتورة ضريبة مبسطة",
+    addpos: "مبيعات.ضريبية مبسطة",
+    releaseHolding: "مبيعات.فك تعليق الفاتورة",
   },
   salesReturns: {
     all: "مرتجعات البيع.الكل",
@@ -160,22 +161,18 @@ export const Permissions = {
     open: "الورديات.فتح",
     close: "الورديات.قفل",
   },
-
   statistics: {
     all: "الإحصائيات.الكل",
     view: "الإحصائيات.عرض",
   },
-
   stockInventory: {
     all: "المخزون.الكل",
     view: "المخزون.عرض",
-
     bulkAdjust: "المخزون.تعديل جماعي",
     editAdjustment: "المخزون.تعديل تسوية",
     deleteAdjustment: "المخزون.حذف تسوية",
     viewAdjustments: "المخزون.عرض التسويات",
   },
-
   suppliers: {
     all: "الموردين.الكل",
     view: "الموردين.عرض",
@@ -221,7 +218,6 @@ export const Permissions = {
   reports: {
     all: "التقارير.الكل",
     view: "التقارير.عرض",
-
     products: "التقارير.المنتجات",
     expenses: "التقارير.المصروفات",
     customers: "التقارير.العملاء",
@@ -229,7 +225,6 @@ export const Permissions = {
     sales: "التقارير.المبيعات",
     purchases: "التقارير.المشتريات",
   },
-
   purchaseReturns: {
     all: "مرتجعات الشراء.الكل",
     view: "مرتجعات الشراء.عرض",

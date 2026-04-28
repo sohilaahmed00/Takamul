@@ -8,6 +8,7 @@ export interface Supplier {
   phone?: string | null;
   mobile?: string | null;
   address?: string | null;
+  streetName: string;
   buildingNumber?: string | null;
   additionalNumber?: string | null;
   city?: string | null;
@@ -18,15 +19,17 @@ export interface Supplier {
   taxNumber?: string | null;
   paymentTerms: number;
   isActive: boolean;
-  createdAt: string; // أو Date
-  updatedAt: string; // أو Date
+  createdAt: string;
+  updatedAt: string;
   balance: number;
+  cityId: number;
+  stateId: number;
+  countryId: number;
 }
 export interface createSupplier {
   supplierName: string;
   email?: string;
   phone: string;
-  mobile: string;
   city: string;
   state: string;
   country: string;
@@ -36,6 +39,10 @@ export interface createSupplier {
   buildingNumber: string;
   additionalNumber: string;
   commercialRegister: string;
+  cityId: number;
+  stateId: number;
+  countryId: number;
+  address: string;
 }
 
 export interface GetAllSuppliersResponse extends PaginationMeta {

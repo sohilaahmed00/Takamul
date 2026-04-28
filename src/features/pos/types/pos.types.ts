@@ -1,29 +1,53 @@
-import type { PaginationMeta } from "@/types";
+import { CreateSalesOrder } from "@/features/sales/types/sales.types";
+import type { ApiResponse, PaginationMeta } from "@/types";
 
-export interface SalesOrder {
+export interface POSDevice {
   id: number;
-  orderNumber: string;
-  customerName: string;
-  warehouseName: string;
-  orderDate: string;
-  subTotal: number;
-  taxAmount: number;
-  discountAmount: number;
-  grandTotal: number;
-  orderStatus: "UnConfirmed" | "Confirmed";
-  items: {
-    productId: number;
-    unitId: number;
-    quantity: number;
-    discountPercentage: number;
-    discountValue: number;
-  }[];
-  payments: {
-    amount: number;
-    paymentMethod: "Cash" | "Visa" | "CreditCard" | "DebitCard" | "BankTransfer" | "Check" | "MobilePayment" | "OnlinePayment" | "Other";
-    notes: string;
-  }[];
+  deviceName: string;
+  commonName: string;
+  serialNumber: string;
+  status: "NotRegistered" | "PendingOTP" | "CCSIDRegistered" | "PCSIDRegistered";
+  certificateType: string;
+  currentICV: number;
+  lastPIH: string;
+  registrationNumber: string;
+  certificateIssuedAt: string;
+  certificateExpiresAt: string;
+  isCertificateExpired: boolean;
+  daysUntilExpiry: number;
+  branchName: string | null;
+  deviceTypeId: number;
+  branchId: number;
+  isActive: boolean;
+  location: string;
+  createdAt: string;
+  updatedAt: string;
 }
+
+// export interface SalesOrder {
+//   id: number;
+//   orderNumber: string;
+//   customerName: string;
+//   warehouseName: string;
+//   orderDate: string;
+//   subTotal: number;
+//   taxAmount: number;
+//   discountAmount: number;
+//   grandTotal: number;
+//   orderStatus: "UnConfirmed" | "Confirmed";
+//   items: {
+//     productId: number;
+//     unitId: number;
+//     quantity: number;
+//     discountPercentage: number;
+//     discountValue: number;
+//   }[];
+//   payments: {
+//     amount: number;
+//     paymentMethod: "Cash" | "Visa" | "CreditCard" | "DebitCard" | "BankTransfer" | "Check" | "MobilePayment" | "OnlinePayment" | "Other";
+//     notes: string;
+//   }[];
+// }
 export type CreateTakeawayOrder = {
   customerId: number;
   warehouseId: number;
@@ -38,12 +62,7 @@ export type CreateTakeawayOrder = {
     discountPercentage: number;
     discountValue: number;
   }[];
-  payments: {
-    amount: number;
-    treasuryId: number;
-    paymentMethod?: "Cash";
-    notes: string;
-  }[];
+  payments: CreateSalesOrder["payments"];
   additionIds: number[];
 };
 
@@ -71,9 +90,6 @@ export type CheckoutDineInOrder = {
     notes: string;
   }[];
 };
-export interface GetAllSalesOrderResponse extends PaginationMeta {
-  items: SalesOrder[];
-}
 
 export interface OrderItem {
   id: number;
@@ -127,5 +143,24 @@ export interface Table {
   currentOrderId: number;
 }
 
+export interface DeviceType {
+  value: number;
+  text: string;
+}
+export interface CreateDevicePOS {
+  deviceName: string;
+  serialNumber: string;
+  deviceTypeId: number;
+  branchId: number;
+}
+export interface UpdateDevicePOS extends CreateDevicePOS {
+  isActive: boolean;
+  allowOnlineInvoicing: boolean;
+}
 export type GetOrderByTableIdResponse = Order;
-export type GetAllTablesResponse = Table[];
+export type GetAllPOSDevicesResponse = ApiResponse<POSDevice[]>;
+export type GetPOSDevicesResponse = ApiResponse<POSDevice>;
+export type GenereateSerialResponse = ApiResponse<string>;
+export type GetAllDeviceTypesResponse = ApiResponse<DeviceType[]>;
+export type CreateDevicePOSResponse = ApiResponse<POSDevice>;
+export type DeleteDevicePOSResponse = ApiResponse<boolean>;

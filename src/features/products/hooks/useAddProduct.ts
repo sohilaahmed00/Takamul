@@ -200,7 +200,7 @@ export function useAddProduct() {
           MinStockLevel: productDataDirect.minStockLevel,
           TaxId: productDataDirect?.taxId,
           TaxCalculation: productDataDirect?.taxCalculation,
-          CategoryId: productDataDirect?.parentCategoryId,
+          CategoryId: productDataDirect?.categoryId,
           BaseUnitId: productDataDirect.baseUnitId,
           Image: productDataDirect.imageUrl ?? undefined,
         });
@@ -216,7 +216,7 @@ export function useAddProduct() {
           ProductNameUr: productDataBranched.productNameUr,
           Description: productDataBranched.description || "",
           ChildrenIds: productDataBranched.children?.map((c) => c?.id)?.filter((id): id is number => typeof id === "number") || [],
-          CategoryId: productDataDirect?.parentCategoryId,
+          CategoryId: productDataDirect?.categoryId,
         });
         break;
       }

@@ -77,7 +77,7 @@ export default function HomePage() {
       addToCart({
         id: item.id,
         productNameAr: item.productNameAr,
-        sellingPrice: item.taxCalculation == 3 ? item?.priceBeforeTax : item?.sellingPrice,
+        sellingPrice: item?.sellingPrice,
         taxAmount: item.taxAmount,
         taxCalculation: item.taxCalculation,
         productNameEn: item.productNameEn,
@@ -220,13 +220,13 @@ export default function HomePage() {
             <div className="text-xs font-semibold text-foreground mb-0.5 leading-tight">{getProductName(item)}</div>
             <div className="text-xs font-bold text-primary flex items-center justify-center flex-row-reverse gap-x-1">
               <SaudiRiyal size={14} />
-              {item?.taxCalculation == 3 ? item.priceBeforeTax : item.sellingPrice}.00
+              {item.sellingPrice.toFixed(2)}
             </div>
           </div>
         ))}
       </div>
       {/* Children variant modal */}
-      <Dialog open={!!childrenModal} onOpenChange={(open) => !open && setChildrenModal(null)}>
+      <Dialog modal={false} open={!!childrenModal} onOpenChange={(open) => !open && setChildrenModal(null)}>
         <DialogContent className="w-80 rounded-2xl p-0 overflow-hidden">
           <DialogHeader className="px-5 pt-5 pb-3 border-b border-border">
             <DialogTitle className="text-sm font-black text-foreground">{modalTitle}</DialogTitle>

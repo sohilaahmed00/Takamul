@@ -61,10 +61,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     if (!Array.isArray(permissions) || !Array.isArray(perms)) return false;
 
-    return perms.some((p) => {
-      if (!p) return false;
-      return permissions.includes(p);
-    });
+    return perms.some((p) => !!p && permissions.includes(p));
   },
   hasPermission: (permission) => {
     const { permissions } = get();

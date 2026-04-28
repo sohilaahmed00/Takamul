@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { calcItemTax, calcTotals, CartItem, itemBasePrice, itemBasePriceRaw } from "@/constants/data";
 import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL, usePos } from "@/context/PosContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { CheckCircle2, Clock, CreditCard, FileText, Hash, Mail, MessageCircle, MoreVertical, Plus, Printer, SaudiRiyal, Save, Search, SlidersHorizontal, Tag, Trash2, User, Vault, X, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, CreditCard, FileCheck, FileText, Hash, Mail, MessageCircle, MoreVertical, Plus, Printer, SaudiRiyal, Save, Search, SlidersHorizontal, Tag, Trash2, User, Vault, X, XCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
@@ -80,97 +80,8 @@ function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   );
 }
 
-function SwipeableOrderCard({ order, badgeCls, translatedStatus, onCardClick, onActionClick }: { order: SalesOrder; badgeCls: string; translatedStatus: string; onCardClick: () => void; onActionClick: (order: SalesOrder) => void }) {
-  const [swiped, setSwiped] = useState(false);
-  const startX = useRef(0);
-  const isDragging = useRef(false);
-
-  const handleTouchStart = (e: React.TouchEvent) => {
-    startX.current = e.touches[0].clientX;
-    isDragging.current = true;
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (!isDragging.current) return;
-    const diff = startX.current - e.changedTouches[0].clientX;
-    if (diff > 50) setSwiped(true); // swipe لليسار → يظهر
-    if (diff < -50) setSwiped(false); // swipe لليمين → يخفي
-    isDragging.current = false;
-  };
-
-  return (
-    <div className="relative overflow-hidden border-b border-border">
-      {/* ===== أزرار الـ Actions (خلف الكارد) ===== */}
-      <div className="absolute inset-y-0 left-0 flex items-center gap-1 px-2 bg-muted">
-        {order.orderStatus === "Confirmed" ? (
-          <button onClick={() => onActionClick(order)} className="h-full px-3 flex flex-col items-center justify-center gap-1 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-            <Printer size={16} />
-            <span className="text-[9px]">طباعة</span>
-          </button>
-        ) : (
-          <>
-            <button onClick={() => onActionClick(order)} className="h-full px-3 flex flex-col items-center justify-center gap-1 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors">
-              <Plus size={16} />
-              <span className="text-[9px]">إضافة</span>
-            </button>
-            <button onClick={() => onActionClick(order)} className="h-full px-3 flex flex-col items-center justify-center gap-1 bg-[#000052] text-white rounded-lg transition-colors">
-              <CreditCard size={16} />
-              <span className="text-[9px]">دفع</span>
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* ===== الكارد نفسه ===== */}
-      <div
-        className="flex items-center gap-3 px-4 py-3 bg-card transition-transform duration-200 cursor-pointer"
-        style={{ transform: swiped ? "translateX(-90px)" : "translateX(0)" }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onClick={() => {
-          if (swiped) {
-            setSwiped(false);
-            return;
-          }
-          onCardClick();
-        }}
-      >
-        {/* الأيقونة */}
-        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
-          <FileText size={14} />
-        </div>
-
-        {/* الوسط */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-              <User size={10} />
-              {order.customerName ?? "—"}
-            </span>
-            {translatedStatus && <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${badgeCls}`}>{translatedStatus}</span>}
-          </div>
-          <div className="flex items-center gap-2 mt-0.5">
-            <span className="text-[10px] text-muted-foreground/60 font-mono">{order.orderNumber ?? "—"}</span>
-            <span className="text-muted-foreground/30 text-[10px]">·</span>
-            <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-              <Clock size={9} />
-              {formatDate(order.orderDate)}
-            </span>
-          </div>
-        </div>
-
-        {/* السعر */}
-        <span className="flex items-center gap-1 text-[12px] font-bold text-foreground shrink-0">
-          {order.grandTotal.toFixed(2)}
-          <SaudiRiyal size={11} />
-        </span>
-      </div>
-    </div>
-  );
-}
-
 // ===== Bottom Sheet Component =====
-function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen, setCart, setOrderType, setDineInMode, setSelectedOrderId, setSelectedTable, onOpenChange }: { order: SalesOrder | null; open: boolean; onClose: () => void; selectedCustomer: any; setScreen: any; setCart: any; setOrderType: any; setDineInMode: any; setSelectedOrderId: any; setSelectedTable: any; onOpenChange: (v: boolean) => void }) {
+function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen, setCart, setOrderType, setDineInMode, setSelectedOrderId, setSelectedTable, setHoldingOrderId, onOpenChange }: { order: SalesOrder | null; open: boolean; onClose: () => void; selectedCustomer: any; setScreen: any; setHoldingOrderId: (id: number) => void; setCart: any; setOrderType: any; setDineInMode: any; setSelectedOrderId: any; setSelectedTable: any; onOpenChange: (v: boolean) => void }) {
   if (!order) return null;
 
   const isConfirmed = order.orderStatus === "Confirmed";
@@ -182,7 +93,7 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
     setScreen("home");
     setCart(
       order.items.map((item) => ({
-        price: item?.unitPrice ?? 0,
+        price: item?.unitPrice + item?.taxAmount,
         qty: item?.quantity,
         taxamount: item?.taxAmount,
         taxCalculation: item.taxCalculation,
@@ -203,7 +114,7 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
     setScreen("home");
     setCart(
       order.items.map((item) => ({
-        price: item?.unitPrice ?? 0,
+        price: item?.unitPrice + item?.taxAmount,
         qty: item?.quantity,
         taxamount: item?.taxAmount,
         taxCalculation: item.taxCalculation,
@@ -261,6 +172,22 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
     onClose();
   };
 
+  const handleCompleteInvoice = () => {
+    setHoldingOrderId(order?.id);
+    setCart(
+      order.items.map((item) => ({
+        price: item?.unitPrice + item?.taxAmount,
+        qty: item?.quantity,
+        taxamount: item?.taxAmount,
+        taxCalculation: item.taxCalculation,
+        name: item?.productName,
+        productId: item?.productId,
+      })),
+    );
+    onClose();
+    onOpenChange(false);
+  };
+
   return (
     <Drawer open={open} onOpenChange={(v) => !v && onClose()}>
       <DrawerContent className="px-4 pb-6" style={{ direction: "rtl" }}>
@@ -283,7 +210,6 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
             </div>
           </div>
 
-          {/* التاريخ */}
           <div className="flex items-center gap-1 mt-2 text-[11px] text-muted-foreground">
             <Clock size={10} />
             {formatDate(order.orderDate)}
@@ -292,7 +218,6 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
           <Separator className="mt-3" />
         </DrawerHeader>
 
-        {/* Actions */}
         <div className="flex flex-col gap-2">
           {isConfirmed ? (
             <button onClick={handlePrint} className="w-full h-13 flex items-center gap-3 px-4 py-3.5 rounded-xl border border-border hover:bg-muted text-foreground text-[13px] font-medium transition-colors">
@@ -316,15 +241,27 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
                 </div>
               </button>
 
-              <button onClick={handleCheckout} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl bg-[#000052] hover:bg-[#000075] text-white text-[13px] font-medium transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+              <button onClick={handleCheckout} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-border hover:bg-muted text-foreground text-[13px] font-medium transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                   <CreditCard size={15} />
                 </div>
                 <div className="flex flex-col items-start">
                   <span className="text-[13px] font-medium">استكمال الدفع</span>
-                  <span className="text-[10px] text-white/60">إتمام عملية الدفع</span>
+                  <span className="text-[10px] text-muted-foreground">إتمام عملية الدفع</span>
                 </div>
               </button>
+
+              {order?.orderStatus == "UnConfirmed" && (
+                <button onClick={handleCompleteInvoice} className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border border-border hover:bg-muted text-foreground text-[13px] font-medium transition-colors">
+                  <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                    <FileCheck size={15} />
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-[13px] font-medium">استكمال الفاتورة</span>
+                    <span className="text-[10px] text-muted-foreground">إتمام وتأكيد الفاتورة</span>
+                  </div>
+                </button>
+              )}
             </>
           )}
         </div>
@@ -374,7 +311,7 @@ interface InvoicesDialogProps {
 }
 
 export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogProps) {
-  const { selectedCustomer, setCart, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen } = usePos();
+  const { selectedCustomer, setCart, setDineInMode, setOrderType, setSelectedOrderId, setHoldingOrderId, setSelectedTable, setScreen } = usePos();
   const [activeType, setActiveType] = useState<InvoiceType>("الكل");
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -451,17 +388,57 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
                 const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus?.toLowerCase() === "inprogress" ? t("قيد التجهيز") : order.orderStatus;
 
                 return (
-                  <SwipeableOrderCard
+                  <div
                     key={order.id}
-                    order={order}
-                    badgeCls={badgeCls}
-                    translatedStatus={translatedStatus}
-                    onCardClick={() => {
+                    className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors border-b border-border cursor-pointer"
+                    onClick={() => {
                       onSelect?.(order);
                       onOpenChange(false);
                     }}
-                    onActionClick={(order) => setOpenMenuId(String(order.id))}
-                  />
+                  >
+                    {/* الأيقونة */}
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
+                      <FileText size={14} />
+                    </div>
+
+                    {/* الوسط */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                          <User size={10} />
+                          {order.customerName ?? "—"}
+                        </span>
+                        {translatedStatus && <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${badgeCls}`}>{translatedStatus}</span>}
+                      </div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] text-muted-foreground/60 font-mono">{order.orderNumber ?? "—"}</span>
+                        <span className="text-muted-foreground/30 text-[10px]">·</span>
+                        <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <Clock size={9} />
+                          {formatDate(order.orderDate)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* اليسار */}
+                    <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className="flex items-center gap-1 text-[12px] font-bold text-foreground">
+                          {order.grandTotal.toFixed(2)}
+                          <SaudiRiyal size={11} />
+                        </span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenuId(String(order?.id));
+                        }}
+                        className="w-10 h-10 flex items-center justify-center rounded-xl border border-border hover:bg-muted text-muted-foreground transition-colors"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+                    </div>
+                  </div>
                 );
               })}
             </div>
@@ -477,7 +454,7 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
         </div>
 
         {/* ===== Bottom Sheet ===== */}
-        <OrderActionsDrawer order={selectedOrder ?? null} open={!!openMenuId} onClose={() => setOpenMenuId(null)} selectedCustomer={selectedCustomer} setScreen={setScreen} setCart={setCart} setOrderType={setOrderType} setDineInMode={setDineInMode} setSelectedOrderId={setSelectedOrderId} setSelectedTable={setSelectedTable} onOpenChange={onOpenChange} />
+        <OrderActionsDrawer order={selectedOrder ?? null} open={!!openMenuId} onClose={() => setOpenMenuId(null)} selectedCustomer={selectedCustomer} setHoldingOrderId={setHoldingOrderId} setScreen={setScreen} setCart={setCart} setOrderType={setOrderType} setDineInMode={setDineInMode} setSelectedOrderId={setSelectedOrderId} setSelectedTable={setSelectedTable} onOpenChange={onOpenChange} />
       </DialogContent>
     </Dialog>
   );
@@ -490,6 +467,7 @@ interface QuotationDialogProps {
 export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
   const [search, setSearch] = useState("");
   const { data: quotations } = useGetAllQuotations();
+  const { data: products } = useGetAllProducts({ page: 1, limit: 10000 });
   const { setCart } = usePos();
 
   const found = search.trim() ? quotations?.find((q) => q.quotationNumber === search.trim()) : null;
@@ -497,17 +475,21 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
   const handleLoad = () => {
     if (!found) return;
     setCart(
-      found.items.map((item) => ({
-        productId: item.productId,
-        name: item.productName,
-        price: item.unitPrice,
-        qty: item.quantity,
-        note: "",
-        op: null,
-        taxamount: item.taxPercentage,
-        taxCalculation: item.taxPercentage > 0 ? 3 : 1,
-        itemDiscount: item.discountPercentage > 0 ? { type: "pct" as const, value: item.discountPercentage } : item.discountAmount > 0 ? { type: "flat" as const, value: item.discountAmount } : null,
-      })),
+      found.items.map((item) => {
+        const product = products?.items?.find((p) => p.id === item.productId);
+
+        return {
+          productId: item.productId,
+          name: item.productName,
+          price: product.sellingPrice,
+          qty: item.quantity,
+          note: "",
+          op: null,
+          taxamount: product?.taxAmount,
+          taxCalculation: product?.taxCalculation ?? 0,
+          itemDiscount: item.discountPercentage > 0 ? { type: "pct" as const, value: item.discountPercentage } : item.discountAmount > 0 ? { type: "flat" as const, value: item.discountAmount } : null,
+        };
+      }),
     );
     onOpenChange(false);
     setSearch("");
@@ -573,20 +555,23 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
                     </div>
 
                     <div className="max-h-44 overflow-y-auto divide-y divide-gray-100">
-                      {found.items.map((item, i) => (
-                        <div
-                          key={i}
-                          className={`grid text-[11px] text-center items-center ${i % 2 === 0 ? "bg-white" : "bg-[#f6f9fc]"}`}
-                          style={{
-                            gridTemplateColumns: "1fr 60px 80px 80px",
-                          }}
-                        >
-                          <div className="px-2 py-1.5 text-right text-gray-800 font-medium truncate">{item.productName}</div>
-                          <div className="py-1.5 text-gray-600">{item.quantity}</div>
-                          <div className="py-1.5 text-gray-600">{item.unitPrice.toFixed(2)}</div>
-                          <div className="py-1.5 font-semibold text-gray-800">{item.lineTotal.toFixed(2)}</div>
-                        </div>
-                      ))}
+                      {found.items.map((item, i) => {
+                        const product = products?.items.find((product) => product?.id == item?.productId);
+                        return (
+                          <div
+                            key={i}
+                            className={`grid text-[11px] text-center items-center ${i % 2 === 0 ? "bg-white" : "bg-[#f6f9fc]"}`}
+                            style={{
+                              gridTemplateColumns: "1fr 60px 80px 80px",
+                            }}
+                          >
+                            <div className="px-2 py-1.5 text-right text-gray-800 font-medium truncate">{item.productName}</div>
+                            <div className="py-1.5 text-gray-600">{item.quantity}</div>
+                            <div className="py-1.5 text-gray-600">{item.unitPrice.toFixed(2)}</div>
+                            <div className="py-1.5 font-semibold text-gray-800">{(product?.priceBeforeTax * item?.quantity).toFixed(2)}</div>
+                          </div>
+                        );
+                      })}
                     </div>
 
                     <div className="border-t border-gray-200 bg-gray-50 flex justify-between px-3 py-2 text-[11px]">
@@ -805,7 +790,6 @@ export default function CartPanel2() {
               const tax = calcItemTax(item);
               const rowTotal = base + tax;
               const discVal = item.itemDiscount ? (item.itemDiscount.type === "pct" ? (itemBasePrice({ ...item, itemDiscount: null }) * item.itemDiscount.value) / 100 : item.itemDiscount.value) : 0;
-
               const discPctVal = item.itemDiscount?.type === "pct" ? item.itemDiscount.value : 0;
 
               return (

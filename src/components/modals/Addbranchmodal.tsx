@@ -28,14 +28,12 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
   const { notifyError, notifySuccess } = useToast();
   const isEditMode = mode === "edit";
 
-  // fetch full branch data in edit mode
   const { data: branchDetail, isLoading: isLoadingDetail } = useGetBranchById(isEditMode && editData ? editData.id : undefined);
 
   const { mutateAsync: createBranch, isPending: isCreating } = useCreateBranch();
   const { mutateAsync: updateBranch, isPending: isUpdating } = useUpdateBranch();
   const isPending = isCreating || isUpdating;
 
-  // form fields
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -48,7 +46,6 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  // address
   const [countryId, setCountryId] = useState<number | null>(null);
   const [countrySearch, setCountrySearch] = useState("");
   const [cityId, setCityId] = useState<number | null>(null);
@@ -60,14 +57,12 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
   const [subNumber, setSubNumber] = useState("");
   const [postalCode, setPostalCode] = useState("");
 
-  // location data
   const { data: countries } = useGetCountries();
   const { data: cities } = useGetCities(countryId);
   const { data: states } = useGetStates(cityId);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // reset on open
   useEffect(() => {
     if (!isOpen) return;
     if (isEditMode && branchDetail) {

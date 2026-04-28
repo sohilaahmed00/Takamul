@@ -11,6 +11,7 @@ import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerByI
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Customer } from "@/features/customers/types/customers.types";
 
 export default function CustomersList() {
   const { t, direction } = useLanguage();
@@ -20,10 +21,9 @@ export default function CustomersList() {
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const { data: customers, isLoading } = useGetAllCustomers({ page: currentPage, limit: entriesPerPage, searchTerm: globalFilterValue });
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<number | undefined>();
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | undefined>();
   const { mutate: deleteCustomer } = useDeleteCustomer();
   const { notifyError } = useToast();
-  const { data: customerData } = useGetCustomerById(selectedCustomer ?? undefined);
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -87,7 +87,7 @@ export default function CustomersList() {
                 <div className="space-x-2">
                   <button
                     onClick={() => {
-                      setSelectedCustomer(customer.id);
+                      setSelectedCustomer(customer);
                       setIsAddModalOpen(true);
                     }}
                     className="btn-minimal-action"
@@ -105,7 +105,7 @@ export default function CustomersList() {
       </Card>
 
       <AddParnterModal
-        partner={customerData}
+        partner={selectedCustomer}
         isOpen={isAddModalOpen}
         onClose={() => {
           setIsAddModalOpen(false);

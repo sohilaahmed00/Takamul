@@ -117,6 +117,8 @@ import TableLayout from "./pages/AddRoles";
 import PermissionsTree from "./pages/AddRoles";
 import RolesPage from "./pages/RolesPage";
 import SalesReturn from "./pages/SalesReturn";
+import { useGetAllSettings } from "./features/settings/hooks/useGetAllSettings";
+import POSDevicesList from "./pages/POSDevicesList";
 
 function AppRoutes() {
   return (
@@ -168,8 +170,7 @@ function AppRoutes() {
             <Route path="/sales/return/view/:id" element={<CreateReturnSalesInvoice />} />
             <Route path="/sales/return/:id" element={<CreateReturnSalesInvoice />} />
             <Route path="/sales/pos" element={<POS />} />
-
-
+            <Route path="/pos-devices" element={<POSDevicesList />} />
             {/* العروض */}
             <Route path="/quotes" element={<QuotesList />} />
             <Route path="/quotes/create" element={<CreateQuote />} />
@@ -276,6 +277,7 @@ function AppRoutes() {
 }
 
 export default function App() {
+  useGetAllSettings();
   return (
     <PrintProvider>
       <AppRoutes />

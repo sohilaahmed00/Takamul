@@ -26,6 +26,7 @@ type SalesReturnItem = {
   taxPercentage: number;
   lineTotal: number;
   unitId: number;
+  priceAfterTax: number;
 };
 
 export type SalesReturn = {
@@ -45,6 +46,7 @@ export type SalesReturn = {
   discountAmount: number;
   grandTotal: number;
   refundedAmount: number;
+  priceAfterTax: number;
   returnStatus: "Approved" | "Pending" | "Rejected";
   refundStatus: "Pending" | "Completed";
   reason: string;

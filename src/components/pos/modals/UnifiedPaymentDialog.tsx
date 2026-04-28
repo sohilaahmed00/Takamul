@@ -9,8 +9,8 @@ import { Numpad } from "../cashier/CashierPanel";
 import { Button } from "@/components/ui/button";
 import { Treasury } from "@/features/treasurys/types/treasurys.types";
 import { usePos } from "@/context/PosContext";
+import { CreateSalesOrder } from "@/features/sales/types/sales.types";
 
-// types
 type PaymentMode = "cashier" | "payment";
 type SaveAction = "pdf" | "whatsapp" | "email" | "save_only";
 
@@ -263,10 +263,25 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
 
             <Button
               onClick={() => {
+                const payments: CreateSalesOrder["payments"] = isSplit
+                  ? splits.map((s) => ({
+                      amount: rawToFloat(s.raw),
+                      paymentMethod: "Cash" as const,
+                      treasuryId: s.vaultId,
+                      notes: "",
+                    }))
+                  : [
+                      {
+                        amount: singlePaid,
+                        paymentMethod: "Cash" as const,
+                        treasuryId: activeVault!,
+                        notes: "",
+                      },
+                    ];
                 if (mode == "cashier") {
-                  handleConfirmPayment({ isHolding: false, });
+                  handleConfirmPayment({ isHolding: false, payments });
                 } else {
-                  handleConfirmPayment({ isHolding: false, printKitchenBon: false });
+                  handleConfirmPayment({ isHolding: false, printKitchenBon: false, payments });
                 }
                 onOpenChange(false);
               }}

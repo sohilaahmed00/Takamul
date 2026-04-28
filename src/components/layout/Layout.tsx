@@ -17,6 +17,7 @@ import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
 import ChangePasswordDialog from "../modals/Changepassworddialog";
 import { useLogout } from "@/features/auth/hooks/useLogout";
+import { Toaster } from "../ui/sonner";
 
 interface SidebarItemProps {
   icon: LucideIcon;
@@ -97,6 +98,7 @@ export default function Layout() {
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
   const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
+  const permissions = useAuthStore((s) => s.permissions);
 
   const toggleSubmenu = (menu: string) => {
     if (!isSidebarOpen && !isMobile) {
@@ -173,9 +175,26 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen flex transition-colors duration-300" dir={direction}>
+    <div className="min-h-screen flex transition-colors duration-300 font-cairo" dir={direction}>
       <ToastContainer pauseOnHover={false} />
-
+      <Toaster
+        position="bottom-center"
+        dir="rtl"
+        style={{ fontFamily: "inherit" }}
+        toastOptions={{
+          classNames: {
+            toast: "!bg-[var(--bg-card)] !border !border-[var(--border)] !text-[var(--text-main)] !shadow-md !rounded-xl !font-sans",
+            title: "!text-[var(--text-main)] !font-medium !text-sm",
+            description: "!text-[var(--text-muted)] !text-xs",
+            actionButton: "!bg-[var(--primary)] !text-white hover:!bg-[var(--primary-hover)] !rounded-lg !text-xs !font-medium !px-3 !py-1.5",
+            cancelButton: "!bg-transparent !text-[var(--text-muted)] hover:!text-[var(--text-main)] !text-xs",
+            success: "!border-l-4 !border-l-[var(--primary)]",
+            error: "!border-l-4 !border-l-red-500",
+            warning: "!border-l-4 !border-l-amber-500",
+            info: "!border-l-4 !border-l-blue-500",
+          },
+        }}
+      />
       <AnimatePresence>{isMobileMenuOpen && isMobile && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsMobileMenuOpen(false)} className="fixed inset-0 bg-black/50 z-40 lg:hidden" />}</AnimatePresence>
 
       <motion.aside
@@ -224,13 +243,14 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object.values(Permissions?.salesOrders)) && <SidebarItem icon={ShoppingCart} label={t("sales")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "sales"} onClick={() => toggleSubmenu("sales")} />}{" "}
+          {/* {hasAnyPermission(Object.values(Permissions?.salesOrders)) && }{" "} */}
+          <SidebarItem icon={ShoppingCart} label={t("sales")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "sales"} onClick={() => toggleSubmenu("sales")} />
           <AnimatePresence>
             {openSubmenu === "sales" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 {/* {hasPermission(Permissions?.salesOrders?.all) && <SubmenuItem label={t("all_sales")} icon={List} path="/sales/all" />} */}
-                {hasAnyPermission([Permissions?.salesOrders?.all, Permissions?.salesOrders?.view]) && <SubmenuItem label={t("invoices_a4")} icon={FileText} path="/sales/a4-invoices" />}
-                {hasAnyPermission([Permissions?.salesOrders?.all, Permissions?.salesOrders?.pos]) && <SubmenuItem label={t("invoices_pos")} icon={RefreshCcw} path="/sales/pos-invoices" />}
+                {hasPermission(Permissions?.salesOrders?.view) && <SubmenuItem label={t("invoices_a4")} icon={FileText} path="/sales/a4-invoices" />}
+                {hasPermission(Permissions?.salesOrders?.pos) && <SubmenuItem label={t("invoices_pos")} icon={RefreshCcw} path="/sales/pos-invoices" />}
                 {hasAnyPermission([Permissions?.giftCards?.all, Permissions?.giftCards?.view]) && <SubmenuItem label={t("gift_cards")} icon={Gift} path="/sales/gift-cards" />}
                 {<SubmenuItem label={"المرتجعات"} icon={FileText} path="/sales/return" />}
               </motion.div>
@@ -260,7 +280,7 @@ export default function Layout() {
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 {hasAnyPermission([Permissions?.users?.view, Permissions?.users?.all]) && <SubmenuItem label={t("users_list")} icon={List} path="/users" />}
                 {/* <SubmenuItem label={t("user_groups")} icon={Users} path="/users/groups" /> */}
-                <SubmenuItem label={t("pos_devices")} icon={Monitor} path="/users/pos-devices" />
+                <SubmenuItem label={t("pos_devices")} icon={Monitor} path="/pos-devices" />
                 {hasAnyPermission([Permissions?.roles?.view, Permissions?.roles?.all]) && <SubmenuItem label={"الصلاحيات"} icon={Shield} path="/roles" />}
                 {hasAnyPermission([Permissions?.employees?.view, Permissions?.employees?.all]) && <SubmenuItem label={"الموظفين"} icon={Users} path="/employyes" />}
               </motion.div>
@@ -405,37 +425,24 @@ export default function Layout() {
 
             <div className="hidden md:flex items-center bg-[var(--input-bg)] rounded-full px-3 py-1.5 w-60 border border-[var(--border)] focus-within:border-[var(--primary)] focus-within:ring-1 focus-within:ring-[var(--primary)]/20 transition-all">
               <Search size={16} className="text-[var(--text-muted)]" />
-              <Input
-                type="text"
-                placeholder={t("search")}
-                className="bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 h-7 text-xs w-full text-[var(--text-main)] placeholder-[var(--text-muted)] px-2"
-                dir={direction}
-              />
+              <Input type="text" placeholder={t("search")} className="bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0 h-7 text-xs w-full text-[var(--text-main)] placeholder-[var(--text-muted)] px-2" dir={direction} />
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="hidden md:flex items-center gap-2">
-              <button
-                onClick={() => navigate("/sales/create")}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
-              >
-                <LayoutGrid size={16} />
-                <span>{t("sales_a4_quick")}</span>
-              </button>
-
-              <button
-                onClick={() => navigate("/pos")}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
-              >
+              {hasPermission(Permissions?.salesOrders?.addA4) && (
+                <button onClick={() => navigate("/sales/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+                  <LayoutGrid size={16} />
+                  <span>{t("sales_a4_quick")}</span>
+                </button>
+              )}
+              <button onClick={() => navigate("/pos")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                 <ShoppingCart size={16} />
                 <span>{t("pos_quick")}</span>
               </button>
 
-              <button
-                onClick={() => navigate("/products/create")}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95"
-              >
+              <button onClick={() => navigate("/products/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
                 <Package size={16} />
                 <span>{t("add_product")}</span>
               </button>
@@ -634,7 +641,7 @@ export default function Layout() {
                     <button
                       type="button"
                       onClick={async () => {
-                        await logout(email);
+                        await logout();
                         navigate("/");
                         closeAllMenus();
                       }}

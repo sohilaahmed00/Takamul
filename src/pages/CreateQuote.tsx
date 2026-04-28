@@ -22,6 +22,8 @@ import { useGetQuotationById } from "@/features/quotation/hooks/useGetQuotationB
 import { calcVat } from "@/utils/calcVat";
 import { Product } from "@/features/products/types/products.types";
 import { useUpdateQuotation } from "@/features/quotation/hooks/useUpdateQuotation";
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useGetAllEmployees } from "@/features/employees/hooks/useGetAllEmployees";
 
 const QuoteSchema = (t: (key: string) => string) =>
   z.object({
@@ -29,6 +31,7 @@ const QuoteSchema = (t: (key: string) => string) =>
     quotationDate: z.string().min(1, t("date_required")),
     notes: z.string().optional(),
     globalDiscountAmount: z.number().min(0).optional(),
+    employeeId: z.number().optional(),
     items: z
       .array(
         z.object({
@@ -296,6 +299,7 @@ const CreateQuote: React.FC = () => {
   const { id } = useParams();
   const isEditMode = !!id;
   const { data: quotation } = useGetQuotationById(id);
+  const { data: employees } = useGetAllEmployees({ page: 1, limit: 1000 });
   const { fields: itemFields, append: appendItem, remove: removeItem } = useFieldArray({ control: form.control, name: "items" });
   const items = useWatch({ control: form.control, name: "items" });
   const discAmt = Number(useWatch({ control, name: "globalDiscountAmount" })) || 0;
@@ -399,7 +403,7 @@ const CreateQuote: React.FC = () => {
           <form onSubmit={form.handleSubmit(handleSubmit, (errors) => console.log(errors))} className="space-y-6">
             <div className=" p-6 rounded-sm border border-gray-100">
               <h2 className="text-lg font-bold text-gray-800 mb-6">{t("basic_data")}</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <Controller
                   name="quotationDate"
                   control={form.control}
@@ -440,7 +444,33 @@ const CreateQuote: React.FC = () => {
                   )}
                 />
 
-                <div className="lg:col-span-3">
+                <Controller
+                  name="employeeId"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>
+                        الموظف<span className="text-red-500">*</span>
+                      </FieldLabel>
+                      <Select key={field.value} value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(Number(value))}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="اختر الموظف" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            {employees?.items?.map((c) => (
+                              <SelectItem key={c.id} value={String(c.id)}>
+                                {c.firstName}
+                              </SelectItem>
+                            ))}
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+                <div className="lg:col-span-4">
                   <Controller
                     name="notes"
                     control={form.control}

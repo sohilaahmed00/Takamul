@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useGetRoleById } from "@/features/roles/hooks/useGetRoleById";
 import { useUpdateRole } from "@/features/roles/hooks/useUpdateRole";
+import { Permissions } from "@/lib/permissions";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -144,24 +145,19 @@ const GROUPS: Group[] = [
     label: "المبيعات",
     pages: [
       {
-        id: "all_sales",
-        label: "جميع المبيعات",
-        permissions: [{ id: "view", label: "عرض", value: "مبيعات.عرض" }],
-      },
-      {
         id: "invoices_a4",
         label: "فواتير ال a4",
         permissions: [
-          { id: "view", label: "عرض", value: "مبيعات.عرض" },
-          { id: "add", label: "إضافة", value: "مبيعات.إضافة فاتورة ضريبية" },
+          { id: "view", label: "عرض", value: Permissions?.salesOrders?.view },
+          { id: "add", label: "إضافة", value: Permissions?.salesOrders?.addA4 },
         ],
       },
       {
         id: "invoices_pos",
         label: "فواتير ال pos",
         permissions: [
-          { id: "view", label: "عرض", value: "مبيعات.عرض" },
-          { id: "add", label: "إضافة", value: "مبيعات.ضريبية مبسطه" },
+          { id: "view", label: "عرض", value: Permissions?.salesOrders?.pos },
+          { id: "add", label: "إضافة", value: Permissions?.salesOrders?.addpos },
         ],
       },
       {

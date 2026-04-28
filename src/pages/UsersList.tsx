@@ -82,8 +82,8 @@ export default function UsersList() {
             dataKey="id"
           >
             <Column header="الإسم" field="firstName" />
-            <Column header="اسم المستخدم" field="userName" />
-            <Column field="رقم الجوال" header="mobile" />
+            <Column field="userName" header="اسم المستخدم" />
+            <Column header="رقم الجوال" field="mobile" />
             <Column
               header="العمليات"
               body={(raw: User) => (

@@ -26,14 +26,12 @@ import { selectRowsPerPage, useSettingsStore } from "@/features/settings/store/s
 export default function ProductsList() {
   const { direction, t } = useLanguage();
   const rows = useSettingsStore(selectRowsPerPage);
-  const [entriesPerPage, setEntriesPerPage] = useState(rows ?? 5);
-  useEffect(() => {
-    setEntriesPerPage(rows ?? 5);
-  }, [rows]);
+
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   type ProductType = "Direct" | "Branched" | "Prepared" | "RawMatrial";
   const [activeTab, setActiveTab] = useState<ProductType | "allProducts">("allProducts");
+  const entriesPerPage = rows ?? 5;
   const { mutateAsync: deleteProduct } = useDeleteProduct();
   const { data: products, isLoading } = useGetAllProducts(
     {

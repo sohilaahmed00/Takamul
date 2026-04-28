@@ -22,6 +22,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { calcVat } from "@/utils/calcVat";
 import { useGetAllEmployees } from "@/features/employees/hooks/useGetAllEmployees";
 import z from "zod";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 const SalesInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -172,12 +173,14 @@ const CreateSalesInvoice: React.FC = () => {
       const price = item.price || 0;
       const discType = item.discountType || "fixed";
       const discValue = item.discountValue || 0;
-      const taxRate = product?.taxAmount || 0;
+      const originalPrice = product?.sellingPrice || 1;
+      const originalTax = product?.taxAmount || 0;
+      const taxPercentage = originalTax / originalPrice;
       const taxCalc = product?.taxCalculation ?? 1;
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
       const afterDisc = Math.max(0, gross - discount);
-      const vatAmount = calcVat(afterDisc, taxRate, taxCalc);
+      const vatAmount = taxCalc === 1 ? 0 : afterDisc * taxPercentage;
       const beforeTax = afterDisc - vatAmount;
 
       beforeTaxTotal += beforeTax;
@@ -187,16 +190,25 @@ const CreateSalesInvoice: React.FC = () => {
     return { beforeTaxTotal, totalVat };
   }, [items, products]);
 
-  const finalTotal = useMemo(() => {
-    let total = beforeTaxTotal + totalVat;
-
+  const { finalTotal, adjustedVat, adjustedBeforeTax } = useMemo(() => {
+    let discountedBeforeTax = beforeTaxTotal; // السعر الاجمالي قبل الضريبة قبل الخصم
     if (invoiceDiscountType === "fixed") {
-      total -= invoiceDiscountValue || 0;
+      discountedBeforeTax = Math.max(0, beforeTaxTotal - (invoiceDiscountValue || 0));
     } else {
-      total -= total * ((invoiceDiscountValue || 0) / 100);
+      discountedBeforeTax = beforeTaxTotal * (1 - (invoiceDiscountValue || 0) / 100);
     }
 
-    return Math.max(0, total);
+    const ratio = beforeTaxTotal > 0 ? discountedBeforeTax / beforeTaxTotal : 0;
+
+    const adjustedVat = totalVat * ratio;
+
+    const finalTotal = discountedBeforeTax + adjustedVat;
+
+    return {
+      finalTotal: Math.max(0, finalTotal),
+      adjustedVat,
+      adjustedBeforeTax: discountedBeforeTax,
+    };
   }, [beforeTaxTotal, totalVat, invoiceDiscountType, invoiceDiscountValue]);
 
   const totalPaid = useMemo(() => {
@@ -243,13 +255,21 @@ const CreateSalesInvoice: React.FC = () => {
       description: "",
       globalDiscountPercentage: data.invoiceDiscountType === "percentage" ? (data.invoiceDiscountValue ?? 0) : 0,
       globalDiscountValue: data.invoiceDiscountType === "fixed" ? (data.invoiceDiscountValue ?? 0) : 0,
-      items: data.items.map((item) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.price,
-        discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
-        discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
-      })),
+      items: data.items.map((item) => {
+        const product = products?.items?.find((p) => p.id === Number(item.productId));
+        const originalPrice = product?.sellingPrice || 1;
+        const originalTax = product?.taxAmount || 0;
+        const taxCalc = product?.taxCalculation ?? 0;
+        const beforeTax = taxCalc === 1 ? item.price : originalPrice - originalTax;
+
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: beforeTax,
+          discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
+          discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
+        };
+      }),
       payments: data.payments.map((p) => ({
         amount: p.amount,
         treasuryId: p.treasuryId,
@@ -262,6 +282,8 @@ const CreateSalesInvoice: React.FC = () => {
     form.reset();
     navigate("/sales/all");
   };
+
+  const allowPriceChangeOnSale = useSettingsStore((s) => s.settings?.items?.allowPriceChangeOnSale);
 
   return (
     <>
@@ -283,7 +305,7 @@ const CreateSalesInvoice: React.FC = () => {
           <form onSubmit={form.handleSubmit(handleSubmit, (errors) => console.log(errors))} className="space-y-6">
             <div className="bg-background p-6 rounded-sm border border-border">
               <h2 className="text-lg font-bold text-foreground mb-6">{t("basic_data")}</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <Controller
                   name="orderDate"
                   control={form.control}
@@ -371,7 +393,7 @@ const CreateSalesInvoice: React.FC = () => {
                   )}
                 />
 
-                <div className="lg:col-span-4  col-span-1">
+                <div className="lg:col-span-5  col-span-1">
                   <Controller
                     name="notes"
                     control={form.control}
@@ -412,21 +434,23 @@ const CreateSalesInvoice: React.FC = () => {
 
                       <div className="space-y-3 mt-3">
                         {itemFields.map((item, index) => {
-                          const qty = Number(items[index]?.quantity || 0);
-                          const price = Number(items[index]?.price || 0);
+                          const qty = Number(form.watch(`items.${index}.quantity`) || 0);
+                          const price = Number(form.watch(`items.${index}.price`) || 0);
                           const discType = form.watch(`items.${index}.discountType`) || "fixed";
                           const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
                           const productId = form.watch(`items.${index}.productId`);
                           const product = products?.items?.find((p) => p.id === Number(productId));
-                          const taxRate = product?.taxAmount || 0;
+                          const originalPrice = product?.sellingPrice || 1;
+                          const originalTax = product?.taxAmount || 0;
+                          const taxPercentage = originalTax / originalPrice;
                           const taxCalc = product?.taxCalculation ?? 0;
                           const gross = qty * price;
                           const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                           const afterDiscount = Math.max(0, gross - discount);
-                          const beforeTax = taxCalc === 3 ? afterDiscount / (1 + taxRate / 100) : taxCalc === 2 ? afterDiscount / (1 + taxRate / 100) : afterDiscount;
-                          const vatAmount = taxCalc === 2 ? calcVat(afterDiscount, taxRate, taxCalc) : calcVat(beforeTax, taxRate, taxCalc);
-                          const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة " : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
-                          const grandTotal = beforeTax + vatAmount;
+                          const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
+                          const beforeTax = afterDiscount - vatAmount;
+                          const grandTotal = afterDiscount;
+                          const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                           const isDiscOpen = !!discountOpen[index];
 
                           return (
@@ -475,7 +499,7 @@ const CreateSalesInvoice: React.FC = () => {
                                   name={`items.${index}.price`}
                                   render={({ field, fieldState }) => (
                                     <Field>
-                                      <Input type="number" value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                                      <Input type="number" readOnly={!allowPriceChangeOnSale} value={field.value ?? 0} onChange={(e) => field.onChange(Number(e.target.value))} className={`text-center ${!allowPriceChangeOnSale ? "cursor-not-allowed opacity-70" : ""}`} />
                                       {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                                     </Field>
                                   )}
@@ -578,7 +602,7 @@ const CreateSalesInvoice: React.FC = () => {
                           name={`payments.${index}.treasuryId`}
                           render={({ field, fieldState }) => (
                             <Field>
-                              <Select value={field.value?.toString()} onValueChange={(val) => field.onChange(Number(val))}>
+                              <Select key={field.value} value={field.value?.toString()} onValueChange={(val) => field.onChange(Number(val))}>
                                 <SelectTrigger>
                                   <SelectValue placeholder={t("choose")} />
                                 </SelectTrigger>
@@ -617,18 +641,18 @@ const CreateSalesInvoice: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center text-muted-foreground">
                       <span className="text-sm font-medium">{t("subtotal_before_tax")}</span>
-                      <span className="font-semibold text-foreground">{beforeTaxTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="font-semibold text-foreground">{adjustedBeforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-muted-foreground">
                       <span className="text-sm font-medium">{t("vat")}</span>
-                      <span className="font-semibold text-orange-500">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                      <span className="font-semibold text-orange-500">{adjustedVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     <div className="flex justify-between items-center text-muted-foreground gap-3">
                       <span className="text-sm font-medium whitespace-nowrap">{t("discount")}</span>
                       <div className="flex gap-2 w-full max-w-[220px]">
-                        <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" min={0} value={field.value ? field.value : undefined} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center flex-1 min-w-[90px]" placeholder={t("value")} />} />
+                        <Controller control={form.control} name="invoiceDiscountValue" render={({ field }) => <Input type="number" step={"any"} min={0} value={field.value ? field.value : undefined} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center flex-1 min-w-[90px]" placeholder={t("value")} />} />
                         <Controller
                           control={form.control}
                           name="invoiceDiscountType"

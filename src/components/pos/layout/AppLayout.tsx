@@ -35,7 +35,10 @@ function PageContent() {
 }
 
 export default function AppLayout() {
-  const { setSelectedItemIdx, setCart, cart, selectedItemIdx } = usePos();
+  const { setSelectedItemIdx, setScreen, setCart, cart, selectedItemIdx } = usePos();
+  useEffect(() => {
+    setScreen("home");
+  }, []);
   useEffect(() => {
     const init = async () => {
       try {

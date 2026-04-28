@@ -143,12 +143,14 @@ const CreateReturnSalesInvoice: React.FC = () => {
       const price = item.price || 0;
       const discType = item.discountType || "fixed";
       const discValue = item.discountValue || 0;
-      const taxRate = product?.taxAmount || 0;
+      const originalPrice = product?.sellingPrice || 1;
+      const originalTax = product?.taxAmount || 0;
+      const taxPercentage = originalTax / originalPrice;
       const taxCalc = product?.taxCalculation ?? 1;
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
       const afterDisc = Math.max(0, gross - discount);
-      const vatAmount = calcVat(afterDisc, taxRate, taxCalc);
+      const vatAmount = taxCalc === 1 ? 0 : afterDisc * taxPercentage;
       const beforeTax = afterDisc - vatAmount;
 
       beforeTaxTotal += beforeTax;
@@ -203,8 +205,8 @@ const CreateReturnSalesInvoice: React.FC = () => {
       orderDate: salesReturnOrderDetails?.returnDate ? salesReturnOrderDetails?.returnDate?.split("T")[0] : detailsSalesOrder?.orderDate?.split("T")[0],
       items: items.map((item) => {
         return {
-          price: item?.unitPrice,
           productId: item?.productId,
+          price: item?.priceAfterTax,
           unitName: units?.items?.find((unit) => unit?.id == item?.unitId)?.name,
           discountType: item?.discountValue ? "fixed" : "percentage",
           discountValue: item?.discountValue ? item?.discountValue : item?.discountPercentage,
@@ -323,13 +325,17 @@ const CreateReturnSalesInvoice: React.FC = () => {
                     const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
                     const productId = form.watch(`items.${index}.productId`);
                     const product = products?.items?.find((p) => p.id === Number(productId));
-                    const taxRate = product?.taxAmount || 0;
-                    const taxCalc = product?.taxCalculation ?? 1;
+                    const originalPrice = product?.sellingPrice || 1;
+                    const originalTax = product?.taxAmount || 0;
+                    const taxPercentage = originalTax / originalPrice;
+                    const taxCalc = product?.taxCalculation ?? 0;
                     const gross = qty * price;
                     const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
-                    const afterTax = Math.max(0, gross - discount);
-                    const vatAmount = calcVat(afterTax, taxRate, taxCalc);
-                    const beforeTax = afterTax - vatAmount;
+                    const afterDiscount = Math.max(0, gross - discount);
+                    const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
+                    const beforeTax = afterDiscount - vatAmount;
+                    const grandTotal = afterDiscount;
+                    const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                     const isDiscOpen = !!discountOpen[index];
 
                     return (
@@ -400,7 +406,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
                           <div className="text-center text-orange-500 font-medium">{vatAmount.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
 
-                          <div className="text-center text-green-500 font-bold">{afterTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                          <div className="text-center text-green-500 font-bold">{grandTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
 
                           <div className="flex items-center justify-center gap-2">
                             <button type="button" onClick={() => removeItem(index)} disabled={itemFields.length === 1} className="p-2 text-muted-foreground hover:text-red-500 disabled:opacity-30">
@@ -447,12 +453,12 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">{t("subtotal_before_tax")}</span>
-                    <span className="font-semibold text-foreground tabular-nums">{beforeTaxTotal.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                    <span className="font-semibold text-foreground tabular-nums">{beforeTaxTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">{t("vat")}</span>
-                    <span className="font-semibold text-amber-600 tabular-nums">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                    <span className="font-semibold text-amber-600 tabular-nums">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
 
                   <hr className="border-border" />

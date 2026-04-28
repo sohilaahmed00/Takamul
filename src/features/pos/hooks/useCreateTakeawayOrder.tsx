@@ -7,7 +7,7 @@ import { CreateTakeawayOrder } from "../types/pos.types";
 import { posKeys } from "../keys/pos.keys";
 import { salesKeys } from "@/features/sales/keys/sales.keys";
 
-export function useCreateTakwayOrder() {
+export function useCreateTakwayOrder({ showSuccess = true }: { showSuccess?: boolean } = {}) {
   const queryClient = useQueryClient();
   const { notifyError, notifySuccess } = useToast();
   return useMutation({
@@ -16,7 +16,9 @@ export function useCreateTakwayOrder() {
       console.log(response);
       queryClient.invalidateQueries({ queryKey: salesKeys.all });
       queryClient.invalidateQueries({ queryKey: posKeys.all });
-      handleApiSuccess(response?.message, notifySuccess);
+      if (showSuccess) {
+        handleApiSuccess(response?.message, notifySuccess);
+      }
     },
     onError: (error) => handleApiError(error, notifyError),
   });

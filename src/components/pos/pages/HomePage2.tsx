@@ -59,7 +59,7 @@ export default function HomePage2() {
 
   const addToCart = useCallback(
     (item: Product) => {
-      const price = item.taxCalculation === 3 ? item.priceBeforeTax : item.sellingPrice;
+      const price = item.sellingPrice;
       setCart((prev) => {
         const existing = prev.find((i) => i.productId === item.id);
         if (existing) {

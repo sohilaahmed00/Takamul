@@ -51,12 +51,14 @@ export interface HeldCart {
 
 export function itemBasePriceRaw(item: Omit<CartItem, "name" | "op" | "productId" | "note">): number {
   const base = item.price * item.qty;
-  const rate = (item.taxamount ?? 0) / 100;
-  return item.taxCalculation === 2 ? base / (1 + rate) : base;
-}
+  const taxValue = (item.taxamount ?? 0) * item.qty;
+  if (item.taxCalculation === 2 || item.taxCalculation === 3) return base - taxValue;
 
+  return base;
+}
 export function itemBasePrice(item: Omit<CartItem, "name" | "op" | "productId" | "note">): number {
   const baseBeforeTax = itemBasePriceRaw(item);
+
   if (item.itemDiscount) {
     const disc = item.itemDiscount.type === "pct" ? baseBeforeTax * (item.itemDiscount.value / 100) : item.itemDiscount.value;
     return Math.max(0, baseBeforeTax - disc);
@@ -65,14 +67,10 @@ export function itemBasePrice(item: Omit<CartItem, "name" | "op" | "productId" |
 }
 
 export function calcItemTax(item: CartItem): number {
-  const rate = (item.taxamount ?? 0) / 100;
-
   if (!item.taxCalculation || item.taxCalculation === 1) return 0;
 
-  const basePrice = itemBasePrice(item);
-
   if (item.taxCalculation === 2 || item.taxCalculation === 3) {
-    return basePrice * rate;
+    return item.taxamount * item.qty;
   }
 
   return 0;
@@ -95,9 +93,7 @@ export function calcTotals(cart: CartItem[], discount: { type: "pct" | "flat"; v
   const tax = parseFloat(
     cart
       .reduce((s, item) => {
-        const rate = (item.taxamount ?? 0) / 100;
-        const itemBaseAfterDiscount = itemBasePrice(item) * (1 - discountRatio);
-        return s + itemBaseAfterDiscount * rate;
+        return s + (item.taxamount ?? 0) * item.qty * (1 - discountRatio);
       }, 0)
       .toFixed(2),
   );
