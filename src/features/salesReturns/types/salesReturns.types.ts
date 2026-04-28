@@ -6,7 +6,7 @@ export interface CreateSalesReturns {
   returnDate: string;
   reason: string;
   refundMethod: string;
-  treasuryId: number;
+  discountAmount: number;
   items: {
     originalItemId: number;
     productId: number;

@@ -257,16 +257,20 @@ const CreateSalesInvoice: React.FC = () => {
       globalDiscountValue: data.invoiceDiscountType === "fixed" ? (data.invoiceDiscountValue ?? 0) : 0,
       items: data.items.map((item) => {
         const product = products?.items?.find((p) => p.id === Number(item.productId));
-        const originalPrice = product?.sellingPrice || 1;
-        const originalTax = product?.taxAmount || 0;
+        const price = item?.price || 0;
         const taxCalc = product?.taxCalculation ?? 0;
-        const beforeTax = taxCalc === 1 ? item.price : originalPrice - originalTax;
-
+        const originalPrice = product?.sellingPrice || 0;
+        const originalTax = product?.taxAmount || 0;
+        const beforeTaxOld = originalPrice - originalTax;
+        const taxPercentage = beforeTaxOld > 0 ? originalTax / beforeTaxOld : 0;
+        const beforeTax = taxCalc === 1 ? price : price / (1 + taxPercentage);
         return {
           productId: item.productId,
           quantity: item.quantity,
-          unitPrice: beforeTax,
+          unitPrice: Number(beforeTax.toFixed(2)),
+
           discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
+
           discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
         };
       }),
@@ -687,7 +691,7 @@ const CreateSalesInvoice: React.FC = () => {
 
                     <div className="flex justify-between items-center bg-background p-3 rounded-lg border border-border mt-2">
                       <span className="text-sm font-bold text-foreground">{t("remaining_to_pay")}</span>
-                      <span className={`font-black text-lg ${remaining > 0 ? "text-red-500" : "text-muted-foreground"}`}>{remaining.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                      <span className={`font-black text-lg ${remaining > 0 ? "text-red-500" : "text-muted-foreground"}`}>{remaining.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                   </div>
                 </div>

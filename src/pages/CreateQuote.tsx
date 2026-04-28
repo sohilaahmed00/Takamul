@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Trash2, Plus, ArrowLeft, Tag, ReceiptText, X } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
 import z from "zod";
@@ -92,13 +92,14 @@ const QuoteSummaryContent: React.FC<{
     const taxRate = product?.taxAmount || 0;
     const qty = Number(item.quantity) || 0;
     const price = Number(item.unitPrice) || 0;
+    const taxPercentage = taxRate / price;
     const dType = item.discountType || "fixed";
     const dVal = Number(item.discountValue) || 0;
     const gross = qty * price;
     const disc = dType === "fixed" ? dVal : gross * (dVal / 100);
     const afterTax = Math.max(0, gross - disc);
     const taxCalc = product?.taxCalculation ?? 1;
-    const tax = calcVat(afterTax, taxRate, taxCalc);
+    const tax = taxCalc === 1 ? 0 : afterTax * taxPercentage;
     const beforeTax = afterTax - tax;
 
     return { name, unitName, qty, price, disc, beforeTax, tax, total: beforeTax + tax };
@@ -107,8 +108,24 @@ const QuoteSummaryContent: React.FC<{
   const subtotal = calcedItems.reduce((s, i) => s + i.beforeTax, 0);
   const totalTax = calcedItems.reduce((s, i) => s + i.tax, 0);
   const globalDisc = discType === "fixed" ? discValue : subtotal * (discValue / 100);
-  const grandTotal = Math.max(0, subtotal + totalTax - globalDisc - discountAmount);
   const activeItems = calcedItems.filter((i) => i.name);
+  const globalDiscountAmount = Number(useWatch({ control, name: "globalDiscountAmount" })) || 0;
+
+  const { finalTotal, adjustedVat, adjustedBeforeTax } = useMemo(() => {
+    const discountedBeforeTax = Math.max(0, subtotal - globalDiscountAmount);
+
+    const ratio = subtotal > 0 ? discountedBeforeTax / subtotal : 0;
+
+    const adjustedVat = totalTax * ratio;
+
+    const finalTotal = discountedBeforeTax + adjustedVat;
+
+    return {
+      finalTotal: Math.max(0, finalTotal),
+      adjustedVat,
+      adjustedBeforeTax: discountedBeforeTax,
+    };
+  }, [subtotal, totalTax, globalDiscountAmount]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -160,13 +177,13 @@ const QuoteSummaryContent: React.FC<{
       <div>
         <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-3">{t("amounts")}</p>
         <div className="space-y-1.5">
-          <SRow label={t("total")} value={fmt(subtotal)} />
-          {totalTax > 0 && <SRow label={t("tax")} value={`+ ${fmt(totalTax)}`} color="text-amber-500" />}
+          <SRow label={t("total")} value={fmt(adjustedBeforeTax)} />
+          {adjustedVat > 0 && <SRow label={t("tax")} value={`+ ${fmt(adjustedVat)}`} color="text-amber-500" />}
           {globalDisc + discountAmount > 0 && <SRow label={t("discount")} value={`- ${fmt(globalDisc + discountAmount)}`} color="text-emerald-600" />}
         </div>
         <div className="border-t border-dashed border-zinc-200 mt-3 pt-3 flex justify-between items-baseline">
           <span className="text-xs text-zinc-500">{t("final_total")}</span>
-          <span className="text-xl font-bold text-zinc-900">{fmt(grandTotal)}</span>
+          <span className="text-xl font-bold text-zinc-900">{fmt(finalTotal)}</span>
         </div>
       </div>
       {notes && (
@@ -340,11 +357,14 @@ const CreateQuote: React.FC = () => {
       const price = Number(item.unitPrice) || 0;
       const dType = item.discountType || "fixed";
       const dVal = Number(item.discountValue) || 0;
+      const originalPrice = product?.sellingPrice || 1;
+      const originalTax = product?.taxAmount || 0;
+      const taxPercentage = originalTax / originalPrice;
+      const taxCalc = product?.taxCalculation ?? 0;
       const gross = qty * price;
       const disc = dType === "fixed" ? dVal * qty : gross * (dVal / 100);
       const afterDisc = Math.max(0, gross - disc);
-      const taxCalc = product?.taxCalculation ?? 1;
-      const vatAmount = calcVat(afterDisc, product.taxAmount || 0, taxCalc);
+      const vatAmount = taxCalc === 1 ? 0 : afterDisc * taxPercentage;
       const beforeTax = afterDisc - vatAmount;
 
       subtotal += beforeTax;
@@ -505,20 +525,23 @@ const CreateQuote: React.FC = () => {
 
                     <div className="space-y-1 mt-3">
                       {itemFields.map((item, index) => {
-                        const qty = Number(items[index]?.quantity || 0);
-                        const price = Number(items[index]?.unitPrice || 0);
+                        const qty = Number(form.watch(`items.${index}.quantity`) || 0);
+                        const price = Number(form.watch(`items.${index}.unitPrice`) || 0);
                         const discType = form.watch(`items.${index}.discountType`) || "fixed";
                         const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
                         const productId = form.watch(`items.${index}.productId`);
                         const product = products?.items?.find((p) => p.id === Number(productId));
-                        const taxRate = product?.taxAmount || 0;
-                        const taxCalc = product?.taxCalculation ?? 1;
+                        const originalPrice = product?.sellingPrice || 1;
+                        const originalTax = product?.taxAmount || 0;
+                        const taxPercentage = originalTax / originalPrice;
+                        const taxCalc = product?.taxCalculation ?? 0;
                         const gross = qty * price;
                         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                         const afterDiscount = Math.max(0, gross - discount);
-                        const beforeTax = taxCalc === 3 ? afterDiscount / (1 + taxRate / 100) : taxCalc === 2 ? afterDiscount / (1 + taxRate / 100) : afterDiscount;
-                        const afterTax = Math.max(0, gross - discount);
-                        const vatAmount = taxCalc === 2 ? calcVat(afterDiscount, taxRate, taxCalc) : calcVat(beforeTax, taxRate, taxCalc);
+                        const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
+                        const beforeTax = afterDiscount - vatAmount;
+                        const grandTotal = afterDiscount;
+                        const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                         const isDiscOpen = !!discountOpen[index];
 
                         return (
@@ -602,7 +625,7 @@ const CreateQuote: React.FC = () => {
                               </div>
                               <div className="flex items-center md:justify-center font-medium text-green-700 mt-2 md:mt-0 px-2 h-9">
                                 <FieldLabel className="md:hidden text-xs text-zinc-500 ml-auto">{t("total_including_tax")}:</FieldLabel>
-                                {afterTax.toLocaleString("en-EG", {
+                                {grandTotal.toLocaleString("en-EG", {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
                                 })}

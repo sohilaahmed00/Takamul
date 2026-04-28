@@ -164,7 +164,7 @@ const CreatePurchaseInvoice: React.FC = () => {
       payments:
         purchaseOrder.payments?.length > 0
           ? purchaseOrder.payments.map((payment) => ({
-              amount: payment.paidAmount,
+              amount: payment.amount,
               treasuryId: payment.treasuryId,
             }))
           : [{ amount: 0, treasuryId: 0 }],
@@ -488,9 +488,7 @@ const CreatePurchaseInvoice: React.FC = () => {
                               })}
                             </div>
 
-                            <div className="self-start pt-2 text-center text-green-600 font-bold">
-                              <div className="self-start pt-2 text-center text-green-600 font-bold">{grandTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                            </div>
+                            <div className="self-start pt-2 text-center text-green-600 font-bold">{grandTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
 
                             <div className="flex items-center justify-center gap-2">
                               <button type="button" onClick={() => removeItem(index)} className="p-2 text-zinc-400 hover:text-red-500">

@@ -208,7 +208,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                               setScreen("home");
                               setCart(
                                 order.items.map((item) => ({
-                                  price: item?.unitPrice ?? 0,
+                                  price: item?.priceAfterTax ?? 0,
                                   qty: item?.quantity,
                                   taxamount: item?.taxAmount,
                                   taxCalculation: item.taxCalculation,

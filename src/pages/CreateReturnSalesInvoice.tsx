@@ -47,7 +47,7 @@ const ReturnInvoiceSchema = (t: (key: string) => string) =>
       .min(1, t("must_add_at_least_one_item")),
 
     invoiceDiscountType: z.enum(["percentage", "fixed"]).default("fixed"),
-    invoiceDiscountValue: z.number().min(0).default(0),
+    invoiceDiscountValue: z.number().min(0).optional(),
   });
 
 type SalesInvoiceType = z.input<ReturnType<typeof ReturnInvoiceSchema>>;
@@ -132,7 +132,13 @@ const CreateReturnSalesInvoice: React.FC = () => {
     control: form.control,
     name: "items",
   });
-
+  const enableDiscountAmount = useMemo(() => {
+    return items?.some((item) => {
+      const originalItem = detailsSalesOrder?.items.find((i) => i.productId === item.productId);
+      const originalQty = originalItem?.quantity ?? item.quantity;
+      return item.quantity < originalQty;
+    });
+  }, [items, detailsSalesOrder?.items]);
   const { beforeTaxTotal, totalVat } = useMemo(() => {
     let beforeTaxTotal = 0;
     let totalVat = 0;
@@ -160,16 +166,24 @@ const CreateReturnSalesInvoice: React.FC = () => {
     return { beforeTaxTotal, totalVat };
   }, [items, products]);
 
-  const finalTotal = useMemo(() => {
-    let total = beforeTaxTotal + totalVat;
+  const { finalTotal, adjustedVat, adjustedBeforeTax } = useMemo(() => {
+    let total = beforeTaxTotal;
 
     if (invoiceDiscountType === "fixed") {
       total -= invoiceDiscountValue || 0;
     } else {
       total -= total * ((invoiceDiscountValue || 0) / 100);
     }
+    const ratio = beforeTaxTotal > 0 ? total / beforeTaxTotal : 0;
+    const adjustedVat = totalVat * ratio;
 
-    return Math.max(0, total);
+    const finalTotal = total + adjustedVat;
+
+    return {
+      finalTotal: Math.max(0, finalTotal),
+      adjustedVat,
+      adjustedBeforeTax: total,
+    };
   }, [beforeTaxTotal, totalVat, invoiceDiscountType, invoiceDiscountValue]);
 
   const handleSubmit = async (data: SalesInvoiceType) => {
@@ -179,7 +193,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
       warehouseId: data.warehouseId,
       reason: data.notes || "",
       refundMethod: "CashFromTreasury",
-      treasuryId: 1,
+      discountAmount: data?.invoiceDiscountValue,
       items: data.items.map((formItem) => {
         const originalItem = detailsSalesOrder?.items.find((item) => item.productId === formItem.productId);
         return {
@@ -203,16 +217,18 @@ const CreateReturnSalesInvoice: React.FC = () => {
       customerId: salesReturnOrderDetails?.customerId ?? detailsSalesOrder?.customerId,
       notes: salesReturnOrderDetails?.reason ?? detailsSalesOrder?.notes,
       orderDate: salesReturnOrderDetails?.returnDate ? salesReturnOrderDetails?.returnDate?.split("T")[0] : detailsSalesOrder?.orderDate?.split("T")[0],
+      invoiceDiscountValue: salesReturnOrderDetails?.discountAmount || detailsSalesOrder?.discountAmount,
       items: items.map((item) => {
         return {
           productId: item?.productId,
           price: item?.priceAfterTax,
           unitName: units?.items?.find((unit) => unit?.id == item?.unitId)?.name,
-          discountType: item?.discountValue ? "fixed" : "percentage",
-          discountValue: item?.discountValue ? item?.discountValue : item?.discountPercentage,
+          // discountType: item?.discountValue ? "fixed" : "percentage",
+          // discountValue: item?.discountValue ? item?.discountValue : item?.discountPercentage,
           quantity: item?.quantity,
         };
       }),
+      invoiceDiscountType: "fixed",
       // payments: detailsSalesOrder?.payments.map((payment) => ({
       //   amount: payment?.amount,
       //   paymentMethod: payment?.paymentMethod,
@@ -238,7 +254,7 @@ const CreateReturnSalesInvoice: React.FC = () => {
           <form onSubmit={form.handleSubmit(handleSubmit, (errors) => console.log(errors))} className="space-y-6">
             <div className="bg-white dark:bg-transparent p-6 rounded-sm border border-gray-100 dark:border-gray-800">
               <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-6">{t("basic_data")}</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 <Controller
                   name="orderDate"
                   control={form.control}
@@ -284,7 +300,18 @@ const CreateReturnSalesInvoice: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="lg:col-span-3">
+                <Controller
+                  name="invoiceDiscountValue"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel>{t("discount_amount_value")} </FieldLabel>
+                      <Input type="number" value={field.value ?? ""} disabled={!enableDiscountAmount} onChange={(e) => field.onChange(Number(e.target.value))} className="text-center" />
+                      {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    </Field>
+                  )}
+                />
+                <div className="lg:col-span-4">
                   <Controller
                     name="notes"
                     control={form.control}
@@ -453,19 +480,19 @@ const CreateReturnSalesInvoice: React.FC = () => {
 
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">{t("subtotal_before_tax")}</span>
-                    <span className="font-semibold text-foreground tabular-nums">{beforeTaxTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span className="font-semibold text-foreground tabular-nums">{adjustedBeforeTax.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
 
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-muted-foreground">{t("vat")}</span>
-                    <span className="font-semibold text-amber-600 tabular-nums">{totalVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                    <span className="font-semibold text-amber-600 tabular-nums">{adjustedVat.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
 
                   <hr className="border-border" />
 
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-bold text-foreground">{t("grand_total")}</span>
-                    <span className="text-2xl font-black text-primary tabular-nums">{finalTotal.toLocaleString("en-EG", { minimumFractionDigits: 2 })}</span>
+                    <span className="text-2xl font-black text-primary tabular-nums">{finalTotal.toLocaleString("en-EG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   </div>
                 </div>
               </div>
