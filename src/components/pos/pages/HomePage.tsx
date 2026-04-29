@@ -48,11 +48,6 @@ export default function HomePage() {
   );
 
   const addToCart = (item: { id: number; productNameAr: string; sellingPrice: number; taxAmount: number; taxCalculation: number; productNameEn?: string; productNameUr?: string }) => {
-    if (holdingOrderId) {
-      notifyError("لا يمكن إضافة أصناف لطلب محجوز");
-      return;
-    }
-
     setCart((prev) => {
       const existing = prev.find((i) => i.productId === item.id);
       if (existing) {
