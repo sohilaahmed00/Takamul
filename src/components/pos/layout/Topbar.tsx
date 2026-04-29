@@ -5,12 +5,13 @@ import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover"
 import { Input } from "@/components/ui/input";
 import { Product } from "@/features/products/types/products.types";
 import { usePos } from "@/context/PosContext";
+import { usePosStore } from "@/features/pos/store/usePosStore";
 
 export default function Topbar() {
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000 });
   const { t } = useLanguage();
   const [search, setSearch] = useState("");
-  const { setCart } = usePos();
+  const { setCart } = usePosStore();
   const [open, setOpen] = useState(false);
 
   const filteredProducts =
