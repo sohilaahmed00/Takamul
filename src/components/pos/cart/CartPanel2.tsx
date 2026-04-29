@@ -173,7 +173,7 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
   };
 
   const handleCompleteInvoice = () => {
-    setHoldingOrderId(order?.id);
+    setHoldingOrderId(order?.holdingOrderId);
     setCart(
       order.items.map((item) => ({
         price: item?.priceAfterTax,

@@ -260,7 +260,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       items,
       payments,
       isHolding,
-      holdingOrderId: holdingOrderId,
+      holdingOrderId: holdingOrderId ? holdingOrderId : 0,
     };
 
     try {

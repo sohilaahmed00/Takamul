@@ -45,6 +45,8 @@ export interface SalesOrder {
   notes: string;
   items: OrderItem[];
   payments: OrderPayment[];
+  isHolding: boolean;
+  holdingOrderId: number;
 }
 
 export type CreateSalesOrder = {
