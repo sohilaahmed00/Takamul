@@ -169,6 +169,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                   taxamount: item?.taxAmount,
                                   taxCalculation: item?.taxCalculation,
                                   productId: item?.id,
+                                  taxPercentage: item?.taxPercentage,
                                   op: null,
                                 };
                                 const base = itemBasePrice(tt);
@@ -211,6 +212,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                   op: null,
                                   taxamount: item.quantity ? (item.taxAmount ?? 0) / item.quantity : 0,
                                   taxCalculation: item.taxCalculation,
+                                  taxPercentage: item?.taxPercentage,
                                   itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
                                   extras: [],
                                 })),

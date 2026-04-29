@@ -17,7 +17,7 @@ export const INSTITUTION_PHONE = "05XXXXXXXX";
 export const INSTITUTION_NOTES = "";
 export const LOGO_URL: string | undefined = undefined;
 
-export type AddToCartProduct = Pick<Product, "id" | "productNameAr" | "productNameEn" | "productNameUr" | "sellingPrice" | "taxAmount" | "taxCalculation">;
+export type AddToCartProduct = Pick<Product, "id" | "productNameAr" | "productNameEn" | "productNameUr" | "sellingPrice" | "taxAmount" | "taxCalculation" | "taxPercentage">;
 interface PosState {
   screen: Screen;
   setScreen: (s: Screen) => void;
@@ -167,6 +167,7 @@ export const usePosStore = create<PosState>((set, get) => ({
             taxamount: product.taxAmount,
             taxCalculation: product.taxCalculation,
             itemDiscount: null,
+            taxPercentage: product?.taxPercentage,
             extras: [],
           },
         ],
@@ -335,12 +336,14 @@ export const usePosStore = create<PosState>((set, get) => ({
       globalDiscountPercentage: discount.type === "pct" ? discount.value : 0,
       giftCardId: selectedGiftCardId,
       additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
-      items: cart.map((cat) => ({
-        productId: cat?.productId,
-        quantity: cat?.qty,
-        discountValue: cat?.itemDiscount?.type === "flat" ? cat?.itemDiscount?.value : 0,
-        discountPercentage: cat?.itemDiscount?.type === "pct" ? cat?.itemDiscount?.value : 0,
-      })),
+      items: cart.map((cat) => {
+        return {
+          productId: cat?.productId,
+          quantity: cat?.qty,
+          discountValue: cat?.itemDiscount?.type === "flat" ? cat?.itemDiscount?.value : 0,
+          discountPercentage: cat?.itemDiscount?.type === "pct" ? cat?.itemDiscount?.value : 0,
+        };
+      }),
       payments,
       isHolding,
       holdingOrderId: holdingOrderId ? holdingOrderId : 0,

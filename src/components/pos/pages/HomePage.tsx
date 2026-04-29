@@ -129,6 +129,7 @@ export default function HomePage() {
             taxamount: product.taxAmount,
             productId: product.id,
             taxCalculation: product.taxCalculation,
+            taxPercentage: product?.taxPercentage,
           },
         ];
       });
