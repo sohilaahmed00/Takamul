@@ -100,7 +100,7 @@ export default function AddQuantityAdjustment() {
               stockInventoryId: Number(match?.id ?? 0),
               operationType: item.operationType,
               quantity: Number(item.quantityChanged ?? 1),
-              quantityChanged: item.operationType === "Add" ? item.quantity - item.quantityChanged : item.quantity + item.quantityChanged,
+              quantityChanged: item.quantityBefore ?? (item.operationType === "Add" ? item.quantity - item.quantityChanged : item.quantity + item.quantityChanged),
               notes: item.notes ?? "",
             };
           }) ?? [],
@@ -227,12 +227,13 @@ export default function AddQuantityAdjustment() {
             <div className="col-span-3 border-b border-zinc-200 dark:border-zinc-800 pb-8 min-w-0">
               <h2 className="text-lg font-bold text-zinc-900 dark:text-white mb-6">{t("items_list")}</h2>
 
-              <div className="hidden md:grid md:grid-cols-6 gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
+              <div className="hidden md:grid md:grid-cols-7 gap-4 px-2 pb-3 border-b border-zinc-200 text-xs font-medium text-zinc-400 uppercase tracking-widest items-center">
                 <div>{t("product_name")}</div>
                 <div>{t("product_code")}</div>
-                <div>{t("available_quantity")}</div>
+                <div>{t("available_quantity_before_operation")}</div>
                 <div>{t("operation_type")}</div>
-                <div>{t("quantity")}</div>
+                <div>{t("operation_quantity")}</div>
+                <div>{t("available_quantity_after_operation")}</div>
                 <div></div>
               </div>
 
@@ -240,9 +241,16 @@ export default function AddQuantityAdjustment() {
                 {itemFields.map((item, index) => {
                   const selectedId = form.watch(`items.${index}.stockInventoryId`);
                   const selectedProduct = inventoryMap[selectedId];
+                  const operationType = form.watch(`items.${index}.operationType`);
+                  const quantityChanged = form.watch(`items.${index}.quantityChanged`) || 0;
+                  const quantity = form.watch(`items.${index}.quantity`) || 0;
+                  
+                  const afterQty = operationType === "Add" 
+                    ? Number(quantityChanged) + Number(quantity)
+                    : Number(quantityChanged) - Number(quantity);
 
                   return (
-                    <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 gap-4 p-4 md:p-2 bg-zinc-50 dark:bg-zinc-900/30 md:bg-transparent dark:md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 dark:border-zinc-800 items-center group mb-8">
+                    <div key={item.id} className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 md:p-2 bg-zinc-50 dark:bg-zinc-900/30 md:bg-transparent dark:md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 dark:border-zinc-800 items-center group mb-8">
                       <Controller
                         control={form.control}
                         name={`items.${index}.stockInventoryId`}
@@ -279,13 +287,12 @@ export default function AddQuantityAdjustment() {
                       </div>
 
                       <div>
-                        <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("available_quantity")}</FieldLabel>
+                        <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("available_quantity_before_operation")}</FieldLabel>
                         <Controller
                           control={form.control}
                           name={`items.${index}.quantityChanged`}
                           render={({ field, fieldState }) => (
                             <Field data-invalid={fieldState.invalid} className="relative">
-                              <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product")}</FieldLabel>
                               <Input value={field?.value} readOnly className="text-center cursor-not-allowed" />{" "}
                             </Field>
                           )}
@@ -304,8 +311,8 @@ export default function AddQuantityAdjustment() {
                               </SelectTrigger>
 
                               <SelectContent>
-                                <SelectItem value="Add">إضافة</SelectItem>
-                                <SelectItem value="Remove">حذف</SelectItem>
+                                <SelectItem value="Add">{t("add")}</SelectItem>
+                                <SelectItem value="Remove">{t("remove_minus")}</SelectItem>
                               </SelectContent>
                             </Select>
 
@@ -319,7 +326,7 @@ export default function AddQuantityAdjustment() {
                       />
 
                       <div>
-                        <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("quantity")}</FieldLabel>
+                        <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("operation_quantity")}</FieldLabel>
 
                         <Controller
                           control={form.control}
@@ -346,6 +353,11 @@ export default function AddQuantityAdjustment() {
                             </Field>
                           )}
                         />
+                      </div>
+
+                      <div>
+                        <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("available_quantity_after_operation")}</FieldLabel>
+                        <Input value={afterQty} readOnly className="text-center cursor-not-allowed bg-zinc-100 dark:bg-zinc-800" />
                       </div>
 
                       {!isView && (

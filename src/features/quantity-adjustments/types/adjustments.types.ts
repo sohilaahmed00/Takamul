@@ -21,6 +21,8 @@ export interface QuantityAdjustmentApiItem {
   quantity?: number;
   operationType: QuantityAdjustmentOperationType;
   quantityChanged: number;
+  quantityBefore?: number;
+  quantityAfter?: number;
   notes?: string | null;
   operationDate?: string;
 }
