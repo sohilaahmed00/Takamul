@@ -309,6 +309,11 @@ const CreateQuote: React.FC = () => {
     customers = customersResponse;
   }
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000000 });
+  const filteredProducts = useMemo(() => {
+    return products?.items.filter((item) => {
+      return item.productType !== "Branched";
+    });
+  }, [products?.items]);
   const { data: wareHouses } = useGetAllWareHouses();
   const { data: units } = useGetAllUnits({});
   const { mutateAsync: createQuotations, isPending } = useCreateQuotation();
@@ -555,7 +560,7 @@ const CreateQuote: React.FC = () => {
                                     <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_name_code")}</FieldLabel>
                                     <ComboboxField
                                       field={field}
-                                      items={products?.items}
+                                      items={filteredProducts}
                                       valueKey="id"
                                       labelKey="productNameAr"
                                       placeholder={t("choose_product")}
