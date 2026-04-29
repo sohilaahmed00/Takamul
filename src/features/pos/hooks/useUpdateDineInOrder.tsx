@@ -28,9 +28,8 @@ export function useCheckoutDineInOrder() {
   return useMutation({
     mutationFn: (data: CheckoutDineInOrder) => checkoutDineInOrder(data),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({
-        queryKey: [...salesKeys.all, ...posKeys.all],
-      });
+      queryClient.invalidateQueries({ queryKey: salesKeys.all });
+      queryClient.invalidateQueries({ queryKey: posKeys.all });
       handleApiSuccess(response?.message, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),

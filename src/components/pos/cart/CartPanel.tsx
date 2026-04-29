@@ -533,9 +533,9 @@ export default function CartPanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="takeaway">{t("order_takeaway")}</SelectItem>
-                  <SelectItem value="dine-in">{t("order_dine_in")}</SelectItem>
-                  <SelectItem value="delivery">{t("order_delivery")}</SelectItem>
+                  <SelectItem value="TakeAway">{t("order_takeaway")}</SelectItem>
+                  <SelectItem value="InDine">{t("order_dine_in")}</SelectItem>
+                  <SelectItem value="Delivery">{t("order_delivery")}</SelectItem>
                 </SelectContent>
               </Select>
 
