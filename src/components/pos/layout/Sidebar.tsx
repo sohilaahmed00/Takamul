@@ -207,7 +207,9 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                             title="إضافة عناصر"
                             onClick={(e) => {
                               setScreen("home");
-                            
+                              if (order.orderStatus == "UnConfirmed") {
+                                setHoldingOrderId(order?.holdingOrderId);
+                              }
                               setCart(
                                 order.items.map((item) => ({
                                   price: item?.priceAfterTax,
