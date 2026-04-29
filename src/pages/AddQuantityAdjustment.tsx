@@ -89,24 +89,29 @@ export default function AddQuantityAdjustment() {
   });
 
   useEffect(() => {
-    if (id && stockInventory && stockInventories?.items) {
+    if (id && stockInventory) {
       form.reset({
         notes: stockInventory.notes ?? "",
         items:
           stockInventory.items?.map((item) => {
-            const match = stockInventories.items.find((inv) => inv.productName === item.productName);
-
             return {
-              stockInventoryId: Number(match?.id ?? 0),
+              stockInventoryId: Number(item.stockInventoryId ?? item.id ?? 0),
               operationType: item.operationType,
-              quantity: Number(item.quantityChanged ?? 1),
-              quantityChanged: item.quantityBefore ?? (item.operationType === "Add" ? item.quantity - item.quantityChanged : item.quantity + item.quantityChanged),
+              // quantityChanged in API is the operation amount (e.g., 1)
+              quantity: Number(item.quantityChanged ?? 0),
+              // quantityBefore in API is the stock before operation (e.g., 5)
+              // Fallback: Calculate from After and Change if Before is missing
+              quantityChanged: Number(
+                item.quantityBefore ??
+                ((item.quantityAfter ?? item.quantity ?? 0) +
+                  (item.operationType === "Add" ? -(item.quantityChanged ?? 0) : (item.quantityChanged ?? 0)))
+              ),
               notes: item.notes ?? "",
             };
           }) ?? [],
       });
     }
-  }, [id, stockInventory, stockInventories, form]);
+  }, [id, stockInventory, form]);
 
   const {
     fields: itemFields,
@@ -183,30 +188,10 @@ export default function AddQuantityAdjustment() {
             <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-6">{t("basic_data")}</h2>
 
             <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4 items-center">
+              <div className="grid grid-cols-1 gap-4 items-center">
                 <Field>
                   <FieldLabel>{t("date")}</FieldLabel>
                   <Input value={new Date().toLocaleString("en-GB").replace(",", "")} readOnly className="cursor-not-allowed text-center" />
-                </Field>
-                <Field className="relative">
-                  <FieldLabel className="">المخازن</FieldLabel>
-                  <Select
-                    value={wareHouseName}
-                    onValueChange={(value) => {
-                      setWareHousesName(value);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={"اختر المخزن"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {wareHouses?.map((c) => (
-                        <SelectItem key={c.id} value={String(c.warehouseName)}>
-                          {c.warehouseName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </Field>
               </div>
               <Controller
@@ -241,11 +226,18 @@ export default function AddQuantityAdjustment() {
                 {itemFields.map((item, index) => {
                   const selectedId = form.watch(`items.${index}.stockInventoryId`);
                   const selectedProduct = inventoryMap[selectedId];
+                  // Fallback: if not in inventoryMap, use data from the loaded adjustment
+                  const fallbackItem = stockInventory?.items?.[index];
+                  const displayProduct = selectedProduct ?? (fallbackItem ? {
+                    barcode: undefined,
+                    // "quantity" from API = current stock quantity at time of record
+                    quantityAvailable: fallbackItem.quantity ?? 0,
+                  } : undefined);
                   const operationType = form.watch(`items.${index}.operationType`);
-                  const quantityChanged = form.watch(`items.${index}.quantityChanged`) || 0;
+                  const quantityChanged = form.watch(`items.${index}.quantityChanged`) || 0; // This is Qty Before
                   const quantity = form.watch(`items.${index}.quantity`) || 0;
-                  
-                  const afterQty = operationType === "Add" 
+
+                  const afterQty = operationType === "Add"
                     ? Number(quantityChanged) + Number(quantity)
                     : Number(quantityChanged) - Number(quantity);
 
@@ -254,36 +246,45 @@ export default function AddQuantityAdjustment() {
                       <Controller
                         control={form.control}
                         name={`items.${index}.stockInventoryId`}
-                        render={({ field, fieldState }) => (
-                          <Field data-invalid={fieldState.invalid} className="relative">
-                            <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product")}</FieldLabel>
-                            <ComboboxField
-                              field={field}
-                              items={stockInventories?.items}
-                              valueKey="id"
-                              labelKey="productName"
-                              placeholder={t("choose_product")}
-                              disabled={isView}
-                              onValueChange={(val) => {
-                                if (isView) return;
-                                const product = inventoryMap[Number(val)];
-                                if (product) field.onChange(Number(val));
-                                form.setValue(`items.${index}.quantityChanged`, product?.quantityAvailable);
-                              }}
-                            />
+                        render={({ field, fieldState }) => {
+                          const existingItem = stockInventory?.items?.[index];
+                          const existingInInventory = field.value ? inventoryMap[field.value] : null;
+                          const comboItems = stockInventories?.items ?? [];
+                          const syntheticItems =
+                            field.value && !existingInInventory && existingItem?.productName
+                              ? [{ id: field.value, productName: existingItem.productName, quantityAvailable: existingItem.quantity ?? 0 }, ...comboItems]
+                              : comboItems;
+                          return (
+                            <Field data-invalid={fieldState.invalid} className="relative">
+                              <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product")}</FieldLabel>
+                              <ComboboxField
+                                field={field}
+                                items={syntheticItems}
+                                valueKey="id"
+                                labelKey="productName"
+                                placeholder={t("choose_product")}
+                                disabled={isView}
+                                onValueChange={(val) => {
+                                  if (isView) return;
+                                  const product = inventoryMap[Number(val)];
+                                  if (product) field.onChange(Number(val));
+                                  form.setValue(`items.${index}.quantityChanged`, product?.quantityAvailable);
+                                }}
+                              />
 
-                            {fieldState.invalid && (
-                              <div className="absolute top-full mt-2 right-0 z-10 w-full">
-                                <FieldError errors={[fieldState.error]} />
-                              </div>
-                            )}
-                          </Field>
-                        )}
+                              {fieldState.invalid && (
+                                <div className="absolute top-full mt-2 right-0 z-10 w-full">
+                                  <FieldError errors={[fieldState.error]} />
+                                </div>
+                              )}
+                            </Field>
+                          );
+                        }}
                       />
 
                       <div>
                         <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
-                        <Input value={selectedProduct?.barcode ?? ""} readOnly className="text-center   cursor-not-allowed" />
+                        <Input value={displayProduct?.barcode ?? ""} readOnly className="text-center cursor-not-allowed" />
                       </div>
 
                       <div>
