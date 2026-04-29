@@ -395,16 +395,13 @@ const CreateQuote: React.FC = () => {
         const product = products?.items?.find((p) => p.id === Number(item.productId));
         const price = item?.unitPrice || 0;
         const taxCalc = product?.taxCalculation ?? 0;
-        const originalPrice = product?.sellingPrice || 0;
-        const originalTax = product?.taxAmount || 0;
-        const beforeTaxOld = originalPrice - originalTax;
-        const taxPercentage = beforeTaxOld > 0 ? originalTax / beforeTaxOld : 0;
-        const beforeTax = taxCalc === 1 ? price : price / (1 + taxPercentage);
+        const taxPercentage = product?.taxPercentage || 0;
+        const beforeTax = taxCalc === 1 ? price : price / (1 + taxPercentage / 100);
         return {
           productId: item.productId,
           quantity: item.quantity,
-          unitPrice: Number(beforeTax.toFixed(2)),
           taxPercentage: taxPercentage,
+          unitPrice: beforeTax,
           discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
           discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
         };
