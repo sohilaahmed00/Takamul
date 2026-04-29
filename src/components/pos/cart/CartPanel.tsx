@@ -332,7 +332,7 @@ function ExtrasGrid({ additions, selectedIds, onToggle }: { additions: Addition[
 export default function CartPanel() {
   const { language, direction, setLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
-  const { cart, setCart, setSelectedTable, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setOrderNote, orderNote } = usePos();
+  const { cart, setCart, setSelectedTable, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setOrderNote, orderNote, holdingOrderId } = usePos();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [discInput, setDiscInput] = useState("");
@@ -752,7 +752,11 @@ export default function CartPanel() {
                         await handleCreateDineInOrder();
                       }
                     } else {
-                      handleConfirmPayment({ isHolding: true });
+                      if (holdingOrderId) {
+                        setCashierOpen(true);
+                      } else {
+                        handleConfirmPayment({ isHolding: true });
+                      }
                     }
                   }}
                   size={"2xl"}
