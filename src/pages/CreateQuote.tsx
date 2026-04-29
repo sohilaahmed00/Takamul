@@ -403,7 +403,7 @@ const CreateQuote: React.FC = () => {
         return {
           productId: item.productId,
           quantity: item.quantity,
-          unitPrice: item?.unitPrice,
+          unitPrice: Number(beforeTax.toFixed(2)),
           taxPercentage: taxPercentage,
           discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
           discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
