@@ -1,6 +1,5 @@
 import Sidebar from "./Sidebar";
 import Topbar from "./Topbar";
-import { usePos } from "@/context/PosContext";
 
 import RightPanel from "./RightPanel";
 import HoldModal from "../modals/HoldModal";
@@ -37,9 +36,11 @@ function PageContent() {
 
 export default function AppLayout() {
   const { setScreen } = usePosStore();
+
   useEffect(() => {
     setScreen("home");
   }, []);
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -48,9 +49,9 @@ export default function AppLayout() {
         console.error("QZ init error:", err);
       }
     };
-
     init();
   }, []);
+
   return (
     <div
       className="relative flex h-screen overflow-hidden py-2 bg-sidebar
@@ -58,9 +59,7 @@ export default function AppLayout() {
   [.dark_&]:bg-[#000052]
 "
     >
-      {" "}
       <ToastContainer pauseOnHover={false} />
-      {/* Sidebar */}
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden min-w-0 bg-sidebar rounded-tr-[28px] rounded-lg">
         <div className="flex flex-1 overflow-hidden">
@@ -69,11 +68,8 @@ export default function AppLayout() {
               <div className="rounded-tr-[28px] overflow-hidden bg-[var(--bg-main)]">
                 <Topbar />
               </div>
-
               <PageContent />
             </div>
-
-            {/* Right Panel */}
             <RightPanel />
           </TooltipProvider>
         </div>
