@@ -173,16 +173,15 @@ const CreateSalesInvoice: React.FC = () => {
       const price = item.price || 0;
       const discType = item.discountType || "fixed";
       const discValue = item.discountValue || 0;
+      const originalPrice = product?.sellingPrice || 1;
+      const originalTax = product?.taxAmount || 0;
+      const taxPercentage = originalTax / originalPrice;
       const taxCalc = product?.taxCalculation ?? 1;
-      const taxPercentage = product?.taxPercentage || 0;
-
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
       const afterDisc = Math.max(0, gross - discount);
-
-      const beforeTax = taxCalc === 1 ? afterDisc : Math.round((afterDisc / (1 + taxPercentage / 100)) * 100) / 100;
-
-      const vatAmount = taxCalc === 1 ? 0 : afterDisc - beforeTax;
+      const vatAmount = taxCalc === 1 ? 0 : afterDisc * taxPercentage;
+      const beforeTax = afterDisc - vatAmount;
 
       beforeTaxTotal += beforeTax;
       totalVat += vatAmount;
@@ -438,23 +437,22 @@ const CreateSalesInvoice: React.FC = () => {
 
                       <div className="space-y-3 mt-3">
                         {itemFields.map((item, index) => {
-                          const qty = Number(form.watch(`items.${index}.quantity`) || 0);
+                       const qty = Number(form.watch(`items.${index}.quantity`) || 0);
                           const price = Number(form.watch(`items.${index}.price`) || 0);
                           const discType = form.watch(`items.${index}.discountType`) || "fixed";
                           const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
                           const productId = form.watch(`items.${index}.productId`);
                           const product = products?.items?.find((p) => p.id === Number(productId));
+                          const originalPrice = product?.sellingPrice || 1;
+                          const originalTax = product?.taxAmount || 0;
+                          const taxPercentage = originalTax / originalPrice;
                           const taxCalc = product?.taxCalculation ?? 0;
-                          const taxPercentage = product?.taxPercentage || 0; // 15
-
                           const gross = qty * price;
                           const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                           const afterDiscount = Math.max(0, gross - discount);
-
-                          const beforeTax = taxCalc === 1 ? afterDiscount : afterDiscount / (1 + taxPercentage / 100);
-                          const vatAmount = taxCalc === 1 ? 0 : afterDiscount - beforeTax;
+                          const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
+                          const beforeTax = afterDiscount - vatAmount;
                           const grandTotal = afterDiscount;
-
                           const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                           const isDiscOpen = !!discountOpen[index];
 
