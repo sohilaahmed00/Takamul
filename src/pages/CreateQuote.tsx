@@ -544,18 +544,14 @@ const CreateQuote: React.FC = () => {
                         const product = products?.items?.find((p) => p.id === Number(productId));
                         const originalPrice = product?.sellingPrice || 1;
                         const originalTax = product?.taxAmount || 0;
+                        const taxPercentage = originalTax / originalPrice;
                         const taxCalc = product?.taxCalculation ?? 0;
-
-                        const taxRatio = originalTax / originalPrice;
-
                         const gross = qty * price;
                         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                         const afterDiscount = Math.max(0, gross - discount);
-
-                        const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxRatio;
-                        const priceBeforeTax = afterDiscount;
-                        const grandTotal = afterDiscount + vatAmount;
-
+                        const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
+                        const beforeTax = afterDiscount - vatAmount;
+                        const grandTotal = afterDiscount;
                         const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                         const isDiscOpen = !!discountOpen[index];
 
@@ -626,7 +622,7 @@ const CreateQuote: React.FC = () => {
                                 )}
                               />
                               <div className="text-center font-medium">
-                                {priceBeforeTax.toLocaleString("en-EG", {
+                                {beforeTax.toLocaleString("en-EG", {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
                                 })}
