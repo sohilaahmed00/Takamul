@@ -260,6 +260,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       items,
       payments,
       isHolding,
+      holdingOrderId: holdingOrderId,
     };
 
     try {
@@ -342,6 +343,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
       }
 
       setCart([]);
+      setHoldingOrderId(null);
       setDiscount({ type: "pct", value: 0 });
       if (customers?.items?.length) {
         setSelectedCustomer(customers.items[0]);

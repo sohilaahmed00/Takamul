@@ -56,6 +56,7 @@ export type CreateTakeawayOrder = {
   globalDiscountValue: number;
   giftCardId: number | null;
   isHolding?: boolean;
+  holdingOrderId: number;
   items: {
     productId: number;
     quantity: number;
@@ -67,7 +68,7 @@ export type CreateTakeawayOrder = {
 };
 
 export type CreateDeliveryOrder = CreateTakeawayOrder;
-export type CreateDineInOrder = Omit<CreateTakeawayOrder, "giftCardId" | "payments" | "globalDiscountPercentage" | "globalDiscountValue"> & {
+export type CreateDineInOrder = Omit<CreateTakeawayOrder, "giftCardId" | "payments" | "globalDiscountPercentage" | "globalDiscountValue" | "holdingOrderId"> & {
   tableId: number;
 };
 

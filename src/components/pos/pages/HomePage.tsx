@@ -7,10 +7,11 @@ import { Product, ProductBranch } from "@/features/products/types/products.types
 import { useGetProductBranchedById } from "@/features/products/hooks/useGetProductBranchedById";
 import { ChevronLeft, ChevronRight, SaudiRiyal } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import useToast from "@/hooks/useToast";
 
 export default function HomePage() {
   const { language, t } = useLanguage();
-  const { setCart, cart, search } = usePos();
+  const { setCart, cart, search, holdingOrderId } = usePos();
   const [currentCat, setCurrentCat] = useState<number | null>(null);
   const [currentSubCat, setCurrentSubCat] = useState<number | null>(null);
   const [childrenModal, setChildrenModal] = useState<ProductBranch["children"] | null>(null);
@@ -22,6 +23,7 @@ export default function HomePage() {
   const { data: productPranched } = useGetProductBranchedById(selectedProductId);
 
   const activeCat = mainCategories?.find((c) => c.id === currentCat);
+  const { notifyError } = useToast();
 
   const filteredProducts = products?.items.filter((item) => {
     return item.productType !== "RawMatrial" && !(item.productType === "Direct" && item.parentProductId) && (!currentSubCat || item.categoryId === currentSubCat) && (!currentCat || item.categoryId === currentCat);
@@ -46,6 +48,11 @@ export default function HomePage() {
   );
 
   const addToCart = (item: { id: number; productNameAr: string; sellingPrice: number; taxAmount: number; taxCalculation: number; productNameEn?: string; productNameUr?: string }) => {
+    if (holdingOrderId) {
+      notifyError("لا يمكن إضافة أصناف لطلب محجوز");
+      return;
+    }
+
     setCart((prev) => {
       const existing = prev.find((i) => i.productId === item.id);
       if (existing) {
