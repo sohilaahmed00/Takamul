@@ -700,19 +700,36 @@ export const getAccountStatementHTML = (title: string, partyInfo: { name: string
 export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direction: "rtl" | "ltr" = "rtl") => {
   const tableRows = lines
     .map((row, i) => {
-      const typeTranslated = row.type === "IN" ? t("in", "إضافة") : row.type === "OUT" ? t("out", "خصم") : t(row.type?.toLowerCase() || "", row.type || "-");
+      const type = row.operationType || row.type;
+      const typeTranslated =
+        type === "Add" || type === "IN"
+          ? t("add", "إضافة")
+          : type === "Remove" || type === "remove" || type === "OUT"
+          ? t("remove_minus", "طرح")
+          : t(type?.toLowerCase() || "", type || "-");
+          
+      const afterQty = row.quantityAfter !== undefined && row.quantityAfter !== 0 ? row.quantityAfter : Number(row.quantity || 0);
+      const opQty = Number(row.quantityChanged || 0);
+      const beforeQty = row.quantityBefore !== undefined && row.quantityBefore !== 0 
+        ? row.quantityBefore 
+        : (type === "Add" || type === "IN") 
+          ? afterQty - opQty 
+          : afterQty + opQty;
+
       return `
       <tr>
         <td>${i + 1}</td>
         <td>${row.productName || "-"} <span style="color:#666;font-size:11px;margin:0 5px;">${row.barcode ? `(${row.barcode})` : ""}</span></td>
         <td>${typeTranslated}</td>
-        <td style="font-weight:700;">${Number(row.quantity || 0).toLocaleString()}</td>
+        <td>${beforeQty.toLocaleString()}</td>
+        <td style="font-weight:700;">${opQty.toLocaleString()}</td>
+        <td>${afterQty.toLocaleString()}</td>
       </tr>
     `;
     })
     .join("");
 
-  const totalQty = lines.reduce((s, r) => s + Number(r.quantity || 0), 0);
+  const totalQty = lines.reduce((s, r) => s + Number(r.quantityChanged || 0), 0);
 
   return `
     <!DOCTYPE html>
@@ -748,8 +765,10 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
           <tr>
             <th>${t("serial", "م")}</th>
             <th>${direction === "ltr" ? "Barcode / Name" : "باركود / اسم"}</th>
-            <th>${t("type", "نوع")}</th>
-            <th>${t("quantity", "كمية")}</th>
+            <th>${t("type", "النوع")}</th>
+            <th>${t("available_quantity_before_operation")}</th>
+            <th>${t("operation_quantity")}</th>
+            <th>${t("available_quantity_after_operation")}</th>
           </tr>
         </thead>
         <tbody>${tableRows}</tbody>
