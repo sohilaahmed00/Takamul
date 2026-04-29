@@ -1,12 +1,12 @@
 import { useState, type ReactNode } from 'react';
-import { 
-  Barcode, Rocket, ArrowDown, AlertTriangle, Calendar, RefreshCw, 
-  Layers, FileText, Sparkles, Layout, XCircle, 
-  Hammer, LineChart, Network, Grid, Clock, List, Users, 
+import {
+  Barcode, Rocket, ArrowDown, AlertTriangle, Calendar, RefreshCw,
+  Layers, FileText, Sparkles, Layout, XCircle,
+  Hammer, LineChart, Network, Grid, Clock, List, Users,
   UserCheck, Percent, Search, FileCheck, Calculator, ShoppingCart,
-  PieChart, BarChart3, TrendingUp, Settings2, ArrowLeftRight, 
+  PieChart, BarChart3, TrendingUp, Settings2, ArrowLeftRight,
   Wallet, Landmark, UserPlus, Scale, FileSpreadsheet,
-  ChevronLeft, SaudiRiyal
+  ChevronLeft, SaudiRiyal, RotateCcw
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -73,6 +73,7 @@ export default function Reports() {
     { category: 'sales', title: 'تقرير المبيعات اليومية مفصل بالأصناف', icon: <List className="w-8 h-8" />, path: '/reports/detailed-daily-sales' },
     { category: 'sales', title: 'تقرير مبيعات الكاشيرات اجمالي', icon: <Users className="w-8 h-8" />, path: '/reports/cashier-sales-summary' },
     { category: 'sales', title: 'مبيعات الأصناف حسب الفاتورة', icon: <Barcode className="w-8 h-8" />, path: '/reports/sales-by-item-invoice' },
+    { category: 'sales', title: 'تقرير مرتجعات المبيعات', icon: <RotateCcw className="w-8 h-8" />, path: '/reports/sales-returns' },
     { category: 'sales', title: 'مبيعات المندوبين / الموظفين', icon: <UserCheck className="w-8 h-8" />, path: '/reports/reps-sales' },
     { category: 'sales', title: 'influencer percents', icon: <Percent className="w-8 h-8" />, path: '/reports/influencer-percents' },
     { category: 'sales', title: 'تقرير المبيعات حسب التصنيفات', icon: <Layout className="w-8 h-8" />, path: '/reports/sales-by-category' },
@@ -153,7 +154,7 @@ export default function Reports() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredReports.map((report, index) => (
-              <div 
+              <div
                 key={index}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col items-center p-6 transition-all hover:shadow-md"
               >
@@ -161,13 +162,13 @@ export default function Reports() {
                   <div className="w-1 h-4 bg-emerald-600"></div>
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">{report.title}</span>
                 </div>
-                
+
                 <div className="flex-1 flex items-center justify-center py-4 text-emerald-600">
                   {report.icon}
                 </div>
 
                 {report.path ? (
-                  <Link 
+                  <Link
                     to={report.path}
                     className="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded text-sm font-bold transition-colors text-center"
                   >
@@ -196,8 +197,8 @@ export default function Reports() {
                 onClick={() => setActiveCategory(category.id)}
                 className={cn(
                   "w-full text-right px-4 py-3 rounded text-sm font-medium transition-all flex items-center justify-between group",
-                  activeCategory === category.id 
-                    ? "bg-white/20 text-white shadow-sm font-bold" 
+                  activeCategory === category.id
+                    ? "bg-white/20 text-white shadow-sm font-bold"
                     : "text-emerald-100/70 hover:text-white hover:bg-white/10"
                 )}
               >

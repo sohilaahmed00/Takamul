@@ -48,7 +48,9 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
       <tr>
         <td class="td-name">${item.productName ?? ""}</td>
         <td>${item.quantity ?? 0}</td>
-        <td>${fmt(item.unitPrice )}</td>
+        <td>${fmt(item.unitPrice
+
+      )}</td>
         <td>${fmt(item.taxAmount)}</td>
         <td>${fmt(item.total)}</td>
       </tr>`,
@@ -176,10 +178,8 @@ html, body {
 }
 
 .td-name {
-  text-align:right !important;
-  padding-right:3px !important;
+  text-align: center !important;
   font-size: 7pt;
-
 }
 
 /* عمود الصنف */
@@ -296,40 +296,72 @@ html, body {
     </tr>
     <!-- الرقم الضريبي -->
     <tr>
-      <td class="lbl">الرقم الضريبي <br/><small>VAT No.</small></td>
+      <td class="lbl">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span>الرقم الضريبي</span>
+          <small style="font-size: 5.5pt; font-weight: 500;">VAT No.</small>
+        </div>
+      </td>
       <td class="val sep">${data.institutionTaxNumber}</td>
     </tr>
     ${data.institutionCommercialRegister ? `
     <!-- سجل التجاري -->
     <tr>
-      <td class="lbl">سجل التجاري <br/><small>Comm. No.</small></td>
+      <td class="lbl">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span>سجل التجاري</span>
+          <small style="font-size: 5.5pt; font-weight: 500;">Comm. No.</small>
+        </div>
+      </td>
       <td class="val sep">${data.institutionCommercialRegister}</td>
     </tr>` : ""}
     <!-- فاتورة ضريبية مبسطة -->
     <tr class="title-row">
       <td colspan="2">
-        فاتورة ضريبية مبسطة <br/>
-        <small style="font-size: 6pt; font-weight: 700;">Simplified Tax Invoice</small>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 0 10px;">
+          <span style="font-size: 8.5pt;">فاتورة ضريبية مبسطة</span>
+          <small style="font-size: 6pt; font-weight: 700;">Simplified Tax Invoice</small>
+        </div>
       </td>
     </tr>
     <!-- رقم الفاتورة -->
     <tr>
-      <td class="lbl">رقم الفاتورة <br/><small>INV No.</small></td>
+      <td class="lbl">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span>رقم الفاتورة</span>
+          <small style="font-size: 5.5pt; font-weight: 500;">INV No.</small>
+        </div>
+      </td>
       <td class="val sep">${data.invoiceNumber}</td>
     </tr>
     <!-- الوقت / التاريخ -->
     <tr>
-      <td class="lbl">الوقت / التاريخ <br/><small>Date / Time</small></td>
+      <td class="lbl">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span>الوقت / التاريخ</span>
+          <small style="font-size: 5.5pt; font-weight: 500;">Date / Time</small>
+        </div>
+      </td>
       <td class="val sep">${data.invoiceDate}</td>
     </tr>
     <!-- اسم العميل -->
     <tr>
-      <td class="lbl">اسم العميل <br/><small>Customer Name</small></td>
+      <td class="lbl">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span>اسم العميل</span>
+          <small style="font-size: 5.5pt; font-weight: 500;">Customer Name</small>
+        </div>
+      </td>
       <td class="val sep">${data.customerName ?? "—"}</td>
     </tr>
     <!-- رقم الجوال -->
     <tr>
-      <td class="lbl">رقم الجوال <br/><small>Mobile No.</small></td>
+      <td class="lbl">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <span>رقم الجوال</span>
+          <small style="font-size: 5.5pt; font-weight: 500;">Mobile No.</small>
+        </div>
+      </td>
       <td class="val sep">${data.customerPhone ?? "—"}</td>
     </tr>
   </table>
@@ -415,12 +447,6 @@ html, body {
 
   try {
     await printInvoicePrinter(html);
-    // const win = window.open("", "_blank", "width=440,height=980");
-    // if (!win) {
-    //   alert("يرجى السماح بالنوافذ المنبثقة لطباعة الفاتورة");
-    //   return;
-    // }
-    // win.document.write(html);
   } catch (err: any) {
     const win = window.open("", "_blank", "width=440,height=980");
     if (!win) {
