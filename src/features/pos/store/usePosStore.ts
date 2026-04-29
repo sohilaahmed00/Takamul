@@ -337,11 +337,13 @@ export const usePosStore = create<PosState>((set, get) => ({
       giftCardId: selectedGiftCardId,
       additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
       items: cart.map((cat) => {
+        const beforeTax = cat.taxCalculation === 1 ? cat.price : Math.round((cat.price / (1 + cat.taxPercentage / 100)) * 100) / 100;
         return {
           productId: cat?.productId,
           quantity: cat?.qty,
           discountValue: cat?.itemDiscount?.type === "flat" ? cat?.itemDiscount?.value : 0,
           discountPercentage: cat?.itemDiscount?.type === "pct" ? cat?.itemDiscount?.value : 0,
+          unitPrice: beforeTax,
         };
       }),
       payments,
