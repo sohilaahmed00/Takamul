@@ -114,7 +114,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                   const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus?.toLowerCase() === "inprogress" ? t("قيد التجهيز") : order.orderStatus;
 
                   const cartItems = order.items.map((item) => ({
-                    price: item?.priceAfterTax,
+                    price: item?.priceBeforeTax + item?.taxAmount,
                     qty: item?.quantity,
                     taxamount: item?.quantity ? (item?.taxAmount ?? 0) / item?.quantity : 0,
                     taxCalculation: item.taxCalculation,
