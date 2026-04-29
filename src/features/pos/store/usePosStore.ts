@@ -17,13 +17,14 @@ export const INSTITUTION_PHONE = "05XXXXXXXX";
 export const INSTITUTION_NOTES = "";
 export const LOGO_URL: string | undefined = undefined;
 
+export type AddToCartProduct = Pick<Product, "id" | "productNameAr" | "productNameEn" | "productNameUr" | "sellingPrice" | "taxAmount" | "taxCalculation">;
 interface PosState {
   screen: Screen;
   setScreen: (s: Screen) => void;
 
   cart: CartItem[];
   setCart: (cart: CartItem[] | ((prev: CartItem[]) => CartItem[])) => void;
-  addToCart: (item: Product) => void;
+  addToCart: (item: AddToCartProduct) => void;
 
   discount: { type: "pct" | "flat"; value: number };
   setDiscount: (d: { type: "pct" | "flat"; value: number }) => void;
@@ -159,16 +160,12 @@ export const usePosStore = create<PosState>((set, get) => ({
             name: product.productNameAr,
             productNameEn: product.productNameEn,
             productNameUr: product.productNameUr,
-
             price: product.sellingPrice,
             qty: 1,
-
             note: "",
             op: null,
-
             taxamount: product.taxAmount,
             taxCalculation: product.taxCalculation,
-
             itemDiscount: null,
             extras: [],
           },
@@ -196,7 +193,6 @@ export const usePosStore = create<PosState>((set, get) => ({
     try {
       await releaseHolding({ id: holdingOrderId, data: payments });
 
-      // ✅ طباعة بعد الـ release
       const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
       const totals = calcTotals(cart, hasItemDiscounts ? { type: "pct", value: 0 } : discount);
       const discountAmount = hasItemDiscounts

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { calcItemTax, calcTotals, CartItem, itemBasePrice, itemBasePriceRaw } from "@/constants/data";
 import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL, usePos } from "@/context/PosContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { CheckCircle2, Clock, CreditCard, FileCheck, FileText, Hash, Mail, MessageCircle, MoreVertical, Plus, Printer, SaudiRiyal, Save, Search, SlidersHorizontal, Tag, Trash2, User, Vault, X, XCircle } from "lucide-react";
+import { CheckCircle2, Clock, CreditCard, FileCheck, FileText, Hash, Mail, MessageCircle, MoreVertical, Play, Plus, Printer, SaudiRiyal, Save, Search, SlidersHorizontal, Tag, Trash2, User, Vault, X, XCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
@@ -25,6 +25,7 @@ import { Switch } from "@/components/ui/switch";
 import { InvoiceData, printInvoice } from "../orders/printInvoice";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
+import { AddToCartProduct, usePosStore } from "@/features/pos/store/usePosStore";
 
 function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   const [open, setOpen] = useState(false);
@@ -81,7 +82,7 @@ function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
 }
 
 // ===== Bottom Sheet Component =====
-function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen, setCart, setOrderType, setDineInMode, setSelectedOrderId, setSelectedTable, setHoldingOrderId, onOpenChange }: { order: SalesOrder | null; open: boolean; onClose: () => void; selectedCustomer: any; setScreen: any; setHoldingOrderId: (id: number) => void; setCart: any; setOrderType: any; setDineInMode: any; setSelectedOrderId: any; setSelectedTable: any; onOpenChange: (v: boolean) => void }) {
+function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen, addToCart, setOrderType, setDineInMode, setSelectedOrderId, setSelectedTable, setHoldingOrderId, onOpenChange }: { order: SalesOrder | null; open: boolean; onClose: () => void; selectedCustomer: any; setScreen: any; setHoldingOrderId: (id: number) => void; addToCart: (p: AddToCartProduct) => void; setOrderType: any; setDineInMode: any; setSelectedOrderId: any; setSelectedTable: any; onOpenChange: (v: boolean) => void }) {
   if (!order) return null;
 
   const isConfirmed = order.orderStatus === "Confirmed";
@@ -91,37 +92,37 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
 
   const handleAddItems = () => {
     setScreen("home");
-    setCart(
-      order.items.map((item) => ({
-        price: item?.priceAfterTax,
-        qty: item?.quantity,
-        taxamount: item?.quantity ? (item?.taxAmount ?? 0) / item?.quantity : 0,
-        taxCalculation: item.taxCalculation,
-        name: item?.productName,
-        productId: item?.productId,
-      })),
-    );
-    if (isInProgress) {
-      setOrderType("dine-in");
-      setDineInMode("add-items");
-      setSelectedOrderId(order?.id);
-    }
+    order.items.map((item) => {
+      const pro: AddToCartProduct = {
+        id: item?.id,
+        productNameAr: item?.productName,
+        taxAmount: item?.taxAmount,
+        taxCalculation: item?.taxCalculation,
+        productNameEn: item?.productName,
+        productNameUr: item?.productName,
+        sellingPrice: item?.priceAfterTax,
+      };
+      addToCart(pro);
+    });
+
     onClose();
     onOpenChange(false);
   };
 
   const handleCheckout = () => {
     setScreen("home");
-    setCart(
-      order.items.map((item) => ({
-        price: item?.priceAfterTax,
-        qty: item?.quantity,
-        taxamount: item?.taxAmount,
-        taxCalculation: item.taxCalculation,
-        name: item?.productName,
-        productId: item?.productId,
-      })),
-    );
+    order.items.map((item) => {
+      const pro: AddToCartProduct = {
+        id: item?.id,
+        productNameAr: item?.productName,
+        taxAmount: item?.taxAmount,
+        taxCalculation: item?.taxCalculation,
+        productNameEn: item?.productName,
+        productNameUr: item?.productName,
+        sellingPrice: item?.priceAfterTax,
+      };
+      addToCart(pro);
+    });
     if (isInProgress) {
       setOrderType("dine-in");
       setDineInMode("checkout");
@@ -174,16 +175,18 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
 
   const handleCompleteInvoice = () => {
     setHoldingOrderId(order?.holdingOrderId);
-    setCart(
-      order.items.map((item) => ({
-        price: item?.priceAfterTax,
-        qty: item?.quantity,
-        taxamount: item?.taxAmount,
-        taxCalculation: item.taxCalculation,
-        name: item?.productName,
-        productId: item?.productId,
-      })),
-    );
+    order.items.map((item) => {
+      const pro: AddToCartProduct = {
+        id: item?.id,
+        productNameAr: item?.productName,
+        taxAmount: item?.taxAmount,
+        taxCalculation: item?.taxCalculation,
+        productNameEn: item?.productNameEn,
+        productNameUr: item?.productNameUr,
+        sellingPrice: item?.priceAfterTax,
+      };
+      addToCart(pro);
+    });
     onClose();
     onOpenChange(false);
   };
@@ -311,11 +314,10 @@ interface InvoicesDialogProps {
 }
 
 export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogProps) {
-  const { selectedCustomer, setCart, setDineInMode, setOrderType, setSelectedOrderId, setHoldingOrderId, setSelectedTable, setScreen } = usePos();
+  const { selectedCustomer, addToCart, setDineInMode, setOrderType, setSelectedOrderId, setHoldingOrderId, setSelectedTable, setScreen } = usePosStore();
   const [activeType, setActiveType] = useState<InvoiceType>("الكل");
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
-
   const { data: invoices } = useGetAllSales({
     page: 1,
     limit: 10,
@@ -428,7 +430,7 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
                           <SaudiRiyal size={11} />
                         </span>
                       </div>
-                      <button
+                      {/* <button
                         onClick={(e) => {
                           e.stopPropagation();
                           setOpenMenuId(String(order?.id));
@@ -436,7 +438,116 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
                         className="w-10 h-10 flex items-center justify-center rounded-xl border border-border hover:bg-muted text-muted-foreground transition-colors"
                       >
                         <MoreVertical size={16} />
-                      </button>
+                      </button> */}
+                      {/* Actions */}
+                      {order?.orderStatus === "Confirmed" ? (
+                        <button
+                          onClick={async () => {
+                            const invoiceData: InvoiceData = {
+                              logoUrl: LOGO_URL,
+                              invoiceNumber: `—`,
+                              institutionName: INSTITUTION_NAME,
+                              institutionTaxNumber: INSTITUTION_TAX_NO,
+                              invoiceDate: formatDate(new Date()),
+                              institutionAddress: INSTITUTION_ADDRESS,
+                              institutionPhone: INSTITUTION_PHONE,
+                              customerName: selectedCustomer?.customerName ?? undefined,
+                              customerPhone: undefined,
+                              items: order?.items.map((item) => {
+                                const tt: CartItem = {
+                                  name: item?.productName,
+                                  price: item?.priceAfterTax,
+                                  qty: item?.quantity,
+                                  taxamount: item?.taxAmount,
+                                  taxCalculation: item?.taxCalculation,
+                                  productId: item?.id,
+                                  op: null,
+                                };
+                                const base = itemBasePrice(tt);
+                                const tax = calcItemTax(tt);
+                                return {
+                                  productName: tt.name,
+                                  quantity: tt.qty,
+                                  unitPrice: Number(base.toFixed(2)),
+                                  taxAmount: Number(tax.toFixed(2)),
+                                  total: Number((base + tax).toFixed(2)),
+                                };
+                              }),
+                              subTotal: Number(order?.subTotal.toFixed(2)),
+                              discountAmount: Number(order?.discountAmount.toFixed(2)),
+                              taxAmount: order?.taxAmount,
+                              grandTotal: order?.grandTotal,
+                              notes: INSTITUTION_NOTES,
+                            };
+                            await printInvoice(invoiceData);
+                          }}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                        >
+                          <Printer size={13} />
+                        </button>
+                      ) : (
+                        <div className="flex items-center gap-x-2">
+                          <button
+                            onClick={() => {
+                              onOpenChange(false);
+                              setScreen("home");
+                              // setCart(cartItems);
+
+                              if (order.orderType === "InDine") {
+                                setOrderType("InDine");
+                                setDineInMode("add-items");
+                                setSelectedOrderId(order?.id);
+                              } else {
+                                setHoldingOrderId(order?.id);
+                                setOrderType(order?.orderType);
+                              }
+                            }}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                          >
+                            <Plus size={13} />
+                          </button>
+
+                          <button
+                            title="استكمال الدفع"
+                            onClick={() => {
+                              setScreen("home");
+                              // setCart(cartItems);
+                              onOpenChange(false);
+                              setOrderType(order?.orderType);
+                              if (order.orderType == "InDine") {
+                                if (order.orderStatus === "InProgress") {
+                                  setDineInMode("checkout");
+                                  setSelectedTable(order?.tableId);
+                                  setSelectedOrderId(order?.id);
+                                }
+                              } else {
+                                setHoldingOrderId(order?.id);
+                                setOrderType(order?.orderType);
+                              }
+                            }}
+                            className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                          >
+                            <CreditCard size={13} />
+                          </button>
+                        </div>
+                      )}
+
+                      {order.orderStatus === "UnConfirmed" && (
+                        <button
+                          title="استكمال الفاتورة"
+                          onClick={() => {
+                            setHoldingOrderId(order?.id);
+                            setOrderType(order?.orderType);
+                            setScreen("home");
+                            // setCart(cartItems);
+                            onOpenChange(false);
+                            // setCashierOpen(true);
+                          }}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                        >
+                          <Play size={13} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -454,7 +565,7 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
         </div>
 
         {/* ===== Bottom Sheet ===== */}
-        <OrderActionsDrawer order={selectedOrder ?? null} open={!!openMenuId} onClose={() => setOpenMenuId(null)} selectedCustomer={selectedCustomer} setHoldingOrderId={setHoldingOrderId} setScreen={setScreen} setCart={setCart} setOrderType={setOrderType} setDineInMode={setDineInMode} setSelectedOrderId={setSelectedOrderId} setSelectedTable={setSelectedTable} onOpenChange={onOpenChange} />
+        <OrderActionsDrawer order={selectedOrder ?? null} open={!!openMenuId} onClose={() => setOpenMenuId(null)} selectedCustomer={selectedCustomer} setHoldingOrderId={setHoldingOrderId} setScreen={setScreen} addToCart={addToCart} setOrderType={setOrderType} setDineInMode={setDineInMode} setSelectedOrderId={setSelectedOrderId} setSelectedTable={setSelectedTable} onOpenChange={onOpenChange} />
       </DialogContent>
     </Dialog>
   );

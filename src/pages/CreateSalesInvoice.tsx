@@ -218,10 +218,12 @@ const CreateSalesInvoice: React.FC = () => {
   const remaining = finalTotal - totalPaid;
 
   useEffect(() => {
-    if (paymentFields.length > 0) {
-      form.setValue(`payments.0.amount`, Number(finalTotal.toFixed(2)));
-    }
-  }, [finalTotal]);
+    const count = paymentFields.length;
+    const split = Number((finalTotal / count).toFixed(2));
+    paymentFields.forEach((_, i) => {
+      form.setValue(`payments.${i}.amount`, split);
+    });
+  }, [finalTotal, paymentFields.length]);
   useEffect(() => {
     if (treasurys && treasurys.length > 0) {
       form.setValue(`payments.0.treasuryId`, Number(treasurys[0]?.id));
@@ -267,7 +269,7 @@ const CreateSalesInvoice: React.FC = () => {
         return {
           productId: item.productId,
           quantity: item.quantity,
-          unitPrice: Number(beforeTax.toFixed(2)),
+          unitPrice: beforeTax,
 
           discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
 

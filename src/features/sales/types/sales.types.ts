@@ -5,6 +5,8 @@ export interface OrderItem {
   productId: number;
   productCode: string;
   productName: string;
+  productNameEn: string;
+  productNameUr: string;
   unitId: number;
   quantity: number;
   unitPrice: number;

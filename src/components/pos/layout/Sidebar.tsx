@@ -1,7 +1,7 @@
 // ─── OrdersDialog.tsx & Sidebar.tsx ──────────────────────────────────────────
 import { Clock, CreditCard, FileText, Play, Plus, Printer, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
 import { calcItemTax, itemBasePrice, NAV_ITEMS } from "@/constants/data";
-import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL } from "@/features/pos/store/usePosStore";
+import { AddToCartProduct, INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL } from "@/features/pos/store/usePosStore";
 import type { CartItem, Screen } from "@/constants/data";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/context/LanguageContext";
@@ -32,7 +32,7 @@ const STATUS_MAP: Record<OrderStatusType, string | null> = {
 };
 
 export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
-  const { selectedCustomer, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen } = usePosStore();
+  const { selectedCustomer, addToCart, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen } = usePosStore();
 
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
   const { t } = useLanguage();
@@ -112,15 +112,6 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                   const badgeCls = order.orderStatus?.toLowerCase() === "confirmed" ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400" : order.orderStatus?.toLowerCase() === "unconfirmed" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400" : order.orderStatus?.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400" : fallbackBadge.cls;
 
                   const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus?.toLowerCase() === "inprogress" ? t("قيد التجهيز") : order.orderStatus;
-
-                  const cartItems = order.items.map((item) => ({
-                    price: item?.priceBeforeTax + item?.taxAmount,
-                    qty: item?.quantity,
-                    taxamount: item?.quantity ? (item?.taxAmount ?? 0) / item?.quantity : 0,
-                    taxCalculation: item.taxCalculation,
-                    name: item?.productName,
-                    productId: item?.productId,
-                  }));
 
                   return (
                     <div key={order.id} className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors text-right w-full">
@@ -208,8 +199,22 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                             onClick={() => {
                               onOpenChange(false);
                               setScreen("home");
-                              setCart(cartItems);
-
+                              setCart(
+                                order.items.map((item) => ({
+                                  productId: item.productId,
+                                  name: item.productName,
+                                  productNameEn: item.productName,
+                                  productNameUr: item.productName,
+                                  price: item.priceBeforeTax + item.taxAmount, // السعر الكلي
+                                  qty: item.quantity, // ✅ الكمية الصح
+                                  note: "",
+                                  op: null,
+                                  taxamount: item.quantity ? (item.taxAmount ?? 0) / item.quantity : 0, // ✅ ضريبة لكل وحدة
+                                  taxCalculation: item.taxCalculation,
+                                  itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+                                  extras: [],
+                                })),
+                              );
                               if (order.orderType === "InDine") {
                                 setOrderType("InDine");
                                 setDineInMode("add-items");
@@ -228,7 +233,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                             title="استكمال الدفع"
                             onClick={() => {
                               setScreen("home");
-                              setCart(cartItems);
+                              // setCart(cartItems);
                               onOpenChange(false);
                               setOrderType(order?.orderType);
                               if (order.orderType == "InDine") {
@@ -256,7 +261,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                             setHoldingOrderId(order?.id);
                             setOrderType(order?.orderType);
                             setScreen("home");
-                            setCart(cartItems);
+                            // setCart(cartItems);
                             onOpenChange(false);
                             setCashierOpen(true);
                           }}
