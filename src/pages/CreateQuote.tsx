@@ -549,11 +549,20 @@ const CreateQuote: React.FC = () => {
                         const originalTax = product?.taxAmount || 0;
                         const taxPercentage = originalTax / originalPrice;
                         const taxCalc = product?.taxCalculation ?? 0;
+
                         const gross = qty * price;
                         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                         const afterDiscount = Math.max(0, gross - discount);
-                        const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxPercentage;
-                        const beforeTax = afterDiscount - vatAmount;
+
+                        // ✅ السعر قبل الضريبة دايمًا
+                        const priceBeforeTax =
+                          taxCalc === 1
+                            ? afterDiscount // لا يوجد ضريبة → السعر كما هو
+                            : taxCalc === 2
+                              ? afterDiscount / (1 + taxPercentage) // شامل الضريبة → نقسم
+                              : afterDiscount - afterDiscount * taxPercentage; // غير شامل → نطرح
+
+                        const vatAmount = taxCalc === 1 ? 0 : afterDiscount - priceBeforeTax;
                         const grandTotal = afterDiscount;
                         const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                         const isDiscOpen = !!discountOpen[index];
@@ -625,7 +634,7 @@ const CreateQuote: React.FC = () => {
                                 )}
                               />
                               <div className="text-center font-medium">
-                                {beforeTax.toLocaleString("en-EG", {
+                                {priceBeforeTax.toLocaleString("en-EG", {
                                   minimumFractionDigits: 2,
                                   maximumFractionDigits: 2,
                                 })}
