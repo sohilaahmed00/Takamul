@@ -549,14 +549,12 @@ const CreateQuote: React.FC = () => {
                         const originalTax = product?.taxAmount || 0;
                         const taxCalc = product?.taxCalculation ?? 0;
 
-                        // نسبة الضريبة
                         const taxRatio = originalTax / originalPrice;
 
                         const gross = qty * price;
                         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                         const afterDiscount = Math.max(0, gross - discount);
 
-                        // ✅ الضريبة دايمًا برا السعر (شامل وغير شامل بنفس المنطق)
                         const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxRatio;
                         const priceBeforeTax = afterDiscount;
                         const grandTotal = afterDiscount + vatAmount;
