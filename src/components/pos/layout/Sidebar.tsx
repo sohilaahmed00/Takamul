@@ -205,11 +205,11 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                   name: item.productName,
                                   productNameEn: item.productName,
                                   productNameUr: item.productName,
-                                  price: item.priceBeforeTax + item.taxAmount, // السعر الكلي
-                                  qty: item.quantity, // ✅ الكمية الصح
+                                  price: item?.sellingPrice,
+                                  qty: item.quantity,
                                   note: "",
                                   op: null,
-                                  taxamount: item.quantity ? (item.taxAmount ?? 0) / item.quantity : 0, // ✅ ضريبة لكل وحدة
+                                  taxamount: item.quantity ? (item.taxAmount ?? 0) / item.quantity : 0,
                                   taxCalculation: item.taxCalculation,
                                   itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
                                   extras: [],

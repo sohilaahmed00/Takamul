@@ -15,6 +15,7 @@ export interface OrderItem {
   taxAmount: number;
   discountPercentage: number;
   discountValue: number;
+  sellingPrice: number;
   lineTotal: number;
   taxCalculation: number;
   priceAfterTax: number;

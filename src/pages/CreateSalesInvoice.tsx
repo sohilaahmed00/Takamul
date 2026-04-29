@@ -437,7 +437,7 @@ const CreateSalesInvoice: React.FC = () => {
 
                       <div className="space-y-3 mt-3">
                         {itemFields.map((item, index) => {
-                       const qty = Number(form.watch(`items.${index}.quantity`) || 0);
+                          const qty = Number(form.watch(`items.${index}.quantity`) || 0);
                           const price = Number(form.watch(`items.${index}.price`) || 0);
                           const discType = form.watch(`items.${index}.discountType`) || "fixed";
                           const discValue = Number(form.watch(`items.${index}.discountValue`) || 0);
