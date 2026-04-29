@@ -236,7 +236,7 @@ export default function HomePage() {
               <button
                 key={i}
                 onClick={() => {
-                  addToCart(child);
+                  addToCart(child); 
                 }}
                 className="w-full flex justify-between items-center px-3 py-2.5 border border-border rounded-xl hover:border-primary/50 hover:bg-primary/5 active:scale-[0.98] transition-all duration-150"
               >

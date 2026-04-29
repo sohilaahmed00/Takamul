@@ -235,7 +235,23 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                             title="استكمال الدفع"
                             onClick={() => {
                               setScreen("home");
-                              // setCart(cartItems);
+                              setCart(
+                                order.items.map((item) => ({
+                                  productId: item.productId,
+                                  name: item.productName,
+                                  productNameEn: item.productName,
+                                  productNameUr: item.productName,
+                                  price: item?.sellingPrice,
+                                  qty: item.quantity,
+                                  note: "",
+                                  op: null,
+                                  taxamount: item.quantity ? (item.taxAmount ?? 0) / item.quantity : 0,
+                                  taxCalculation: item.taxCalculation,
+                                  taxPercentage: item?.taxPercentage,
+                                  itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+                                  extras: [],
+                                })),
+                              );
                               onOpenChange(false);
                               setOrderType(order?.orderType);
                               if (order.orderType == "InDine") {
@@ -263,7 +279,23 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                             setHoldingOrderId(order?.id);
                             setOrderType(order?.orderType);
                             setScreen("home");
-                            // setCart(cartItems);
+                            setCart(
+                              order.items.map((item) => ({
+                                productId: item.productId,
+                                name: item.productName,
+                                productNameEn: item.productName,
+                                productNameUr: item.productName,
+                                price: item?.sellingPrice,
+                                qty: item.quantity,
+                                note: "",
+                                op: null,
+                                taxamount: item.quantity ? (item.taxAmount ?? 0) / item.quantity : 0,
+                                taxCalculation: item.taxCalculation,
+                                taxPercentage: item?.taxPercentage,
+                                itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+                                extras: [],
+                              })),
+                            );
                             onOpenChange(false);
                             setCashierOpen(true);
                           }}

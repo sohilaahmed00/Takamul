@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Plus, Trash2, ArrowLeft } from "lucide-react";
-import axios from "axios";
 import { useLanguage } from "@/context/LanguageContext";
 import { useCreateQuantityAdjustment } from "@/features/quantity-adjustments/hooks/useCreateQuantityAdjustment";
 import { useGetStockInventory } from "@/features/quantity-adjustments/hooks/useGetStockInventory";
@@ -17,8 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useUpdateQuantityAdjustment } from "@/features/quantity-adjustments/hooks/useUpdateQuantityAdjustment";
 import z from "zod/v3";
 import { useGetQuantityAdjustmentById } from "@/features/quantity-adjustments/hooks/useGetQuantityAdjustmentById";
-import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHouses";
 
 const QuantityAdjustmentSchema = (t: (key: string) => string) =>
@@ -30,6 +28,7 @@ const QuantityAdjustmentSchema = (t: (key: string) => string) =>
           stockInventoryId: z.number().min(1, t("validation_choose_product")),
           operationType: z.enum(["Add", "Remove"]),
           quantityChanged: z.number().optional(),
+          quantityAfter: z.number().optional(),
           quantity: z
             .number({
               required_error: t("validation_enter_quantity"),
@@ -55,6 +54,7 @@ export default function AddQuantityAdjustment() {
   const { mutateAsync: createQuantityAdjustment, isPending: loadingCreate } = useCreateQuantityAdjustment();
   const { data: wareHouses } = useGetAllWareHouses();
   const [wareHouseName, setWareHousesName] = useState("");
+
   const { data: stockInventories } = useGetStockInventory(
     {
       pageNumber: 1,
@@ -65,14 +65,17 @@ export default function AddQuantityAdjustment() {
       enabled: !!wareHouseName,
     },
   );
+
   useEffect(() => {
     if (!wareHouseName && wareHouses && wareHouses?.length > 0) {
       setWareHousesName(wareHouses[0].warehouseName);
     }
   }, [wareHouses, wareHouseName]);
+
   const { mutateAsync: updateQuantityAdjustment, isPending: loadingUpdate } = useUpdateQuantityAdjustment();
 
   const isLoading = loadingCreate || loadingUpdate;
+
   const form = useForm<QuantityAdjustmentType>({
     resolver: zodResolver(QuantityAdjustmentSchema(t)),
     defaultValues: {
@@ -82,33 +85,53 @@ export default function AddQuantityAdjustment() {
           stockInventoryId: 0,
           operationType: "Add",
           quantity: 0,
+          quantityChanged: 0,
+          quantityAfter: 0,
           notes: "",
         },
       ],
     },
   });
 
+  const inventoryMap = React.useMemo(() => {
+    const map: Record<number, any> = {};
+
+    stockInventories?.items?.forEach((p) => {
+      map[p.id] = p;
+    });
+
+    if (id && stockInventory?.items) {
+      stockInventory.items.forEach((item) => {
+        const itemId = Number(item.stockInventoryId ?? 0);
+        if (!itemId) return;
+        const found = stockInventories?.items?.find((p) => p.id === itemId);
+        map[itemId] = {
+          id: itemId,
+          productName: item?. productName,
+          barcode: found?.barcode ?? "",
+          quantityAfter: item?.quantityAfter,
+          quantityBefore: item?.quantityBefore,
+          quantityChanged: item?.quantityChanged,
+        };
+      });
+    }
+
+    return map;
+  }, [stockInventories, stockInventory, id]);
+
   useEffect(() => {
     if (id && stockInventory) {
       form.reset({
         notes: stockInventory.notes ?? "",
         items:
-          stockInventory.items?.map((item) => {
-            return {
-              stockInventoryId: Number(item.stockInventoryId ?? item.id ?? 0),
-              operationType: item.operationType,
-              // quantityChanged in API is the operation amount (e.g., 1)
-              quantity: Number(item.quantityChanged ?? 0),
-              // quantityBefore in API is the stock before operation (e.g., 5)
-              // Fallback: Calculate from After and Change if Before is missing
-              quantityChanged: Number(
-                item.quantityBefore ??
-                ((item.quantityAfter ?? item.quantity ?? 0) +
-                  (item.operationType === "Add" ? -(item.quantityChanged ?? 0) : (item.quantityChanged ?? 0)))
-              ),
-              notes: item.notes ?? "",
-            };
-          }) ?? [],
+          stockInventory.items?.map((item) => ({
+            stockInventoryId: Number(item.id ?? 0),
+            operationType: item.operationType,
+            quantity: Number(item.quantityChanged ?? 0),
+            quantityChanged: Number(item.quantityBefore ?? 0),
+            quantityAfter: Number(item.quantityAfter ?? 0),
+            notes: item.notes ?? "",
+          })) ?? [],
       });
     }
   }, [id, stockInventory, form]);
@@ -127,20 +150,14 @@ export default function AddQuantityAdjustment() {
     name: "items",
   });
 
-  const inventoryMap = React.useMemo(() => {
-    const map: Record<number, any> = {};
-    stockInventories?.items?.forEach((p) => {
-      map[p.id] = p;
-    });
-    return map;
-  }, [stockInventories]);
-
   const handleAddItem = () => {
     appendItem({
       quantity: 0,
       stockInventoryId: 0,
       notes: "",
       operationType: "Add",
+      quantityChanged: 0,
+      quantityAfter: 0,
     });
   };
 
@@ -226,20 +243,12 @@ export default function AddQuantityAdjustment() {
                 {itemFields.map((item, index) => {
                   const selectedId = form.watch(`items.${index}.stockInventoryId`);
                   const selectedProduct = inventoryMap[selectedId];
-                  // Fallback: if not in inventoryMap, use data from the loaded adjustment
-                  const fallbackItem = stockInventory?.items?.[index];
-                  const displayProduct = selectedProduct ?? (fallbackItem ? {
-                    barcode: undefined,
-                    // "quantity" from API = current stock quantity at time of record
-                    quantityAvailable: fallbackItem.quantity ?? 0,
-                  } : undefined);
                   const operationType = form.watch(`items.${index}.operationType`);
-                  const quantityChanged = form.watch(`items.${index}.quantityChanged`) || 0; // This is Qty Before
+                  const quantityChanged = form.watch(`items.${index}.quantityChanged`) || 0;
                   const quantity = form.watch(`items.${index}.quantity`) || 0;
+                  const quantityAfter = form.watch(`items.${index}.quantityAfter`) || 0;
 
-                  const afterQty = operationType === "Add"
-                    ? Number(quantityChanged) + Number(quantity)
-                    : Number(quantityChanged) - Number(quantity);
+                  const afterQty = id ? quantityAfter : operationType === "Add" ? Number(quantityChanged) + Number(quantity) : Number(quantityChanged) - Number(quantity);
 
                   return (
                     <div key={item.id} className="grid grid-cols-1 md:grid-cols-7 gap-4 p-4 md:p-2 bg-zinc-50 dark:bg-zinc-900/30 md:bg-transparent dark:md:bg-transparent rounded-xl md:rounded-none border md:border-none border-zinc-100 dark:border-zinc-800 items-center group mb-8">
@@ -250,10 +259,7 @@ export default function AddQuantityAdjustment() {
                           const existingItem = stockInventory?.items?.[index];
                           const existingInInventory = field.value ? inventoryMap[field.value] : null;
                           const comboItems = stockInventories?.items ?? [];
-                          const syntheticItems =
-                            field.value && !existingInInventory && existingItem?.productName
-                              ? [{ id: field.value, productName: existingItem.productName, quantityAvailable: existingItem.quantity ?? 0 }, ...comboItems]
-                              : comboItems;
+                          const syntheticItems = field.value && !existingInInventory && existingItem?.productName ? [{ id: field.value, productName: existingItem.productName, quantityAvailable: existingItem.quantity ?? 0 }, ...comboItems] : comboItems;
                           return (
                             <Field data-invalid={fieldState.invalid} className="relative">
                               <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product")}</FieldLabel>
@@ -269,9 +275,9 @@ export default function AddQuantityAdjustment() {
                                   const product = inventoryMap[Number(val)];
                                   if (product) field.onChange(Number(val));
                                   form.setValue(`items.${index}.quantityChanged`, product?.quantityAvailable);
+                                  form.setValue(`items.${index}.quantityAfter`, 0);
                                 }}
                               />
-
                               {fieldState.invalid && (
                                 <div className="absolute top-full mt-2 right-0 z-10 w-full">
                                   <FieldError errors={[fieldState.error]} />
@@ -284,7 +290,7 @@ export default function AddQuantityAdjustment() {
 
                       <div>
                         <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("product_code")}</FieldLabel>
-                        <Input value={displayProduct?.barcode ?? ""} readOnly className="text-center cursor-not-allowed" />
+                        <Input value={selectedProduct?.barcode ?? ""} readOnly className="text-center cursor-not-allowed" />
                       </div>
 
                       <div>
@@ -292,9 +298,9 @@ export default function AddQuantityAdjustment() {
                         <Controller
                           control={form.control}
                           name={`items.${index}.quantityChanged`}
-                          render={({ field, fieldState }) => (
-                            <Field data-invalid={fieldState.invalid} className="relative">
-                              <Input value={field?.value} readOnly className="text-center cursor-not-allowed" />{" "}
+                          render={({ field }) => (
+                            <Field className="relative">
+                              <Input value={field?.value} readOnly className="text-center cursor-not-allowed" />
                             </Field>
                           )}
                         />
@@ -310,13 +316,11 @@ export default function AddQuantityAdjustment() {
                               <SelectTrigger className="w-full">
                                 <SelectValue placeholder={t("choose_operation_type")} />
                               </SelectTrigger>
-
                               <SelectContent>
                                 <SelectItem value="Add">{t("add")}</SelectItem>
                                 <SelectItem value="Remove">{t("remove_minus")}</SelectItem>
                               </SelectContent>
                             </Select>
-
                             {fieldState.invalid && (
                               <div className="absolute top-full mt-1 right-0 z-10 w-full">
                                 <FieldError errors={[fieldState.error]} />
@@ -328,7 +332,6 @@ export default function AddQuantityAdjustment() {
 
                       <div>
                         <FieldLabel className="md:hidden text-xs mb-1.5 text-zinc-500">{t("operation_quantity")}</FieldLabel>
-
                         <Controller
                           control={form.control}
                           name={`items.${index}.quantity`}
@@ -339,8 +342,7 @@ export default function AddQuantityAdjustment() {
                                 value={field.value == 0 ? "" : field.value}
                                 onChange={(e) => {
                                   if (!isView) {
-                                    const val = e.target.value;
-                                    field.onChange(Number(val));
+                                    field.onChange(Number(e.target.value));
                                   }
                                 }}
                                 readOnly={isView}
@@ -363,7 +365,7 @@ export default function AddQuantityAdjustment() {
 
                       {!isView && (
                         <div className="flex justify-end md:justify-center absolute top-4 left-4 md:static">
-                          <button type="button" onClick={() => removeItem(index)} disabled={items.length === 1} className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 dark:hover:text-red-400 rounded-md transition-colors disabled:opacity-30 ">
+                          <button type="button" onClick={() => removeItem(index)} disabled={items.length === 1} className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 dark:hover:text-red-400 rounded-md transition-colors disabled:opacity-30">
                             <Trash2 size={18} strokeWidth={1.5} />
                           </button>
                         </div>
@@ -372,6 +374,7 @@ export default function AddQuantityAdjustment() {
                   );
                 })}
               </div>
+
               {!isView && (
                 <Button type="button" size="lg" variant="secondary" onClick={handleAddItem} className="text-sm font-medium px-4 rounded-lg transition-colors w-max">
                   <Plus size={16} strokeWidth={2} />
