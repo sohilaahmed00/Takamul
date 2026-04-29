@@ -519,7 +519,7 @@ export default function CartPanel() {
                 </SelectContent>
               </Select>
 
-              {orderType === "dine-in" && (
+              {orderType === "InDine" && (
                 <div className=" shrink-0">
                   <Select value={selectedTable ? String(selectedTable) : ""} onValueChange={(value) => setSelectedTable(Number(value))}>
                     <SelectTrigger className="h-8 text-xs w-full">
@@ -535,7 +535,7 @@ export default function CartPanel() {
                   </Select>
                 </div>
               )}
-              {orderType === "delivery" && (
+              {orderType === "Delivery" && (
                 <div className="shrink-0">
                   <Select value={selectedDelivery ?? ""} onValueChange={setSelectedDelivery}>
                     <SelectTrigger className="h-8 text-xs w-full">
@@ -743,7 +743,7 @@ export default function CartPanel() {
                       return;
                     }
 
-                    if (orderType === "dine-in") {
+                    if (orderType === "InDine") {
                       if (dineInMode === "add-items") {
                         await handleAddItemsToExistingOrder();
                       } else if (dineInMode === "checkout") {
@@ -752,7 +752,7 @@ export default function CartPanel() {
                         await handleCreateDineInOrder();
                       }
                     } else {
-                      handleConfirmPayment({ isHolding: true });
+                      await handleConfirmPayment({ isHolding: true });
                     }
                   }}
                   size={"2xl"}
@@ -769,7 +769,7 @@ export default function CartPanel() {
                       return;
                     }
 
-                    if (orderType === "dine-in") {
+                    if (orderType === "InDine") {
                       if (dineInMode === "add-items") {
                         await handleAddItemsToExistingOrder();
                       } else if (dineInMode === "checkout") {

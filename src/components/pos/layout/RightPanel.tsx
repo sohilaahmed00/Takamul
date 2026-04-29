@@ -1,6 +1,6 @@
 import { usePos } from "@/context/PosContext";
-import CartPanel from "../cart/CartPanel";
 import CashierPanel from "../cashier/CashierPanel";
+import CartPanel from "../cart/CartPanel";
 
 const SCREENS_WITH_CART = ["home", "customers"];
 const SCREENS_WITH_CASHIER = ["cashier"];

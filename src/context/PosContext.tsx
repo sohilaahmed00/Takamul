@@ -98,7 +98,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
     value: number;
   }>({ type: "pct", value: 0 });
   const [showHoldModal, setShowHoldModal] = useState(false);
-  const [orderType, setOrderType] = useState<OrderType>("takeaway");
+  const [orderType, setOrderType] = useState<OrderType>("TakeAway");
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [selectedDelivery, setSelectedDelivery] = useState<string | null>(null);
   const [networkSpeed, setNetworkSpeed] = useState<NetworkSpeed>("fast");
@@ -222,16 +222,30 @@ export function PosProvider({ children }: { children: ReactNode }) {
       setScreen("home");
     } catch {}
   };
-  const handleConfirmPayment = async ({ printKitchenBon = true, isHolding = false, payments: externalPayments }) => {
-    // if (!isHolding) {
-    //   if (orderType !== "dine-in") {
-    //     if (!selectedVaultId) {
-    //       notifyError("اختر الخزنة");
-    //       return;
-    //     }
-    //   }
-    // }
+  const handleReleaseHoldingOrder = async (payments: CreateSalesOrder["payments"]) => {
+    if (!holdingOrderId) return;
 
+    try {
+      await releaseHolding({
+        id: holdingOrderId,
+        data: payments,
+      });
+
+      setCart([]);
+      setHoldingOrderId(null);
+      setSelectedOrderId(null);
+      setDiscount({ type: "pct", value: 0 });
+      if (customers?.items?.length) {
+        setSelectedCustomer(customers.items[0]);
+      }
+      setSelectedGiftCardId(null);
+      setSelectedVaultId(null);
+      setScreen("home");
+    } catch (e) {
+      // notifyError("حدث خطأ أثناء إتمام الطلب");
+    }
+  };
+  const handleConfirmPayment = async ({ printKitchenBon = true, isHolding = false, payments: externalPayments }) => {
     const payments: CreateSalesOrder["payments"] = isHolding
       ? []
       : (externalPayments ?? [
@@ -260,23 +274,21 @@ export function PosProvider({ children }: { children: ReactNode }) {
       items,
       payments,
       isHolding,
-      holdingOrderId: holdingOrderId ? holdingOrderId : 0,
+      holdingOrderId: selectedOrderId ? selectedOrderId : 0,
     };
 
     try {
-      if (orderType === "takeaway") {
-        if (selectedOrderId) {
-          // console.log(payments)
-          // console.log(holdingOrderId)
-          // return
-          await releaseHolding({
-            id: selectedOrderId,
-            data: payments,
-          });
-        } else {
-          await createTakwayOrder(basePayload);
+      if (orderType === "TakeAway" || orderType === "Delivery") {
+        if (holdingOrderId) {
+          await handleReleaseHoldingOrder(payments);
+          return;
         }
-      } else if (orderType === "dine-in") {
+        if (orderType === "TakeAway") {
+          await createTakwayOrder(basePayload);
+        } else {
+          await createDeliveryOrder(basePayload);
+        }
+      } else if (orderType === "InDine") {
         await checkoutDineInOrder({
           tableId: Number(selectedTable),
           globalDiscountValue: discount.type === "flat" ? discount.value : 0,
@@ -285,8 +297,6 @@ export function PosProvider({ children }: { children: ReactNode }) {
           payments: isHolding ? [] : [{ amount: paidAmount, treasuryId: selectedVaultId!, notes: "" }],
         });
         setDineInMode(null);
-      } else if (orderType === "delivery") {
-        await createDeliveryOrder(basePayload);
       }
 
       if (!isHolding) {
@@ -337,7 +347,7 @@ export function PosProvider({ children }: { children: ReactNode }) {
         };
 
         await printInvoice(invoiceData);
-        if (printKitchenBon && orderType !== "dine-in") {
+        if (printKitchenBon && orderType !== "InDine") {
           await printPreparationBon(sampleBon);
         }
       }

@@ -14,7 +14,7 @@ export const TABLES_LIST = ["T-01", "T-02", "T-03", "T-04", "T-05", "T-06", "T-0
 export const DELIVERY_COMPANIES = ["Talabat", "Careem", "Noon Food", "Deliveroo"];
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
-export type OrderType = "takeaway" | "dine-in" | "delivery";
+export type OrderType = "Delivery" | "InDine" | "TakeAway";
 export type NetworkSpeed = "slow" | "medium" | "fast";
 export type Screen = "home" | "customers" | "tables" | "cashier" | "orders" | "reports" | "settings" | "success" | "hold-list";
 

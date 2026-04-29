@@ -206,11 +206,11 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                           <button
                             title="إضافة عناصر"
                             onClick={(e) => {
+                              onOpenChange(false);
                               setScreen("home");
-
-                              if (order.orderStatus == "UnConfirmed") {
-                                setHoldingOrderId(order?.holdingOrderId);
-                              }
+                              setHoldingOrderId(order?.id);
+                              setOrderType(order?.orderType);
+                              setSelectedOrderId(order?.id);
                               setCart(
                                 order.items.map((item) => ({
                                   price: item?.priceAfterTax,
@@ -221,12 +221,9 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                   productId: item?.productId,
                                 })),
                               );
-
-                              onOpenChange(false);
                               if (order.orderStatus == "InProgress") {
-                                setOrderType("dine-in");
+                                setOrderType("InDine");
                                 setDineInMode("add-items");
-                                setSelectedOrderId(order?.id);
                               }
                               // await printInvoice(invoiceData);
                             }}
@@ -248,11 +245,11 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                   productId: item?.productId,
                                 })),
                               );
+                              setSelectedOrderId(order?.id);
                               onOpenChange(false);
                               if (order.orderStatus == "InProgress") {
-                                setOrderType("dine-in");
+                                setOrderType("InDine");
                                 setDineInMode("checkout");
-                                setSelectedOrderId(order?.id);
                                 setSelectedTable(order?.tableId);
                               }
                               // await printInvoice(invoiceData);

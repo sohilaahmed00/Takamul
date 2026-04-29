@@ -34,6 +34,7 @@ export interface SalesOrder {
   customerId: number;
   createdBy: string;
   orderDate: string;
+  orderType: "Delivery" | "TakeAway" | "InDine";
   tableId: number;
   warehouseName: string;
   subTotal: number;
