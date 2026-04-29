@@ -190,13 +190,54 @@ export const usePosStore = create<PosState>((set, get) => ({
   },
 
   handleReleaseHoldingOrder: async (payments, { releaseHolding, customers }) => {
-    const { holdingOrderId, resetCart } = get();
-
+    const { holdingOrderId, resetCart, cart, selectedCustomer, discount } = get();
     if (!holdingOrderId) return;
 
     try {
       await releaseHolding({ id: holdingOrderId, data: payments });
-      set({ holdingOrderId: null, selectedOrderId: null });
+
+      // ✅ طباعة بعد الـ release
+      const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
+      const totals = calcTotals(cart, hasItemDiscounts ? { type: "pct", value: 0 } : discount);
+      const discountAmount = hasItemDiscounts
+        ? cart.reduce((acc, item) => {
+            const raw = itemBasePriceRaw(item);
+            const afterDisc = itemBasePrice(item);
+            return acc + (raw - afterDisc);
+          }, 0)
+        : totals.discountAmount;
+
+      const invoiceData: InvoiceData = {
+        logoUrl: LOGO_URL,
+        invoiceNumber: `—`,
+        institutionName: INSTITUTION_NAME,
+        institutionTaxNumber: INSTITUTION_TAX_NO,
+        invoiceDate: formatDate(new Date()),
+        institutionAddress: INSTITUTION_ADDRESS,
+        institutionPhone: INSTITUTION_PHONE,
+        customerName: selectedCustomer?.customerName ?? undefined,
+        customerPhone: undefined,
+        items: cart.map((item) => {
+          const base = itemBasePrice(item);
+          const tax = calcItemTax(item);
+          return {
+            productName: item.name,
+            quantity: item.qty,
+            unitPrice: Number(base.toFixed(2)),
+            taxAmount: Number(tax.toFixed(2)),
+            total: Number((base + tax).toFixed(2)),
+          };
+        }),
+        subTotal: Number(totals.sub.toFixed(2)),
+        discountAmount: Number(discountAmount),
+        taxAmount: totals.originalTax,
+        grandTotal: totals.total,
+        notes: INSTITUTION_NOTES,
+      };
+
+      await printInvoice(invoiceData);
+
+      set({ selectedOrderId: null });
       resetCart(customers);
     } catch {}
   },
@@ -312,11 +353,9 @@ export const usePosStore = create<PosState>((set, get) => ({
     try {
       if (orderType === "TakeAway" || orderType === "Delivery") {
         if (holdingOrderId && !isHolding) {
-          // ✅ release بس لما isHolding === false (زرار الدفع)
           await handleReleaseHoldingOrder(payments, { releaseHolding, customers });
           return;
         }
-        // ✅ زرار التعليق أو أوردر جديد — يكمل عادي
         if (orderType === "TakeAway") {
           await createTakwayOrder(basePayload);
         } else {

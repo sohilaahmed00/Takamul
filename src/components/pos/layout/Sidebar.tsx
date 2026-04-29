@@ -224,18 +224,22 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                             <Plus size={13} />
                           </button>
 
-                          {/* استكمال الدفع */}
                           <button
                             title="استكمال الدفع"
                             onClick={() => {
                               setScreen("home");
                               setCart(cartItems);
-                              setSelectedOrderId(order?.id);
                               onOpenChange(false);
-                              if (order.orderStatus === "InProgress") {
-                                setOrderType("InDine");
-                                setDineInMode("checkout");
-                                setSelectedTable(order?.tableId);
+                              setOrderType(order?.orderType);
+                              if (order.orderType == "InDine") {
+                                if (order.orderStatus === "InProgress") {
+                                  setDineInMode("checkout");
+                                  setSelectedTable(order?.tableId);
+                                  setSelectedOrderId(order?.id);
+                                }
+                              } else {
+                                setHoldingOrderId(order?.id);
+                                setOrderType(order?.orderType);
                               }
                             }}
                             className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
@@ -245,13 +249,12 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         </div>
                       )}
 
-                      {/* استكمال الفاتورة - معلقة */}
                       {order.orderStatus === "UnConfirmed" && (
                         <button
                           title="استكمال الفاتورة"
                           onClick={() => {
                             setHoldingOrderId(order?.id);
-                            setOrderType(order?.orderType); // ✅ مهم عشان الـ store يعرف TakeAway أو Delivery
+                            setOrderType(order?.orderType);
                             setScreen("home");
                             setCart(cartItems);
                             onOpenChange(false);

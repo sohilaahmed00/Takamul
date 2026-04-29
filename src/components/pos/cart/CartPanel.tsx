@@ -761,14 +761,13 @@ export default function CartPanel() {
 
                     if (orderType === "InDine") {
                       if (dineInMode === "add-items") {
-                        await handleAddItemsToExistingOrder({ addItemsToOrder }); // ✅ add فقط
+                        await handleAddItemsToExistingOrder({ addItemsToOrder });
                       } else if (dineInMode === "checkout") {
                         setCashierOpen(true);
                       } else {
                         await handleCreateDineInOrder({ createDineInOrderyOrder });
                       }
                     } else {
-                      // TakeAway / Delivery فقط
                       await handleConfirmPayment({
                         isHolding: true,
                         createTakwayOrder,
