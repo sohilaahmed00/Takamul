@@ -13,7 +13,6 @@ export async function getQuantityAdjustments({ pageNumber = 1, pageSize = 5, sea
 export async function getQuantityAdjustmentById(id: number): Promise<QuantityAdjustment> {
   const response = await httpClient<QuantityAdjustment>(`/StockInventory/${id}`, {
     method: "GET",
-    params: { page: 1, pageSize: 1000 },
   });
 
   return response;

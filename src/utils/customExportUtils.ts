@@ -720,8 +720,8 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
       <tr>
         <td>${i + 1}</td>
         <td>${row.productName || "-"} <span style="color:#666;font-size:11px;margin:0 5px;">${row.barcode ? `(${row.barcode})` : ""}</span></td>
-        <td>${typeTranslated}</td>
         <td>${beforeQty.toLocaleString()}</td>
+        <td>${typeTranslated}</td>
         <td style="font-weight:700;">${opQty.toLocaleString()}</td>
         <td>${afterQty.toLocaleString()}</td>
       </tr>
@@ -754,19 +754,13 @@ export const getQuantityAdjustmentHTML = (data: any, lines: any[], t: any, direc
       <div style="text-align:center;margin-bottom:40px;">
         <h2 style="font-size:20px;font-weight:800;">${t("quantity_adjustments", "تعديلات كمية")}</h2>
       </div>
-      <div class="header-boxes">
-        <div class="h-box">
-          <div class="title">${t("warehouse", "المخزن")}</div>
-          <div class="value">${data.warehouseName || "-"}</div>
-        </div>
-      </div>
       <table>
         <thead>
           <tr>
             <th>${t("serial", "م")}</th>
             <th>${direction === "ltr" ? "Barcode / Name" : "باركود / اسم"}</th>
-            <th>${t("type", "النوع")}</th>
             <th>${t("available_quantity_before_operation")}</th>
+            <th>${t("operation_type", "نوع العملية")}</th>
             <th>${t("operation_quantity")}</th>
             <th>${t("available_quantity_after_operation")}</th>
           </tr>
