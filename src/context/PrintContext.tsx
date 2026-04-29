@@ -143,7 +143,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
 
     const thermalData = {
       logoUrl: branch.imageUrl || "",
-      invoiceNumber: (extendedData.orderNumber || extendedData.invoiceNo || extendedData.id || "").toString(),
+      invoiceNumber: (extendedData.purchaseOrderNumber || extendedData.orderNumber || extendedData.invoiceNo || extendedData.id || "").toString(),
       institutionName: branch.name || "",
       institutionNameEn: branch.nameEn || "",
       institutionTaxNumber: branch.taxNumber || "",
@@ -153,23 +153,25 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
         : (extendedData.orderDate || extendedData.date 
             ? new Date((extendedData.orderDate || extendedData.date) as any).toLocaleString("en-GB") 
             : new Date().toLocaleString("en-GB")),
-      institutionAddress: branch.address || [branch.street, branch.cityName, branch.stateName].filter(Boolean).join(" - ") || "",
+      institutionAddress: branch.address || [branch.countryName, branch.cityName, branch.stateName, branch.street].filter(Boolean).join(" / ") || "",
       institutionPhone: branch.phone || "",
-      customerName: extendedData.customerName || extendedData.customer || "",
+      customerName: extendedData.supplierName || extendedData.customerName || extendedData.customer || "",
       customerPhone: extendedData.customerPhone || "",
       items: rawItems.map((item, index) => {
         const qty = Number(item.quantity ?? 1);
         const subTotal = item.subTotal !== undefined ? Number(item.subTotal) : itemBasePrice(cart[index]);
         const taxAmt = item.taxAmount !== undefined ? Number(item.taxAmount) : calcItemTax(cart[index]);
         const lineTot = item.lineTotal !== undefined ? Number(item.lineTotal) : (subTotal + taxAmt);
-        const finalPrice = item.priceAfterTax !== undefined 
-          ? Number(item.priceAfterTax) 
-          : (lineTot / qty);
+        
+        // Use priceBeforeTax for the "Price Before Tax" column
+        const priceBeforeTax = item.priceBeforeTax !== undefined 
+          ? Number(item.priceBeforeTax) 
+          : (subTotal / qty);
 
         return {
           productName: item.productName || item.name || "-",
           quantity: qty,
-          unitPrice: finalPrice,
+          unitPrice: priceBeforeTax, // Correctly set to before tax
           taxAmount: Number(taxAmt.toFixed(2)),
           total: Number(lineTot.toFixed(2)),
         };
@@ -178,7 +180,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
       discountAmount: Number((extendedData.discountAmount !== undefined ? extendedData.discountAmount : totals.discountAmount).toFixed(2)),
       taxAmount: Number((extendedData.taxAmount !== undefined ? extendedData.taxAmount : totals.tax).toFixed(2)),
       grandTotal: Number((extendedData.grandTotal !== undefined ? extendedData.grandTotal : totals.total).toFixed(2)),
-      notes: extendedData.notes || extendedData.orderNotes || "",
+      notes: extendedData.notes || (extendedData as any).orderNotes || (extendedData as any).note || (extendedData as any).description || "",
       qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent((extendedData.orderNumber || extendedData.invoiceNo || extendedData.id || "").toString())}`,
     };
 

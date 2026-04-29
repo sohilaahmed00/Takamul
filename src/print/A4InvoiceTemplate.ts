@@ -4,10 +4,10 @@ import type { Customer } from "@/features/customers/types/customers.types";
 import { itemBasePrice, calcItemTax, calcTotals, type CartItem } from "@/constants/data";
 
 export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): string => {
-  const branch: Partial<BranchInfo> = order.branchInfo   || {};
+  const branch: Partial<BranchInfo> = order.branchInfo || {};
   const customer: Partial<Customer> = order.customerData || {};
-  const items: any[]                = order.items || order.orderItems || [];
-  
+  const items: any[] = order.items || order.orderItems || [];
+
   const apiBase = passedApiBase || "";
 
   // ── Date formatting ──────────────────────────────────────────────────────────
@@ -23,45 +23,26 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
   }
 
   // ── Customer fields ──────────────────────────────────────────────────────────
-  const custName       = customer.customerName       || order.customerName         || "-";
-  const custPhone      = customer.mobile             || customer.phone             || order.customerPhone || "-";
-  const custTaxNo      = customer.taxNumber          || order.customerTaxNo        || "-";
-  const custCommercial = customer.commercialRegister || order.customerCommercialNo || "-";
-  const country        = customer.countryName || "";
-  const city           = customer.city || "";
-  const state          = customer.state || "";
-  const street         = customer.address || order.customerAddress || "";
-  const custAddress    = [country, city, state, street].filter(Boolean).join(" / ") || "-";
-  const custPostal     = customer.postalCode         || order.customerZipCode       || "-";
-  const custSubNo      = customer.additionalNumber   || order.customerSubNo         || "-";
-  const custBuilding   = customer.buildingNumber     || order.customerBuildingNo    || "-";
-  const invoiceNo      = order.orderNumber || order.invoiceNo || "-";
+  const custName = customer.customerName || order.customerName || order.supplierName || order.supplier || "-";
+  const custPhone = customer.mobile || customer.phone || order.customerPhone || order.supplierPhone || "-";
+  const custTaxNo = customer.taxNumber || order.customerTaxNo || order.supplierTaxNo || "-";
+  const custCommercial = customer.commercialRegister || order.customerCommercialNo || order.supplierCommercialNo || "-";
+  const country = customer.countryName || "";
+  const city = customer.city || "";
+  const state = customer.state || "";
+  const street = customer.address || order.customerAddress || order.supplierAddress || "";
+  const custAddress = [country, city, state, street].filter(Boolean).join(" / ") || "-";
+  const custPostal = customer.postalCode || order.customerZipCode || "-";
+  const custSubNo = customer.additionalNumber || order.customerSubNo || "-";
+  const custBuilding = customer.buildingNumber || order.customerBuildingNo || "-";
+  const invoiceNo = order.purchaseOrderNumber || order.orderNumber || order.invoiceNo || "-";
 
   // ── Helper to fix Image URLs ────────────────────────────────────────────────
   const getFullImageUrl = (url: string | null | undefined): string => {
     if (!url || typeof url !== "string") return "";
-    let finalUrl = url;
-    
-    try {
-      // If it contains a known image path pattern, extract it and use the correct base
-      if (url.includes("/Images/")) {
-        const pathPart = url.substring(url.indexOf("/Images/"));
-        if (apiBase) return `${apiBase}${pathPart}`;
-      }
-
-      if (!url.startsWith("http")) {
-        if (apiBase) finalUrl = `${apiBase}/${url.replace(/^\/+/, "")}`;
-      } else if (url.includes("localhost") && apiBase && !apiBase.includes("localhost")) {
-        const urlObj = new URL(url);
-        const baseObj = new URL(apiBase);
-        urlObj.protocol = baseObj.protocol;
-        urlObj.host = baseObj.host;
-        finalUrl = urlObj.toString();
-      }
-    } catch (e) { 
-      console.warn("[A4Template] Image URL fix failed:", e);
-    }
-    return finalUrl;
+    if (url.startsWith("http")) return url;
+    if (!apiBase) return url;
+    return `${apiBase}/${url.replace(/^\/+/, "")}`;
   };
 
   const branchLogo = getFullImageUrl(branch.imageUrl);
@@ -72,15 +53,16 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
     const flat = Number(item?.discountValue ?? 0);
     const itemDiscount: CartItem["itemDiscount"] = pct > 0 ? { type: "pct", value: pct } : flat > 0 ? { type: "flat", value: flat } : null;
 
-    const price = item.taxCalculation === 2 ? (item.unitPrice || item.price) : (item.priceBeforeTax ?? item.unitPrice ?? item.price ?? 0);
+    const price = item.taxCalculation === 2 || item.taxCalculation === "Excludestax" ? (item.unitPrice || item.price) : (item.priceBeforeTax ?? item.unitPrice ?? item.price ?? 0);
 
+    const taxCalc = item.taxCalculation === "Includestax" || item.taxCalculation === 3 ? 3 : 2;
     return {
       productId: item.productId ?? 0,
       name: item.productName || item.name || "-",
       price: Number(price),
       qty: Number(item.quantity ?? 1),
       taxamount: Number(item.taxPercentage ?? item.taxamount ?? 15),
-      taxCalculation: Number(item.taxCalculation ?? 2),
+      taxCalculation: taxCalc,
       itemDiscount,
       note: "",
       op: null,
@@ -89,36 +71,44 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
 
   const discVal = Number(order.discountAmount || order.discountValue || order.discount || 0);
   const discountObj = { type: "flat" as const, value: discVal };
-  
+
   const totals = calcTotals(cart, discountObj);
 
   // ── Final values prioritized by API data ────────────────────────────────────
   const computedItems = items.map((item: any, index: number) => {
     // If API provides these fields, use them. Otherwise fallback to calc logic.
-    const qty      = Number(item.quantity ?? 1);
-    const price    = item.priceAfterTax !== undefined 
+    const qty = Number(item.quantity ?? 1);
+    // Updated logic per user request: "Price" column shows Price AFTER Tax
+    const price = item.priceAfterTax !== undefined 
       ? Number(item.priceAfterTax) 
-      : (item.lineTotal !== undefined && qty > 0 
-          ? Number(item.lineTotal) / qty 
-          : Number(item.unitPrice || item.price || 0));
-    const subTotal = item.subTotal !== undefined ? Number(item.subTotal) : itemBasePrice(cart[index]);
-    const taxAmt   = item.taxAmount !== undefined ? Number(item.taxAmount) : calcItemTax(cart[index]);
+      : (item.lineTotal !== undefined && qty > 0 ? Number(item.lineTotal) / qty : (Number(item.unitPrice || 0) * 1.15));
+
+    // "Sub Total" column shows lineSubTotal (Before Tax) - support multiple API variants
+    // The "14" came from a fallback where lineSubTotal was missing and it used a unit price of 7
+    const subTotal = item.lineSubTotal !== undefined ? Number(item.lineSubTotal) : 
+                    (item.lineSubtotal !== undefined ? Number(item.lineSubtotal) : 
+                    (item.subTotal !== undefined ? Number(item.subTotal) : 
+                    (item.priceBeforeTax !== undefined ? Number(item.priceBeforeTax) * qty :
+                    (item.unitPrice !== undefined ? Number(item.unitPrice) * qty :
+                    (item.lineTotal !== undefined ? Number(item.lineTotal) - (item.taxAmount || 0) : (totals.sub / items.length))))));
+    
+    const taxAmt = item.taxAmount !== undefined ? Number(item.taxAmount) : calcItemTax(cart[index]);
     const netTotal = item.lineTotal !== undefined ? Number(item.lineTotal) : (subTotal + taxAmt);
 
-    return { 
-      item, 
-      price, 
-      qty, 
-      subTotal, 
-      taxAmt, 
-      netTotal 
+    return {
+      item,
+      price,
+      qty,
+      subTotal,
+      taxAmt,
+      netTotal
     };
   });
 
   const totBeforeVAT = order.subTotal !== undefined ? Number(order.subTotal) : totals.sub;
-  const totalVAT     = order.taxAmount !== undefined ? Number(order.taxAmount) : totals.tax;
-  const discount     = order.discountAmount !== undefined ? Number(order.discountAmount) : totals.discountAmount;
-  const finalTotal   = order.grandTotal !== undefined ? Number(order.grandTotal) : totals.total;
+  const totalVAT = order.taxAmount !== undefined ? Number(order.taxAmount) : totals.tax;
+  const discount = order.discountAmount !== undefined ? Number(order.discountAmount) : totals.discountAmount;
+  const finalTotal = order.grandTotal !== undefined ? Number(order.grandTotal) : totals.total;
 
   const itemRows = computedItems.map(({ item, price, qty, subTotal, taxAmt, netTotal }) => `
     <tr>
@@ -477,8 +467,20 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
         <div class="meta-label-en">INV No.</div>
       </div>
     </div>
-    <div class="logo-container">
-      <img src="${branchLogo}" onerror="this.style.display='none'" style="max-height:65px; max-width:100%; object-fit:contain;" />
+    <div class="logo-container" id="logo-box">
+      ${branchLogo ? `
+        <img src="${branchLogo}" alt="Logo" 
+             style="max-height: 85px; max-width: 100%; object-fit: contain;"
+             onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';"
+        />
+        <div id="logo-fallback" style="display: none; font-size: 14px; font-weight: 700; flex-direction: column; align-items: center; width: 100%;">
+          <div>Logo / اللوجو</div>
+        </div>
+      ` : `
+        <div style="font-size: 14px; font-weight: 700; display: flex; flex-direction: column; align-items: center; width: 100%;">
+          <div>Logo / اللوجو</div>
+        </div>
+      `}
     </div>
     <div class="header-col">
       <div class="company-title">${branch.nameEn || "-"}</div>
@@ -497,15 +499,15 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
 
   <!-- ══ DOC TYPE SECTION ══ -->
   <div class="doc-type-container">
-    <div class="doc-type-item">${t("cash_sales_invoice", "فاتورة مبيعات نقدية")}</div>
-    <div class="doc-type-item">${t("tax_invoice", "فاتورة ضريبية")}</div>
-    <div class="doc-type-item">${t("seller_name", "اسم البائع")} : ${order.createdBy || order.sellerName || order.cashier || "-"}</div>
+    <div class="doc-type-item">${order.purchaseOrderNumber ? t("purchase_invoice", "فاتورة مشتريات") : t("cash_sales_invoice", "فاتورة مبيعات نقدية")}</div>
+    <div class="doc-type-item">${t("tax_invoice", "فاتورة ضريبية")} ${order.purchaseOrderNumber ? "" : "(مبسطة)"}</div>
+    <div class="doc-type-item">${t("seller_name", "اسم البائع")} : ${order.createdBy || order.sellerName || order.cashier || order.employeeName || "-"}</div>
   </div>
 
-  <!-- ══ CUSTOMER INFO ══ -->
+  <!-- ══ CUSTOMER/SUPPLIER INFO ══ -->
   <div style="margin-bottom:10px;">
     <div style="display:flex; justify-content:flex-start;">
-      <div class="section-header">${t("customer_data", "بيانات العميل")}</div>
+      <div class="section-header">${order.purchaseOrderNumber ? t("supplier_data", "بيانات المورد") : t("customer_data", "بيانات العميل")}</div>
     </div>
     <div class="customer-box">
       <table class="cust-tbl">
@@ -591,12 +593,13 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
 
   <!-- ══ NOTES ══ -->
   <div class="notes-box">
-    <div>${order.notes || "-"}</div>
+    <div>${order.notes || order.orderNotes || order.note || "-"}</div>
   </div>
 
   <!-- ══ ADDRESS BAR ══ -->
-  <div class="full-width-bar">
-    ${t("branch_address", "عنوان المؤسسة")} : ${branch.address || branch.street || branch.cityName || "-"}
+  <div class="full-width-bar" style="display: flex; justify-content: center; gap: 20px;">
+    <span>${t("branch_address", "عنوان المؤسسة")} : ${[branch.countryName, branch.cityName, branch.stateName, branch.street].filter(Boolean).join(" / ") || branch.address || "-"}</span>
+    <span>${t("branch_phone", "رقم جوال المؤسسة")} : ${branch.phone || "-"}</span>
   </div>
 
 </body>

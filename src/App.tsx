@@ -89,6 +89,7 @@ import CustomersReportsCategory from "@/pages/reports/CustomersReportsCategory";
 import SuppliersReportsCategory from "@/pages/reports/SuppliersReportsCategory";
 import ExpensesReportsCategory from "@/pages/reports/ExpensesReportsCategory";
 import ProfitsReportsCategory from "@/pages/reports/ProfitsReportsCategory";
+import SalesReturnsReport from "@/pages/reports/SalesReturnsReport";
 
 import Revenues from "@/pages/revenues-and-expenses/Revenues";
 import Expenses from "@/pages/revenues-and-expenses/Expenses";
@@ -249,6 +250,7 @@ function AppRoutes() {
             <Route path="/reports/expenses-detail" element={<ExpensesDetailReport />} />
             <Route path="/reports/profit" element={<ProfitReport />} />
             <Route path="/reports/item-movement" element={<ItemMovementReport />} />
+            <Route path="/reports/sales-returns" element={<SalesReturnsReport />} />
 
             {/* New Report Categories */}
             <Route path="/reports/category/items" element={<ItemsReportsCategory />} />

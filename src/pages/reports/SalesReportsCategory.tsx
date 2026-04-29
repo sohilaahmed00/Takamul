@@ -1,7 +1,7 @@
 import React from 'react';
 import ReportsDashboardBase from '@/components/ReportsDashboardBase';
 import { useLanguage } from '@/context/LanguageContext';
-import { SaudiRiyal, Barcode, Users, RefreshCw, Calendar, FileText } from 'lucide-react';
+import { SaudiRiyal, Barcode, Users, RefreshCw, Calendar, FileText, RotateCcw } from 'lucide-react';
 
 const SalesReportsCategory: React.FC = () => {
   const { t } = useLanguage();
@@ -11,6 +11,7 @@ const SalesReportsCategory: React.FC = () => {
     { title: t('sales_by_day', 'تقرير اجمالي المبيعات على مستوى الأيام'), icon: <Calendar />, path: '/reports/sales-by-day' },
     { title: t('item_sales_report', 'تقرير مبيعات صنف'), icon: <Barcode />, path: '/reports/item-sales' },
     { title: t('shifts_report', 'تقرير الورديات'), icon: <RefreshCw />, path: '/reports/shifts' },
+    { title: t('sales_returns_report', 'تقرير مرتجعات المبيعات'), icon: <RotateCcw />, path: '/reports/sales-returns' },
     { title: t('employee_sales_report', 'تقرير مبيعات موظف'), icon: <Users />, path: '/reports/user-sales' },
   ];
 

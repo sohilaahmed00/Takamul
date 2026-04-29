@@ -65,17 +65,9 @@ export const getA4PrintHTML = (
   // ── Logo URL ────────────────────────────────────────────────────────────────
   const getFullImageUrl = (url: string | null | undefined): string => {
     if (!url || typeof url !== "string") return "";
-    let finalUrl = url;
-    try {
-      if (url.includes("/Images/")) {
-        const pathPart = url.substring(url.indexOf("/Images/"));
-        if (apiBase) return `${apiBase}${pathPart}`;
-      }
-      if (!url.startsWith("http")) {
-        if (apiBase) finalUrl = `${apiBase}/${url.replace(/^\/+/, "")}`;
-      }
-    } catch (e) { }
-    return finalUrl;
+    if (url.startsWith("http")) return url;
+    if (!apiBase) return url;
+    return `${apiBase}/${url.replace(/^\/+/, "")}`;
   };
   const branchLogo = getFullImageUrl(branch.imageUrl);
 
@@ -87,13 +79,15 @@ export const getA4PrintHTML = (
 
     const price = type === "purchase" || item.taxCalculation === 3 ? (item.unitPrice || item.price) : (item.priceBeforeTax ?? item.unitPrice ?? item.price ?? 0);
 
+    const taxCalc = item.taxCalculation === "Includestax" || item.taxCalculation === 3 ? 3 : 2;
+
     return {
       productId: item.productId ?? 0,
       name: item.productName || item.name || "-",
       price: Number(price),
       qty: Number(item.quantity ?? 1),
       taxamount: Number(item.taxPercentage ?? item.taxAmount ?? 15),
-      taxCalculation: type === "purchase" ? 3 : Number(item.taxCalculation ?? 2),
+      taxCalculation: taxCalc,
       itemDiscount,
       note: "",
       op: null,
@@ -114,8 +108,11 @@ export const getA4PrintHTML = (
       ? Number(item.priceAfterTax) 
       : (item.lineTotal !== undefined && qty > 0 
           ? Number(item.lineTotal) / qty 
-          : Number(item.unitPrice || item.price || 0));
-    const subTotal = item.subTotal !== undefined ? Number(item.subTotal) : itemBasePrice(cart[index]);
+          : (Number(item.unitPrice || 0) * 1.15));
+    const subTotal = item.lineSubTotal !== undefined ? Number(item.lineSubTotal) : 
+                    (item.lineSubtotal !== undefined ? Number(item.lineSubtotal) : 
+                    (item.subTotal !== undefined ? Number(item.subTotal) : 
+                    (Number(item.priceBeforeTax || item.unitPrice || 0) * qty)));
     const taxAmt   = item.taxAmount !== undefined ? Number(item.taxAmount) : calcItemTax(cart[index]);
     const netTotal = item.lineTotal !== undefined ? Number(item.lineTotal) : (subTotal + taxAmt);
 
@@ -193,8 +190,20 @@ export const getA4PrintHTML = (
         <div class="meta-label-en">Doc No.</div>
       </div>
     </div>
-    <div class="logo-container">
-      <img src="${branchLogo}" onerror="this.style.display='none'" style="max-height:65px; max-width:100%; object-fit:contain;" />
+    <div class="logo-container" id="logo-box">
+      ${branchLogo ? `
+        <img src="${branchLogo}" alt="Logo" 
+             style="max-height: 85px; max-width: 100%; object-fit: contain;"
+             onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';"
+        />
+        <div id="logo-fallback" style="display: none; font-size: 14px; font-weight: 700; flex-direction: column; align-items: center; width: 100%;">
+          <div>Logo / اللوجو</div>
+        </div>
+      ` : `
+        <div style="font-size: 14px; font-weight: 700; display: flex; flex-direction: column; align-items: center; width: 100%;">
+          <div>Logo / اللوجو</div>
+        </div>
+      `}
     </div>
     <div class="header-col">
       <div class="company-title">${branch.nameEn || "-"}</div>
@@ -294,8 +303,9 @@ export const getA4PrintHTML = (
     <div>${data.notes || "-"}</div>
   </div>
 
-  <div class="full-width-bar">
-    ${t("branch_address", "عنوان المؤسسة")} : ${branch.address || branch.street || branch.cityName || "-"}
+  <div class="full-width-bar" style="display: flex; justify-content: center; gap: 20px;">
+    <span>${t("branch_address", "عنوان المؤسسة")} : ${[branch.countryName, branch.cityName, branch.stateName, branch.street].filter(Boolean).join(" / ") || branch.address || "-"}</span>
+    <span>${t("branch_phone", "رقم جوال المؤسسة")} : ${branch.phone || "-"}</span>
   </div>
 </body>
 </html>`;
