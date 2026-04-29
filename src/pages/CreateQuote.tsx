@@ -547,22 +547,19 @@ const CreateQuote: React.FC = () => {
                         const product = products?.items?.find((p) => p.id === Number(productId));
                         const originalPrice = product?.sellingPrice || 1;
                         const originalTax = product?.taxAmount || 0;
-                        const taxPercentage = originalTax / originalPrice;
                         const taxCalc = product?.taxCalculation ?? 0;
+
+                        // نسبة الضريبة من السعر الشامل
+                        const taxRatio = originalTax / originalPrice; // 0.92 / 8 = 0.115
 
                         const gross = qty * price;
                         const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
                         const afterDiscount = Math.max(0, gross - discount);
 
-                        // ✅ السعر قبل الضريبة دايمًا
-                        const priceBeforeTax =
-                          taxCalc === 1
-                            ? afterDiscount // لا يوجد ضريبة → السعر كما هو
-                            : taxCalc === 2
-                              ? afterDiscount / (1 + taxPercentage) // شامل الضريبة → نقسم
-                              : afterDiscount - afterDiscount * taxPercentage; // غير شامل → نطرح
+                        // ✅ السعر قبل الضريبة
+                        const vatAmount = taxCalc === 1 ? 0 : afterDiscount * taxRatio;
+                        const priceBeforeTax = afterDiscount - vatAmount;
 
-                        const vatAmount = taxCalc === 1 ? 0 : afterDiscount - priceBeforeTax;
                         const grandTotal = afterDiscount;
                         const nameTaxValc = taxCalc == 3 ? "غير شامل الضريبة" : taxCalc == 2 ? "شامل الضريبة" : taxCalc == 1 ? "لا يوجد ضريبة" : "-";
                         const isDiscOpen = !!discountOpen[index];
