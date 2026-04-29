@@ -235,6 +235,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                             title="استكمال الدفع"
                             onClick={() => {
                               setScreen("home");
+                              console.log(order?.items)
                               setCart(
                                 order.items.map((item) => ({
                                   productId: item.productId,

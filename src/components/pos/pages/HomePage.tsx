@@ -50,34 +50,6 @@ export default function HomePage() {
     [language],
   );
 
-  // const addToCart = (item: { id: number; productNameAr: string; sellingPrice: number; taxAmount: number; taxCalculation: number; productNameEn?: string; productNameUr?: string }) => {
-  //   if (holdingOrderId) {
-  //     notifyError("لا يمكن إضافة أصناف لطلب محجوز");
-  //     return;
-  //   }
-
-  //   setCart((prev) => {
-  //     const existing = prev.find((i) => i.productId === item.id);
-  //     if (existing) {
-  //       return prev.map((i) => (i.productId === item.id ? { ...i, qty: i.qty + 1 } : i));
-  //     }
-  //     return [
-  //       ...prev,
-  //       {
-  //         name: item.productNameAr,
-  //         productNameEn: item.productNameEn,
-  //         productNameUr: item.productNameUr,
-  //         price: item.sellingPrice,
-  //         qty: 1,
-  //         note: "",
-  //         op: null,
-  //         taxamount: item.taxAmount,
-  //         productId: item.id,
-  //         taxCalculation: item.taxCalculation,
-  //       },
-  //     ];
-  //   });
-  // };
 
   const handleMenuClick = (item: Product) => {
     if (item.productType === "Branched") {
