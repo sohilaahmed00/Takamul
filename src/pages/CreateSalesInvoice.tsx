@@ -173,15 +173,16 @@ const CreateSalesInvoice: React.FC = () => {
       const price = item.price || 0;
       const discType = item.discountType || "fixed";
       const discValue = item.discountValue || 0;
-      const originalPrice = product?.sellingPrice || 1;
-      const originalTax = product?.taxAmount || 0;
-      const taxPercentage = originalTax / originalPrice;
       const taxCalc = product?.taxCalculation ?? 1;
+      const taxPercentage = product?.taxPercentage || 0;
+
       const gross = qty * price;
       const discount = discType === "fixed" ? discValue * qty : gross * (discValue / 100);
       const afterDisc = Math.max(0, gross - discount);
-      const vatAmount = taxCalc === 1 ? 0 : afterDisc * taxPercentage;
-      const beforeTax = afterDisc - vatAmount;
+
+      const beforeTax = taxCalc === 1 ? afterDisc : Math.round((afterDisc / (1 + taxPercentage / 100)) * 100) / 100;
+
+      const vatAmount = taxCalc === 1 ? 0 : afterDisc - beforeTax;
 
       beforeTaxTotal += beforeTax;
       totalVat += vatAmount;
@@ -261,18 +262,15 @@ const CreateSalesInvoice: React.FC = () => {
         const product = products?.items?.find((p) => p.id === Number(item.productId));
         const price = item?.price || 0;
         const taxCalc = product?.taxCalculation ?? 0;
-        const originalPrice = product?.sellingPrice || 0;
-        const originalTax = product?.taxAmount || 0;
-        const beforeTaxOld = originalPrice - originalTax;
-        const taxPercentage = beforeTaxOld > 0 ? originalTax / beforeTaxOld : 0;
-        const beforeTax = taxCalc === 1 ? price : price / (1 + taxPercentage);
+        const taxPercentage = product?.taxPercentage || 0;
+
+        const beforeTax = taxCalc === 1 ? price : price / (1 + taxPercentage / 100);
+
         return {
           productId: item.productId,
           quantity: item.quantity,
           unitPrice: beforeTax,
-
           discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
-
           discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
         };
       }),
@@ -284,6 +282,8 @@ const CreateSalesInvoice: React.FC = () => {
       })),
     };
 
+    console.log(payload);
+    return;
     await createSalesOrders(payload);
     form.reset();
     navigate("/sales/all");
