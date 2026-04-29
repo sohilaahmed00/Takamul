@@ -265,12 +265,12 @@ export function PosProvider({ children }: { children: ReactNode }) {
 
     try {
       if (orderType === "takeaway") {
-        if (holdingOrderId) {
+        if (selectedOrderId) {
           // console.log(payments)
           // console.log(holdingOrderId)
           // return
           await releaseHolding({
-            id: holdingOrderId,
+            id: selectedOrderId,
             data: payments,
           });
         } else {
