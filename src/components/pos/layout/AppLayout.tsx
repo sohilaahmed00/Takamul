@@ -14,9 +14,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ItemNumPadPanel } from "../cart/Itemnumpadpanel";
 import { useEffect } from "react";
 import { initQZ } from "@/lib/qzService";
+import { usePosStore } from "@/features/pos/store/usePosStore";
 
 function PageContent() {
-  const { screen } = usePos();
+  const { screen } = usePosStore();
 
   switch (screen) {
     case "home":
@@ -35,7 +36,7 @@ function PageContent() {
 }
 
 export default function AppLayout() {
-  const { setSelectedItemIdx, setScreen, setCart, cart, selectedItemIdx } = usePos();
+  const { setScreen } = usePosStore();
   useEffect(() => {
     setScreen("home");
   }, []);

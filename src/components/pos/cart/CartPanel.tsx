@@ -7,7 +7,6 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 import { calcItemTax, calcTotals, CartItem, DELIVERY_COMPANIES, itemBasePrice, itemTotal, OrderType } from "@/constants/data";
-import { usePos } from "@/context/PosContext";
 import { useGetAllAdditions } from "@/features/Additions/hooks/useGetAllAdditions";
 import type { Addition } from "@/features/Additions/types/additions.types";
 import { useGetGiftCards } from "@/features/gift-cards/hooks/useGetGiftCards";
@@ -26,6 +25,13 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Globe, Sun, Moon, Monitor } from "lucide-react";
 import { useTheme } from "@/context/ThemeContext";
 import { useGetAllTables } from "@/features/tables/hooks/useGetAllTables";
+import { useCreateTakwayOrder } from "@/features/pos/hooks/useCreateTakeawayOrder";
+import { useCreateDeliveryOrder } from "@/features/pos/hooks/useCreateDeliveryOrder";
+import { useCreateDineInOrder, useCheckoutDineInOrder } from "@/features/pos/hooks/useCreateDineInOrder";
+import { useUpdateDineInOrder } from "@/features/pos/hooks/useUpdateDineInOrder";
+import { useReleaseHolding } from "@/features/pos/hooks/useReleaseHolding";
+import { usePosStore } from "@/features/pos/store/usePosStore";
+
 const TABS = ["add", "discount", "coupon", "note"] as const;
 
 interface CouponTabProps {
@@ -38,7 +44,7 @@ interface CouponTabProps {
 }
 
 function CouponTab({ code, setCode, status, setStatus, appliedCard, setAppliedCard }: CouponTabProps) {
-  const { cart, discount, setDiscount, setSelectedGiftCardId } = usePos();
+  const { cart, discount, setDiscount, setSelectedGiftCardId } = usePosStore();
   const { sub, tax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const { t } = useLanguage();
   const { data: giftCards } = useGetGiftCards();
@@ -313,7 +319,6 @@ function ExtrasGrid({ additions, selectedIds, onToggle }: { additions: Addition[
   if (!additions.length) {
     return <p className="text-xs text-muted-foreground text-center py-4">لا توجد إضافات متاحة</p>;
   }
-
   return (
     <div className="grid grid-cols-3 gap-2">
       {additions.map((addition) => {
@@ -332,22 +337,34 @@ function ExtrasGrid({ additions, selectedIds, onToggle }: { additions: Addition[
 export default function CartPanel() {
   const { language, direction, setLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
-  const { cart, setCart, setSelectedTable, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setOrderNote, orderNote } = usePos();
+
+  // ── Zustand store ──────────────────────────────────────────────────────────
+  const { cart, setCart, setSelectedTable, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setOrderNote, orderNote, holdingOrderId } = usePosStore();
+
+  // ── Async mutation hooks (passed into store actions) ───────────────────────
+  const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
+  const { mutateAsync: createDeliveryOrder } = useCreateDeliveryOrder();
+  const { mutateAsync: createDineInOrderyOrder } = useCreateDineInOrder();
+  const { mutateAsync: releaseHolding } = useReleaseHolding();
+  const { mutateAsync: checkoutDineInOrder } = useCheckoutDineInOrder();
+  const { mutateAsync: addItemsToOrder } = useUpdateDineInOrder();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [discInput, setDiscInput] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
-  const [itemNumPadDialog, setItemNumPadDialog] = useState(false);
-  const { data: customers, isLoading: loadingCustomers } = useGetAllCustomers({ page: 1, limit: 100 });
-  const { data: additions } = useGetAllAdditions();
-  const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax, itemDiscountsTotal, discountAmount } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
-  const { notifyError, notifySuccess } = useToast();
   const [selectedCartItem, setSelectedCartItem] = useState<CartItem | null>(null);
-  const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
   const [cashierOpen, setCashierOpen] = useState(false);
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<"idle" | "valid" | "invalid" | "used">("idle");
   const [appliedCard, setAppliedCard] = useState<GiftCard | null>(null);
+
+  const { data: customers, isLoading: loadingCustomers } = useGetAllCustomers({ page: 1, limit: 100 });
+  const { data: additions } = useGetAllAdditions();
+  const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax, itemDiscountsTotal, discountAmount } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
+  const { notifyError, notifySuccess } = useToast();
+  const { data: freeTables } = useGetAllTables();
+  const navigate = useNavigate();
+
   function ThemeIcon({ theme }: { theme: string }) {
     if (theme === "dark") return <Moon className="h-3.5 w-3.5" />;
     if (theme === "light") return <Sun className="h-3.5 w-3.5" />;
@@ -359,20 +376,22 @@ export default function CartPanel() {
     };
     return <div className={`h-3.5 w-3.5 rounded-full ${colors[theme] ?? "bg-gray-400"}`} />;
   }
+
   useEffect(() => {
     if (customers) {
       setSelectedCustomer(customers?.items[0]);
     }
   }, [customers]);
+
+  const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
+
   const changeQty = (idx: number, d: number) => setCart((p) => p.map((item, i) => (i === idx ? { ...item, qty: Math.max(1, d) } : item)));
 
-  // ── per-item discount ──────────────────────────────────────────────────────
   const setItemDisc = (idx: number, type: "pct" | "flat", raw: string) => {
     if (hasOrderDiscount) {
       notifyError(t("cannot_mix_discounts") || "لا يمكن الجمع بين خصم الأصناف وخصم الفاتورة");
       return;
     }
-
     const value = parseFloat(raw);
     const capped = type === "pct" ? Math.min(value, 100) : value;
     setCart((p) =>
@@ -387,7 +406,7 @@ export default function CartPanel() {
     );
   };
 
-  // ── per-item extras (toggle by id) ────────────────────────────────────────
+  // ── per-item extras ────────────────────────────────────────────────────────
   const saveExtras = (idx: number, selectedIds: number[]) => {
     setCart((prev) =>
       prev.map((item, i) => {
@@ -405,15 +424,13 @@ export default function CartPanel() {
     }
 
     const val = parseFloat(discInput) || 0;
-    const base = sub + taxAfterDiscount;
     setDiscount({ type: discType, value: val });
     setActiveTab("add");
   };
 
   const hasItemDiscount = useMemo(() => cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0), [cart]);
   const hasOrderDiscount = discount.value > 0;
-  const navigate = useNavigate();
-  const { data: freeTables } = useGetAllTables();
+
   const themeLabels = {
     light: t("light_mode"),
     dark: t("dark_mode"),
@@ -422,19 +439,18 @@ export default function CartPanel() {
     yellow: t("yellow_theme"),
     "high-contrast": t("high_contrast"),
   };
+
   const GRID = "grid grid-cols-[20px_minmax(0,1fr)_85px_55px_45px_50px_85px] gap-2 px-2";
 
   return (
     <>
-      <div className="flex  flex-col border-r border-border" style={{ width: 550, flexShrink: 0 }}>
-        <div className="px-3  border-b border-border flex items-center justify-between  py-3 shrink-0">
-          <div className="flex items-center gap-4 ">
-            {/* Home */}
-
+      <div className="flex flex-col border-r border-border" style={{ width: 550, flexShrink: 0 }}>
+        {/* ── Header ── */}
+        <div className="px-3 border-b border-border flex items-center justify-between py-3 shrink-0">
+          <div className="flex items-center gap-4">
             {/* Network */}
             <div className="flex items-center gap-1">
               <span className={`text-xs font-bold ${networkSpeed === "slow" ? "text-red-500" : networkSpeed === "medium" ? "text-yellow-500" : "text-green-500"}`}>{networkSpeed === "slow" ? t("speed_slow") : networkSpeed === "medium" ? t("speed_medium") : t("speed_fast")}</span>
-
               <button className={networkSpeed === "slow" ? "text-red-500" : networkSpeed === "medium" ? "text-yellow-500" : "text-green-500"}>
                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path d="M5 12.55a11 11 0 0 1 14.08 0" strokeOpacity={networkSpeed === "slow" ? 0.3 : 1} />
@@ -444,9 +460,11 @@ export default function CartPanel() {
                 </svg>
               </button>
             </div>
+
+            {/* Language */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className=" text-xs gap-1.5">
+                <Button variant="ghost" size="sm" className="text-xs gap-1.5">
                   <Globe className="h-3.5 w-3.5" />
                   {language.toUpperCase()}
                 </Button>
@@ -454,13 +472,14 @@ export default function CartPanel() {
               <DropdownMenuContent align="start">
                 <DropdownMenuItem onClick={() => setLanguage("en")}>🇺🇸 English</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setLanguage("ar")}>🇸🇦 العربية</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLanguage("ur")}>🇵🇰 اردو</DropdownMenuItem>{" "}
+                <DropdownMenuItem onClick={() => setLanguage("ur")}>🇵🇰 اردو</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Theme */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="  text-xs gap-1.5">
+                <Button variant="ghost" size="sm" className="text-xs gap-1.5">
                   <ThemeIcon theme={theme} />
                 </Button>
               </DropdownMenuTrigger>
@@ -494,6 +513,7 @@ export default function CartPanel() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+
           <div className="flex items-center gap-2 shrink-0">
             <Button size="sm" className="rounded-full h-7 text-[11px] transition-all duration-200 shrink-0">
               <Pause className="w-3 h-3" />
@@ -520,7 +540,7 @@ export default function CartPanel() {
               </Select>
 
               {orderType === "InDine" && (
-                <div className=" shrink-0">
+                <div className="shrink-0">
                   <Select value={selectedTable ? String(selectedTable) : ""} onValueChange={(value) => setSelectedTable(Number(value))}>
                     <SelectTrigger className="h-8 text-xs w-full">
                       <SelectValue placeholder="اختر الطاولة" />
@@ -535,6 +555,7 @@ export default function CartPanel() {
                   </Select>
                 </div>
               )}
+
               {orderType === "Delivery" && (
                 <div className="shrink-0">
                   <Select value={selectedDelivery ?? ""} onValueChange={setSelectedDelivery}>
@@ -554,11 +575,13 @@ export default function CartPanel() {
             </div>
           </div>
         </div>
-        <div className="px-3 py-[14.75px]  border-b border-border flex items-center gap-2">
+
+        {/* ── Customer Row ── */}
+        <div className="px-3 py-[14.75px] border-b border-border flex items-center gap-2">
           {!selectedCustomer ? (
             <div className="w-full">
               <ComboboxField
-                value={selectedCustomer ? String(selectedCustomer.id) : ""}
+                value={selectedCustomer ? String((selectedCustomer as any).id) : ""}
                 onChange={(val) => {
                   const customer = customers?.items?.find((c) => String(c.id) === String(val));
                   if (customer) setSelectedCustomer(customer);
@@ -582,7 +605,8 @@ export default function CartPanel() {
             <Plus size={14} />
           </Button>
         </div>
-        {/* Items */}
+
+        {/* ── Cart Items ── */}
         <div className="flex-1 overflow-y-auto px-2 py-1.5 space-y-1">
           {cart?.length === 0 ? (
             <div className="p-5 text-center text-gray-400 text-xs">{t("cart_is_empty")}</div>
@@ -603,7 +627,7 @@ export default function CartPanel() {
                       {t("price_before_tax")}
                     </TooltipContent>
                   </Tooltip>
-                </span>{" "}
+                </span>
                 <span className="text-right">{t("tax_column")}</span>
                 <span className="text-right">{t("total_amount")}</span>
                 <span className="text-center">{t("actions")}</span>
@@ -618,7 +642,6 @@ export default function CartPanel() {
                   <div
                     onClick={() => {
                       setSelectedCartItem(item);
-                      setItemNumPadDialog(true);
                     }}
                     key={idx}
                     className={`${GRID} py-2 items-center border-b border-border ${idx % 2 === 0 ? "bg-card" : "bg-muted/40"}`}
@@ -627,7 +650,7 @@ export default function CartPanel() {
                     <span className="text-xs text-gray-400 font-medium">{idx + 1}</span>
                     {/* الاسم */}
                     <div className="min-w-0 overflow-hidden">
-                      <div className="text-xs font-bold text-foreground ">{item?.name}</div>
+                      <div className="text-xs font-bold text-foreground">{item?.name}</div>
                       {(item.extras ?? []).length > 0 && <div className="text-[10px] text-gray-400">+ {item.extras!.map((e) => e.name).join("، ")}</div>}
                       {hasDisc && <div className="text-[10px] text-primary font-semibold">{item.itemDiscount!.type === "pct" ? `${item.itemDiscount!.value}% ${t("off")}` : `-${item.itemDiscount!.value.toFixed(2)}`}</div>}
                     </div>
@@ -640,26 +663,14 @@ export default function CartPanel() {
                     </div>
                     {/* ض.ق.م */}
                     <div className="text-right">
-                      <div className="text-xs text-gray-500">{calcItemTax(item).toFixed(2)}</div>{" "}
+                      <div className="text-xs text-gray-500">{calcItemTax(item).toFixed(2)}</div>
                     </div>
                     {/* الإجمالي */}
                     <div className="text-right">
-                      <div className="text-xs font-bold text-foreground">{(itemBasePrice(item) + calcItemTax(item)).toFixed(2)}</div>{" "}
+                      <div className="text-xs font-bold text-foreground">{(itemBasePrice(item) + calcItemTax(item)).toFixed(2)}</div>
                     </div>
                     {/* عمليات */}
                     <div className="flex items-center justify-center gap-1">
-                      {/* <DiscountPopover
-                        item={item}
-                        idx={idx}
-                        disabled={hasOrderDiscount}
-                        onDiscChange={setItemDisc}
-                        onDiscTypeToggle={(i) => {
-                          const nextType = (item.itemDiscount?.type ?? "pct") === "pct" ? "flat" : "pct";
-                          setItemDisc(i, nextType, String(item.itemDiscount?.value ?? ""));
-                        }}
-                        onDiscClear={(i) => setCart((p) => p.map((it, j) => (j === i ? { ...it, itemDiscount: null } : it)))}
-                      /> */}
-                      {/* <ExtrasPopover item={item} idx={idx} additions={additions ?? []} onToggleExtra={toggleExtra} /> */}
                       <div
                         role="button"
                         onClick={(e) => {
@@ -677,7 +688,8 @@ export default function CartPanel() {
             </>
           )}
         </div>
-        {/* Footer */}
+
+        {/* ── Footer ── */}
         <div className="border-t border-border flex-shrink-0">
           <div className="flex px-3 border-b border-border">
             {TABS.map((tab) => {
@@ -700,12 +712,13 @@ export default function CartPanel() {
             })}
           </div>
 
+          {/* ── Tab: Add (summary + actions) ── */}
           {activeTab === "add" && (
             <div className="px-3 pt-2.5 pb-3">
               <div className="flex justify-between text-xs mb-1.5 items-center">
                 <span className={discount.value > 0 || itemDiscountsTotal > 0 ? "text-primary font-semibold" : "text-gray-500"}>{t("discount_label")}</span>
                 <div className="flex items-center gap-1">
-                  <span className={`font-semibold ${discount.value > 0 || itemDiscountsTotal > 0 ? "text-foreground" : "text-gray-400"}`}>-{discount.value > 0 ? discountAmount.toFixed(2) : itemDiscountsTotal.toFixed(2)}</span>{" "}
+                  <span className={`font-semibold ${discount.value > 0 || itemDiscountsTotal > 0 ? "text-foreground" : "text-gray-400"}`}>-{discount.value > 0 ? discountAmount.toFixed(2) : itemDiscountsTotal.toFixed(2)}</span>
                   {discount.value > 0 && (
                     <button onClick={() => setDiscount({ type: "pct", value: 0 })} className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center hover:bg-gray-300 leading-none">
                       ×
@@ -735,8 +748,11 @@ export default function CartPanel() {
                   <span>{total.toFixed(2)}</span>
                 </div>
               </div>
+
               <div className="flex gap-2">
+                {/* Hold button */}
                 <Button
+                  // زر Hold
                   onClick={async () => {
                     if (cart.length === 0) {
                       notifyError(t("add_items_to_invoice"));
@@ -745,14 +761,22 @@ export default function CartPanel() {
 
                     if (orderType === "InDine") {
                       if (dineInMode === "add-items") {
-                        await handleAddItemsToExistingOrder();
+                        await handleAddItemsToExistingOrder({ addItemsToOrder }); // ✅ add فقط
                       } else if (dineInMode === "checkout") {
                         setCashierOpen(true);
                       } else {
-                        await handleCreateDineInOrder();
+                        await handleCreateDineInOrder({ createDineInOrderyOrder });
                       }
                     } else {
-                      await handleConfirmPayment({ isHolding: true });
+                      // TakeAway / Delivery فقط
+                      await handleConfirmPayment({
+                        isHolding: true,
+                        createTakwayOrder,
+                        createDeliveryOrder,
+                        checkoutDineInOrder,
+                        releaseHolding,
+                        customers,
+                      });
                     }
                   }}
                   size={"2xl"}
@@ -761,6 +785,8 @@ export default function CartPanel() {
                 >
                   {t("hold_cart")} <Pause />
                 </Button>
+
+                {/* Pay button */}
                 <Button
                   size={"2xl"}
                   onClick={async () => {
@@ -771,11 +797,11 @@ export default function CartPanel() {
 
                     if (orderType === "InDine") {
                       if (dineInMode === "add-items") {
-                        await handleAddItemsToExistingOrder();
+                        await handleAddItemsToExistingOrder({ addItemsToOrder });
                       } else if (dineInMode === "checkout") {
                         setCashierOpen(true);
                       } else {
-                        await handleCreateDineInOrder();
+                        await handleCreateDineInOrder({ createDineInOrderyOrder });
                       }
                     } else {
                       setCashierOpen(true);
@@ -789,6 +815,7 @@ export default function CartPanel() {
             </div>
           )}
 
+          {/* ── Tab: Discount ── */}
           {activeTab === "discount" && (
             <div className="p-3">
               <div className="text-sm font-bold text-foreground mb-3">{t("order_discount")}</div>
@@ -812,33 +839,22 @@ export default function CartPanel() {
             </div>
           )}
 
+          {/* ── Tab: Coupon ── */}
           {activeTab === "coupon" && (
             <div className="p-3">
               <CouponTab code={code} setCode={setCode} status={status} setStatus={setStatus} appliedCard={appliedCard} setAppliedCard={setAppliedCard} />
             </div>
           )}
 
+          {/* ── Tab: Note ── */}
           {activeTab === "note" && (
             <div className="p-3">
               <textarea value={orderNote} onChange={(e) => setOrderNote(e.target.value)} className="w-full px-2.5 py-2 border border-gray-200 rounded-lg text-xs outline-none mb-2 resize-none focus:border-primary/40" rows={2} placeholder={t("add_order_note")} />
               <div className="flex gap-2">
-                <Button
-                  size={"2xl"}
-                  className="flex-1"
-                  variant="destructive"
-                  onClick={() => {
-                    setOrderNote("");
-                  }}
-                >
+                <Button size={"2xl"} className="flex-1" variant="destructive" onClick={() => setOrderNote("")}>
                   {t("clear")}
                 </Button>
-                <Button
-                  size={"2xl"}
-                  className="flex-1"
-                  onClick={() => {
-                    setActiveTab("add");
-                  }}
-                >
+                <Button size={"2xl"} className="flex-1" onClick={() => setActiveTab("add")}>
                   {t("save")}
                 </Button>
               </div>

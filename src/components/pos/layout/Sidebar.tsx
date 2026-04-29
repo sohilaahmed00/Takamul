@@ -1,6 +1,7 @@
-import { Clock, CreditCard, Eye, FileText, LogOut, Play, Plus, Printer, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
-import { calcItemTax, calcTotals, itemBasePrice, NAV_ITEMS } from "@/constants/data";
-import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL, usePos } from "@/context/PosContext";
+// ─── OrdersDialog.tsx & Sidebar.tsx ──────────────────────────────────────────
+import { Clock, CreditCard, FileText, Play, Plus, Printer, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
+import { calcItemTax, itemBasePrice, NAV_ITEMS } from "@/constants/data";
+import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL } from "@/features/pos/store/usePosStore";
 import type { CartItem, Screen } from "@/constants/data";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useLanguage } from "@/context/LanguageContext";
@@ -11,6 +12,7 @@ import { useGetAllSales } from "@/features/sales/hooks/useGetAllSales";
 import { InvoiceData, printInvoice } from "../orders/printInvoice";
 import { useNavigate } from "react-router-dom";
 import { UnifiedPaymentDialog } from "../modals/UnifiedPaymentDialog";
+import { usePosStore } from "@/features/pos/store/usePosStore";
 
 interface OrdersDialogProps {
   open: boolean;
@@ -29,10 +31,9 @@ const STATUS_MAP: Record<OrderStatusType, string | null> = {
   "قيد التجهيز": "InProgress",
 };
 
-// ── Component ─────────────────────────────────────────────────────────────────
-
 export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
-  const { selectedCustomer, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen } = usePos();
+  const { selectedCustomer, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen } = usePosStore();
+
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
   const { t } = useLanguage();
   const [cashierOpen, setCashierOpen] = useState(false);
@@ -47,43 +48,32 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
   );
 
   const [search, setSearch] = useState("");
-  const { data: orders } = useGetAllSales({
-    page: 1,
-    limit: 10,
-    OrderType: "POS",
-  });
+  const { data: orders } = useGetAllSales({ page: 1, limit: 10, OrderType: "POS" });
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (orders?.items ?? []).filter((o) => {
       const matchStatus = STATUS_MAP[activeStatus] === null || o.orderStatus === STATUS_MAP[activeStatus];
-
       const matchSearch = !q || o.orderNumber?.toLowerCase().includes(q) || o.customerName?.toLowerCase().includes(q) || o.orderStatus?.toLowerCase().includes(q);
-
       return matchStatus && matchSearch;
     });
   }, [orders, search, activeStatus]);
-
-  // useEffect(() => {
-  //   setCurrentPage(1);
-  // }, [activeStatus, search]);
 
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent showCloseButton={false} className="p-0 overflow-hidden gap-0 flex flex-col" style={{ maxWidth: 580, width: "95vw", maxHeight: "88vh" }}>
-          {/* ── Header ── */}
+          {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 shrink-0 bg-sidebar border-b border-sidebar-foreground/10">
             <div className="flex items-center gap-2">
               <DialogTitle className="text-[14px] font-semibold text-sidebar-foreground">{t("orders")}</DialogTitle>
             </div>
-
             <button onClick={() => onOpenChange(false)} className="w-7 h-7 rounded-lg flex items-center justify-center bg-sidebar-foreground/10 hover:bg-sidebar-foreground/20 transition-colors text-sidebar-foreground">
               <X size={14} />
             </button>
           </div>
 
-          {/* ── Status Tabs ── */}
+          {/* Status Tabs */}
           <div className="flex items-center gap-1.5 px-4 py-3 flex-wrap shrink-0 border-b border-border bg-card">
             {STATUS_TABS.map((tab) => (
               <button key={tab.key} onClick={() => setActiveStatus(tab.key)} className={`text-[11px] font-medium px-3 py-1.5 rounded-full border transition-all ${activeStatus === tab.key ? "bg-primary text-primary-foreground border-primary" : "bg-card text-muted-foreground border-border hover:bg-muted"}`}>
@@ -92,7 +82,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
             ))}
           </div>
 
-          {/* ── Search ── */}
+          {/* Search */}
           <div className="flex items-center gap-2 px-4 py-2.5 shrink-0 border-b border-border bg-card">
             <div className="flex-1 relative">
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={t("search_orders_placeholder")} className="w-full h-8 text-[11px] border border-border rounded-lg pr-3 pl-3 outline-none focus:border-primary bg-input text-foreground placeholder:text-muted-foreground" />
@@ -102,14 +92,14 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
             </button>
           </div>
 
-          {/* ── Count ── */}
+          {/* Count */}
           <div className="px-4 py-1.5 bg-card border-b border-border shrink-0">
             <span className="text-[11px] text-muted-foreground">
               {filtered.length} {t("order")}
             </span>
           </div>
 
-          {/* ── List ── */}
+          {/* List */}
           <div className="flex-1 overflow-auto bg-background">
             {filtered.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
@@ -122,6 +112,16 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                   const badgeCls = order.orderStatus?.toLowerCase() === "confirmed" ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400" : order.orderStatus?.toLowerCase() === "unconfirmed" ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400" : order.orderStatus?.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400" : fallbackBadge.cls;
 
                   const translatedStatus = order.orderStatus?.toLowerCase() === "confirmed" ? t("status_completed") : order.orderStatus?.toLowerCase() === "unconfirmed" ? t("status_pending") : order.orderStatus?.toLowerCase() === "cancelled" ? t("status_cancelled") : order.orderStatus?.toLowerCase() === "inprogress" ? t("قيد التجهيز") : order.orderStatus;
+
+                  const cartItems = order.items.map((item) => ({
+                    price: item?.priceAfterTax,
+                    qty: item?.quantity,
+                    taxamount: item?.quantity ? (item?.taxAmount ?? 0) / item?.quantity : 0,
+                    taxCalculation: item.taxCalculation,
+                    name: item?.productName,
+                    productId: item?.productId,
+                  }));
+
                   return (
                     <div key={order.id} className="flex items-center gap-3 px-4 py-3 bg-card hover:bg-muted transition-colors text-right w-full">
                       <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${badgeCls || "bg-sky-100 text-sky-600"}`}>
@@ -156,9 +156,10 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         </span>
                       </div>
 
-                      {order?.orderStatus == "Confirmed" ? (
+                      {/* Actions */}
+                      {order?.orderStatus === "Confirmed" ? (
                         <button
-                          onClick={async (e) => {
+                          onClick={async () => {
                             const invoiceData: InvoiceData = {
                               logoUrl: LOGO_URL,
                               invoiceNumber: `—`,
@@ -202,57 +203,40 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                           <Printer size={13} />
                         </button>
                       ) : (
-                        <div className="flex items-center gap-x-4">
+                        <div className="flex items-center gap-x-2">
                           <button
-                            title="إضافة عناصر"
-                            onClick={(e) => {
+                            onClick={() => {
                               onOpenChange(false);
                               setScreen("home");
-                              setHoldingOrderId(order?.id);
-                              setOrderType(order?.orderType);
-                              setSelectedOrderId(order?.id);
-                              setCart(
-                                order.items.map((item) => ({
-                                  price: item?.priceAfterTax,
-                                  qty: item?.quantity,
-                                  taxamount: item?.quantity ? (item?.taxAmount ?? 0) / item?.quantity : 0,
-                                  taxCalculation: item.taxCalculation,
-                                  name: item?.productName,
-                                  productId: item?.productId,
-                                })),
-                              );
-                              if (order.orderStatus == "InProgress") {
+                              setCart(cartItems);
+
+                              if (order.orderType === "InDine") {
                                 setOrderType("InDine");
                                 setDineInMode("add-items");
+                                setSelectedOrderId(order?.id);
+                              } else {
+                                setHoldingOrderId(order?.id);
+                                setOrderType(order?.orderType);
                               }
-                              // await printInvoice(invoiceData);
                             }}
                             className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
                           >
                             <Plus size={13} />
                           </button>
+
+                          {/* استكمال الدفع */}
                           <button
                             title="استكمال الدفع"
-                            onClick={async (e) => {
+                            onClick={() => {
                               setScreen("home");
-                              setCart(
-                                order.items.map((item) => ({
-                                  price: item?.priceAfterTax,
-                                  qty: item?.quantity,
-                                  taxamount: item?.quantity ? (item?.taxAmount ?? 0) / item?.quantity : 0,
-                                  taxCalculation: item.taxCalculation,
-                                  name: item?.productName,
-                                  productId: item?.productId,
-                                })),
-                              );
+                              setCart(cartItems);
                               setSelectedOrderId(order?.id);
                               onOpenChange(false);
-                              if (order.orderStatus == "InProgress") {
+                              if (order.orderStatus === "InProgress") {
                                 setOrderType("InDine");
                                 setDineInMode("checkout");
                                 setSelectedTable(order?.tableId);
                               }
-                              // await printInvoice(invoiceData);
                             }}
                             className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
                           >
@@ -260,25 +244,18 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                           </button>
                         </div>
                       )}
-                      {order.orderStatus == "UnConfirmed" && (
+
+                      {/* استكمال الفاتورة - معلقة */}
+                      {order.orderStatus === "UnConfirmed" && (
                         <button
                           title="استكمال الفاتورة"
-                          onClick={(e) => {
-                            setSelectedOrderId(order?.holdingOrderId);
+                          onClick={() => {
+                            setHoldingOrderId(order?.id);
+                            setOrderType(order?.orderType); // ✅ مهم عشان الـ store يعرف TakeAway أو Delivery
                             setScreen("home");
-                            setCart(
-                              order.items.map((item) => ({
-                                price: item?.priceAfterTax,
-                                qty: item?.quantity,
-                                taxamount: item?.quantity ? (item?.taxAmount ?? 0) / item?.quantity : 0,
-                                taxCalculation: item.taxCalculation,
-                                name: item?.productName,
-                                productId: item?.productId,
-                              })),
-                            );
+                            setCart(cartItems);
                             onOpenChange(false);
                             setCashierOpen(true);
-                            // await printInvoice(invoiceData);
                           }}
                           className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
                         >
@@ -292,7 +269,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
             )}
           </div>
 
-          {/* ── Footer ── */}
+          {/* Footer */}
           <div className="px-4 py-2.5 border-t border-border bg-card shrink-0 flex items-center justify-between">
             <span className="text-[11px] text-muted-foreground">
               {filtered.length} {t("order")}
@@ -303,25 +280,21 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
           </div>
         </DialogContent>
       </Dialog>
+
       <UnifiedPaymentDialog open={cashierOpen} onOpenChange={setCashierOpen} mode="cashier" onCancel={() => setCashierOpen(false)} />
     </>
   );
 }
 
 export default function Sidebar() {
-  const { screen, setScreen } = usePos();
+  const { screen, setScreen } = usePosStore();
   const [open, setOpen] = useState(false);
   const { t } = useLanguage();
   const navigate = useNavigate();
+
   return (
     <>
-      <div
-        className="w-16 bg-sidebar  flex flex-col items-center py-3 gap-0.5 shrink-0
-  [.light_&]:bg-[#000052]
-  [.dark_&]:bg-[#000052]
-"
-      >
-        {" "}
+      <div className="w-16 bg-sidebar flex flex-col items-center py-3 gap-0.5 shrink-0 [.light_&]:bg-[#000052] [.dark_&]:bg-[#000052]">
         <div className="flex-1" />
         {NAV_ITEMS.map(({ id, icon: Icon, label, isNav }) => (
           <button
@@ -338,7 +311,7 @@ export default function Sidebar() {
               setScreen(id as Screen);
             }}
             className={`cursor-pointer py-2.5 rounded-xl flex flex-col items-center gap-1 transition-all duration-200 ease-in-out
-            ${screen === id ? "bg-primary/10 border border-primary/20" : "bg-transparent hover:bg-primary/5 border border-transparent"}`}
+              ${screen === id ? "bg-primary/10 border border-primary/20" : "bg-transparent hover:bg-primary/5 border border-transparent"}`}
             style={{ width: 52 }}
           >
             <Icon size={18} strokeWidth={screen === id ? 2.5 : 1.8} className={`transition-colors duration-200 ${screen === id ? "text-primary" : "text-white"}`} />
