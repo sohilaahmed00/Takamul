@@ -339,12 +339,7 @@ html, body {
       <span class="h-en">Phone No</span>
     </div>
 
-    <!-- Customer Address -->
-    <div class="hrow">
-      <span class="h-ar">العنوان</span>
-      <span class="h-val" style="font-size: 6pt;">${data.customerAddress ?? "—"}</span>
-      <span class="h-en">Address</span>
-    </div>
+   
 
   </div>
 
