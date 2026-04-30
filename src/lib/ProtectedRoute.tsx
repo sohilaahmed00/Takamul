@@ -16,13 +16,9 @@ const ProtectedRoute = () => {
       clearAuth();
       return;
     }
-
-    const timer = setTimeout(() => {
-      clearAuth();
-    }, timeout);
-
+    const timer = setTimeout(() => clearAuth(), timeout);
     return () => clearTimeout(timer);
-  }, [token, expiresAt]);
+  }, [token, expiresAt, clearAuth]); 
 
   if (!isInitialized) return null;
 
