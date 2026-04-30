@@ -177,20 +177,17 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
         customerPhone: extendedData.customerPhone || "",
         customerAddress: [(extendedData as any).customerData?.cityName || "", (extendedData as any).customerData?.stateName || "", (extendedData as any).customerData?.district || "", (extendedData as any).customerData?.street || (extendedData as any).customerData?.address || ""].filter(Boolean).join(" / ") || "",
         items: rawItems.map((item, index) => {
-          // Use API values directly if available to ensure consistency
           const qty = Number(item.quantity ?? 1);
           const itemTax = item.taxAmount !== undefined ? Number(item.taxAmount) : calcItemTax(cart[index]);
           const itemLineTotal = item.lineTotal !== undefined ? Number(item.lineTotal) : Number(item.subTotal || 0) + itemTax;
-
-          // For Roll (POS) we want the 'Sub Total' column to show the line subtotal (total before tax)
           const lineSubTotal = itemLineTotal - itemTax;
 
           return {
             productName: item.productName || item.name || "-",
             quantity: qty,
-            unitPrice: lineSubTotal, // This maps to "Sub Total" in the roll template
+            unitPrice: lineSubTotal,
             taxAmount: Number(itemTax.toFixed(2)),
-            total: Number(itemLineTotal.toFixed(2)), // Changed from lineTotal to total
+            total: Number(itemLineTotal.toFixed(2)),
           };
         }),
         subTotal: Number((extendedData.subTotal !== undefined ? extendedData.subTotal : totals.sub).toFixed(2)),

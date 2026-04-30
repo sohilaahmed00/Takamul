@@ -1,7 +1,7 @@
 import { tafqeet } from "../utils/tafqeet";
-import type { BranchInfo } from "@/hooks/useBranch";
 import type { Customer } from "@/features/customers/types/customers.types";
 import { itemBasePrice, calcItemTax, calcTotals, type CartItem } from "@/constants/data";
+import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
 
 export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): string => {
   const branch: Partial<BranchInfo> = order.branchInfo || {};
