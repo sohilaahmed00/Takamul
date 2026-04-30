@@ -285,7 +285,7 @@ html, body {
 
   <!-- LOGO -->
   <div class="logo">
-    ${branch.imageUrl ? `<img src="${branch.imageUrl}" alt="logo"/>` : `<span>اللوجو</span>`}
+    ${branch?.imageUrl ? `<img src="${branch?.imageUrl}" alt="logo"/>` : `<span>اللوجو</span>`}
   </div>
 
   <!-- HEADER INFO ROWS -->
@@ -300,7 +300,7 @@ html, body {
     <!-- VAT NO: AR | value | EN -->
     <div class="hrow">
       <span class="h-ar">الرقم الضريبي</span>
-      <span class="h-val">${branch.taxNumber}</span>
+      <span class="h-val">${branch?.taxNumber}</span>
       <span class="h-en">VAT NO</span>
     </div>
 
