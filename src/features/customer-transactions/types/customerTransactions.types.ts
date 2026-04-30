@@ -6,6 +6,7 @@ export type CustomerTransaction = {
   treasuryName: string;
   transactionDate: string;
   amount: number;
+  balanceBefore: number;
   description: string;
   createdAt: string;
 };

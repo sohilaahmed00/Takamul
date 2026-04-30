@@ -7,6 +7,7 @@ export type SupplierTransaction = {
   transactionType: string;
   transactionDate: string;
   amount: number;
+  balanceBefore: number;
   description: string;
   createdAt: string;
 };

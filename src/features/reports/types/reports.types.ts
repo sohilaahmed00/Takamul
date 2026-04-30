@@ -282,3 +282,52 @@ export interface StockAlertReportParams {
   from?: string;
   to?: string;
 }
+
+// ─── Sales Return Report ───────────────────────────────────────
+export interface SalesReturnReportItem {
+  returnId: number;
+  returnNumber: string;
+  returnDate: string;
+  customerName: string;
+  returnStatus: string;
+  refundStatus: string;
+  subTotal: number;
+  discountAmount: number;
+  taxAmount: number;
+  grandTotal: number;
+  refundedAmount: number;
+  createdBy: string;
+}
+
+export interface SalesReturnReportParams {
+  From?: string;
+  To?: string;
+  Page?: number;
+  PageSize?: number;
+  SearchTerm?: string;
+  BranchId?: number | string;
+}
+
+// ─── Employee Sales Report ─────────────────────────────────────
+export interface EmployeeSalesItem {
+  employeeId: number;
+  employeeName: string;
+  orderNumber: string;
+  orderDate: string;
+  customerName: string;
+  subTotal: number;
+  discountAmount: number;
+  taxAmount: number;
+  grandTotal: number;
+  orderStatus: string;
+  paymentStatus: string;
+}
+
+export interface EmployeeSalesParams {
+  From?: string;
+  To?: string;
+  Page?: number;
+  PageSize?: number;
+  EmployeeId?: number | string;
+  BranchId?: number | string;
+}

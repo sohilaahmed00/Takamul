@@ -367,7 +367,9 @@ export default function SalesByDayReport() {
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
             <DataTable
               value={salesData}
-              paginator rows={10}
+              paginator 
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+              rows={10}
               loading={salesLoading || salesFetching}
               className="custom-green-table custom-compact-table"
               emptyMessage={t("no_data", "لا توجد بيانات")}
