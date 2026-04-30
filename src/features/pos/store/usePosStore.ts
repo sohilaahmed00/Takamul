@@ -83,7 +83,7 @@ interface PosState {
 
   handleCreateDineInOrder: (deps: { createDineInOrderyOrder: (p: any) => Promise<any> }) => Promise<void>;
 
-  handleAddItemsToExistingOrder: (deps: { addItemsToOrder: (p: any) => Promise<any> }) => Promise<void>;
+  handleAddItemsToExistingOrder: (deps: { addItemsToOrder: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
 
   handleConfirmPayment: (params: { printKitchenBon?: boolean; isHolding?: boolean; payments?: { amount: number; treasuryId: number; notes: string }[]; createTakwayOrder: (p: any) => Promise<any>; createDeliveryOrder: (p: any) => Promise<any>; checkoutDineInOrder: (p: any) => Promise<any>; releaseHolding: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
 }
@@ -148,7 +148,9 @@ export const usePosStore = create<PosState>((set, get) => ({
 
       if (existing) {
         return {
-          cart: state.cart.map((i) => (i.productId === product.id ? { ...i, qty: i.qty + 1 } : i)),
+          cart: state.cart.map(
+            (i) => (i.productId === product.id ? { ...i, qty: i.qty + 1, isNew: true } : i), // ← لو زود كمية حاجة موجودة يبقى new
+          ),
         };
       }
 
@@ -168,6 +170,7 @@ export const usePosStore = create<PosState>((set, get) => ({
             taxCalculation: product.taxCalculation,
             itemDiscount: null,
             taxPercentage: product?.taxPercentage,
+            isNew: true,
             extras: [],
           },
         ],
@@ -280,8 +283,8 @@ export const usePosStore = create<PosState>((set, get) => ({
     } catch {}
   },
 
-  handleAddItemsToExistingOrder: async ({ addItemsToOrder }) => {
-    const { cart, selectedOrderId, holdingOrderId } = get();
+  handleAddItemsToExistingOrder: async ({ addItemsToOrder, customers }) => {
+    const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, selectedOrderId, handleReleaseHoldingOrder, resetCart } = get();
     const orderId = selectedOrderId ?? holdingOrderId;
 
     const payload = {
@@ -298,6 +301,15 @@ export const usePosStore = create<PosState>((set, get) => ({
 
     try {
       await addItemsToOrder({ data: payload, id: orderId });
+      const newItems = cart.filter((c) => c.isNew);
+      const sampleBon: BonData = {
+        institutionName: "بون التحضير",
+        invoiceNumber: "5000",
+        invoiceDate: formatDate(new Date()),
+        customerName: selectedCustomer?.customerName,
+        items: newItems.map((c) => ({ productName: c.name, quantity: c.qty })),
+      };
+      await printPreparationBon(sampleBon);
       set({
         cart: [],
         discount: { value: 0, type: "pct" },

@@ -39,6 +39,7 @@ export interface CartItem {
   taxCalculation: number;
   taxPercentage: number;
   extras?: CartExtra[];
+  isNew?: boolean;
 }
 
 export interface HeldCart {

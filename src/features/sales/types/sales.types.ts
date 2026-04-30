@@ -13,6 +13,7 @@ export interface OrderItem {
   priceBeforeTax: number;
   taxPercentage: number;
   taxAmount: number;
+  taxAmountProduct: number;
   discountPercentage: number;
   discountValue: number;
   sellingPrice: number;

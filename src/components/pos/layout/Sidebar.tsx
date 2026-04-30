@@ -210,13 +210,14 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                   qty: item.quantity,
                                   note: "",
                                   op: null,
-                                  taxamount: item.quantity ? (item.taxAmount ?? 0) / item.quantity : 0,
+                                  taxamount: item.taxAmountProduct,
                                   taxCalculation: item.taxCalculation,
                                   taxPercentage: item?.taxPercentage,
                                   itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
                                   extras: [],
                                 })),
                               );
+                              console.log(order?.items);
                               if (order.orderType === "InDine") {
                                 setOrderType("InDine");
                                 setDineInMode("add-items");
@@ -246,7 +247,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                   qty: item.quantity,
                                   note: "",
                                   op: null,
-                                  taxamount: item.quantity ? (item.taxAmount ?? 0) / item.quantity : 0,
+                                  taxamount: item.taxAmountProduct,
                                   taxCalculation: item.taxCalculation,
                                   taxPercentage: item?.taxPercentage,
                                   itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
@@ -290,7 +291,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                 qty: item.quantity,
                                 note: "",
                                 op: null,
-                                taxamount: item.quantity ? (item.taxAmount ?? 0) / item.quantity : 0,
+                                taxamount: item.taxAmountProduct,
                                 taxCalculation: item.taxCalculation,
                                 taxPercentage: item?.taxPercentage,
                                 itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,

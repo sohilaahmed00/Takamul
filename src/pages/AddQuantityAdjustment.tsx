@@ -105,6 +105,7 @@ export default function AddQuantityAdjustment() {
         const itemId = Number(item.stockInventoryId ?? 0);
         if (!itemId) return;
         const found = stockInventories?.items?.find((p) => p.id === itemId);
+        console.log(found)
         map[itemId] = {
           id: itemId,
           productName: item?. productName,
