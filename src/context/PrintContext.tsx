@@ -61,50 +61,6 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
       const rawName = data.customerName || data.name || data.customer || data.supplierName || "";
       const searchTerm = normalize(rawName);
 
-<<<<<<< HEAD
-    const thermalData = {
-      logoUrl: branch.imageUrl || "",
-      invoiceNumber: (extendedData.purchaseOrderNumber || extendedData.orderNumber || extendedData.invoiceNo || extendedData.id || "").toString(),
-      institutionName: branch.name || "",
-      institutionNameEn: branch.nameEn || "",
-      institutionTaxNumber: branch.taxNumber || "",
-      institutionCommercialRegister: branch.commercialRegister || "",
-      invoiceDate: extendedData.createdAt 
-        ? new Date(extendedData.createdAt).toLocaleString("en-GB") 
-        : (extendedData.orderDate || extendedData.date 
-            ? new Date((extendedData.orderDate || extendedData.date) as any).toLocaleString("en-GB") 
-            : new Date().toLocaleString("en-GB")),
-      institutionAddress: [
-        branch.cityName || branch.city || "",   // المنطقة (CityId)
-        branch.stateName || branch.state || "", // المدينة (StateId)
-        branch.district || "",                  // الحي
-        branch.street || ""                     // الشارع
-      ].filter(Boolean).join(" / ") || "",
-      institutionPhone: branch.phone || "",
-      customerName: extendedData.supplierName || extendedData.customerName || extendedData.customer || "",
-      customerPhone: extendedData.customerPhone || "",
-      customerAddress: [
-        (extendedData as any).customerData?.cityName || "",
-        (extendedData as any).customerData?.stateName || "",
-        (extendedData as any).customerData?.district || "",
-        (extendedData as any).customerData?.street || (extendedData as any).customerData?.address || ""
-      ].filter(Boolean).join(" / ") || "",
-      items: rawItems.map((item, index) => {
-        // Use API values directly if available to ensure consistency
-        const qty = Number(item.quantity ?? 1);
-        const itemTax = item.taxAmount !== undefined ? Number(item.taxAmount) : calcItemTax(cart[index]);
-        const itemLineTotal = item.lineTotal !== undefined ? Number(item.lineTotal) : (Number(item.subTotal || 0) + itemTax);
-        
-        // For Roll (POS) we want the 'Sub Total' column to show the line subtotal (total before tax)
-        const lineSubTotal = itemLineTotal - itemTax;
-
-        return {
-          productName: item.productName || item.name || "-",
-          quantity: qty,
-          unitPrice: lineSubTotal, // This maps to "Sub Total" in the roll template
-          taxAmount: Number(itemTax.toFixed(2)),
-          total: Number(itemLineTotal.toFixed(2)) // Changed from lineTotal to total
-=======
       // Try fetching by ID first (Most reliable)
       const cId = data.customerId || data.customerID || data.customer_id;
       const sId = data.supplierId || data.supplierID || data.supplier_id;
@@ -191,7 +147,6 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
           itemDiscount,
           note: "",
           op: null,
->>>>>>> f89141a (done)
         };
       });
 
