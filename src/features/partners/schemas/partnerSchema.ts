@@ -19,7 +19,7 @@ export const createPartnerSchema = (t: (key: string) => string) =>
       stateId: z.number().optional(),
 
       district: z.string().optional(),
-      streetName: z.string().optional(),
+      street: z.string().optional(),
       postalCode: z.string().optional(),
 
       buildingNumber: z
@@ -45,7 +45,7 @@ export const createPartnerSchema = (t: (key: string) => string) =>
         { field: "cityId", message: t("validation_region_required") },
         { field: "stateId", message: t("validation_city_required") },
         { field: "district", message: t("validation_district_required") },
-        { field: "streetName", message: t("validation_street_required") },
+        { field: "street", message: t("validation_street_required") },
         { field: "postalCode", message: t("validation_postal_code_required") },
         { field: "buildingNumber", message: t("validation_building_number_required") },
         { field: "additionalNumber", message: t("validation_additional_number_required") },

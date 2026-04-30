@@ -36,6 +36,7 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
 
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
+  const [nameEn, setNameEn] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -52,6 +53,7 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
   const [citySearch, setCitySearch] = useState("");
   const [stateId, setStateId] = useState<number | null>(null);
   const [stateSearch, setStateSearch] = useState("");
+  const [district, setDistrict] = useState("");
   const [street, setStreet] = useState("");
   const [buildingNumber, setBuildingNumber] = useState("");
   const [subNumber, setSubNumber] = useState("");
@@ -68,6 +70,7 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
     if (isEditMode && branchDetail) {
       setCode(branchDetail.code ?? "");
       setName(branchDetail.name ?? "");
+      setNameEn(branchDetail.nameEn ?? "");
       setBusinessName(branchDetail.businessName ?? "");
       setEmail(branchDetail.email ?? "");
       setPhone(branchDetail.phone ?? "");
@@ -79,6 +82,7 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
       setCountryId(branchDetail.countryId ?? null);
       setCityId(branchDetail.cityId ?? null);
       setStateId(branchDetail.stateId ?? null);
+      setDistrict(branchDetail.district ?? "");
       setStreet(branchDetail.street ?? "");
       setBuildingNumber(branchDetail.buildingNumber ?? "");
       setSubNumber(branchDetail.subNumber ?? "");
@@ -88,6 +92,7 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
     if (!isEditMode) {
       setCode("");
       setName("");
+      setNameEn("");
       setBusinessName("");
       setEmail("");
       setPhone("");
@@ -99,6 +104,7 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
       setCountryId(null);
       setCityId(null);
       setStateId(null);
+      setDistrict("");
       setCountrySearch("");
       setCitySearch("");
       setStateSearch("");
@@ -179,31 +185,44 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
       return;
     }
 
-    const payload = {
-      code: code.trim(),
-      name: name.trim(),
-      imageUrl: imageUrl || undefined,
-      businessName: businessName.trim() || undefined,
-      commercialRegister: commercialRegister.trim() || undefined,
-      taxNumber: taxNumber.trim() || undefined,
-      footerNote: footerNote.trim() || undefined,
-      email: email.trim() || undefined,
-      phone: phone.trim() || undefined,
-      countryId: countryId ?? undefined,
-      cityId: cityId ?? undefined,
-      stateId: stateId ?? undefined,
-      street: street.trim() || undefined,
-      buildingNumber: buildingNumber.trim() || undefined,
-      subNumber: subNumber.trim() || undefined,
-      postalCode: postalCode.trim() || undefined,
-    };
+    const formData = new FormData();
+    formData.append("Code", code.trim());
+    formData.append("Name", name.trim());
+    formData.append("NameEn", nameEn.trim());
+    formData.append("BusinessName", businessName.trim());
+    formData.append("Email", email.trim());
+    formData.append("Phone", phone.trim());
+    formData.append("TaxNumber", taxNumber.trim());
+    formData.append("CommercialRegister", commercialRegister.trim());
+    formData.append("FooterNote", footerNote.trim());
+    formData.append("Street", street.trim());
+    formData.append("District", district.trim());
+    formData.append("BuildingNumber", buildingNumber.trim());
+    formData.append("SubNumber", subNumber.trim());
+    formData.append("PostalCode", postalCode.trim());
+
+    if (countryId) formData.append("CountryId", String(countryId));
+    if (cityId) formData.append("CityId", String(cityId));
+    if (stateId) formData.append("StateId", String(stateId));
+
+    if (isEditMode && branchDetail) {
+      formData.append("IsActive", String(branchDetail.isActive ?? true));
+    }
+
+    // Optional fields for API compatibility
+    (["AdditionalNumber", "OrganizationName", "OrganizationUnitName", "LocationAddress", "IndustryBusinessCategory"] as const).forEach((key) => formData.append(key, ""));
+
+    // Handle image file if we have a way to get it, or use existing imageUrl
+    // Note: AddBranchModal currently only has imageUrl/Preview from FileReader.
+    // Ideally we should keep the file object like in AddBranch.tsx.
+    // For now, we append the data as required.
 
     try {
       if (isEditMode && editData) {
-        await updateBranch({ id: editData.id, ...payload });
+        await updateBranch({ id: editData.id, data: formData });
         notifySuccess("تم تعديل الفرع بنجاح");
       } else {
-        await createBranch(payload);
+        await createBranch(formData);
         notifySuccess("تم إضافة الفرع بنجاح");
       }
       onClose();
@@ -295,8 +314,8 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
                 </div>
               </div>
 
-              {/* Row 1: اسم النشاط / البريد / الهاتف */}
-              <div className="grid grid-cols-3 gap-3">
+              {/* Row 1: اسم النشاط / الاسم باللغة الثانية / البريد / الهاتف */}
+              <div className="grid grid-cols-4 gap-3">
                 <Field>
                   <FieldLabel>
                     اسم النشاط <span className="text-red-500">*</span>
@@ -304,12 +323,16 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
                   <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="اسم الفرع" className="h-10" />
                 </Field>
                 <Field>
+                  <FieldLabel>اسم الفرع باللغة الثانية</FieldLabel>
+                  <Input value={nameEn} onChange={(e) => setNameEn(e.target.value)} placeholder="Branch Name EN" className="h-10" />
+                </Field>
+                <Field>
                   <FieldLabel>البريد الإلكتروني</FieldLabel>
                   <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="info@example.com" className="h-10" />
                 </Field>
                 <Field>
-                  <FieldLabel>هاتف</FieldLabel>
-                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="01xxxxxxxxx" className="h-10" />
+                  <FieldLabel>رقم الجوال</FieldLabel>
+                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="05xxxxxxxx" className="h-10" />
                 </Field>
               </div>
 
@@ -345,7 +368,7 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
               <div className="rounded-xl border border-gray-200 bg-gray-50/50 p-4 space-y-3">
                 <p className="text-sm font-semibold text-gray-700">إعدادات العنوان</p>
 
-                <div className="grid grid-cols-4 gap-3">
+                <div className="grid grid-cols-5 gap-3">
                   {/* البلد */}
                   <Field>
                     <FieldLabel>
@@ -366,13 +389,13 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
                     </Combobox>
                   </Field>
 
-                  {/* المدينة */}
+                  {/* المنطقة (CityId labeled as Region) */}
                   <Field>
                     <FieldLabel>
-                      المدينة <span className="text-red-500">*</span>
+                      المنطقة <span className="text-red-500">*</span>
                     </FieldLabel>
                     <Combobox value={cityId?.toString() ?? ""} onValueChange={handleCityChange} items={cities ?? []} disabled={!countryId}>
-                      <ComboboxInput placeholder={countryId ? "اختر المدينة" : "اختر البلد أولاً"} value={citySearch} onChange={(e) => setCitySearch(e.target.value)} showClear={!!cityId} disabled={!countryId} className={!countryId ? "opacity-60 cursor-not-allowed" : ""} />
+                      <ComboboxInput placeholder={countryId ? "اختر المنطقة" : "اختر البلد أولاً"} value={citySearch} onChange={(e) => setCitySearch(e.target.value)} showClear={!!cityId} disabled={!countryId} className={!countryId ? "opacity-60 cursor-not-allowed" : ""} />
                       <ComboboxContent>
                         <ComboboxEmpty>لا توجد نتائج</ComboboxEmpty>
                         <ComboboxList>
@@ -386,13 +409,13 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
                     </Combobox>
                   </Field>
 
-                  {/* الحي */}
+                  {/* المدينة (StateId labeled as City) */}
                   <Field>
                     <FieldLabel>
-                      الحي <span className="text-red-500">*</span>
+                      المدينة <span className="text-red-500">*</span>
                     </FieldLabel>
                     <Combobox value={stateId?.toString() ?? ""} onValueChange={(val) => setStateId(val ? Number(val) : null)} items={states ?? []} disabled={!cityId}>
-                      <ComboboxInput placeholder={cityId ? "اختر الحي" : "اختر المدينة أولاً"} value={stateSearch} onChange={(e) => setStateSearch(e.target.value)} showClear={!!stateId} disabled={!cityId} className={!cityId ? "opacity-60 cursor-not-allowed" : ""} />
+                      <ComboboxInput placeholder={cityId ? "اختر المدينة" : "اختر المنطقة أولاً"} value={stateSearch} onChange={(e) => setStateSearch(e.target.value)} showClear={!!stateId} disabled={!cityId} className={!cityId ? "opacity-60 cursor-not-allowed" : ""} />
                       <ComboboxContent>
                         <ComboboxEmpty>لا توجد نتائج</ComboboxEmpty>
                         <ComboboxList>
@@ -404,6 +427,12 @@ export default function AddBranchModal({ isOpen, onClose, mode = "add", editData
                         </ComboboxList>
                       </ComboboxContent>
                     </Combobox>
+                  </Field>
+
+                  {/* الحي (New Textbox) */}
+                  <Field>
+                    <FieldLabel>الحي</FieldLabel>
+                    <Input value={district} onChange={(e) => setDistrict(e.target.value)} placeholder={t("district_placeholder") || "الحي"} className="h-10" />
                   </Field>
 
                   {/* اسم الشارع */}
