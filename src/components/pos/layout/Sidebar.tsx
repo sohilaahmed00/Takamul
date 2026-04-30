@@ -32,7 +32,7 @@ const STATUS_MAP: Record<OrderStatusType, string | null> = {
 };
 
 export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
-  const { selectedCustomer, addToCart, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen } = usePosStore();
+  const { selectedCustomer, addToCart, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen, setOriginalItems } = usePosStore();
 
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
   const { t } = useLanguage();
@@ -152,15 +152,14 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         <button
                           onClick={async () => {
                             const invoiceData: InvoiceData = {
-                              logoUrl: LOGO_URL,
-                              invoiceNumber: `—`,
+                              invoiceNumber: order?.orderNumber,
                               institutionName: INSTITUTION_NAME,
                               institutionTaxNumber: INSTITUTION_TAX_NO,
-                              invoiceDate: formatDate(new Date()),
+                              invoiceDate: formatDate(order?.orderDate),
                               institutionAddress: INSTITUTION_ADDRESS,
                               institutionPhone: INSTITUTION_PHONE,
                               customerName: selectedCustomer?.customerName ?? undefined,
-                              customerPhone: undefined,
+                              customerPhone: order?.customerPhone,
                               items: order?.items.map((item) => {
                                 const tt: CartItem = {
                                   name: item?.productName,
@@ -217,11 +216,27 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                   extras: [],
                                 })),
                               );
-                              console.log(order?.items);
                               if (order.orderType === "InDine") {
                                 setOrderType("InDine");
                                 setDineInMode("add-items");
                                 setSelectedOrderId(order?.id);
+                                setOriginalItems(
+                                  order.items.map((item) => ({
+                                    productId: item.productId,
+                                    name: item.productName,
+                                    productNameEn: item.productName,
+                                    productNameUr: item.productName,
+                                    price: item?.sellingPrice,
+                                    qty: item.quantity,
+                                    note: "",
+                                    op: null,
+                                    taxamount: item.taxAmountProduct,
+                                    taxCalculation: item.taxCalculation,
+                                    taxPercentage: item?.taxPercentage,
+                                    itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+                                    extras: [],
+                                  })),
+                                );
                               } else {
                                 setHoldingOrderId(order?.id);
                                 setOrderType(order?.orderType);
@@ -238,6 +253,23 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                               setScreen("home");
                               console.log(order?.items);
                               setCart(
+                                order.items.map((item) => ({
+                                  productId: item.productId,
+                                  name: item.productName,
+                                  productNameEn: item.productName,
+                                  productNameUr: item.productName,
+                                  price: item?.sellingPrice,
+                                  qty: item.quantity,
+                                  note: "",
+                                  op: null,
+                                  taxamount: item.taxAmountProduct,
+                                  taxCalculation: item.taxCalculation,
+                                  taxPercentage: item?.taxPercentage,
+                                  itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+                                  extras: [],
+                                })),
+                              );
+                              setOriginalItems(
                                 order.items.map((item) => ({
                                   productId: item.productId,
                                   name: item.productName,

@@ -159,7 +159,7 @@ export interface UpdateDevicePOS extends CreateDevicePOS {
   isActive: boolean;
   allowOnlineInvoicing: boolean;
 }
-export type GetOrderByTableIdResponse = Order;
+
 export type GetAllPOSDevicesResponse = ApiResponse<POSDevice[]>;
 export type GetPOSDevicesResponse = ApiResponse<POSDevice>;
 export type GenereateSerialResponse = ApiResponse<string>;

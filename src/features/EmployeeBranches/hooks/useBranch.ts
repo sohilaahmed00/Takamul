@@ -34,7 +34,6 @@ export const useBranch = () => {
     queryKey: ["employee-branch"],
     queryFn: async () => {
       const response = await apiClient.get("/Branch/Employeebranch");
-      // الرد قد يكون مباشر أو داخل كائن data
       const branchData = response.data?.data || response.data;
       return branchData;
     },

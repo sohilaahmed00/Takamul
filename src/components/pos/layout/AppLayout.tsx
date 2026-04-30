@@ -14,6 +14,7 @@ import { ItemNumPadPanel } from "../cart/Itemnumpadpanel";
 import { useEffect } from "react";
 import { initQZ } from "@/lib/qzService";
 import { usePosStore } from "@/features/pos/store/usePosStore";
+import { useBranchStore } from "@/store/employeeStore";
 
 function PageContent() {
   const { screen } = usePosStore();
@@ -35,10 +36,15 @@ function PageContent() {
 }
 
 export default function AppLayout() {
-  const { setScreen } = usePosStore();
+  const { setScreen, resetCart } = usePosStore();
+  const { fetchBranch } = useBranchStore();
+  useEffect(() => {
+    fetchBranch();
+  }, []);
 
   useEffect(() => {
     setScreen("home");
+    resetCart();
   }, []);
 
   useEffect(() => {

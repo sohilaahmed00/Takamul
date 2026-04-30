@@ -190,15 +190,22 @@ const CreatePurchaseInvoice: React.FC = () => {
       warehouseId: data.warehouseId,
       supplierId: Number(data.supplierId),
       notes: data.notes || "",
-      items: data.items.map((item) => ({
-        productId: item.productId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
-        discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
-        taxId: item.taxId,
-        unitId: 1,
-      })),
+      items: data.items.map((item) => {
+        const product = products?.items?.find((p) => p.id === Number(item.productId));
+        const price = item?.unitPrice || 0;
+        const taxCalc = product?.taxCalculation ?? 0;
+        const taxPercentage = product?.taxPercentage || 0;
+        const beforeTax = taxCalc === 1 ? price : price / (1 + taxPercentage / 100);
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          discountPercentage: item.discountType === "percentage" ? (item.discountValue ?? 0) : 0,
+          discountValue: item.discountType === "fixed" ? (item.discountValue ?? 0) : 0,
+          taxId: item.taxId,
+          unitId: 1,
+        };
+      }),
       payments: data.payments.map((payment) => ({
         amount: payment.amount,
         treasuryId: payment.treasuryId,
