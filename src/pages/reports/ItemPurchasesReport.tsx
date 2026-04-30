@@ -304,7 +304,9 @@ export default function ItemPurchasesReport() {
 
           <div className="rounded-xl border border-gray-100 dark:border-slate-800 overflow-hidden">
             <DataTable
-              value={rows} paginator rows={10}
+              value={rows} paginator 
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+              rows={10}
               loading={purchasesLoading || purchasesFetching}
               className="custom-green-table custom-compact-table"
               emptyMessage={!searchParams.productId ? t("select_product_first", "اختر صنفاً أولاً لعرض التقرير") : t("no_data", "لا توجد بيانات")}

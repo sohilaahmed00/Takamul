@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import { TopSellingProduct, TopSellingParams, PaginatedResponse, ProductMovement, ProductMovementParams, InventoryStockItem, InventoryStockParams, StatementItem, CustomerStatementParams, SupplierStatementParams, ExpensesReportParams, ExpensesReportResponse, ItemSalesReportParams, ItemSalesReportResponse, DailySalesReportItem, DailySalesReportParams, SalesInvoiceReportItem, SalesInvoiceReportParams, ProductPurchasesResponse, ProductPurchasesParams, DailyPurchasesReportItem, DailyPurchasesReportParams, PurchaseInvoiceReportItem, PurchaseInvoiceReportParams, ProfitReportResponse, ProfitReportParams, StockAlertReportParams, StockAlertItem } from "../types/reports.types";
+import { TopSellingProduct, TopSellingParams, PaginatedResponse, ProductMovement, ProductMovementParams, InventoryStockItem, InventoryStockParams, StatementItem, CustomerStatementParams, SupplierStatementParams, ExpensesReportParams, ExpensesReportResponse, ItemSalesReportParams, ItemSalesReportResponse, DailySalesReportItem, DailySalesReportParams, SalesInvoiceReportItem, SalesInvoiceReportParams, ProductPurchasesResponse, ProductPurchasesParams, DailyPurchasesReportItem, DailyPurchasesReportParams, PurchaseInvoiceReportItem, PurchaseInvoiceReportParams, ProfitReportResponse, ProfitReportParams, StockAlertReportParams, StockAlertItem, SalesReturnReportItem, SalesReturnReportParams, EmployeeSalesItem, EmployeeSalesParams } from "../types/reports.types";
 
 // ─── Top Selling ───────────────────────────────────────────────
 // بترجع paginated response
@@ -78,4 +78,14 @@ export const getProfitReport = async (params: ProfitReportParams): Promise<Profi
 // ─── Stock Alert Report ─────────────────────────────────────────
 export const getStockAlertReport = async (params: StockAlertReportParams): Promise<StockAlertItem[]> => {
   return httpClient<StockAlertItem[]>("/reports/products/StockAlerts", { params });
+};
+
+// ─── Sales Return Report ───────────────────────────────────────
+export const getSalesReturnReport = async (params: SalesReturnReportParams): Promise<PaginatedResponse<SalesReturnReportItem>> => {
+  return httpClient<PaginatedResponse<SalesReturnReportItem>>("/reports/products/SalesReturn", { params });
+};
+
+// ─── Employee Sales Report ─────────────────────────────────────
+export const getEmployeeSalesReport = async (params: EmployeeSalesParams): Promise<PaginatedResponse<EmployeeSalesItem>> => {
+  return httpClient<PaginatedResponse<EmployeeSalesItem>>("/reports/products/employee-sales", { params });
 };

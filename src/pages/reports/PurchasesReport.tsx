@@ -328,7 +328,9 @@ export default function PurchasesReport() {
 
           <DataTable
             value={items} totalRecords={totalCount} loading={isLoading}
-            lazy paginator rows={entriesPerPage} rowsPerPageOptions={[5, 10, 20, 50]}
+            lazy paginator 
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+            rows={entriesPerPage} 
             first={(currentPage - 1) * entriesPerPage}
             onPage={(e: DataTablePageEvent) => {
               if (e.page === undefined) return;

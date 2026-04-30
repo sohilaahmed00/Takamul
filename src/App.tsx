@@ -90,6 +90,7 @@ import SuppliersReportsCategory from "@/pages/reports/SuppliersReportsCategory";
 import ExpensesReportsCategory from "@/pages/reports/ExpensesReportsCategory";
 import ProfitsReportsCategory from "@/pages/reports/ProfitsReportsCategory";
 import SalesReturnsReport from "@/pages/reports/SalesReturnsReport";
+import EmployeeSalesReport from "@/pages/reports/EmployeeSalesReport";
 
 import Revenues from "@/pages/revenues-and-expenses/Revenues";
 import Expenses from "@/pages/revenues-and-expenses/Expenses";

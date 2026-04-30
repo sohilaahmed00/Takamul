@@ -500,6 +500,11 @@ export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any, l
         <div class="c-label-en" dir="ltr">${enPartyLabel}</div>
       </div>
       <div class="c-row">
+        <div class="c-label-ar">${t("current_balance", "الرصيد الحالي :")}</div>
+        <div class="c-value">${Number(data.balanceBefore || 0).toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+        <div class="c-label-en" dir="ltr">Current Balance</div>
+      </div>
+      <div class="c-row">
         <div class="c-label-ar">${t("the_sum_of", "مبلغ وقدره :")}</div>
         <div class="c-value">${tafqeet(data.amount || 0, lang)}</div>
         <div class="c-label-en" dir="ltr">The sum of S.R.</div>
@@ -508,6 +513,11 @@ export const getVoucherHTML = (type: "receipt" | "payment", data: any, t: any, l
         <div class="c-label-ar">${t("being", "وذلك عن / يمثل :")}</div>
         <div class="c-value">${data.description || "-"}</div>
         <div class="c-label-en" dir="ltr">Being</div>
+      </div>
+      <div class="c-row">
+        <div class="c-label-ar">${t("balance_after", "الرصيد بعد :")}</div>
+        <div class="c-value">${(Number(data.balanceBefore || 0) - Number(data.amount || 0)).toLocaleString("en-US", { minimumFractionDigits: 2 })}</div>
+        <div class="c-label-en" dir="ltr">Balance After</div>
       </div>
       <div class="c-row">
         <div class="c-label-ar">${t("bank_cash", "طريقة الدفع / البنك :")}</div>

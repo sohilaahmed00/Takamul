@@ -61,7 +61,7 @@ export default function AddCustomerCollectionModal({ isOpen, onClose, mode = "ad
   }, [isOpen, isEditMode, editData]);
 
   const selectedCustomer = useMemo(() => customers?.items?.find((c: any) => c.id === customerId), [customers, customerId]);
-  const currentBalance = Number(selectedCustomer?.balance ?? 0);
+  const currentBalance = isEditMode && editData ? Number(editData.balanceBefore ?? 0) : Number(selectedCustomer?.balance ?? 0);
   const amountNumber = Number(amount || 0);
   const balanceAfter = currentBalance - amountNumber;
 

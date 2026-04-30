@@ -203,7 +203,9 @@ export default function ShiftsReport() {
           </div>
 
           <DataTable
-            value={shifts} paginator rows={10} 
+            value={shifts} paginator 
+            paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink"
+            rows={10} 
             className="custom-standard-table" dataKey="id"
             emptyMessage={t('no_data', 'لا توجد بيانات')} 
             globalFilter={globalFilterValue}

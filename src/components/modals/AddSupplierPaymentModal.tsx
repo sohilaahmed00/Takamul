@@ -64,7 +64,7 @@ export default function AddSupplierPaymentModal({ isOpen, onClose, mode = "add",
   }, [isOpen, isEditMode, editData]);
 
   const selectedSupplier = useMemo(() => suppliers?.find((s: any) => s.id === supplierId), [suppliers, supplierId]);
-  const currentBalance = Number(selectedSupplier?.balance ?? 0);
+  const currentBalance = isEditMode && editData ? Number(editData.balanceBefore ?? 0): Number(selectedSupplier?.balance ?? 0);
   const amountNumber = Number(amount || 0);
   const balanceAfter = currentBalance - amountNumber;
 
