@@ -222,8 +222,8 @@ function AppRoutes() {
               <Route path="/settings/currencies" element={<Currencies />} />
               <Route path="/settings/customer-groups" element={<CustomerGroups />} />
               <Route path="/settings/price-groups" element={<PriceGroups />} />
-
               <Route path="/settings/tables" element={<Tables />} />
+              
               <Route path="/reports/low-stock" element={<LowStockReport />} />
               <Route path="/reports/stock-balance" element={<StockBalanceReport />} />
               <Route path="/reports/item-movement" element={<ItemMovementReport />} />
@@ -246,6 +246,7 @@ function AppRoutes() {
               <Route path="/reports/profit" element={<ProfitReport />} />
               <Route path="/reports/item-movement" element={<ItemMovementReport />} />
               <Route path="/reports/sales-returns" element={<SalesReturnsReport />} />
+              <Route path="/reports/employee-sales" element={<EmployeeSalesReport />} />
 
               {/* New Report Categories */}
               <Route path="/reports/category/items" element={<ItemsReportsCategory />} />
