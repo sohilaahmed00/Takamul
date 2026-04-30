@@ -290,16 +290,16 @@ export default function EmployeeSalesReport() {
               emptyMessage={t("no_data", "لا توجد بيانات")}
               stripedRows={false}
             >
-              <Column header={t("serial", "م")} body={(_, opt) => opt.rowIndex + 1} className="w-16" />
-              <Column header={t("employee_name", "اسم الموظف")} field="employeeName" />
-              <Column header={t("order_number", "رقم الفاتورة")} field="orderNumber" body={(row) => <span className="font-bold text-[#22c55e]">{row.orderNumber}</span>} />
-              <Column header={t("date", "التاريخ")} field="orderDate" body={(row) => formatDate(row.orderDate, "default")} />
-              <Column header={t("customer_name", "اسم العميل")} field="customerName" />
-              <Column header={t("sub_total", "الإجمالي قبل الضريبة")} field="subTotal" body={(row) => fmt(row.subTotal)} />
-              <Column header={t("tax_amount", "الضريبة")} field="taxAmount" body={(row) => fmt(row.taxAmount)} />
-              <Column header={t("grand_total", "الإجمالي")} field="grandTotal" body={(row) => <span className="font-bold">{fmt(row.grandTotal)}</span>} />
-              <Column header={t("order_status", "حالة الطلب")} field="orderStatus" />
-              <Column header={t("payment_status", "حالة الدفع")} field="paymentStatus" />
+              <Column header={t("serial", "م")} body={(_, opt) => <span className="whitespace-nowrap">{opt.rowIndex + 1}</span>} className="w-16" />
+              <Column header={t("employee_name", "اسم الموظف")} field="employeeName" body={(row) => <span className="whitespace-nowrap">{row.employeeName}</span>} />
+              <Column header={t("order_number", "رقم الفاتورة")} field="orderNumber" body={(row) => <span className="font-bold text-[#22c55e] whitespace-nowrap">{row.orderNumber}</span>} />
+              <Column header={t("date", "التاريخ")} field="orderDate" body={(row) => <span className="whitespace-nowrap">{formatDate(row.orderDate, "default")}</span>} />
+              <Column header={t("customer_name", "اسم العميل")} field="customerName" body={(row) => <span className="whitespace-nowrap">{row.customerName}</span>} />
+              <Column header={t("sub_total", "الإجمالي قبل الضريبة")} field="subTotal" body={(row) => <span className="whitespace-nowrap">{fmt(row.subTotal)}</span>} />
+              <Column header={t("tax_amount", "الضريبة")} field="taxAmount" body={(row) => <span className="whitespace-nowrap">{fmt(row.taxAmount)}</span>} />
+              <Column header={t("grand_total", "الإجمالي")} field="grandTotal" body={(row) => <span className="font-bold whitespace-nowrap">{fmt(row.grandTotal)}</span>} />
+              <Column header={t("order_status", "حالة الطلب")} field="orderStatus" body={(row) => <span className="whitespace-nowrap">{row.orderStatus}</span>} />
+              <Column header={t("payment_status", "حالة الدفع")} field="paymentStatus" body={(row) => <span className="whitespace-nowrap">{row.paymentStatus}</span>} />
             </DataTable>
           </div>
         </CardContent>
