@@ -54,14 +54,12 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
         branchInfo: currentBranch ?? null,
       };
 
-      // If we already have customerData, don't do anything else
       if (extendedData.customerData) return extendedData;
 
-      // 2. Identify Party (Customer or Supplier)
+  
       const rawName = data.customerName || data.name || data.customer || data.supplierName || "";
       const searchTerm = normalize(rawName);
 
-      // Try fetching by ID first (Most reliable)
       const cId = data.customerId || data.customerID || data.customer_id;
       const sId = data.supplierId || data.supplierID || data.supplier_id;
 
@@ -163,6 +161,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
         institutionTaxNumber: branch.taxNumber || "",
         institutionCommercialRegister: branch.commercialRegister || "",
         invoiceDate: extendedData.createdAt ? new Date(extendedData.createdAt).toLocaleString("en-GB") : extendedData.orderDate || extendedData.date ? new Date((extendedData.orderDate || extendedData.date) as any).toLocaleString("en-GB") : new Date().toLocaleString("en-GB"),
+        invoiceName: extendedData?.customerData?.taxNumber ? "فاتورة ضريبية مبسطة" : "فاتورة ضريبية",
         institutionAddress:
           [
             branch.cityName || branch.city || "", // المنطقة (CityId)

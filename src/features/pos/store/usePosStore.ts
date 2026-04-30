@@ -448,6 +448,7 @@ export const usePosStore = create<PosState>((set, get) => ({
           institutionAddress: INSTITUTION_ADDRESS,
           institutionPhone: INSTITUTION_PHONE,
           customerName: selectedCustomer?.customerName ?? undefined,
+          invoiceName: selectedCustomer?.taxNumber ? "فاتورة ضريبية مبسطة" : "فاتورة ضريبية",
           customerPhone: undefined,
           items: cart.map((item) => {
             const base = itemBasePrice(item);
