@@ -82,11 +82,13 @@ export const branchSchema = z.object({
     .check(z.refine((v) => v !== null, "المدينة مطلوبة")),
 
   stateId: z
-    .number({ error: "الحي مطلوب" })
+    .number({ error: "المنطقة مطلوبة" })
     .int()
-    .positive("الحي مطلوب")
+    .positive("المنطقة مطلوبة")
     .nullable()
-    .check(z.refine((v) => v !== null, "الحي مطلوب")),
+    .check(z.refine((v) => v !== null, "المنطقة مطلوبة")),
+
+  district: z.string().check(z.maxLength(100, "الحي لا يتجاوز 100 حرف")).optional().default(""),
 
   street: z.string().check(z.minLength(1, "اسم الشارع مطلوب"), z.maxLength(100, "اسم الشارع لا يتجاوز 100 حرف")),
 
@@ -152,6 +154,7 @@ export default function AddBranch() {
       countryId: null,
       cityId: null,
       stateId: null,
+      district: "",
       street: "",
       buildingNumber: "",
       subNumber: "",
@@ -170,6 +173,9 @@ export default function AddBranch() {
   useEffect(() => {
     if (!branchDetail) return;
     const nameEnKey = Object.keys(branchDetail).find((k) => k.toLowerCase().replace(/_/g, "") === "nameen");
+     
+  console.log("branchDetail keys:", Object.keys(branchDetail));
+  console.log("branchDetail:", branchDetail);
     reset({
       code: branchDetail.code ?? "",
       name: branchDetail.name ?? "",
@@ -185,6 +191,7 @@ export default function AddBranch() {
       countryId: branchDetail.countryId ?? null,
       cityId: branchDetail.cityId ?? null,
       stateId: branchDetail.stateId ?? null,
+      district: branchDetail.district ?? "",
       street: branchDetail.street ?? "",
       buildingNumber: branchDetail.buildingNumber ?? "",
       subNumber: branchDetail.subNumber ?? "",
@@ -238,8 +245,9 @@ export default function AddBranch() {
     appendStr("BuildingNumber", values.buildingNumber);
     appendStr("SubNumber", values.subNumber);
     appendStr("PostalCode", values.postalCode);
+    appendStr("District", values.district);
 
-    (["Email", "District", "AdditionalNumber", "OrganizationName", "OrganizationUnitName", "LocationAddress", "IndustryBusinessCategory"] as const).forEach((key) => formData.append(key, ""));
+    (["Email", "AdditionalNumber", "OrganizationName", "OrganizationUnitName", "LocationAddress", "IndustryBusinessCategory"] as const).forEach((key) => formData.append(key, ""));
 
     formData.append("CountryId", String(values.countryId!));
     formData.append("CityId", String(values.cityId!));
@@ -472,7 +480,7 @@ export default function AddBranch() {
                   <CardTitle className="text-base flex items-center gap-2">{t("address_settings") || "إعدادات العنوان"}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     {/* Country */}
                     <Controller
                       name="countryId"
@@ -502,15 +510,15 @@ export default function AddBranch() {
                       )}
                     />
 
-                    {/* City */}
+                    {/* City (labeled as Region) */}
                     <Controller
                       name="cityId"
                       control={control}
-                      rules={{ required: t("city_required") || "المدينة مطلوبة" }}
+                      rules={{ required: t("region_required") || "المنطقة مطلوبة" }}
                       render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
                           <FieldLabel>
-                            {t("city") || "المدينة"}
+                            {t("region") || "المنطقة"}
                             <span className="text-red-500 ms-1">*</span>
                           </FieldLabel>
                           <ComboboxField
@@ -522,7 +530,7 @@ export default function AddBranch() {
                             items={cities ?? []}
                             valueKey="id"
                             labelKey="cityName"
-                            placeholder={!countryId ? t("select_country_first") : t("select_city")}
+                            placeholder={!countryId ? t("select_country_first") : t("اختر المنطقة")}
                             disabled={!countryId || isViewMode}
                           />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
@@ -530,18 +538,33 @@ export default function AddBranch() {
                       )}
                     />
 
-                    {/* District */}
+                    {/* Region (labeled as City) */}
                     <Controller
                       name="stateId"
                       control={control}
-                      rules={{ required: t("district_required") || "الحي مطلوب" }}
+                      rules={{ required: t("city_required") || "المدينة مطلوبة" }}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>
+                            {t("city") || "المدينة"}
+                            <span className="text-red-500 ms-1">*</span>
+                          </FieldLabel>
+                          <ComboboxField value={field.value ?? undefined} onChange={(val) => field.onChange(val ? Number(val) : null)} items={states ?? []} valueKey="id" labelKey="statesName" placeholder={!cityId ? t("select_region_first") : t("اختر المدينة")} disabled={!cityId || isViewMode} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+
+                    {/* Neighborhood (New District Textbox) */}
+                    <Controller
+                      name="district"
+                      control={control}
                       render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
                           <FieldLabel>
                             {t("district") || "الحي"}
-                            <span className="text-red-500 ms-1">*</span>
                           </FieldLabel>
-                          <ComboboxField value={field.value ?? undefined} onChange={(val) => field.onChange(val ? Number(val) : null)} items={states ?? []} valueKey="id" labelKey="statesName" placeholder={!cityId ? t("select_city_first") : t("select_district")} disabled={!cityId || isViewMode} />
+                          <Input {...field} placeholder={t("district_placeholder") || "الحي"} readOnly={isViewMode} />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
                       )}

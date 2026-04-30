@@ -27,11 +27,11 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
   const custPhone = customer.mobile || customer.phone || order.customerPhone || order.supplierPhone || "-";
   const custTaxNo = customer.taxNumber || order.customerTaxNo || order.supplierTaxNo || "-";
   const custCommercial = customer.commercialRegister || order.customerCommercialNo || order.supplierCommercialNo || "-";
-  const country = customer.countryName || "";
-  const city = customer.city || "";
-  const state = customer.state || "";
-  const street = customer.address || order.customerAddress || order.supplierAddress || "";
-  const custAddress = [country, city, state, street].filter(Boolean).join(" / ") || "-";
+  const city = customer.cityName || customer.city || "";
+  const state = customer.stateName || customer.state || "";
+  const district = customer.district || "";
+  const street = customer.street || customer.address || order.customerAddress || order.supplierAddress || "";
+  const custAddress = [city, state, district, street].filter(Boolean).join(" / ") || "-";
   const custPostal = customer.postalCode || order.customerZipCode || "-";
   const custSubNo = customer.additionalNumber || order.customerSubNo || "-";
   const custBuilding = customer.buildingNumber || order.customerBuildingNo || "-";
@@ -78,9 +78,9 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
   const computedItems = items.map((item: any, index: number) => {
     // If API provides these fields, use them. Otherwise fallback to calc logic.
     const qty = Number(item.quantity ?? 1);
-    // Updated logic per user request: "Price" column shows Price AFTER Tax
-    const price = item.priceAfterTax !== undefined 
-      ? Number(item.priceAfterTax) 
+    // Updated logic per user request: "Price" column shows Price  Tax
+    const price = item.unitPrice !== undefined 
+      ? Number(item.unitPrice) 
       : (item.lineTotal !== undefined && qty > 0 ? Number(item.lineTotal) / qty : (Number(item.unitPrice || 0) * 1.15));
 
     // "Sub Total" column shows lineSubTotal (Before Tax) - support multiple API variants
@@ -541,13 +541,13 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
   <table class="items-table">
     <thead>
       <tr>
-        <th>${t("item_description", "بيان الصنف")}<span class="en-sub">Item Des</span></th>
-        <th>${t("unit", "الوحدة")}<span class="en-sub">Unit</span></th>
-        <th>${t("quantity", "الكمية")}<span class="en-sub">QTY</span></th>
-        <th>${t("price", "السعر")}<span class="en-sub">price</span></th>
-        <th>${t("sub_total", "اجمالي فرعي")}<span class="en-sub">Sub Total</span></th>
-        <th>${t("tax", "الضريبة")}<span class="en-sub">Tax %15</span></th>
-        <th>${t("net_total", "الاجمالي النهائي")}<span class="en-sub">Net Total</span></th>
+        <th style="width: 35%;">${t("item_description", "بيان الصنف")}<span class="en-sub">Item Des</span></th>
+        <th style="width: 10%;">${t("unit", "الوحدة")}<span class="en-sub">Unit</span></th>
+        <th style="width: 10%;">${t("quantity", "الكمية")}<span class="en-sub">QTY</span></th>
+        <th style="width: 10%;">${t("price", "السعر")}<span class="en-sub">price</span></th>
+        <th style="width: 12%;">${t("sub_total", "اجمالي فرعي")}<span class="en-sub">Sub Total</span></th>
+        <th style="width: 10%;">${t("tax", "الضريبة")}<span class="en-sub">Tax %15</span></th>
+        <th style="width: 13%;">${t("net_total", "الاجمالي النهائي")}<span class="en-sub">Net Total</span></th>
       </tr>
     </thead>
     <tbody>${itemRows}</tbody>
@@ -568,16 +568,17 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
         <td class="val-cell">${cart.reduce((s, i) => s + i.qty, 0)}</td>
         <td class="lbl-en">Items</td>
       </tr>
+        <tr>
+        <td class="lbl-ar">${t("total_discount", "اجمالي الخصم")}</td>
+        <td class="val-cell">${discount.toFixed(2)}</td>
+        <td class="lbl-en">Discount</td>
+      </tr>
       <tr>
         <td class="lbl-ar">${t("tot_before_vat", "اجمالي السعر قبل الضريبة")}</td>
         <td class="val-cell">${totBeforeVAT.toFixed(2)}</td>
         <td class="lbl-en">Tot Before VAT</td>
       </tr>
-      <tr>
-        <td class="lbl-ar">${t("total_discount", "اجمالي الخصم")}</td>
-        <td class="val-cell">${discount.toFixed(2)}</td>
-        <td class="lbl-en">Discount</td>
-      </tr>
+    
       <tr>
         <td class="lbl-ar">${t("total_vat", "ضريبة القيمة المضافة")}</td>
         <td class="val-cell">${totalVAT.toFixed(2)}</td>
@@ -598,8 +599,8 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
 
   <!-- ══ ADDRESS BAR ══ -->
   <div class="full-width-bar" style="display: flex; justify-content: center; gap: 20px;">
-    <span>${t("branch_address", "عنوان المؤسسة")} : ${[branch.countryName, branch.cityName, branch.stateName, branch.street].filter(Boolean).join(" / ") || branch.address || "-"}</span>
-    <span>${t("branch_phone", "رقم جوال المؤسسة")} : ${branch.phone || "-"}</span>
+    <span>${t("address", "العنوان")} : ${[branch.cityName, branch.stateName, branch.district, branch.street].filter(Boolean).join(" / ") || branch.address || "-"}</span>
+    <span>${t("phone", "رقم الجوال")} : ${branch.phone || "-"}</span>
   </div>
 
 </body>

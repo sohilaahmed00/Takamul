@@ -153,7 +153,7 @@ export function PartnerBasicFields({ control, isSupplier, countriesData, citiesD
 
       <div className="col-span-2">
         <Controller
-          name="streetName"
+          name="street"
           control={control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>

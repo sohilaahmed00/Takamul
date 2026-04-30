@@ -53,8 +53,9 @@ export const getA4PrintHTML = (
   const country = customer.countryName || customer.country || "";
   const city = customer.cityName || customer.city || "";
   const state = customer.stateName || customer.state || "";
-  const street = customer.address || customer.street || data.customerAddress || data.supplierAddress || "";
-  const partyAddress = [country, city, state, street].filter(Boolean).join(" / ") || "-";
+  const district = customer.district || "";
+  const street = customer.street || customer.address || data.customerAddress || data.supplierAddress || "";
+  const partyAddress = [city, state, district, street].filter(Boolean).join(" / ") || "-";
 
   const partyPostal = customer.postalCode || data.customerZipCode || data.supplierZipCode || "-";
   const partySubNo = customer.additionalNumber || data.customerSubNo || data.supplierSubNo || "-";
@@ -104,8 +105,8 @@ export const getA4PrintHTML = (
 
   const itemRows = items.map((item: any, index: number) => {
     const qty      = Number(item.quantity ?? 1);
-    const price    = item.priceAfterTax !== undefined 
-      ? Number(item.priceAfterTax) 
+    const price    = item.unitPrice !== undefined 
+      ? Number(item.unitPrice) 
       : (item.lineTotal !== undefined && qty > 0 
           ? Number(item.lineTotal) / qty 
           : (Number(item.unitPrice || 0) * 1.15));
@@ -256,13 +257,13 @@ export const getA4PrintHTML = (
   <table class="items-table">
     <thead>
       <tr>
-        <th>${t("item_description", "بيان الصنف")}<span class="en-sub">Item Des</span></th>
-        <th>${t("unit", "الوحدة")}<span class="en-sub">Unit</span></th>
-        <th>${t("quantity", "الكمية")}<span class="en-sub">QTY</span></th>
-        <th>${t("price", "السعر")}<span class="en-sub">price</span></th>
-        <th>${t("sub_total", "اجمالي فرعي")}<span class="en-sub">Sub Total</span></th>
-        <th>${t("tax", "الضريبة")}<span class="en-sub">Tax %15</span></th>
-        <th>${t("net_total", "الاجمالي النهائي")}<span class="en-sub">Net Total</span></th>
+        <th style="width: 35%;">${t("item_description", "بيان الصنف")}<span class="en-sub">Item Des</span></th>
+        <th style="width: 10%;">${t("unit", "الوحدة")}<span class="en-sub">Unit</span></th>
+        <th style="width: 10%;">${t("quantity", "الكمية")}<span class="en-sub">QTY</span></th>
+        <th style="width: 10%;">${t("price", "السعر")}<span class="en-sub">price</span></th>
+        <th style="width: 12%;">${t("sub_total", "اجمالي فرعي")}<span class="en-sub">Sub Total</span></th>
+        <th style="width: 10%;">${t("tax", "الضريبة")}<span class="en-sub">Tax %15</span></th>
+        <th style="width: 13%;">${t("net_total", "الاجمالي النهائي")}<span class="en-sub">Net Total</span></th>
       </tr>
     </thead>
     <tbody>${itemRows}</tbody>
@@ -276,16 +277,17 @@ export const getA4PrintHTML = (
         <td class="val-cell">${cart.reduce((s, i) => s + i.qty, 0)}</td>
         <td class="lbl-en">Items</td>
       </tr>
+        <tr>
+        <td class="lbl-ar">${t("total_discount", "اجمالي الخصم")}</td>
+        <td class="val-cell">${discount.toFixed(2)}</td>
+        <td class="lbl-en">Discount</td>
+      </tr>
       <tr>
         <td class="lbl-ar">${t("tot_before_vat", "اجمالي السعر قبل الضريبة")}</td>
         <td class="val-cell">${totBeforeVAT.toFixed(2)}</td>
         <td class="lbl-en">Before VAT</td>
       </tr>
-      <tr>
-        <td class="lbl-ar">${t("total_discount", "اجمالي الخصم")}</td>
-        <td class="val-cell">${discount.toFixed(2)}</td>
-        <td class="lbl-en">Discount</td>
-      </tr>
+    
       <tr>
         <td class="lbl-ar">${t("total_vat", "ضريبة القيمة المضافة")}</td>
         <td class="val-cell">${totalVAT.toFixed(2)}</td>
@@ -304,8 +306,8 @@ export const getA4PrintHTML = (
   </div>
 
   <div class="full-width-bar" style="display: flex; justify-content: center; gap: 20px;">
-    <span>${t("branch_address", "عنوان المؤسسة")} : ${[branch.countryName, branch.cityName, branch.stateName, branch.street].filter(Boolean).join(" / ") || branch.address || "-"}</span>
-    <span>${t("branch_phone", "رقم جوال المؤسسة")} : ${branch.phone || "-"}</span>
+    <span>${t("address", "العنوان")} : ${[branch.cityName, branch.stateName, branch.district, branch.street].filter(Boolean).join(" / ") || branch.address || "-"}</span>
+    <span>${t("phone", "رقم الجوال")} : ${branch.phone || "-"}</span>
   </div>
 </body>
 </html>`;

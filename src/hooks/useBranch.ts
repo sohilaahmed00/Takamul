@@ -18,6 +18,7 @@ export interface BranchInfo {
   countryName: string;
   cityName: string;
   stateName: string;
+  district: string;
   street: string;
   buildingNumber: string;
   postalCode: string;

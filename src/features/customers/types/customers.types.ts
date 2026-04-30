@@ -13,10 +13,15 @@ export interface Customer {
   additionalNumber: string | null;
 
   city: string | null;
+  cityName: string | null;
   cityId: number | null;
 
   state: string | null;
+  stateName: string | null;
   stateId: number | null;
+  
+  district: string | null;
+  street: string | null;
 
   countryName: string | null;
   countryId: number | null;
@@ -41,10 +46,12 @@ export interface createCustomer {
   state: string;
   postalCode: string;
   taxNumber: string;
-  cityId: number;
-  stateId: number;
-  countryId: number;
+  cityId: number | null;
+  stateId: number | null;
+  countryId: number | null;
   address: string;
+  district: string;
+  street: string;
 }
 
 export interface GetAllCustomersResponse extends PaginationMeta {

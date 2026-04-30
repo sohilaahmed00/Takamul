@@ -12,7 +12,9 @@ export interface Supplier {
   buildingNumber?: string | null;
   additionalNumber?: string | null;
   city?: string | null;
+  cityName?: string | null;
   state?: string | null;
+  stateName?: string | null;
   country?: string | null;
   postalCode?: string | null;
   commercialRegister?: string | null;
@@ -22,9 +24,11 @@ export interface Supplier {
   createdAt: string;
   updatedAt: string;
   balance: number;
-  cityId: number;
-  stateId: number;
-  countryId: number;
+  cityId: number | null;
+  stateId: number | null;
+  countryId: number | null;
+  district?: string | null;
+  street?: string | null;
 }
 export interface createSupplier {
   supplierName: string;
@@ -39,10 +43,12 @@ export interface createSupplier {
   buildingNumber: string;
   additionalNumber: string;
   commercialRegister: string;
-  cityId: number;
-  stateId: number;
-  countryId: number;
+  cityId: number | null;
+  stateId: number | null;
+  countryId: number | null;
   address: string;
+  district: string;
+  street: string;
 }
 
 export interface GetAllSuppliersResponse extends PaginationMeta {
