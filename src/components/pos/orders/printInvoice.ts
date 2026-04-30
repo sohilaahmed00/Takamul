@@ -1,7 +1,6 @@
 // printInvoice.ts — thermal 80mm — matches design exactly
 
 import { printInvoicePrinter } from "@/lib/qzService";
-import { useBranchStore } from "@/store/employeeStore";
 
 export interface InvoiceItem {
   productName: string;
@@ -34,9 +33,10 @@ export interface InvoiceData {
 }
 
 export async function printInvoice(data: InvoiceData): Promise<void> {
-  const branch = useBranchStore.getState().branch;
+  
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
-  const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
+  const fmt = (n: number | undefined | null) =>
+    typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00";
   const riyal = `ر.س`;
 
   const itemRows = data.items
@@ -48,7 +48,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
         <td>${fmt(item.unitPrice)}</td>
         <td>${fmt(item.taxAmount)}</td>
         <td>${fmt(item.total)}</td>
-      </tr>`,
+      </tr>`
     )
     .join("");
 
@@ -285,7 +285,7 @@ html, body {
 
   <!-- LOGO -->
   <div class="logo">
-    ${branch?.imageUrl ? `<img src="${branch?.imageUrl}" alt="logo"/>` : `<span>اللوجو</span>`}
+    ${data.logoUrl ? `<img src="${data.logoUrl}" alt="logo"/>` : `<span>اللوجو</span>`}
   </div>
 
   <!-- HEADER INFO ROWS -->
@@ -300,7 +300,7 @@ html, body {
     <!-- VAT NO: AR | value | EN -->
     <div class="hrow">
       <span class="h-ar">الرقم الضريبي</span>
-      <span class="h-val">${branch?.taxNumber}</span>
+      <span class="h-val">${data.institutionTaxNumber}</span>
       <span class="h-en">VAT NO</span>
     </div>
 
@@ -339,7 +339,12 @@ html, body {
       <span class="h-en">Phone No</span>
     </div>
 
-   
+    <!-- Customer Address -->
+    <div class="hrow">
+      <span class="h-ar">العنوان</span>
+      <span class="h-val" style="font-size: 6pt;">${data.customerAddress ?? "—"}</span>
+      <span class="h-en">Address</span>
+    </div>
 
   </div>
 
