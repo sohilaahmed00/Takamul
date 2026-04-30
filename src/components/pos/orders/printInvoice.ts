@@ -17,6 +17,7 @@ export interface InvoiceData {
   institutionNameEn?: string;
   institutionTaxNumber: string;
   institutionCommercialRegister?: string;
+  invoiceName: string;
   invoiceDate: string;
   institutionAddress: string;
   institutionPhone: string;
@@ -34,8 +35,7 @@ export interface InvoiceData {
 
 export async function printInvoice(data: InvoiceData): Promise<void> {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
-  const fmt = (n: number | undefined | null) =>
-    typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00";
+  const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
   const riyal = `ر.س`;
 
   const itemRows = data.items
@@ -47,7 +47,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
         <td>${fmt(item.unitPrice)}</td>
         <td>${fmt(item.taxAmount)}</td>
         <td>${fmt(item.total)}</td>
-      </tr>`
+      </tr>`,
     )
     .join("");
 
@@ -305,7 +305,7 @@ html, body {
 
     <!-- Simplified Tax Invoice -->
     <div class="hrow">
-      <span class="h-ar">فاتورة ضريبية مبسطة</span>
+      <span class="h-ar">${data?.invoiceName}</span>
       <span class="h-val"></span>
       <span class="h-en">Simplified Tax Invoice</span>
     </div>
@@ -338,12 +338,7 @@ html, body {
       <span class="h-en">Phone No</span>
     </div>
 
-    <!-- Customer Address -->
-    <div class="hrow">
-      <span class="h-ar">العنوان</span>
-      <span class="h-val" style="font-size: 6pt;">${data.customerAddress ?? "—"}</span>
-      <span class="h-en">Address</span>
-    </div>
+   
 
   </div>
 

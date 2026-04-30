@@ -93,12 +93,15 @@ export default function TablesPage() {
     order.items.map((item) => ({
       productId: item.productId,
       name: item.productName,
-      price: item?.priceAfterTax,
+      productNameEn: item.productName,
+      productNameUr: item.productName,
+      price: item?.sellingPrice,
       qty: item.quantity,
       note: "",
-      taxamount: item.taxAmount,
-      taxCalculation: item?.taxCalculation,
       op: null,
+      taxamount: item.taxAmountProduct,
+      taxCalculation: item.taxCalculation,
+      taxPercentage: item?.taxPercentage,
       itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
       extras: [],
     }));

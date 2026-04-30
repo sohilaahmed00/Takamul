@@ -2,7 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FileText, Search, Edit2, Trash2, ArrowRight, ArrowLeft, Download, Printer, Menu, LayoutGrid, ShoppingCart, ArrowUp, ArrowDown, PlusCircle, DollarSign, FileSpreadsheet, Mail, Filter, MoreHorizontal, RotateCcw, Warehouse, FileCheck, FileDown, MessageCircle, UserCog } from "lucide-react";
 import { useLanguage } from "@/context/LanguageContext";
-import { usePrint } from "@/context/PrintContext";
 import { ResponsiveModal } from "@/components/modals/ResponsiveModal";
 import DeleteConfirmationModal from "@/components/modals/DeleteConfirmationModal";
 import { useGetAllSales } from "../features/sales/hooks/useGetAllSales";
@@ -14,8 +13,8 @@ import { Button } from "@/components/ui/button";
 import { FilterMatchMode } from "primereact/api";
 import type { SalesOrder } from "@/features/sales/types/sales.types";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-
 import { Input } from "@/components/ui/input";
+import { usePrint } from "@/context/PrintContext";
 
 export default function A4Sales() {
   type Payment = SalesOrder["payments"][number];
@@ -26,8 +25,6 @@ export default function A4Sales() {
   const [currentPage, setCurrentPage] = useState(1);
   const { data: salesOrders } = useGetAllSales({ page: currentPage, limit: entriesPerPage, OrderType: "A4" });
   const [globalFilterValue, setGlobalFilterValue] = useState("");
-  console.log("current language:", language);
-  console.log("confirmed translation:", t("confirmed"));
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setGlobalFilterValue(value);
@@ -66,7 +63,7 @@ export default function A4Sales() {
         </CardHeader>
         <CardContent>
           <DataTable
-          key={language}
+            key={language}
             value={salesOrders?.items || []}
             lazy
             paginator
@@ -103,12 +100,12 @@ export default function A4Sales() {
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-52 p-1">
-                    <DropdownMenuItem onClick={() => printInvoice(row, 'invoice')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
+                    <DropdownMenuItem onClick={() => printInvoice(row, "invoice")} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
                       <FileText size={14} />
                       طباعة الفاتورة (A4)
                     </DropdownMenuItem>
 
-                    <DropdownMenuItem onClick={() => printInvoice(row, 'roll')} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
+                    <DropdownMenuItem onClick={() => printInvoice(row, "roll")} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
                       <Printer size={14} />
                       طباعة الفاتورة (رول)
                     </DropdownMenuItem>

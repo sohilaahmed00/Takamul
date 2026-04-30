@@ -1,9 +1,9 @@
-
 import { printKitchenPrinter } from "@/lib/qzService";
 
 export interface BonItem {
   productName: string;
   quantity: number;
+  operationType: "Add" | "Remove";
 }
 
 export interface BonData {
@@ -15,6 +15,9 @@ export interface BonData {
 }
 
 export async function printPreparationBon(data: BonData): Promise<void> {
+  const isRemove = data.items.every((item) => item.operationType === "Remove");
+  const isMixed = data.items.some((item) => item.operationType === "Add") && data.items.some((item) => item.operationType === "Remove");
+  const bonTitle = isRemove ? "بون تعديل" : "بون تحضير";
   const itemRows = data.items
     .map(
       (item) => `
@@ -158,7 +161,7 @@ html, body {
 <div class="page">
 
   <!-- HEADER -->
-  <div class="header">${data.institutionName}</div>
+  <div class="header">${bonTitle}</div>
 
   <!-- INFO GRID -->
   <table class="info-grid">

@@ -22,7 +22,11 @@ interface PosState {
   screen: Screen;
   setScreen: (s: Screen) => void;
 
+  originalItems: CartItem[];
+  setOriginalItems: (items: CartItem[]) => void;
+
   cart: CartItem[];
+
   setCart: (cart: CartItem[] | ((prev: CartItem[]) => CartItem[])) => void;
   addToCart: (item: AddToCartProduct) => void;
 
@@ -81,7 +85,7 @@ interface PosState {
     },
   ) => Promise<void>;
 
-  handleCreateDineInOrder: (deps: { createDineInOrderyOrder: (p: any) => Promise<any> }) => Promise<void>;
+  handleCreateDineInOrder: (deps: { createDineInOrderyOrder: (p: any) => Promise<any>; customers: { items: Customer[] } }) => Promise<void>;
 
   handleAddItemsToExistingOrder: (deps: { addItemsToOrder: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
 
@@ -90,6 +94,8 @@ interface PosState {
 
 export const usePosStore = create<PosState>((set, get) => ({
   screen: "home",
+  originalItems: [],
+  setOriginalItems: (items) => set({ originalItems: items }),
   setScreen: (screen) => set({ screen }),
   cart: [],
   setCart: (cart) =>
@@ -242,8 +248,8 @@ export const usePosStore = create<PosState>((set, get) => ({
     } catch {}
   },
 
-  handleCreateDineInOrder: async ({ createDineInOrderyOrder }) => {
-    const { cart, selectedCustomer, discount, selectedGiftCardId, selectedTable, orderNote } = get();
+  handleCreateDineInOrder: async ({ createDineInOrderyOrder, customers }) => {
+    const { cart, selectedCustomer, discount, selectedGiftCardId, selectedTable, orderNote, resetCart } = get();
 
     const payload = {
       customerId: selectedCustomer?.id,
@@ -269,22 +275,15 @@ export const usePosStore = create<PosState>((set, get) => ({
         invoiceNumber: "5000",
         invoiceDate: formatDate(new Date()),
         customerName: selectedCustomer?.customerName,
-        items: cart.map((c) => ({ productName: c.name, quantity: c.qty })),
+        items: cart.map((c) => ({ productName: c.name, quantity: c.qty, operationType: "Add" })),
       };
       printPreparationBon(sampleBon);
-      set({
-        cart: [],
-        dineInMode: null,
-        discount: { value: 0, type: "pct" },
-        selectedCustomer: null,
-        screen: "home",
-        orderNote: "",
-      });
+      resetCart(customers);
     } catch {}
   },
 
   handleAddItemsToExistingOrder: async ({ addItemsToOrder, customers }) => {
-    const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, selectedOrderId, handleReleaseHoldingOrder, resetCart } = get();
+    const { cart, selectedCustomer, holdingOrderId, originalItems, selectedOrderId } = get();
     const orderId = selectedOrderId ?? holdingOrderId;
 
     const payload = {
@@ -301,17 +300,61 @@ export const usePosStore = create<PosState>((set, get) => ({
 
     try {
       await addItemsToOrder({ data: payload, id: orderId });
-      const newItems = cart.filter((c) => c.isNew);
-      const sampleBon: BonData = {
-        institutionName: "بون التحضير",
-        invoiceNumber: "5000",
-        invoiceDate: formatDate(new Date()),
-        customerName: selectedCustomer?.customerName,
-        items: newItems.map((c) => ({ productName: c.name, quantity: c.qty })),
-      };
-      await printPreparationBon(sampleBon);
+
+      const addedItems = cart
+        .filter((c) => c.isNew)
+        .map((c) => {
+          const original = originalItems.find((o) => o.productId === c.productId);
+          const addedQty = original ? c.qty - original.qty : c.qty;
+          return { ...c, qty: addedQty };
+        })
+        .filter((c) => c.qty > 0);
+
+      const removedItems = originalItems
+        .map((orig) => {
+          const current = cart.find((c) => c.productId === orig.productId);
+          const removedQty = orig.qty - (current?.qty ?? 0);
+          return removedQty > 0 ? { ...orig, qty: removedQty } : null;
+        })
+        .filter(Boolean);
+
+      const hasAdded = addedItems.length > 0;
+      const hasRemoved = removedItems.length > 0;
+
+      if (hasAdded || hasRemoved) {
+        const bonItems: BonData["items"] =
+          hasRemoved && !hasAdded
+            ? cart.map((c) => ({
+                productName: c.name ?? "",
+                quantity: c.qty,
+                operationType: "Remove" as const,
+              }))
+            : hasAdded && !hasRemoved
+              ? addedItems.map((c) => ({
+                  productName: c.name ?? "",
+                  quantity: c.qty,
+                  operationType: "Add" as const,
+                }))
+              : cart.map((c) => ({
+                  productName: c.name ?? "",
+                  quantity: c.qty,
+                  operationType: "Remove" as const,
+                }));
+
+        const sampleBon: BonData = {
+          institutionName: INSTITUTION_NAME,
+          invoiceNumber: String(orderId),
+          invoiceDate: formatDate(new Date()),
+          customerName: selectedCustomer?.customerName,
+          items: bonItems,
+        };
+
+        await printPreparationBon(sampleBon);
+      }
+
       set({
         cart: [],
+        originalItems: [],
         discount: { value: 0, type: "pct" },
         selectedOrderId: null,
         selectedCustomer: null,
@@ -405,6 +448,7 @@ export const usePosStore = create<PosState>((set, get) => ({
           institutionAddress: INSTITUTION_ADDRESS,
           institutionPhone: INSTITUTION_PHONE,
           customerName: selectedCustomer?.customerName ?? undefined,
+          invoiceName: selectedCustomer?.taxNumber ? "فاتورة ضريبية مبسطة" : "فاتورة ضريبية",
           customerPhone: undefined,
           items: cart.map((item) => {
             const base = itemBasePrice(item);
@@ -421,7 +465,7 @@ export const usePosStore = create<PosState>((set, get) => ({
           discountAmount: Number(discountAmount),
           taxAmount: totals.originalTax,
           grandTotal: totals.total,
-          notes: INSTITUTION_NOTES,
+          notes: orderNote,
         };
 
         const sampleBon: BonData = {
@@ -429,7 +473,7 @@ export const usePosStore = create<PosState>((set, get) => ({
           invoiceNumber: "5000",
           invoiceDate: formatDate(new Date()),
           customerName: selectedCustomer?.customerName,
-          items: cart.map((c) => ({ productName: c.name, quantity: c.qty })),
+          items: cart.map((c) => ({ productName: c.name, quantity: c.qty, operationType: "Add" })),
         };
 
         await printInvoice(invoiceData);

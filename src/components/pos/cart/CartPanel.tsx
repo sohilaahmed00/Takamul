@@ -765,7 +765,7 @@ export default function CartPanel() {
                       } else if (dineInMode === "checkout") {
                         setCashierOpen(true);
                       } else {
-                        await handleCreateDineInOrder({ createDineInOrderyOrder });
+                        await handleCreateDineInOrder({ createDineInOrderyOrder, customers });
                       }
                     } else {
                       await handleConfirmPayment({
@@ -800,7 +800,7 @@ export default function CartPanel() {
                       } else if (dineInMode === "checkout") {
                         setCashierOpen(true);
                       } else {
-                        await handleCreateDineInOrder({ createDineInOrderyOrder });
+                        await handleCreateDineInOrder({ createDineInOrderyOrder, customers });
                       }
                     } else {
                       setCashierOpen(true);

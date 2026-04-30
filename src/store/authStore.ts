@@ -47,6 +47,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       userId: null,
       email: null,
       userName: null,
+      isInitialized: true,
     }),
 
   setInitialized: (v: boolean) => set({ isInitialized: v }),

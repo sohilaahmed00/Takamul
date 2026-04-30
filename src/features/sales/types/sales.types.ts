@@ -35,6 +35,7 @@ export interface SalesOrder {
   id: number;
   orderNumber: string;
   customerName: string;
+  customerPhone: string;
   customerId: number;
   createdBy: string;
   orderDate: string;

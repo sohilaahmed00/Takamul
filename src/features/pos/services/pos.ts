@@ -1,6 +1,7 @@
 import { httpClient } from "@/api/httpClient";
-import { CheckoutDineInOrder, CreateDeliveryOrder, CreateDevicePOS, CreateDevicePOSResponse, CreateDineInOrder, CreateTakeawayOrder, DeleteDevicePOSResponse, GenereateSerialResponse, GetAllDeviceTypesResponse, GetAllPOSDevicesResponse, GetOrderByTableIdResponse, GetPOSDevicesResponse, UpdateDevicePOS, UpdateDineInOrder } from "../types/pos.types";
+import { CheckoutDineInOrder, CreateDeliveryOrder, CreateDevicePOS, CreateDevicePOSResponse, CreateDineInOrder, CreateTakeawayOrder, DeleteDevicePOSResponse, GenereateSerialResponse, GetAllDeviceTypesResponse, GetAllPOSDevicesResponse, GetPOSDevicesResponse, UpdateDevicePOS, UpdateDineInOrder } from "../types/pos.types";
 import { GetAllTablesResponse } from "@/features/tables/types/tables.types";
+import { SalesOrder } from "@/features/sales/types/sales.types";
 
 // ===================
 // GET
@@ -57,7 +58,7 @@ export const checkoutDineInOrder = (data: CheckoutDineInOrder) =>
     data,
   });
 export const getOrderByTableId = (id: number) =>
-  httpClient<GetOrderByTableIdResponse>(`/sales-orders/pos/indine/table/${id}`, {
+  httpClient<SalesOrder>(`/sales-orders/pos/indine/table/${id}`, {
     method: "GET",
   });
 export const getAllTables = () =>

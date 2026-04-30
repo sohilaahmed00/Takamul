@@ -1,7 +1,7 @@
 import { tafqeet } from "../utils/tafqeet";
-import type { BranchInfo } from "@/hooks/useBranch";
 import type { Customer } from "@/features/customers/types/customers.types";
 import { itemBasePrice, calcItemTax, calcTotals, type CartItem } from "@/constants/data";
+import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
 
 export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): string => {
   const branch: Partial<BranchInfo> = order.branchInfo || {};
@@ -53,7 +53,7 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
     const flat = Number(item?.discountValue ?? 0);
     const itemDiscount: CartItem["itemDiscount"] = pct > 0 ? { type: "pct", value: pct } : flat > 0 ? { type: "flat", value: flat } : null;
 
-    const price = item.taxCalculation === 2 || item.taxCalculation === "Excludestax" ? (item.unitPrice || item.price) : (item.priceBeforeTax ?? item.unitPrice ?? item.price ?? 0);
+    const price = item.taxCalculation === 2 || item.taxCalculation === "Excludestax" ? item.unitPrice || item.price : (item.priceBeforeTax ?? item.unitPrice ?? item.price ?? 0);
 
     const taxCalc = item.taxCalculation === "Includestax" || item.taxCalculation === 3 ? 3 : 2;
     return {
@@ -79,21 +79,14 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
     // If API provides these fields, use them. Otherwise fallback to calc logic.
     const qty = Number(item.quantity ?? 1);
     // Updated logic per user request: "Price" column shows Price  Tax
-    const price = item.unitPrice !== undefined 
-      ? Number(item.unitPrice) 
-      : (item.lineTotal !== undefined && qty > 0 ? Number(item.lineTotal) / qty : (Number(item.unitPrice || 0) * 1.15));
+    const price = item.unitPrice !== undefined ? Number(item.unitPrice) : item.lineTotal !== undefined && qty > 0 ? Number(item.lineTotal) / qty : Number(item.unitPrice || 0) * 1.15;
 
     // "Sub Total" column shows lineSubTotal (Before Tax) - support multiple API variants
     // The "14" came from a fallback where lineSubTotal was missing and it used a unit price of 7
-    const subTotal = item.lineSubTotal !== undefined ? Number(item.lineSubTotal) : 
-                    (item.lineSubtotal !== undefined ? Number(item.lineSubtotal) : 
-                    (item.subTotal !== undefined ? Number(item.subTotal) : 
-                    (item.priceBeforeTax !== undefined ? Number(item.priceBeforeTax) * qty :
-                    (item.unitPrice !== undefined ? Number(item.unitPrice) * qty :
-                    (item.lineTotal !== undefined ? Number(item.lineTotal) - (item.taxAmount || 0) : (totals.sub / items.length))))));
-    
+    const subTotal = item.lineSubTotal !== undefined ? Number(item.lineSubTotal) : item.lineSubtotal !== undefined ? Number(item.lineSubtotal) : item.subTotal !== undefined ? Number(item.subTotal) : item.priceBeforeTax !== undefined ? Number(item.priceBeforeTax) * qty : item.unitPrice !== undefined ? Number(item.unitPrice) * qty : item.lineTotal !== undefined ? Number(item.lineTotal) - (item.taxAmount || 0) : totals.sub / items.length;
+
     const taxAmt = item.taxAmount !== undefined ? Number(item.taxAmount) : calcItemTax(cart[index]);
-    const netTotal = item.lineTotal !== undefined ? Number(item.lineTotal) : (subTotal + taxAmt);
+    const netTotal = item.lineTotal !== undefined ? Number(item.lineTotal) : subTotal + taxAmt;
 
     return {
       item,
@@ -101,7 +94,7 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
       qty,
       subTotal,
       taxAmt,
-      netTotal
+      netTotal,
     };
   });
 
@@ -110,7 +103,9 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
   const discount = order.discountAmount !== undefined ? Number(order.discountAmount) : totals.discountAmount;
   const finalTotal = order.grandTotal !== undefined ? Number(order.grandTotal) : totals.total;
 
-  const itemRows = computedItems.map(({ item, price, qty, subTotal, taxAmt, netTotal }) => `
+  const itemRows = computedItems
+    .map(
+      ({ item, price, qty, subTotal, taxAmt, netTotal }) => `
     <tr>
       <td style="text-align:center;">${item.productName || item.name || "-"}</td>
       <td>${item.unitName || "قطعة"}</td>
@@ -119,7 +114,9 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
       <td>${subTotal.toFixed(2)}</td>
       <td>${taxAmt.toFixed(2)}</td>
       <td>${netTotal.toFixed(2)}</td>
-    </tr>`).join("");
+    </tr>`,
+    )
+    .join("");
 
   return `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
@@ -468,7 +465,9 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
       </div>
     </div>
     <div class="logo-container" id="logo-box">
-      ${branchLogo ? `
+      ${
+        branchLogo
+          ? `
         <img src="${branchLogo}" alt="Logo" 
              style="max-height: 85px; max-width: 100%; object-fit: contain;"
              onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';"
@@ -476,11 +475,13 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
         <div id="logo-fallback" style="display: none; font-size: 14px; font-weight: 700; flex-direction: column; align-items: center; width: 100%;">
           <div>Logo / اللوجو</div>
         </div>
-      ` : `
+      `
+          : `
         <div style="font-size: 14px; font-weight: 700; display: flex; flex-direction: column; align-items: center; width: 100%;">
           <div>Logo / اللوجو</div>
         </div>
-      `}
+      `
+      }
     </div>
     <div class="header-col">
       <div class="company-title">${branch.nameEn || "-"}</div>
