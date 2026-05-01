@@ -170,6 +170,14 @@ const GROUPS: Group[] = [
           { id: "delete", label: "حذف", value: "بطاقات الهدايا.حذف" },
         ],
       },
+      {
+        id: "sales_returns",
+        label: "المرتجعات",
+        permissions: [
+          { id: "view", label: "عرض", value: Permissions?.salesReturns?.view },
+          { id: "add", label: "إضافة", value: Permissions?.salesReturns?.add },
+        ],
+      },
     ],
   },
   {
