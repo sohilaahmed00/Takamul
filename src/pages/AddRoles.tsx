@@ -158,7 +158,7 @@ const GROUPS: Group[] = [
         permissions: [
           { id: "view", label: "عرض", value: Permissions?.salesOrders?.pos },
           { id: "add", label: "إضافة", value: Permissions?.salesOrders?.addpos },
-        ],  
+        ],
       },
       {
         id: "gift_cards",
@@ -801,10 +801,15 @@ export default function PermissionsTree() {
               return (
                 <div key={`g_${gi}`} className={cn(gi !== GROUPS.length - 1 && "border-b border-border")}>
                   {/* Group Row */}
-                  <div className="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 cursor-pointer select-none" onClick={() => setOpenGroups(toggle(openGroups, `g_${gi}`))}>
-                    <TreeCheckbox status={gStatus} onChange={() => setKeys(gKeys, gStatus !== "all")} />
-                    <Folder className="w-4 h-4 text-amber-500 shrink-0" />
-                    <span className="flex-1 text-sm font-medium text-foreground">{group.label}</span>
+                  <div className={cn("flex items-center gap-2 px-3 py-2.5 hover:bg-muted/70 cursor-pointer select-none", gStatus === "some" ? "bg-primary/5" : "bg-muted/40")} onClick={() => setOpenGroups(toggle(openGroups, `g_${gi}`))}>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      {" "}
+                      {/* ← هنا */}
+                      <TreeCheckbox status={gStatus} onChange={() => setKeys(gKeys, gStatus !== "all")} />
+                    </div>{" "}
+                    <Folder className={cn("w-4 h-4 shrink-0", gStatus !== "none" ? "text-primary" : "text-amber-500")} />
+                    <span className={cn("flex-1 text-sm font-medium", gStatus !== "none" ? "text-primary" : "text-foreground")}>{group.label}</span>
+                    {gStatus === "some" && <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">جزئي</span>}
                     <ChevronLeft className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", gOpen && "-rotate-90")} />
                   </div>
 
@@ -819,11 +824,19 @@ export default function PermissionsTree() {
 
                         return (
                           <div key={pageKey} className={cn(pi !== group.pages.length - 1 && "border-b border-border")}>
-                            {/* Page Row */}
-                            <div className="flex items-center gap-2 px-3 py-2 pr-7 hover:bg-muted/40 cursor-pointer select-none bg-background" onClick={() => setOpenPages(toggle(openPages, pageKey))}>
-                              <TreeCheckbox status={pStatus} onChange={() => setKeys(pKeys, pStatus !== "all")} />
-                              <Folder className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                              <span className="flex-1 text-sm text-foreground">{page.label}</span>
+                            <div
+                              className={cn(
+                                "flex items-center gap-2 px-3 py-2 pr-7 cursor-pointer select-none",
+                                pStatus === "some" ? "bg-primary/5 hover:bg-primary/10" : "bg-background hover:bg-muted/40", // ← هنا
+                              )}
+                              onClick={() => setOpenPages(toggle(openPages, pageKey))}
+                            >
+                              <div onClick={(e) => e.stopPropagation()}>
+                                {" "}
+                                <TreeCheckbox status={pStatus} onChange={() => setKeys(pKeys, pStatus !== "all")} />
+                              </div>{" "}
+                              <Folder className={cn("w-3.5 h-3.5 shrink-0", pStatus !== "none" ? "text-primary" : "text-amber-400")} />
+                              <span className={cn("flex-1 text-sm", pStatus !== "none" ? "text-primary font-medium" : "text-foreground")}>{page.label}</span>
                               <ChevronLeft className={cn("w-3 h-3 text-muted-foreground transition-transform", pOpen && "-rotate-90")} />
                             </div>
 
