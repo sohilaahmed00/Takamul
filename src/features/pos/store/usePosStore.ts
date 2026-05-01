@@ -423,11 +423,11 @@ export const usePosStore = create<PosState>((set, get) => ({
           logoUrl: branch?.imageUrl,
           invoiceNumber: `—`,
           customer: selectedCustomer,
-          institutionName: INSTITUTION_NAME,
-          institutionTaxNumber: INSTITUTION_TAX_NO,
+          institutionName: branch?.name,
+          institutionTaxNumber: branch?.taxNumber,
           invoiceDate: formatDate(new Date()),
-          institutionAddress: INSTITUTION_ADDRESS,
-          institutionPhone: INSTITUTION_PHONE,
+          institutionAddress: branch?.address,
+          institutionPhone: branch?.phone,
           items: cart.map((item) => {
             const base = itemBasePrice(item);
             const tax = calcItemTax(item);
