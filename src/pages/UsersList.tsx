@@ -60,11 +60,13 @@ export default function UsersList() {
         <CardHeader>
           <CardTitle>المستخدمين</CardTitle>
           <CardDescription>إدارة حسابات المستخدمين، التحكم في الصلاحيات، ومتابعة بياناتهم بسهولة من مكان واحد.</CardDescription>
-          <CardAction>
-            <Button size="xl" onClick={() => setIsAddModalOpen(true)}>
-              إضافة مستخدم
-            </Button>
-          </CardAction>
+          {hasPermission(Permissions?.users?.add) && (
+            <CardAction>
+              <Button size="xl" onClick={() => setIsAddModalOpen(true)}>
+                إضافة مستخدم
+              </Button>
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent>
           <DataTable
