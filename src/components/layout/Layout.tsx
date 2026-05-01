@@ -100,6 +100,15 @@ export default function Layout() {
   const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
   const permissions = useAuthStore((s) => s.permissions);
 
+  const allReportPermissions = React.useMemo(() => [
+    ...Object.values(Permissions?.reports?.products || {}),
+    ...Object.values(Permissions?.reports?.customers || {}),
+    ...Object.values(Permissions?.reports?.suppliers || {}),
+    ...Object.values(Permissions?.reports?.expenses || {}),
+    ...Object.values(Permissions?.reports?.sales || {}),
+    ...Object.values(Permissions?.reports?.purchases || {}),
+  ], []);
+
   const toggleSubmenu = (menu: string) => {
     if (!isSidebarOpen && !isMobile) {
       setIsSidebarOpen(true);
@@ -347,17 +356,16 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          <SidebarItem icon={BarChart} label={t("reports")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "reports"} onClick={() => toggleSubmenu("reports")} />
+          {hasAnyPermission(allReportPermissions) && <SidebarItem icon={BarChart} label={t("reports")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "reports"} onClick={() => toggleSubmenu("reports")} />}
           <AnimatePresence>
             {openSubmenu === "reports" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                <SubmenuItem label={t("item_reports")} icon={Package} path="/reports/category/items" />
-                <SubmenuItem label={t("sales_reports")} icon={ShoppingCart} path="/reports/category/sales" />
-                <SubmenuItem label={t("purchase_reports")} icon={CornerUpLeft} path="/reports/category/purchases" />
-                <SubmenuItem label={t("customer_reports")} icon={User} path="/reports/category/customers" />
-
-                <SubmenuItem label={t("suppliers_reports", "تقارير الموردين")} icon={Truck} path="/reports/category/suppliers" />
-                <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />
+                {hasAnyPermission(Object.values(Permissions?.reports?.products || {})) && <SubmenuItem label={t("item_reports")} icon={Package} path="/reports/category/items" />}
+                {hasAnyPermission(Object.values(Permissions?.reports?.sales || {})) && <SubmenuItem label={t("sales_reports")} icon={ShoppingCart} path="/reports/category/sales" />}
+                {hasAnyPermission(Object.values(Permissions?.reports?.purchases || {})) && <SubmenuItem label={t("purchase_reports")} icon={CornerUpLeft} path="/reports/category/purchases" />}
+                {hasPermission(Permissions?.reports?.customers?.list) && <SubmenuItem label={t("customer_reports")} icon={User} path="/reports/category/customers" />}
+                {hasPermission(Permissions?.reports?.suppliers?.list) && <SubmenuItem label={t("suppliers_reports", "تقارير الموردين")} icon={Truck} path="/reports/category/suppliers" />}
+                {hasPermission(Permissions?.reports?.expenses?.list) && <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />}
                 <SubmenuItem label={t("profits_reports")} icon={Calculator} path="/reports/category/profits" />
                 <div className="h-px bg-gray-100 my-1 mx-2" />
 

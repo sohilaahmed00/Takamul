@@ -450,9 +450,7 @@ const GROUPS: Group[] = [
   {
     id: "items",
     label: "البنود",
-    pages: [
-
-    ],
+    pages: [],
     permissions: [
       { id: "view", label: "عرض", value: "البنود.عرض" },
       { id: "add", label: "إضافة", value: "البنود.إضافة" },
@@ -688,17 +686,9 @@ function getStatus(keys: string[], map: CheckedMap): "none" | "some" | "all" {
 function keysForGroup(groups: Group[], gi: number): string[] {
   const g = groups[gi];
 
-  const pageKeys = g.pages.flatMap((page, pi) =>
-    page.permissions.flatMap((perm, ri) =>
-      (perm.subPermissions ?? []).length > 0
-        ? perm.subPermissions!.map((_, si) => leafKey(gi, pi, ri, si))
-        : [leafKey(gi, pi, ri)]
-    )
-  );
+  const pageKeys = g.pages.flatMap((page, pi) => page.permissions.flatMap((perm, ri) => ((perm.subPermissions ?? []).length > 0 ? perm.subPermissions!.map((_, si) => leafKey(gi, pi, ri, si)) : [leafKey(gi, pi, ri)])));
 
-  const directKeys = (g.permissions ?? []).map((_, ri) =>
-    leafKey(gi, -1, ri)
-  );
+  const directKeys = (g.permissions ?? []).map((_, ri) => leafKey(gi, -1, ri));
 
   return [...pageKeys, ...directKeys];
 }
@@ -767,20 +757,25 @@ export default function PermissionsTree() {
     const newChecked: CheckedMap = {};
 
     GROUPS.forEach((g, gi) => {
+      // الـ pages العادية
       g.pages.forEach((page, pi) => {
         page.permissions.forEach((perm, ri) => {
           if ((perm.subPermissions ?? []).length > 0) {
             perm.subPermissions!.forEach((sub, si) => {
               const key = leafKey(gi, pi, ri, si);
-
               newChecked[key] = permissionsSet.has(sub.value);
             });
           } else {
             const key = leafKey(gi, pi, ri);
-
             newChecked[key] = permissionsSet.has(perm.value!);
           }
         });
+      });
+
+      // ← الـ direct permissions على الـ group
+      (g.permissions ?? []).forEach((perm, ri) => {
+        const key = leafKey(gi, -1, ri);
+        newChecked[key] = permissionsSet.has(perm.value!);
       });
     });
 
@@ -948,10 +943,7 @@ export default function PermissionsTree() {
                         const key = leafKey(gi, -1, ri);
                         return (
                           <div key={key} className={cn("flex items-center gap-2 px-3 py-2 pr-7 bg-background border-t border-border select-none")}>
-                            <Checkbox
-                              checked={checked[key] ?? false}
-                              onCheckedChange={() => toggleSub(key)}
-                            />
+                            <Checkbox checked={checked[key] ?? false} onCheckedChange={() => toggleSub(key)} />
                             <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                             <span className="flex-1 text-sm text-foreground">{perm.label}</span>
                           </div>
