@@ -102,10 +102,10 @@ const GROUPS: Group[] = [
         id: "stock_adjustments",
         label: "تعديلات الكمية",
         permissions: [
-          { id: "view", label: "عرض", value: "المخزون.عرض التسويات" },
-          { id: "add", label: "إضافة", value: "المخزون.تعديل جماعي" },
-          { id: "edit", label: "تعديل", value: "المخزون.تعديل تسوية" },
-          { id: "delete", label: "حذف", value: "المخزون.حذف تسوية" },
+          { id: "view", label: "عرض", value: Permissions?.stockInventory?.view },
+          { id: "add", label: "إضافة", value: Permissions?.stockInventory?.bulkAdjust },
+          { id: "edit", label: "تعديل", value: Permissions?.stockInventory?.editAdjustment },
+          { id: "delete", label: "حذف", value: Permissions?.stockInventory?.deleteAdjustment },
         ],
       },
       {
