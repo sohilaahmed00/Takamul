@@ -418,33 +418,23 @@ const GROUPS: Group[] = [
   {
     id: "warehouses",
     label: "المخازن",
-    pages: [
-      {
-        id: "warehouses_list",
-        label: "المخازن",
-        permissions: [
-          { id: "view", label: "عرض", value: "المستودعات.عرض" },
-          { id: "add", label: "إضافة", value: "المستودعات.إضافة" },
-          { id: "edit", label: "تعديل", value: "المستودعات.تعديل" },
-          { id: "delete", label: "حذف", value: "المستودعات.حذف" },
-        ],
-      },
+    pages: [],
+    permissions: [
+      { id: "view", label: "عرض", value: "المستودعات.عرض" },
+      { id: "add", label: "إضافة", value: "المستودعات.إضافة" },
+      { id: "edit", label: "تعديل", value: "المستودعات.تعديل" },
+      { id: "delete", label: "حذف", value: "المستودعات.حذف" },
     ],
   },
   {
     id: "expenses",
     label: "المصروفات",
-    pages: [
-      {
-        id: "expenses_list",
-        label: "المصروفات",
-        permissions: [
-          { id: "view", label: "عرض", value: "المصروفات.عرض" },
-          { id: "add", label: "إضافة", value: "المصروفات.إضافة" },
-          { id: "edit", label: "تعديل", value: "المصروفات.تعديل" },
-          { id: "delete", label: "حذف", value: "المصروفات.حذف" },
-        ],
-      },
+    pages: [],
+    permissions: [
+      { id: "view", label: "عرض", value: "المصروفات.عرض" },
+      { id: "add", label: "إضافة", value: "المصروفات.إضافة" },
+      { id: "edit", label: "تعديل", value: "المصروفات.تعديل" },
+      { id: "delete", label: "حذف", value: "المصروفات.حذف" },
     ],
   },
   {
@@ -495,23 +485,17 @@ const GROUPS: Group[] = [
       {
         id: "customer_reports",
         label: "تقارير العملاء",
-        permissions: [
-          { id: "list", label: "تقرير العملاء", value: "التقارير.العملاء" },
-        ],
+        permissions: [{ id: "list", label: "تقرير العملاء", value: "التقارير.العملاء" }],
       },
       {
         id: "supplier_reports",
         label: "تقارير الموردين",
-        permissions: [
-          { id: "list", label: "تقرير الموردين", value: "التقارير.الموردين" },
-        ],
+        permissions: [{ id: "list", label: "تقرير الموردين", value: "التقارير.الموردين" }],
       },
       {
         id: "expenses_reports",
         label: "تقارير المصروفات",
-        permissions: [
-          { id: "list", label: "تقرير المصروفات", value: "التقارير.المصروفات" },
-        ],
+        permissions: [{ id: "list", label: "تقرير المصروفات", value: "التقارير.المصروفات" }],
       },
     ],
   },
