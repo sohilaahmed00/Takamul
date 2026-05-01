@@ -213,7 +213,7 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {roles?.data?.map((c) => (
+                        {roles?.items?.map((c) => (
                           <SelectItem key={c.roleId} value={String(c.roleName)}>
                             {c.roleName}
                           </SelectItem>
