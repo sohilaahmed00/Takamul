@@ -28,6 +28,8 @@ import { useDeleteCategory } from "@/features/categories/hooks/useDeleteCategory
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FilterMatchMode } from "primereact/api";
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function CategoriesList() {
   const { t, direction } = useLanguage();
@@ -69,17 +71,21 @@ export default function CategoriesList() {
     );
   };
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
+  const hasPermission = useAuthStore((state) => state?.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state?.hasAnyPermission);
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle>{t("manage_categories_title")}</CardTitle>
           <CardDescription>{t("categories_description")}</CardDescription>
-          <CardAction>
-            <Button size="xl" variant={"default"} onClick={() => setIsAddModalOpen(true)}>
-              إضافة تصنيف{" "}
-            </Button>
-          </CardAction>
+          {hasPermission(Permissions?.productCategories?.add) && (
+            <CardAction>
+              <Button size="xl" variant={"default"} onClick={() => setIsAddModalOpen(true)}>
+                إضافة تصنيف{" "}
+              </Button>
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent>
           <DataTable
@@ -112,30 +118,36 @@ export default function CategoriesList() {
               )}
             />
             <Column field="description" header={t("description")} />
-            <Column
-              header={t("actions")}
-              body={(category) => (
-                <div className="space-x-2">
-                  <button
-                    onClick={async () => {
-                      setSelectedCategory(category);
-                      setIsAddModalOpen(true);
-                    }}
-                    className="btn-minimal-action btn-edit"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={async () => {
-                      const res = await deleteCategory(category?.id);
-                    }}
-                    className="btn-minimal-action btn-delete"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              )}
-            />
+            {hasAnyPermission([Permissions?.productCategories?.edit, Permissions?.productCategories?.delete]) && (
+              <Column
+                header={t("actions")}
+                body={(category) => (
+                  <div className="space-x-2">
+                    {hasPermission(Permissions?.productCategories?.edit) && (
+                      <button
+                        onClick={async () => {
+                          setSelectedCategory(category);
+                          setIsAddModalOpen(true);
+                        }}
+                        className="btn-minimal-action btn-edit"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    )}
+                    {hasPermission(Permissions?.productCategories?.delete) && (
+                      <button
+                        onClick={async () => {
+                          const res = await deleteCategory(category?.id);
+                        }}
+                        className="btn-minimal-action btn-delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              />
+            )}
           </DataTable>
         </CardContent>
       </Card>
