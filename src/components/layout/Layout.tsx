@@ -365,21 +365,22 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          <SidebarItem icon={Settings} label={t("settings")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "settings"} onClick={() => toggleSubmenu("settings")} />
-          <AnimatePresence>
-            {openSubmenu === "settings" && showSidebarContent && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                <SubmenuItem label={t("system_settings")} icon={Settings} path="/settings/system" />
-                <SubmenuItem label={t("site_settings") || "إعدادات الموقع"} icon={Settings} path="/settings/site" />
-                <SubmenuItem label={t("items_settings") || "إعدادات الأصناف"} icon={Package} path="/settings/items" />
-                <SubmenuItem label={t("sales_settings") || "إعدادات المبيعات"} icon={ShoppingCart} path="/settings/sales" />
-                <SubmenuItem label={t("barcode_scale") || "ميزان الباركود"} icon={Barcode} path="/settings/barcode" />
-                <SubmenuItem label={t("email_settings") || "البريد الإلكتروني"} icon={Mail} path="/settings/email" />
-                {/* <SubmenuItem label={t("delivery_companies")} icon={Truck} path="/settings/delivery-companies" />
+          {userName == "superadmin" && <SidebarItem icon={Settings} label={t("settings")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "settings"} onClick={() => toggleSubmenu("settings")} />}
+          {userName == "superadmin" && (
+            <AnimatePresence>
+              {openSubmenu === "settings" && showSidebarContent && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
+                  <SubmenuItem label={t("system_settings")} icon={Settings} path="/settings/system" />
+                  <SubmenuItem label={t("site_settings") || "إعدادات الموقع"} icon={Settings} path="/settings/site" />
+                  <SubmenuItem label={t("items_settings") || "إعدادات الأصناف"} icon={Package} path="/settings/items" />
+                  <SubmenuItem label={t("sales_settings") || "إعدادات المبيعات"} icon={ShoppingCart} path="/settings/sales" />
+                  <SubmenuItem label={t("barcode_scale") || "ميزان الباركود"} icon={Barcode} path="/settings/barcode" />
+                  <SubmenuItem label={t("email_settings") || "البريد الإلكتروني"} icon={Mail} path="/settings/email" />
+                  {/* <SubmenuItem label={t("delivery_companies")} icon={Truck} path="/settings/delivery-companies" />
                 <SubmenuItem label={t("currencies")} icon={Coins} path="/settings/currencies" />
                 <SubmenuItem label={t("customer_groups")} icon={Users} path="/settings/customer-groups" />
                 <SubmenuItem label={t("price_groups")} icon={DollarSign} path="/settings/price-groups" /> */}
-                {/* <SubmenuItem
+                  {/* <SubmenuItem
                   label={t("change_logo")}
                   icon={Upload}
                   onClick={() => {
@@ -387,7 +388,7 @@ export default function Layout() {
                     if (isMobile) setIsMobileMenuOpen(false);
                   }}
                 /> */}
-                {/* <SubmenuItem label={t("currencies")} icon={Coins} path="/settings/currencies" />
+                  {/* <SubmenuItem label={t("currencies")} icon={Coins} path="/settings/currencies" />
                 <SubmenuItem label={t("customer_groups")} icon={Link} path="/settings/customer-groups" />
                 <SubmenuItem label={t("pricing_groups")} icon={DollarSign} path="/settings/price-groups" />
                 <SubmenuItem label={t("basic_categories")} icon={Briefcase} path="/settings/basic-categories" />
@@ -405,9 +406,10 @@ export default function Layout() {
                 <SubmenuItem label={t("group_permissions")} icon={Key} path="/settings/groups" />
                 <SubmenuItem label={t("site_logins")} icon={FileText} />
                 <SubmenuItem label={t("reports")} icon={BarChart} path="/reports" /> */}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </div>
       </motion.aside>
 
