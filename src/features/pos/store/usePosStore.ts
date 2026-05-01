@@ -178,6 +178,7 @@ export const usePosStore = create<PosState>((set, get) => ({
 
   handleReleaseHoldingOrder: async (payments, { releaseHolding, customers }) => {
     const { holdingOrderId, resetCart, cart, selectedCustomer, discount } = get();
+    const branch = useBranchStore.getState().branch;
     if (!holdingOrderId) return;
 
     try {
@@ -194,13 +195,9 @@ export const usePosStore = create<PosState>((set, get) => ({
         : totals.discountAmount;
 
       const invoiceData: InvoiceData = {
-        logoUrl: LOGO_URL,
+        branch: branch,
         invoiceNumber: `—`,
-        institutionName: INSTITUTION_NAME,
-        institutionTaxNumber: INSTITUTION_TAX_NO,
         invoiceDate: formatDate(new Date()),
-        institutionAddress: INSTITUTION_ADDRESS,
-        institutionPhone: INSTITUTION_PHONE,
         customer: selectedCustomer,
         items: cart.map((item) => {
           const base = itemBasePrice(item);
@@ -421,13 +418,10 @@ export const usePosStore = create<PosState>((set, get) => ({
 
         const invoiceData: InvoiceData = {
           logoUrl: branch?.imageUrl,
+          branch: branch,
           invoiceNumber: `—`,
           customer: selectedCustomer,
-          institutionName: branch?.name,
-          institutionTaxNumber: branch?.taxNumber,
           invoiceDate: formatDate(new Date()),
-          institutionAddress: branch?.address,
-          institutionPhone: branch?.phone,
           items: cart.map((item) => {
             const base = itemBasePrice(item);
             const tax = calcItemTax(item);
