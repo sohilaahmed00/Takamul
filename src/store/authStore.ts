@@ -8,20 +8,20 @@ type AuthState = {
   userId: string | null;
   email: string | null;
   userName: string | null;
-  setAuth: (token: string, expiresAt: number, permissions: Permission[], userId: string, email: string, userName: string) => void;
+  setAuth: (token: string, expiresAt: number, permissions: Permission[] | Permission, userId: string, email: string, userName: string) => void;
   clearAuth: () => void;
   isExpired: () => boolean;
   isInitialized: boolean;
   setInitialized: (v: boolean) => void;
   hasAnyPermission: (permissions: unknown) => boolean;
-  hasPermission: (permission: Permission) => boolean;
+  hasPermission: (permission: unknown) => boolean;
   hasAllPermissions: (permissions: unknown) => boolean;
 };
 
 const toArray = (val: unknown): string[] => {
   if (!val) return [];
   if (typeof val === "string") return [val];
-  if (Array.isArray(val)) return val;
+  if (Array.isArray(val)) return val.flatMap(toArray);
   if (typeof val === "object") return Object.values(val as Record<string, unknown>).flatMap(toArray);
   return [];
 };
@@ -36,7 +36,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   userName: null,
 
   setAuth: (token, expiresAt, permissions, userId, email, userName) => {
-    set({ accessToken: token, expiresAt, permissions, userId, email, userName, isInitialized: true });
+    set({
+      accessToken: token,
+      expiresAt,
+      permissions: toArray(permissions) as Permission[],
+      userId,
+      email,
+      userName,
+      isInitialized: true,
+    });
   },
 
   clearAuth: () =>
@@ -64,9 +72,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return toArray(val).some((p) => permissions.includes(p as Permission));
   },
 
-  hasPermission: (permission) => {
+  hasPermission: (val) => {
     const { permissions } = get();
-    return Array.isArray(permissions) && permissions.includes(permission);
+    if (!Array.isArray(permissions)) return false;
+    return toArray(val).some((p) => permissions.includes(p as Permission));
   },
 
   hasAllPermissions: (val) => {
