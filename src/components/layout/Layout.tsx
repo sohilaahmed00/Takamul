@@ -329,11 +329,11 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object.values(Permissions?.warehouses)) && <SidebarItem icon={Store} label={t("warehouses")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "warehouses"} onClick={() => toggleSubmenu("warehouses")} />}
+          {userName == "superadmin" && <SidebarItem icon={Store} label={t("warehouses")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "warehouses"} onClick={() => toggleSubmenu("warehouses")} />}
           <AnimatePresence>
             {openSubmenu === "warehouses" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                {hasPermission(Permissions?.warehouses?.view) && <SubmenuItem label={t("warehouses_list")} icon={List} path="/warehouses" />}
+                {userName == "superadmin" && <SubmenuItem label={t("warehouses_list")} icon={List} path="/warehouses" />}
               </motion.div>
             )}
           </AnimatePresence>
