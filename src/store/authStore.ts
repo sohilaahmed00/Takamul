@@ -13,9 +13,17 @@ type AuthState = {
   isExpired: () => boolean;
   isInitialized: boolean;
   setInitialized: (v: boolean) => void;
-  hasAnyPermission: (permissions: (Permission | undefined)[]) => boolean;
+  hasAnyPermission: (permissions: unknown) => boolean;
   hasPermission: (permission: Permission) => boolean;
-  hasAllPermissions: (permissions: (Permission | undefined)[]) => boolean;
+  hasAllPermissions: (permissions: unknown) => boolean;
+};
+
+const toArray = (val: unknown): string[] => {
+  if (!val) return [];
+  if (typeof val === "string") return [val];
+  if (Array.isArray(val)) return val;
+  if (typeof val === "object") return Object.values(val as Record<string, unknown>).flatMap(toArray);
+  return [];
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -26,17 +34,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   userId: null,
   email: null,
   userName: null,
+
   setAuth: (token, expiresAt, permissions, userId, email, userName) => {
-    console.log("setAuth called:", { userId, email, userName });
-    set({
-      accessToken: token,
-      expiresAt,
-      permissions,
-      userId,
-      email,
-      userName,
-      isInitialized: true,
-    });
+    set({ accessToken: token, expiresAt, permissions, userId, email, userName, isInitialized: true });
   },
 
   clearAuth: () =>
@@ -57,21 +57,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (!expiresAt) return true;
     return Date.now() >= expiresAt;
   },
-  hasAnyPermission: (perms: (Permission | undefined | null)[]) => {
-    const { permissions } = get();
 
-    if (!Array.isArray(permissions) || !Array.isArray(perms)) return false;
-
-    return perms.some((p) => !!p && permissions.includes(p));
-  },
-  hasPermission: (permission) => {
-    const { permissions } = get();
-
-    return Array.isArray(permissions) && permissions.includes(permission);
-  },
-  hasAllPermissions: (perms) => {
+  hasAnyPermission: (val) => {
     const { permissions } = get();
     if (!Array.isArray(permissions)) return false;
-    return perms.every((p) => p && permissions.includes(p));
+    return toArray(val).some((p) => permissions.includes(p as Permission));
+  },
+
+  hasPermission: (permission) => {
+    const { permissions } = get();
+    return Array.isArray(permissions) && permissions.includes(permission);
+  },
+
+  hasAllPermissions: (val) => {
+    const { permissions } = get();
+    if (!Array.isArray(permissions)) return false;
+    return toArray(val).every((p) => permissions.includes(p as Permission));
   },
 }));
