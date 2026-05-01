@@ -332,7 +332,7 @@ export const usePosStore = create<PosState>((set, get) => ({
   },
 
   handleConfirmPayment: async ({ printKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers }) => {
-    const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, selectedOrderId, handleReleaseHoldingOrder, resetCart } = get();
+    const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, selectedOrderId, handleReleaseHoldingOrder, resetCart, originalItems } = get();
     const branch = useBranchStore.getState().branch;
 
     const payments: CreateSalesOrder["payments"] = isHolding
@@ -431,17 +431,62 @@ export const usePosStore = create<PosState>((set, get) => ({
           notes: orderNote,
         };
 
-        const sampleBon: BonData = {
-          institutionName: "بون التحضير",
-          invoiceNumber: "5000",
-          invoiceDate: formatDate(new Date()),
-          customerName: selectedCustomer?.customerName,
-          items: cart.map((c) => ({ productName: c.name, quantity: c.qty, operationType: "Add" })),
-        };
-
         await printInvoice(invoiceData);
-        if (printKitchenBon && orderType !== "InDine") {
+
+        const addedItems = cart
+          .filter((c) => c.isNew)
+          .map((c) => {
+            const original = originalItems.find((o) => o.productId === c.productId);
+            const addedQty = original ? c.qty - original.qty : c.qty;
+            return { ...c, qty: addedQty };
+          })
+          .filter((c) => c.qty > 0);
+
+        const removedItems = originalItems
+          .map((orig) => {
+            const current = cart.find((c) => c.productId === orig.productId);
+            const removedQty = orig.qty - (current?.qty ?? 0);
+            return removedQty > 0 ? { ...orig, qty: removedQty } : null;
+          })
+          .filter(Boolean);
+
+        const hasAdded = addedItems.length > 0;
+        const hasRemoved = removedItems.length > 0;
+
+        if (hasAdded || hasRemoved) {
+          const bonItems: BonData["items"] = [
+            ...removedItems.map((c) => ({
+              productName: c.name ?? "",
+              quantity: c.qty,
+              operationType: "Remove" as const,
+            })),
+            ...addedItems.map((c) => ({
+              productName: c.name ?? "",
+              quantity: c.qty,
+              operationType: "Add" as const,
+            })),
+          ];
+
+          const sampleBon: BonData = {
+            institutionName: INSTITUTION_NAME,
+            invoiceNumber: "-",
+            invoiceDate: formatDate(new Date()),
+            customerName: selectedCustomer?.customerName,
+            items: bonItems,
+          };
+
           await printPreparationBon(sampleBon);
+        }
+
+        if (printKitchenBon && orderType !== "InDine") {
+          const kitchenBon: BonData = {
+            institutionName: "بون التحضير",
+            invoiceNumber: "5000",
+            invoiceDate: formatDate(new Date()),
+            customerName: selectedCustomer?.customerName,
+            items: cart.map((c) => ({ productName: c.name, quantity: c.qty, operationType: "Add" })),
+          };
+          await printPreparationBon(kitchenBon);
         }
       }
 
