@@ -118,7 +118,6 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
       institutionTaxNumber: branch.taxNumber || "",
       institutionCommercialRegister: branch.commercialRegister || "",
       invoiceDate: buildInvoiceDateStr(ext),
-      invoiceName: ext.customer?.taxNumber ? "فاتورة ضريبية" : "فاتورة ضريبية مبسطة",
       institutionAddress: joinAddress(branch.cityName, branch.stateName, branch.district, branch.street),
       institutionPhone: branch.phone || "",
       customer: ext.customer!,
