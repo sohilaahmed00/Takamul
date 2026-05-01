@@ -18,26 +18,35 @@ import { useAuthStore } from "@/store/authStore";
 
 export default function RecentTransactions() {
   const { t, direction } = useLanguage();
-  const [activeTab, setActiveTab] = useState("sales");
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
+  const getInitialTab = () => {
+    if (hasPermission(Permissions?.salesOrders?.view)) return "sales";
+    if (hasPermission(Permissions?.purchaseOrders?.view)) return "purchases";
+    if (hasPermission(Permissions?.quotations?.view)) return "quotes";
+    if (hasPermission(Permissions?.suppliers?.view)) return "suppliers";
+    if (hasPermission(Permissions?.customers?.view)) return "customers";
 
+    return "sales";
+  };
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   const { data: salesOrders } = useGetAllSales({ page: 1, limit: 5 });
   const { data: purchases } = useGetAllPurchases({ page: 1, limit: 5, searchTerm: "" });
   const { data: quotations } = useGetAllQuotations();
   const { data: suppliers } = useGetAllSuppliers();
   const { data: customersResponse } = useGetAllCustomers({ page: 1, limit: 5 });
-  const hasPermission = useAuthStore((state) => state.hasPermission);
-  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
+
   const tabs = [
     { id: "sales", label: t("sales") || "المبيعات", icon: ShoppingCart, permission: Permissions?.salesOrders?.view },
     { id: "purchases", label: t("purchases") || "المشتريات", icon: Truck, permission: Permissions?.purchaseOrders?.view },
     { id: "quotes", label: t("quotes") || "عروض الأسعار", icon: FileText, permission: Permissions?.quotations?.view },
-    { id: "suppliers", label: t("suppliers") || "الموردين", icon: Users, permission: Permissions?.purchaseOrders?.view },
+    { id: "suppliers", label: t("suppliers") || "الموردين", icon: Users, permission: Permissions?.suppliers?.view },
     { id: "customers", label: t("customers") || "العملاء", icon: UserPlus, permission: Permissions?.customers?.view },
   ];
 
   return (
     <>
-      {hasAnyPermission([Permissions?.salesOrders?.view, Permissions?.purchaseOrders?.view, Permissions?.quotations?.view, Permissions?.purchaseOrders?.view, Permissions?.customers?.view]) && (
+      {hasAnyPermission([Permissions?.salesOrders?.view, Permissions?.purchaseOrders?.view, Permissions?.quotations?.view, Permissions?.suppliers?.view, Permissions?.customers?.view]) && (
         <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden" dir={direction}>
           {/* Header and Tabs */}
           <div className="p-3 border-b border-[var(--border)] bg-[var(--bg-main)]/50">
@@ -119,7 +128,7 @@ export default function RecentTransactions() {
               </div>
             )}
 
-            {hasPermission(Permissions?.purchaseOrders?.view) && activeTab == "suppliers" && (
+            {hasPermission(Permissions?.suppliers?.view) && activeTab == "suppliers" && (
               <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <DataTable value={suppliers?.items?.slice(0, 5) || []} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" emptyMessage={t("no_data")}>
                   <Column field="id" header={t("code")} sortable />
