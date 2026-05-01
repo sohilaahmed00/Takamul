@@ -199,6 +199,9 @@ export const Permissions = {
     transfer: "الخزائن.تحويل",
     viewStatement: "الخزائن.عرض الكشف",
     viewTransfers: "الخزائن.عرض التحويلات",
+    transferadd: "الخزائن.إضافة تحويل",
+    transferedit: "الخزائن.تعديل تحويل",
+    transferdelete: "الخزائن.حذف تحويل",
   },
   units: {
     all: "وحدات القياس.الكل",
