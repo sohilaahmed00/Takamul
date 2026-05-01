@@ -243,7 +243,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission([...Object.values(Permissions?.salesOrders), ...Object.values(Permissions?.salesReturns)]) && <SidebarItem icon={ShoppingCart} label={t("sales")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "sales"} onClick={() => toggleSubmenu("sales")} />}
+          {hasAnyPermission([...Object.values(Permissions?.salesOrders), ...Object.values(Permissions?.salesReturns), ...Object.values(Permissions?.giftCards)]) && <SidebarItem icon={ShoppingCart} label={t("sales")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "sales"} onClick={() => toggleSubmenu("sales")} />}
           <AnimatePresence>
             {openSubmenu === "sales" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
