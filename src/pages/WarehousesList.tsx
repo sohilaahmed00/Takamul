@@ -19,10 +19,14 @@ import { useDeleteWarehouse } from "@/features/Warehouses/hooks/useDeleteWarehou
 import { useGetAllWarehouses } from "@/features/Warehouses/hooks/useGetAllWarehouses";
 
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function WarehousesList() {
   const { t, direction } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   const { data: warehouses, isLoading } = useGetAllWarehouses();
   const { mutateAsync: deleteWh, isPending: isDeleting } = useDeleteWarehouse();
@@ -80,15 +84,17 @@ export default function WarehousesList() {
           </CardDescription>
 
           <CardAction>
-            <Button
-              onClick={() => {
-                setSelectedId(undefined);
-                setIsModalOpen(true);
-              }}
-            >
-              <Plus size={18} />
-              {t("add_warehouse") || "إضافة مخزن"}
-            </Button>
+            {hasPermission(Permissions.warehouses.add) && (
+              <Button
+                onClick={() => {
+                  setSelectedId(undefined);
+                  setIsModalOpen(true);
+                }}
+              >
+                <Plus size={18} />
+                {t("add_warehouse") || "إضافة مخزن"}
+              </Button>
+            )}
           </CardAction>
         </CardHeader>
 
@@ -106,29 +112,35 @@ export default function WarehousesList() {
             <Column field="warehouseName" header={t("warehouse_name") || "اسم المخزن"} sortable />
             <Column field="branchName" header={t("branch") || "الفرع"} />
             <Column field="managerName" header={t("manager") || "المدير"} />
-            <Column
-              header={t("actions") || "الإجراءات"}
-              body={(row) => (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setSelectedId(row.id);
-                      setIsModalOpen(true);
-                    }}
-                    className="btn-minimal-action"
-                  >
-                    <Edit2 size={16} />
-                  </button>
+            {hasAnyPermission([Permissions.warehouses.edit, Permissions.warehouses.delete]) && (
+              <Column
+                header={t("actions") || "الإجراءات"}
+                body={(row) => (
+                  <div className="flex gap-2">
+                    {hasPermission(Permissions.warehouses.edit) && (
+                      <button
+                        onClick={() => {
+                          setSelectedId(row.id);
+                          setIsModalOpen(true);
+                        }}
+                        className="btn-minimal-action"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    )}
 
-                  <button
-                    onClick={() => setDeleteTarget(row)}
-                    className="btn-minimal-action"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              )}
-            />
+                    {hasPermission(Permissions.warehouses.delete) && (
+                      <button
+                        onClick={() => setDeleteTarget(row)}
+                        className="btn-minimal-action"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              />
+            )}
           </DataTable>
         </CardContent>
       </Card>

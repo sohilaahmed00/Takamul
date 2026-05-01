@@ -111,12 +111,6 @@ export default function SupplierPaymentsList() {
           </button>
         )}
 
-        {hasPermission(Permissions.supplierTransactions.delete) && (
-          <button onClick={() => openDeleteModal(row)} className="btn-minimal-action btn-compact-action" type="button">
-            <Trash2 size={16} />
-          </button>
-        )}
-
         <button onClick={() => handlePrint(row)} className="btn-minimal-action btn-compact-action text-blue-600" type="button" title={t("print", "طباعة")}>
           <Printer size={16} />
         </button>
@@ -124,6 +118,11 @@ export default function SupplierPaymentsList() {
         <button onClick={() => handleExportPDF(row)} className="btn-minimal-action btn-compact-action text-slate-600" type="button" disabled={printingRow === row.id} title={"PDF"}>
           <FileText size={16} />
         </button>
+        {hasPermission(Permissions.supplierTransactions.delete) && (
+          <button onClick={() => openDeleteModal(row)} className="btn-minimal-action btn-compact-action" type="button">
+            <Trash2 size={16} />
+          </button>
+        )}
       </div>
     );
   };
