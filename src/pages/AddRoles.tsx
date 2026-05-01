@@ -294,23 +294,23 @@ const GROUPS: Group[] = [
           {
             id: "view",
             label: "عرض",
-            value: "الموظفين.عرض",
+            value: Permissions?.employees?.view,
           },
 
           {
             id: "add",
             label: "إضافة",
-            value: "الموظفين.إضافة",
+            value: Permissions?.employees?.add,
           },
           {
             id: "edit",
             label: "تعديل",
-            value: "الموظفين.تعديل",
+            value: Permissions?.employees?.edit,
           },
           {
             id: "delete",
             label: "حذف ",
-            value: "الموظفين.حذف",
+            value: Permissions?.employees?.delete,
           },
         ],
       },

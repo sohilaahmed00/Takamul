@@ -281,7 +281,7 @@ export default function Layout() {
                 {/* <SubmenuItem label={t("user_groups")} icon={Users} path="/users/groups" /> */}
                 <SubmenuItem label={t("pos_devices")} icon={Monitor} path="/pos-devices" />
                 {hasPermission(Permissions?.roles?.view) && <SubmenuItem label={"الصلاحيات"} icon={Shield} path="/roles" />}
-                {hasAnyPermission([Permissions?.employees?.view, Permissions?.employees?.all]) && <SubmenuItem label={"الموظفين"} icon={Users} path="/employyes" />}
+                {hasPermission(Permissions?.employees?.view) && <SubmenuItem label={"الموظفين"} icon={Users} path="/employyes" />}
               </motion.div>
             )}
           </AnimatePresence>
