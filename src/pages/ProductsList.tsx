@@ -30,7 +30,18 @@ export default function ProductsList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   type ProductType = "Direct" | "Branched" | "Prepared" | "RawMatrial";
-  const [activeTab, setActiveTab] = useState<ProductType | "allProducts">("allProducts");
+  const getInitialTab = (): ProductType | "allProducts" => {
+    if (hasAllPermissions([Permissions?.products?.DirectView, Permissions?.products?.BranchedView, Permissions?.products?.PreparedView, Permissions?.products?.RawMaterialView])) return "allProducts";
+
+    if (hasPermission(Permissions?.products?.DirectView)) return "Direct";
+    if (hasPermission(Permissions?.products?.BranchedView)) return "Branched";
+    if (hasPermission(Permissions?.products?.PreparedView)) return "Prepared";
+    if (hasPermission(Permissions?.products?.RawMaterialView)) return "RawMatrial";
+
+    return "allProducts"; // fallback
+  };
+
+  const [activeTab, setActiveTab] = useState<ProductType | "allProducts">(getInitialTab);
   const entriesPerPage = rows ?? 5;
   const { mutateAsync: deleteProduct } = useDeleteProduct();
   const { data: products, isLoading } = useGetAllProducts(
