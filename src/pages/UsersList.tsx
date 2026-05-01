@@ -14,6 +14,8 @@ import { Employee } from "@/features/employees/types/employees.types";
 import AddUserModal from "@/components/modals/AddUserModal";
 import { User } from "@/features/users/types/users.types";
 import { useGetAllUsers } from "@/features/users/hooks/useGetAllUsers";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function UsersList() {
   const { t, direction } = useLanguage();
@@ -31,6 +33,8 @@ export default function UsersList() {
     setGlobalFilterValue(e.target.value);
     setCurrentPage(1);
   };
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   const renderHeader = () => {
     return (
@@ -83,25 +87,32 @@ export default function UsersList() {
           >
             <Column field="userName" header="اسم المستخدم" />
             <Column header="رقم الجوال" field="mobile" />
-            <Column
-              header="العمليات"
-              body={(raw: User) => (
-                <div className="space-x-2">
-                  <Button
-                    onClick={() => {
-                      setSelectedUser(raw);
-                      setIsAddModalOpen(true);
-                    }}
-                    className="btn-minimal-action btn-compact-action"
-                  >
-                    <Edit2 size={16} />
-                  </Button>
-                  <button className="btn-minimal-action btn-compact-action text-red-500">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              )}
-            />
+            {hasAnyPermission([Permissions?.users?.edit, Permissions?.users?.delete]) && (
+              <Column
+                header="العمليات"
+                body={(raw: User) => (
+                  <div className="space-x-2">
+                    {hasPermission(Permissions?.users?.edit) && (
+                      <button
+                        onClick={() => {
+                          setSelectedUser(raw);
+                          setIsAddModalOpen(true);
+                        }}
+                        className="btn-minimal-action btn-compact-action"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    )}
+
+                    {hasPermission(Permissions?.users?.delete) && (
+                      <button className="btn-minimal-action btn-compact-action text-red-500">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              />
+            )}
           </DataTable>
         </CardContent>
       </Card>
