@@ -188,9 +188,9 @@ const GROUPS: Group[] = [
         id: "quotations_list",
         label: "قائمة عروض الاسعار",
         permissions: [
-          { id: "view", label: "عرض", value: "عروض الأسعار.عرض" },
-          { id: "edit", label: "تعديل", value: "عروض الأسعار.تعديل" },
-          { id: "delete", label: "حذف", value: "عروض الأسعار.حذف" },
+          { id: "view", label: "عرض", value: Permissions?.quotations?.add },
+          { id: "edit", label: "تعديل", value: Permissions?.quotations?.edit },
+          { id: "delete", label: "حذف", value: Permissions?.quotations?.delete },
         ],
       },
       {
