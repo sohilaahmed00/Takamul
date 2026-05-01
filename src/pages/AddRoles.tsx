@@ -447,6 +447,22 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    id: "items",
+    label: "البنود",
+    pages: [
+      {
+        id: "items_list",
+        label: "البنود",
+        permissions: [
+          { id: "view", label: "عرض", value: "البنود.عرض" },
+          { id: "add", label: "إضافة", value: "البنود.إضافة" },
+          { id: "edit", label: "تعديل", value: "البنود.تعديل" },
+          { id: "delete", label: "حذف", value: "البنود.حذف" },
+        ],
+      },
+    ],
+  },
+  {
     id: "reports",
     label: "التقارير",
     pages: [
