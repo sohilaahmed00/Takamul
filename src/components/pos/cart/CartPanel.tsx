@@ -748,8 +748,8 @@ export default function CartPanel() {
               <div className="flex justify-between text-sm font-black text-foreground mt-2 pt-1 border-t border-border mb-3">
                 <span>{t("payable_amount")}</span>
                 <div className="flex items-center gap-1.5">
-                  {discount.value > 0 && <span className="text-gray-300 line-through text-xs font-normal">{sub + originalTax}</span>}
-                  <span>{total}</span>
+                  {discount.value > 0 && <span className="text-gray-300 line-through text-xs font-normal">{format(sub + originalTax)}</span>}
+                  <span>{format(total)}</span>
                 </div>
               </div>
 
