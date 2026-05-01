@@ -97,10 +97,10 @@ export const Permissions = {
   products: {
     all: "المنتجات.الكل",
     view: "المنتجات.عرض",
-    DirectView: "المنتجات.عرض الاصناف المباشرة", // ✅ شيلنا الـ space
-    RawMaterialView: "المنتجات.عرض الخامات", // ✅ شيلنا الـ space
-    PreparedView: "المنتجات.عرض الاصناف المجهزة", // ✅ شيلنا الـ space
-    BranchedView: "المنتجات.عرض الاصناف المتفرعه", // ✅ شيلنا الـ space
+    DirectView: "المنتجات.عرض الاصناف المباشرة",
+    RawMaterialView: "المنتجات.عرض الخامات",
+    PreparedView: "المنتجات.عرض الاصناف المجهزة",
+    BranchedView: "المنتجات.عرض الاصناف المتفرعه",
     add: "المنتجات.إضافة",
     edit: "المنتجات.تعديل",
     delete: "المنتجات.حذف",

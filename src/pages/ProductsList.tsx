@@ -177,7 +177,7 @@ export default function ProductsList() {
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="border border-gray-200 rounded-t-md overflow-hidden">
             <TabsList variant={"line"} className="flex overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit! pb-1 max-lg:w-full [&::-webkit-scrollbar]:hidden">
-              {hasPermission("المنتجات.عرض") && (
+              {hasAnyPermission([Permissions?.products?.DirectView, Permissions?.products?.BranchedView, Permissions?.products?.PreparedView, Permissions?.products?.RawMaterialView]) && (
                 <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
                   جميع الأصناف
                 </TabsTrigger>
@@ -216,7 +216,6 @@ export default function ProductsList() {
             onPage={(e: DataTablePageEvent) => {
               if (e.page === undefined) return;
               setCurrentPage(e.page + 1);
-              setEntriesPerPage(e.rows);
             }}
             header={header}
             responsiveLayout="stack"

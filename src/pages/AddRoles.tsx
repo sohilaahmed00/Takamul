@@ -762,7 +762,7 @@ export default function PermissionsTree() {
     } else {
       await createRole({ roleName: roleName, permissions: selectedPermissions });
     }
-    navigate("/roles");
+    // navigate("/roles");
   };
 
   return (
