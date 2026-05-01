@@ -259,7 +259,7 @@ export default function Layout() {
           <AnimatePresence>
             {openSubmenu === "quotes" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                {hasAnyPermission([Permissions?.quotations?.all, Permissions?.quotations?.view]) && <SubmenuItem label={t("quotes_list")} icon={List} path="/quotes" />}
+                {hasPermission(Permissions?.quotations?.view) && <SubmenuItem label={t("quotes_list")} icon={List} path="/quotes" />}
                 {hasPermission(Permissions?.quotations?.add) && <SubmenuItem label={t("add_quote")} icon={PlusCircle} path="/quotes/create" />}
               </motion.div>
             )}
