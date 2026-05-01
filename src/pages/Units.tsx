@@ -91,11 +91,13 @@ const Units = () => {
         <CardHeader>
           <CardTitle>إدارة الوحدات</CardTitle>
           <CardDescription>إضافة وتعديل وحدات القياس وربطها بالأصناف لضمان دقة العمليات</CardDescription>{" "}
-          <CardAction>
-            <Button size="xl" variant={"default"} onClick={() => setIsAddModalOpen(true)}>
-              إضافة وحدة
-            </Button>
-          </CardAction>
+          {hasPermission(Permissions?.units?.add) && (
+            <CardAction>
+              <Button size="xl" variant={"default"} onClick={() => setIsAddModalOpen(true)}>
+                إضافة وحدة
+              </Button>
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent>
           <DataTable
