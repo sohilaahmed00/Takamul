@@ -104,43 +104,41 @@ export default function QuotesList() {
           <Column header={"اسم المستخدم"} sortable field="createdBy" />
           <Column header={t("discount_amount")} sortable field="discountAmount" />
           <Column header={t("total_amount")} sortable field="grandTotal" />
-          {hasAnyPermission([Permissions?.quotations?.edit, Permissions?.quotations?.delete]) && (
-            <Column
-              header={t("actions")}
-              body={(row) => (
-                <div className="flex gap-2 justify-center items-center">
+          <Column
+            header={t("actions")}
+            body={(row) => (
+              <div className="flex gap-2 justify-center items-center">
+                <button
+                  onClick={async () => {
+                    try {
+                      const fullData = await getQuotationById(row.id);
+                      printInvoice(fullData, "quotation");
+                    } catch (err) {
+                      console.error("Print failed", err);
+                    }
+                  }}
+                  className="btn-minimal-action btn-compact-action text-blue-500"
+                >
+                  <Printer size={16} />
+                </button>
+                {hasPermission(Permissions?.quotations?.edit) && (
+                  <Link to={`/quotes/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
+                    <Edit2 size={16} />
+                  </Link>
+                )}
+                {hasPermission(Permissions?.quotations?.delete) && (
                   <button
-                    onClick={async () => {
-                      try {
-                        const fullData = await getQuotationById(row.id);
-                        printInvoice(fullData, "quotation");
-                      } catch (err) {
-                        console.error("Print failed", err);
-                      }
+                    onClick={() => {
+                      deleteQuotation(row?.id);
                     }}
-                    className="btn-minimal-action btn-compact-action text-blue-500"
+                    className="btn-minimal-action btn-compact-action text-red-500"
                   >
-                    <Printer size={16} />
+                    <Trash2 size={16} />
                   </button>
-                  {hasPermission(Permissions?.quotations?.edit) && (
-                    <Link to={`/quotes/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
-                      <Edit2 size={16} />
-                    </Link>
-                  )}
-                  {hasPermission(Permissions?.quotations?.delete) && (
-                    <button
-                      onClick={() => {
-                        deleteQuotation(row?.id);
-                      }}
-                      className="btn-minimal-action btn-compact-action text-red-500"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
-                </div>
-              )}
-            />
-          )}
+                )}
+              </div>
+            )}
+          />
         </DataTable>
       </CardContent>
       {/* <CardFooter>
