@@ -794,7 +794,7 @@ export default function CartPanel() {
                     className="flex-1"
                     variant="outline"
                   >
-                    إضافة عناصر
+                    إرسال للتجهيز
                     <Plus />
                   </Button>
                 )}
