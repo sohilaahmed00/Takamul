@@ -751,23 +751,13 @@ export default function CartPanel() {
 
               <div className="flex gap-2">
                 {/* Hold button */}
-                <Button
-                  // زر Hold
-                  onClick={async () => {
-                    if (cart.length === 0) {
-                      notifyError(t("add_items_to_invoice"));
-                      return;
-                    }
-
-                    if (orderType === "InDine") {
-                      if (dineInMode === "add-items") {
-                        await handleAddItemsToExistingOrder({ addItemsToOrder });
-                      } else if (dineInMode === "checkout") {
-                        setCashierOpen(true);
-                      } else {
-                        await handleCreateDineInOrder({ createDineInOrderyOrder, customers });
+                {orderType !== "InDine" ? (
+                  <Button
+                    onClick={async () => {
+                      if (cart.length === 0) {
+                        notifyError(t("add_items_to_invoice"));
+                        return;
                       }
-                    } else {
                       await handleConfirmPayment({
                         isHolding: true,
                         createTakwayOrder,
@@ -776,18 +766,43 @@ export default function CartPanel() {
                         releaseHolding,
                         customers,
                       });
-                    }
-                  }}
-                  size={"2xl"}
-                  className="flex-1"
-                  variant="outline"
-                >
-                  {t("hold_cart")} <Pause />
-                </Button>
+                    }}
+                    size={"2xl"}
+                    className="flex-1"
+                    variant="outline"
+                  >
+                    {t("hold_cart")} <Pause />
+                  </Button>
+                ) : (
+                  <Button
+                    disabled={dineInMode == "checkout"}
+                    onClick={async () => {
+                      if (cart.length === 0) {
+                        notifyError(t("add_items_to_invoice"));
+                        return;
+                      }
+
+                      if (orderType === "InDine") {
+                        if (dineInMode == "add-items") {
+                          await handleAddItemsToExistingOrder({ addItemsToOrder });
+                        } else if (dineInMode == "new-order") {
+                          await handleCreateDineInOrder({ createDineInOrderyOrder, customers });
+                        }
+                      }
+                    }}
+                    size={"2xl"}
+                    className="flex-1"
+                    variant="outline"
+                  >
+                    إضافة عناصر
+                    <Plus />
+                  </Button>
+                )}
 
                 {/* Pay button */}
                 <Button
                   size={"2xl"}
+                  disabled={dineInMode !== "add-items"}
                   onClick={async () => {
                     if (cart.length === 0) {
                       notifyError(t("add_items_to_invoice"));
@@ -864,7 +879,6 @@ export default function CartPanel() {
 
       <UnifiedPaymentDialog open={cashierOpen} onOpenChange={setCashierOpen} mode="cashier" onCancel={() => setCashierOpen(false)} />
       <AddParnterModal isOpen={openDialog} onClose={() => setOpenDialog(false)} />
-
       <ItemNumPadDialog
         item={selectedCartItem}
         open={!!selectedCartItem}

@@ -1,13 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table } from "@/features/pos/types/pos.types";
-import { CreditCard, Plus } from "lucide-react";
+import { CreditCard, Plus, Trash2 } from "lucide-react";
 import { useGetOrderByTableId } from "@/features/pos/hooks/useGetOrderByTableId";
 import { Customer } from "@/features/customers/types/customers.types";
 import { useLanguage } from "@/context/LanguageContext";
 import { useGetAllTables } from "@/features/tables/hooks/useGetAllTables";
 import { usePosStore } from "@/features/pos/store/usePosStore";
+import { useFreeTable } from "@/features/tables/hooks/useFreeTable";
 
 type TableStatus = "Free" | "Occupied";
 type FilterType = "all" | "Free" | "Occupied";
@@ -74,11 +75,14 @@ export function TableCard({ table, selected, onClick }: TableCardProps) {
 
 export default function TablesPage() {
   const { t } = useLanguage();
-  const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const { data: tables } = useGetAllTables();
-  const { setScreen, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer, setSelectedOrderId, setDineInMode } = usePosStore();
+  const { cart, setScreen, selectedTable, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer, setSelectedOrderId, setDineInMode } = usePosStore();
   const { data: detailsOrder } = useGetOrderByTableId(selectedTable);
+  const { mutateAsync: freeTable } = useFreeTable();
+  useEffect(() => {
+    console.log(selectedTable);
+  }, [selectedTable]);
 
   const filtered = useMemo(
     () =>
@@ -122,7 +126,7 @@ export default function TablesPage() {
       </div>
 
       {/* Table grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 px-4 mt-4 flex-1 overflow-y-auto pb-4">{filtered.length === 0 ? <div className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-5 flex items-center justify-center text-muted-foreground text-sm py-12">{t("no_tables_found")}</div> : filtered?.map((table) => <TableCard key={table.id} table={table} selected={selectedTable === table.id} onClick={() => setSelectedTable(selectedTable === table.id ? null : table.id)} />)}</div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 px-4 mt-4 flex-1 overflow-y-auto pb-4">{filtered.length === 0 ? <div className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-5 flex items-center justify-center text-muted-foreground text-sm py-12">{t("no_tables_found")}</div> : filtered?.map((table) => <TableCard key={table.id} table={table} selected={selectedTable === table.id} onClick={() => setSelectedTable2(selectedTable === table.id ? null : table.id)} />)}</div>
 
       {/* Footer */}
       <div className="bg-background border-t border-border px-4 py-3 flex items-center justify-between">
@@ -154,6 +158,15 @@ export default function TablesPage() {
 
                 {isOccupied ? (
                   <>
+                    <Button
+                      size="xl"
+                      variant="destructive"
+                      onClick={async () => {
+                        await freeTable(selectedTable);
+                      }}
+                    >
+                      <Trash2 size={14} /> إلغاء الاوردر
+                    </Button>
                     {/* Add items */}
                     <Button
                       size="xl"
@@ -189,8 +202,8 @@ export default function TablesPage() {
                   <Button
                     size="xl"
                     onClick={() => {
-                      setCart([]);
-                      setDineInMode("new-order");
+                      setCart(cart.length > 0 ? cart : []);
+                      setDineInMode(cart.length > 0 ? "add-items" : "new-order");
                       setSelectedOrderId(null);
                       setOrderType("InDine");
                       setSelectedTable2(selectedTable);
