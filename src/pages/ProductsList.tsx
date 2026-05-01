@@ -29,6 +29,9 @@ export default function ProductsList() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const hasPermission = useAuthStore((s) => s.hasPermission);
+  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
+  const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
   type ProductType = "Direct" | "Branched" | "Prepared" | "RawMatrial";
   const getInitialTab = (): ProductType | "allProducts" => {
     if (hasAllPermissions([Permissions?.products?.DirectView, Permissions?.products?.BranchedView, Permissions?.products?.PreparedView, Permissions?.products?.RawMaterialView])) return "allProducts";
@@ -38,7 +41,7 @@ export default function ProductsList() {
     if (hasPermission(Permissions?.products?.PreparedView)) return "Prepared";
     if (hasPermission(Permissions?.products?.RawMaterialView)) return "RawMatrial";
 
-    return "allProducts"; // fallback
+    return "allProducts";
   };
 
   const [activeTab, setActiveTab] = useState<ProductType | "allProducts">(getInitialTab);
@@ -54,9 +57,6 @@ export default function ProductsList() {
       enabled: activeTab === "allProducts",
     },
   );
-  const hasPermission = useAuthStore((s) => s.hasPermission);
-  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
-  const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
 
   const { data: productsDirect } = useGetAllProductsDirect(
     {
