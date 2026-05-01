@@ -782,9 +782,6 @@ export default function CartPanel() {
                         return;
                       }
 
-                      console.log(selectedTable);
-                      console.log(selectedOrderId);
-                      
                       // console.log()
                       if (orderType === "InDine") {
                         if (dineInMode == "add-items") {
