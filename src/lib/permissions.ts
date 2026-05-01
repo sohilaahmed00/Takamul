@@ -251,6 +251,9 @@ export const Permissions = {
       daily: "التقارير.مشتريات على مستوى الايام",
       invoices: "التقارير.مشتريات على مستوى ارقام الفواتير",
     },
+    profits: {
+      list: "التقارير. الارباح",
+    },
   },
   purchaseReturns: {
     all: "مرتجعات الشراء.الكل",

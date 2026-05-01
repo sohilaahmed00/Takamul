@@ -100,14 +100,7 @@ export default function Layout() {
   const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
   const permissions = useAuthStore((s) => s.permissions);
 
-  const allReportPermissions = React.useMemo(() => [
-    ...Object.values(Permissions?.reports?.products || {}),
-    ...Object.values(Permissions?.reports?.customers || {}),
-    ...Object.values(Permissions?.reports?.suppliers || {}),
-    ...Object.values(Permissions?.reports?.expenses || {}),
-    ...Object.values(Permissions?.reports?.sales || {}),
-    ...Object.values(Permissions?.reports?.purchases || {}),
-  ], []);
+  const allReportPermissions = React.useMemo(() => [...Object.values(Permissions?.reports?.products || {}), ...Object.values(Permissions?.reports?.customers || {}), ...Object.values(Permissions?.reports?.suppliers || {}), ...Object.values(Permissions?.reports?.expenses || {}), ...Object.values(Permissions?.reports?.sales || {}), ...Object.values(Permissions?.reports?.purchases || {})], []);
 
   const toggleSubmenu = (menu: string) => {
     if (!isSidebarOpen && !isMobile) {
@@ -366,7 +359,8 @@ export default function Layout() {
                 {hasPermission(Permissions?.reports?.customers?.list) && <SubmenuItem label={t("customer_reports")} icon={User} path="/reports/category/customers" />}
                 {hasPermission(Permissions?.reports?.suppliers?.list) && <SubmenuItem label={t("suppliers_reports", "تقارير الموردين")} icon={Truck} path="/reports/category/suppliers" />}
                 {hasPermission(Permissions?.reports?.expenses?.list) && <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />}
-                <SubmenuItem label={t("profits_reports")} icon={Calculator} path="/reports/category/profits" />
+                {hasPermission(Permissions?.reports?.profits?.list) && <SubmenuItem label={t("profits_reports")} icon={Calculator} path="/reports/category/profits" />}
+
                 <div className="h-px bg-gray-100 my-1 mx-2" />
 
                 {/* <SubmenuItem label={t("sales_report_by_category")} icon={List} path="/reports/sales-by-category" /> */}

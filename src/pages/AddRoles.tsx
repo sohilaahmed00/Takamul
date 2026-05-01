@@ -456,12 +456,10 @@ const GROUPS: Group[] = [
         id: "items_reports",
         label: "تقارير الأصناف",
         permissions: [
-          { id: "inventory", label: "تقرير جرد الأصناف", value: "التقارير.جرد الاصناف" },
-          { id: "stockAlerts", label: "تقرير تنبيهات المخزون", value: "التقارير.تنبيهات المخزون" },
-          { id: "movement", label: "تقرير حركة الصنف", value: "التقارير.حركة صنف" },
-          { id: "topSelling", label: "تقرير المنتج الأكثر مبيعًا", value: "التقارير.الاصناف الاكثر مبيعا" },
-          { id: "sales", label: "تقرير مبيعات صنف", value: "التقارير.مبيعات صنف" },
-          { id: "purchases", label: "تقرير مشتريات صنف", value: "التقارير.مشتريات صنف" },
+          { id: "inventory", label: "تقرير جرد الأصناف", value: Permissions?.reports?.products?.inventory },
+          { id: "stockAlerts", label: "تقرير تنبيهات المخزون", value: Permissions?.reports?.products?.stockAlerts },
+          { id: "movement", label: "تقرير حركة الصنف", value: Permissions?.reports?.products?.movement },
+          { id: "topSelling", label: "تقرير المنتج الأكثر مبيعًا", value: Permissions?.reports?.products?.topSelling },
         ],
       },
       {
@@ -472,6 +470,7 @@ const GROUPS: Group[] = [
           { id: "invoices", label: "إجمالي المبيعات على مستوى الفواتير", value: "التقارير.مبيعات على مستوى ارقام الفواتير" },
           { id: "returns", label: "تقرير مرتجع المبيعات", value: "التقارير.مرتجع المبيعات" },
           { id: "employee", label: "تقرير مبيعات موظف", value: "التقارير.مبيعات موظف" },
+          { id: "sales", label: "تقرير مبيعات صنف", value: Permissions?.reports?.products?.sales },
         ],
       },
       {
@@ -480,6 +479,7 @@ const GROUPS: Group[] = [
         permissions: [
           { id: "daily", label: "تقرير مشتريات على مستوى الأيام", value: "التقارير.مشتريات على مستوى الايام" },
           { id: "invoices", label: "تقرير مشتريات على مستوى الفواتير", value: "التقارير.مشتريات على مستوى ارقام الفواتير" },
+          { id: "purchases", label: "تقرير مشتريات صنف", value: Permissions?.reports?.products?.purchases },
         ],
       },
       {
@@ -496,6 +496,11 @@ const GROUPS: Group[] = [
         id: "expenses_reports",
         label: "تقارير المصروفات",
         permissions: [{ id: "list", label: "تقرير المصروفات", value: "التقارير.المصروفات" }],
+      },
+      {
+        id: "profits_reports",
+        label: "تقارير الأرباح",
+        permissions: [{ id: "list", label: "تقرير الأرباح", value: Permissions?.reports?.profits?.list }],
       },
     ],
   },
