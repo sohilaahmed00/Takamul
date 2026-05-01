@@ -8,6 +8,7 @@ import formatDate from "@/lib/formatDate";
 import { CreateSalesOrder } from "@/features/sales/types/sales.types";
 import { Product } from "@/features/products/types/products.types";
 import { useBranchStore } from "@/store/employeeStore";
+import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
 
 export type DineInMode = "new-order" | "add-items" | "checkout" | null;
 
@@ -77,6 +78,9 @@ interface PosState {
 
   resetCart: (customers?: { items: Customer[] }) => void;
 
+  printOrderInvoice: (params: { cart: CartItem[]; discount: { type: "pct" | "flat"; value: number }; selectedCustomer: Customer | null; orderNote: string; branch: BranchInfo | null }) => Promise<void>;
+
+  printAddItemsBon: (params: { cart: CartItem[]; originalItems: CartItem[]; selectedCustomer: Customer | null }) => Promise<void>;
   handleReleaseHoldingOrder: (
     payments: CreateSalesOrder["payments"],
     deps: {
@@ -176,56 +180,101 @@ export const usePosStore = create<PosState>((set, get) => ({
     });
   },
 
+  printAddItemsBon: async ({ cart, originalItems, selectedCustomer }: { cart: PosState["cart"]; originalItems: PosState["originalItems"]; selectedCustomer: PosState["selectedCustomer"] }) => {
+    const addedItems = cart
+      .filter((c) => c.isNew)
+      .map((c) => {
+        const original = originalItems.find((o) => o.productId === c.productId);
+        const addedQty = original ? c.qty - original.qty : c.qty;
+        return { ...c, qty: addedQty };
+      })
+      .filter((c) => c.qty > 0);
+
+    const removedItems = originalItems
+      .map((orig) => {
+        const current = cart.find((c) => c.productId === orig.productId);
+        const removedQty = orig.qty - (current?.qty ?? 0);
+        return removedQty > 0 ? { ...orig, qty: removedQty } : null;
+      })
+      .filter(Boolean);
+
+    const hasAdded = addedItems.length > 0;
+    const hasRemoved = removedItems.length > 0;
+
+    if (!hasAdded && !hasRemoved) return;
+
+    const bonItems: BonData["items"] = [
+      ...removedItems.map((c) => ({
+        productName: c.name ?? "",
+        quantity: c.qty,
+        operationType: "Remove" as const,
+      })),
+      ...addedItems.map((c) => ({
+        productName: c.name ?? "",
+        quantity: c.qty,
+        operationType: "Add" as const,
+      })),
+    ];
+
+    await printPreparationBon({
+      institutionName: INSTITUTION_NAME,
+      invoiceNumber: "-",
+      invoiceDate: formatDate(new Date()),
+      customerName: selectedCustomer?.customerName,
+      items: bonItems,
+    });
+  },
+  printOrderInvoice: async ({ cart, discount, selectedCustomer, orderNote, branch }: { cart: PosState["cart"]; discount: PosState["discount"]; selectedCustomer: PosState["selectedCustomer"]; orderNote: PosState["orderNote"]; branch: BranchInfo | null }) => {
+    const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
+    const totals = calcTotals(cart, hasItemDiscounts ? { type: "pct", value: 0 } : discount);
+    const discountAmount = hasItemDiscounts
+      ? cart.reduce((acc, item) => {
+          const raw = itemBasePriceRaw(item);
+          const afterDisc = itemBasePrice(item);
+          return acc + (raw - afterDisc);
+        }, 0)
+      : totals.discountAmount;
+
+    await printInvoice({
+      logoUrl: branch?.imageUrl,
+      branch,
+      invoiceNumber: `—`,
+      customer: selectedCustomer,
+      invoiceDate: formatDate(new Date()),
+      items: cart.map((item) => {
+        const base = itemBasePrice(item);
+        const tax = calcItemTax(item);
+        return {
+          productName: item.name,
+          quantity: item.qty,
+          unitPrice: Number(base.toFixed(2)),
+          taxAmount: Number(tax.toFixed(2)),
+          total: Number((base + tax).toFixed(2)),
+        };
+      }),
+      subTotal: Number(totals.sub.toFixed(2)),
+      discountAmount: Number(discountAmount),
+      taxAmount: totals.originalTax,
+      grandTotal: totals.total,
+      notes: orderNote,
+    });
+  },
+
   handleReleaseHoldingOrder: async (payments, { releaseHolding, customers }) => {
-    const { holdingOrderId, resetCart, cart, selectedCustomer, discount } = get();
+    const { holdingOrderId, resetCart, cart, selectedCustomer, discount, orderNote, printOrderInvoice } = get();
     const branch = useBranchStore.getState().branch;
     if (!holdingOrderId) return;
 
     try {
       await releaseHolding({ id: holdingOrderId, data: payments });
-
-      const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
-      const totals = calcTotals(cart, hasItemDiscounts ? { type: "pct", value: 0 } : discount);
-      const discountAmount = hasItemDiscounts
-        ? cart.reduce((acc, item) => {
-            const raw = itemBasePriceRaw(item);
-            const afterDisc = itemBasePrice(item);
-            return acc + (raw - afterDisc);
-          }, 0)
-        : totals.discountAmount;
-
-      const invoiceData: InvoiceData = {
-        branch: branch,
-        invoiceNumber: `—`,
-        invoiceDate: formatDate(new Date()),
-        customer: selectedCustomer,
-        items: cart.map((item) => {
-          const base = itemBasePrice(item);
-          const tax = calcItemTax(item);
-          return {
-            productName: item.name,
-            quantity: item.qty,
-            unitPrice: Number(base.toFixed(2)),
-            taxAmount: Number(tax.toFixed(2)),
-            total: Number((base + tax).toFixed(2)),
-          };
-        }),
-        subTotal: Number(totals.sub.toFixed(2)),
-        discountAmount: Number(discountAmount),
-        taxAmount: totals.originalTax,
-        grandTotal: totals.total,
-        notes: INSTITUTION_NOTES,
-      };
-
-      await printInvoice(invoiceData);
-
+      await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
       set({ selectedOrderId: null });
       resetCart(customers);
     } catch {}
   },
 
   handleCreateDineInOrder: async ({ createDineInOrderyOrder, customers }) => {
-    const { cart, selectedCustomer, discount, selectedGiftCardId, selectedTable, orderNote, resetCart } = get();
+    const { cart, selectedCustomer, discount, selectedGiftCardId, selectedTable, orderNote, resetCart, printAddItemsBon, printOrderInvoice } = get();
 
     const payload = {
       customerId: selectedCustomer?.id,
@@ -246,20 +295,19 @@ export const usePosStore = create<PosState>((set, get) => ({
 
     try {
       await createDineInOrderyOrder(payload);
-      const sampleBon: BonData = {
+      await printPreparationBon({
         institutionName: "بون التحضير",
         invoiceNumber: "5000",
         invoiceDate: formatDate(new Date()),
         customerName: selectedCustomer?.customerName,
         items: cart.map((c) => ({ productName: c.name, quantity: c.qty, operationType: "Add" })),
-      };
-      printPreparationBon(sampleBon);
+      });
       resetCart(customers);
     } catch {}
   },
 
   handleAddItemsToExistingOrder: async ({ addItemsToOrder, customers }) => {
-    const { cart, selectedCustomer, holdingOrderId, originalItems, selectedOrderId, resetCart } = get();
+    const { cart, selectedCustomer, originalItems, selectedOrderId, resetCart, printAddItemsBon } = get();
     const orderId = selectedOrderId;
 
     const payload = {
@@ -276,63 +324,13 @@ export const usePosStore = create<PosState>((set, get) => ({
 
     try {
       await addItemsToOrder({ data: payload, id: orderId });
-
-      const addedItems = cart
-        .filter((c) => c.isNew)
-        .map((c) => {
-          const original = originalItems.find((o) => o.productId === c.productId);
-          const addedQty = original ? c.qty - original.qty : c.qty;
-          return { ...c, qty: addedQty };
-        })
-        .filter((c) => c.qty > 0);
-
-      const removedItems = originalItems
-        .map((orig) => {
-          const current = cart.find((c) => c.productId === orig.productId);
-          const removedQty = orig.qty - (current?.qty ?? 0);
-          return removedQty > 0 ? { ...orig, qty: removedQty } : null;
-        })
-        .filter(Boolean);
-
-      const hasAdded = addedItems.length > 0;
-      const hasRemoved = removedItems.length > 0;
-
-      if (hasAdded || hasRemoved) {
-        const bonItems: BonData["items"] =
-          hasRemoved && !hasAdded
-            ? cart.map((c) => ({
-                productName: c.name ?? "",
-                quantity: c.qty,
-                operationType: "Remove" as const,
-              }))
-            : hasAdded && !hasRemoved
-              ? addedItems.map((c) => ({
-                  productName: c.name ?? "",
-                  quantity: c.qty,
-                  operationType: "Add" as const,
-                }))
-              : cart.map((c) => ({
-                  productName: c.name ?? "",
-                  quantity: c.qty,
-                  operationType: "Remove" as const,
-                }));
-
-        const sampleBon: BonData = {
-          institutionName: INSTITUTION_NAME,
-          invoiceNumber: String(orderId),
-          invoiceDate: formatDate(new Date()),
-          customerName: selectedCustomer?.customerName,
-          items: bonItems,
-        };
-
-        await printPreparationBon(sampleBon);
-      }
+      await printAddItemsBon({ cart, originalItems, selectedCustomer });
+      resetCart(customers);
     } catch {}
-    resetCart(customers);
   },
 
   handleConfirmPayment: async ({ printKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers }) => {
-    const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, selectedOrderId, handleReleaseHoldingOrder, resetCart, originalItems } = get();
+    const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, handleReleaseHoldingOrder, resetCart, originalItems, dineInMode, printAddItemsBon, printOrderInvoice } = get();
     const branch = useBranchStore.getState().branch;
 
     const payments: CreateSalesOrder["payments"] = isHolding
@@ -397,96 +395,20 @@ export const usePosStore = create<PosState>((set, get) => ({
       }
 
       if (!isHolding) {
-        const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
-        const totals = calcTotals(cart, hasItemDiscounts ? { type: "pct", value: 0 } : discount);
-        const discountAmount = hasItemDiscounts
-          ? cart.reduce((acc, item) => {
-              const raw = itemBasePriceRaw(item);
-              const afterDisc = itemBasePrice(item);
-              return acc + (raw - afterDisc);
-            }, 0)
-          : totals.discountAmount;
+        await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
 
-        const invoiceData: InvoiceData = {
-          logoUrl: branch?.imageUrl,
-          branch: branch,
-          invoiceNumber: `—`,
-          customer: selectedCustomer,
-          invoiceDate: formatDate(new Date()),
-          items: cart.map((item) => {
-            const base = itemBasePrice(item);
-            const tax = calcItemTax(item);
-            return {
-              productName: item.name,
-              quantity: item.qty,
-              unitPrice: Number(base.toFixed(2)),
-              taxAmount: Number(tax.toFixed(2)),
-              total: Number((base + tax).toFixed(2)),
-            };
-          }),
-          subTotal: Number(totals.sub.toFixed(2)),
-          discountAmount: Number(discountAmount),
-          taxAmount: totals.originalTax,
-          grandTotal: totals.total,
-          notes: orderNote,
-        };
-
-        await printInvoice(invoiceData);
-
-        const addedItems = cart
-          .filter((c) => c.isNew)
-          .map((c) => {
-            const original = originalItems.find((o) => o.productId === c.productId);
-            const addedQty = original ? c.qty - original.qty : c.qty;
-            return { ...c, qty: addedQty };
-          })
-          .filter((c) => c.qty > 0);
-
-        const removedItems = originalItems
-          .map((orig) => {
-            const current = cart.find((c) => c.productId === orig.productId);
-            const removedQty = orig.qty - (current?.qty ?? 0);
-            return removedQty > 0 ? { ...orig, qty: removedQty } : null;
-          })
-          .filter(Boolean);
-
-        const hasAdded = addedItems.length > 0;
-        const hasRemoved = removedItems.length > 0;
-
-        if (hasAdded || hasRemoved) {
-          const bonItems: BonData["items"] = [
-            ...removedItems.map((c) => ({
-              productName: c.name ?? "",
-              quantity: c.qty,
-              operationType: "Remove" as const,
-            })),
-            ...addedItems.map((c) => ({
-              productName: c.name ?? "",
-              quantity: c.qty,
-              operationType: "Add" as const,
-            })),
-          ];
-
-          const sampleBon: BonData = {
-            institutionName: INSTITUTION_NAME,
-            invoiceNumber: "-",
-            invoiceDate: formatDate(new Date()),
-            customerName: selectedCustomer?.customerName,
-            items: bonItems,
-          };
-
-          await printPreparationBon(sampleBon);
+        if (dineInMode === "add-items") {
+          await printAddItemsBon({ cart, originalItems, selectedCustomer });
         }
 
         if (printKitchenBon && orderType !== "InDine") {
-          const kitchenBon: BonData = {
+          await printPreparationBon({
             institutionName: "بون التحضير",
             invoiceNumber: "5000",
             invoiceDate: formatDate(new Date()),
             customerName: selectedCustomer?.customerName,
             items: cart.map((c) => ({ productName: c.name, quantity: c.qty, operationType: "Add" })),
-          };
-          await printPreparationBon(kitchenBon);
+          });
         }
       }
 
