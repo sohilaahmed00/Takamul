@@ -187,20 +187,20 @@ export const usePosStore = create<PosState>((set, get) => ({
     try {
       await releaseHolding({ id: holdingOrderId, data: payments });
       await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
+      await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
+      resetCart(customers);
     } catch {}
-    resetCart(customers);
   },
 
   handleCreateDineInOrder: async ({ createDineInOrderyOrder, customers }) => {
     const { cart, selectedCustomer, discount, selectedGiftCardId, selectedTable, orderNote, resetCart } = get();
     const branch = useBranchStore.getState().branch;
-
     const payload = {
       customerId: selectedCustomer?.id,
       warehouseId: 1,
       notes: orderNote,
-      globalDiscountValue: 0,
-      globalDiscountPercentage: discount,
+      globalDiscountValue: discount.type == "flat" && discount?.value,
+      globalDiscountPercentage: discount.type == "pct" && discount?.value,
       giftCardId: selectedGiftCardId,
       additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
       tableId: Number(selectedTable),
@@ -215,8 +215,10 @@ export const usePosStore = create<PosState>((set, get) => ({
     try {
       await createDineInOrderyOrder(payload);
       await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
-    } catch {}
-    resetCart(customers);
+      resetCart(customers);
+    } catch (error) {
+      console.log(error);
+    }
   },
 
   handleAddItemsToExistingOrder: async ({ addItemsToOrder, customers }) => {
@@ -318,8 +320,7 @@ export const usePosStore = create<PosState>((set, get) => ({
           await PrintKitchenBon({ cart, originalItems: [], selectedCustomer });
         }
       }
-
+      resetCart(customers);
     } catch {}
-    resetCart(customers);
   },
 }));

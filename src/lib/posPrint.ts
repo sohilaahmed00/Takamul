@@ -23,7 +23,6 @@ export type PrintKitchenBonParams = {
 
 export async function printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch }: PrintOrderInvoiceParams): Promise<void> {
   const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
-
   const totals = calcTotals(cart, hasItemDiscounts ? { type: "pct", value: 0 } : discount);
 
   const discountAmount = hasItemDiscounts
@@ -35,7 +34,6 @@ export async function printOrderInvoice({ cart, discount, selectedCustomer, orde
     : totals.discountAmount;
 
   await printInvoice({
-    logoUrl: branch?.imageUrl,
     branch,
     invoiceNumber: `—`,
     customer: selectedCustomer,
