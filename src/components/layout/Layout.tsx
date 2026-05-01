@@ -234,7 +234,7 @@ export default function Layout() {
             {openSubmenu === "products" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 {hasAnyPermission([Permissions?.products?.BranchedView, Permissions?.products?.DirectView, Permissions?.products?.PreparedView, Permissions?.products?.RawMaterialView, Permissions?.products?.view]) && <SubmenuItem label={t("products_list")} icon={List} path="/products" />}
-                {(hasPermission(Permissions?.products?.add) || hasPermission(Permissions?.products?.addDirect) || hasPermission(Permissions?.products?.addVariant) || hasPermission(Permissions?.products?.addReady) || hasPermission(Permissions?.products?.addRaw)) && <SubmenuItem label={t("add_product")} icon={PlusCircle} path="/products/create" />}
+                {(hasPermission(Permissions?.products?.addDirect) || hasPermission(Permissions?.products?.addBranch) || hasPermission(Permissions?.products?.addPrepared) || hasPermission(Permissions?.products?.addRaw)) && <SubmenuItem label={t("add_product")} icon={PlusCircle} path="/products/create" />}
                 {/* <SubmenuItem label={t("print_barcode")} icon={Tag} path="/products/barcode" /> */}
                 {hasAnyPermission([Permissions?.stockInventory?.view, Permissions?.stockInventory?.view]) && <SubmenuItem label={t("quantity_adjustments")} icon={SlidersHorizontal} path="/products/quantity-adjustments" />}
                 {hasAnyPermission([Permissions?.productCategories?.view, Permissions?.productCategories?.all]) && <SubmenuItem label={t("groups")} icon={Folder} path="/products/groups" />}
@@ -441,10 +441,12 @@ export default function Layout() {
                 <span>{t("pos_quick")}</span>
               </button>
 
-              <button onClick={() => navigate("/products/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
-                <Package size={16} />
-                <span>{t("add_product")}</span>
-              </button>
+              {hasAnyPermission([Permissions?.products?.addDirect, Permissions?.products?.addBranch, Permissions?.products?.addPrepared, Permissions?.products?.addRaw]) && (
+                <button onClick={() => navigate("/products/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+                  <Package size={16} />
+                  <span>{t("add_product")}</span>
+                </button>
+              )}
             </div>
 
             <div className="relative">
