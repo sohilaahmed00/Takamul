@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
-import { calcItemTax, calcTotals, CartItem, DELIVERY_COMPANIES, itemBasePrice, itemTotal, OrderType } from "@/constants/data";
+import { calcItemTax, calcTotals, CartItem, DELIVERY_COMPANIES, format, itemBasePrice, itemTotal, OrderType } from "@/constants/data";
 import { useGetAllAdditions } from "@/features/Additions/hooks/useGetAllAdditions";
 import type { Addition } from "@/features/Additions/types/additions.types";
 import { useGetGiftCards } from "@/features/gift-cards/hooks/useGetGiftCards";
@@ -733,23 +733,23 @@ export default function CartPanel() {
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                 <span>{t("subtotal")}</span>
                 <div className="flex items-center gap-1.5">
-                  {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{sub?.toFixed(2)}</span>}
-                  <span className="font-semibold text-foreground">{subAfterDiscount.toFixed(2)}</span>
+                  {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{format(sub)}</span>}
+                  <span className="font-semibold text-foreground">{format(subAfterDiscount)}</span>
                 </div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                 <span>{t("tax_label")}</span>
                 <div className="flex items-center gap-1.5">
-                  {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{originalTax.toFixed(2)}</span>}
-                  <span className="font-semibold text-foreground">{taxAfterDiscount.toFixed(2)}</span>
+                  {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{format(originalTax)}</span>}
+                  <span className="font-semibold text-foreground">{format(taxAfterDiscount)}</span>
                 </div>
               </div>
 
               <div className="flex justify-between text-sm font-black text-foreground mt-2 pt-1 border-t border-border mb-3">
                 <span>{t("payable_amount")}</span>
                 <div className="flex items-center gap-1.5">
-                  {discount.value > 0 && <span className="text-gray-300 line-through text-xs font-normal">{(sub + originalTax).toFixed(2)}</span>}
-                  <span>{total.toFixed(2)}</span>
+                  {discount.value > 0 && <span className="text-gray-300 line-through text-xs font-normal">{sub + originalTax}</span>}
+                  <span>{total}</span>
                 </div>
               </div>
 

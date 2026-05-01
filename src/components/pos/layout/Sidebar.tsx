@@ -37,8 +37,9 @@ const STATUS_MAP: Record<OrderStatusType, string | null> = {
 };
 
 export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
-  const { selectedCustomer, addToCart, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen, setOriginalItems, setDiscount } = usePosStore();
+  const { selectedCustomer, addToCart, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen, setOriginalItems, setDiscount, resetCart } = usePosStore();
   const [selectedCustomerId, setSelectCustomerId] = useState<number | null>(null);
+  const { data: customers } = useGetAllCustomers();
   const { data: customer } = useGetCustomerById(selectedCustomerId);
 
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
@@ -201,6 +202,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         <div className="flex items-center gap-x-2">
                           <button
                             onClick={() => {
+                              resetCart(customers);
                               onOpenChange(false);
                               setScreen("home");
                               const mappedItems = order.items.map((item) => ({
@@ -242,6 +244,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                           <button
                             title="استكمال الدفع"
                             onClick={() => {
+                              resetCart(customers);
                               onOpenChange(false);
                               setScreen("home");
                               const mappedItems = order.items.map((item) => ({
@@ -260,6 +263,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                 extras: [],
                                 isNew: true,
                               }));
+
                               setOriginalItems(mappedItems);
                               if (order) {
                                 if (order?.discountAmount) {
@@ -289,6 +293,8 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         <button
                           title="استكمال الفاتورة"
                           onClick={() => {
+                            resetCart(customers);
+
                             setHoldingOrderId(order?.id);
                             setOrderType(order?.orderType);
                             setScreen("home");

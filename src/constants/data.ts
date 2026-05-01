@@ -77,6 +77,11 @@ export function calcItemTax(item: CartItem): number {
   return 0;
 }
 
+export const format = (n) =>
+  new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
 export function itemTotal(item: CartItem): number {
   return itemBasePrice(item) + calcItemTax(item);
 }
