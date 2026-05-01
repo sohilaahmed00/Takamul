@@ -262,28 +262,28 @@ const GROUPS: Group[] = [
         ],
       },
       {
-        id: "roels",
+        id: "roles",
         label: "الصلاحيات",
         permissions: [
           {
             id: "view",
-            label: "عرض الادوار",
-            value: "الأدوار.عرض",
+            label: "عرض الصلاحيات",
+            value: Permissions?.roles?.view,
           },
           {
-            id: "view2",
-            label: "عرض الصلاحيات",
-            value: "الأدوار.عرض الصلاحيات",
+            id: "add",
+            label: "إضافة صلاحيات",
+            value: Permissions?.roles?.add,
           },
           {
             id: "edit",
-            label: "تعديل الادوار",
-            value: "الأدوار.تعديل",
+            label: "تعديل الصلاحيات",
+            value: Permissions?.roles?.edit,
           },
           {
             id: "delete",
-            label: "حذف الادوار",
-            value: "الأدوار.حذف",
+            label: "حذف الصلاحيات",
+            value: Permissions?.roles?.delete,
           },
         ],
       },
