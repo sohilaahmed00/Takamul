@@ -22,6 +22,8 @@ import formatDate from "@/lib/formatDate";
 
 import { Input } from "@/components/ui/input";
 import { useDeleteQuotation } from "@/features/quotation/hooks/useDeleteQuotation";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function QuotesList() {
   const { t, direction } = useLanguage();
@@ -29,12 +31,7 @@ export default function QuotesList() {
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
   const { printInvoice } = usePrint();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showCount, setShowCount] = useState(10);
   const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const { data: quotations } = useGetAllQuotations();
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const { mutate: deleteQuotation } = useDeleteQuotation();
@@ -69,6 +66,8 @@ export default function QuotesList() {
     );
   };
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
+  const hasPermission = useAuthStore((state) => state?.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state?.hasAnyPermission);
   return (
     <Card>
       <CardHeader className="">
@@ -105,37 +104,45 @@ export default function QuotesList() {
           <Column header={"اسم المستخدم"} sortable field="createdBy" />
           <Column header={t("discount_amount")} sortable field="discountAmount" />
           <Column header={t("total_amount")} sortable field="grandTotal" />
-          <Column
-            header={t("actions")}
-            body={(row) => (
-              <div className="flex gap-2 justify-center items-center">
-                <button
-                  onClick={async () => {
-                    try {
-                      const fullData = await getQuotationById(row.id);
-                      printInvoice(fullData, "quotation");
-                    } catch (err) {
-                      console.error("Print failed", err);
-                    }
-                  }}
-                  className="btn-minimal-action btn-compact-action text-blue-500"
-                >
-                  <Printer size={16} />
-                </button>
-                <Link to={`/quotes/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
-                  <Edit2 size={16} />
-                </Link>
-                <button
-                  onClick={() => {
-                    deleteQuotation(row?.id);
-                  }}
-                  className="btn-minimal-action btn-compact-action text-red-500"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            )}
-          />
+          {hasAnyPermission(
+            [Permissions?.quotations?.edit, Permissions?.quotations?.delete] && (
+              <Column
+                header={t("actions")}
+                body={(row) => (
+                  <div className="flex gap-2 justify-center items-center">
+                    <button
+                      onClick={async () => {
+                        try {
+                          const fullData = await getQuotationById(row.id);
+                          printInvoice(fullData, "quotation");
+                        } catch (err) {
+                          console.error("Print failed", err);
+                        }
+                      }}
+                      className="btn-minimal-action btn-compact-action text-blue-500"
+                    >
+                      <Printer size={16} />
+                    </button>
+                    {hasPermission(Permissions?.quotations?.edit) && (
+                      <Link to={`/quotes/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
+                        <Edit2 size={16} />
+                      </Link>
+                    )}
+                    {hasPermission(Permissions?.quotations?.delete) && (
+                      <button
+                        onClick={() => {
+                          deleteQuotation(row?.id);
+                        }}
+                        className="btn-minimal-action btn-compact-action text-red-500"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              />
+            ),
+          )}
         </DataTable>
       </CardContent>
       {/* <CardFooter>

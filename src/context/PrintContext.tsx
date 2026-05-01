@@ -15,6 +15,7 @@ import { SalesOrder } from "@/features/sales/types/sales.types";
 import { Purchase } from "@/features/purchases/types/purchase.types";
 import { Customer } from "@/features/customers/types/customers.types";
 import { Supplier } from "@/features/suppliers/types/suppliers.types";
+import { Quotation } from "@/features/quotation/types/quotations.types";
 
 const toNum = (v: any, fallback = 0): number => Number(v ?? fallback);
 
@@ -25,7 +26,7 @@ const buildInvoiceDateStr = (data: any): string => {
   return raw ? new Date(raw).toLocaleString("en-GB") : new Date().toLocaleString("en-GB");
 };
 
-type PrintableData = SalesOrder | Purchase | InvoiceData;
+type PrintableData = SalesOrder | Quotation | Purchase | InvoiceData;
 
 type RawItem = {
   productId?: number;
@@ -60,8 +61,8 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     async (data: PrintableData): Promise<ExtendedData> => {
       const ext: ExtendedData = { ...(data as any), branchInfo: branchInfo! };
       if (ext.customer || ext.supplier) return ext;
-      const cId = (data as SalesOrder).customerId;
-      const sId = (data as Purchase).supplierId;
+      const cId = "customerId" in data ? data.customerId : undefined;
+      const sId = "supplierId" in data ? data.supplierId : undefined;
 
       if (cId) {
         try {
