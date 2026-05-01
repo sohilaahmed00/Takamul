@@ -37,6 +37,7 @@ export interface Group {
   id: string;
   label: string;
   pages: Page[];
+  permissions?: Permission[];
 }
 
 // ─── Static Data ─────────────────────────────────────────────────────────────
@@ -450,16 +451,13 @@ const GROUPS: Group[] = [
     id: "items",
     label: "البنود",
     pages: [
-      {
-        id: "items_list",
-        label: "البنود",
-        permissions: [
-          { id: "view", label: "عرض", value: "البنود.عرض" },
-          { id: "add", label: "إضافة", value: "البنود.إضافة" },
-          { id: "edit", label: "تعديل", value: "البنود.تعديل" },
-          { id: "delete", label: "حذف", value: "البنود.حذف" },
-        ],
-      },
+
+    ],
+    permissions: [
+      { id: "view", label: "عرض", value: "البنود.عرض" },
+      { id: "add", label: "إضافة", value: "البنود.إضافة" },
+      { id: "edit", label: "تعديل", value: "البنود.تعديل" },
+      { id: "delete", label: "حذف", value: "البنود.حذف" },
     ],
   },
   {
@@ -671,6 +669,10 @@ function buildInitialState(groups: Group[]): CheckedMap {
         }
       });
     });
+
+    (g.permissions ?? []).forEach((_, ri) => {
+      map[leafKey(gi, -1, ri)] = false;
+    });
   });
   return map;
 }
@@ -685,7 +687,20 @@ function getStatus(keys: string[], map: CheckedMap): "none" | "some" | "all" {
 
 function keysForGroup(groups: Group[], gi: number): string[] {
   const g = groups[gi];
-  return g.pages.flatMap((page, pi) => page.permissions.flatMap((perm, ri) => ((perm.subPermissions ?? []).length > 0 ? perm.subPermissions!.map((_, si) => leafKey(gi, pi, ri, si)) : [leafKey(gi, pi, ri)])));
+
+  const pageKeys = g.pages.flatMap((page, pi) =>
+    page.permissions.flatMap((perm, ri) =>
+      (perm.subPermissions ?? []).length > 0
+        ? perm.subPermissions!.map((_, si) => leafKey(gi, pi, ri, si))
+        : [leafKey(gi, pi, ri)]
+    )
+  );
+
+  const directKeys = (g.permissions ?? []).map((_, ri) =>
+    leafKey(gi, -1, ri)
+  );
+
+  return [...pageKeys, ...directKeys];
 }
 
 function keysForPage(gi: number, pi: number, page: Page): string[] {
@@ -713,6 +728,11 @@ function collectSelectedPermissions(groups: Group[], checked: CheckedMap): strin
           }
         }
       });
+    });
+    (g.permissions ?? []).forEach((perm, ri) => {
+      if (checked[leafKey(gi, -1, ri)] && perm.value) {
+        result.add(perm.value);
+      }
     });
   });
   return Array.from(result);
@@ -921,6 +941,19 @@ export default function PermissionsTree() {
                                 })}
                               </div>
                             )}
+                          </div>
+                        );
+                      })}
+                      {(group.permissions ?? []).map((perm, ri) => {
+                        const key = leafKey(gi, -1, ri);
+                        return (
+                          <div key={key} className={cn("flex items-center gap-2 px-3 py-2 pr-7 bg-background border-t border-border select-none")}>
+                            <Checkbox
+                              checked={checked[key] ?? false}
+                              onCheckedChange={() => toggleSub(key)}
+                            />
+                            <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                            <span className="flex-1 text-sm text-foreground">{perm.label}</span>
                           </div>
                         );
                       })}
