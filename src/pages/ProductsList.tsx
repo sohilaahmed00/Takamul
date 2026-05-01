@@ -45,6 +45,7 @@ export default function ProductsList() {
   );
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
+  const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
 
   const { data: productsDirect } = useGetAllProductsDirect(
     {
@@ -177,7 +178,7 @@ export default function ProductsList() {
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="border border-gray-200 rounded-t-md overflow-hidden">
             <TabsList variant={"line"} className="flex overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit! pb-1 max-lg:w-full [&::-webkit-scrollbar]:hidden">
-              {hasAnyPermission([Permissions?.products?.DirectView, Permissions?.products?.BranchedView, Permissions?.products?.PreparedView, Permissions?.products?.RawMaterialView]) && (
+              {hasAllPermissions([Permissions?.products?.DirectView, Permissions?.products?.BranchedView, Permissions?.products?.PreparedView, Permissions?.products?.RawMaterialView]) && (
                 <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
                   جميع الأصناف
                 </TabsTrigger>
