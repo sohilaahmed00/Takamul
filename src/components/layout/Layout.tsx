@@ -436,10 +436,12 @@ export default function Layout() {
                   <span>{t("sales_a4_quick")}</span>
                 </button>
               )}
-              <button onClick={() => navigate("/pos")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
-                <ShoppingCart size={16} />
-                <span>{t("pos_quick")}</span>
-              </button>
+              {hasPermission(Permissions?.salesOrders?.addpos) && (
+                <button onClick={() => navigate("/pos")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+                  <ShoppingCart size={16} />
+                  <span>{t("pos_quick")}</span>
+                </button>
+              )}
 
               {hasAnyPermission([Permissions?.products?.addDirect, Permissions?.products?.addBranch, Permissions?.products?.addPrepared, Permissions?.products?.addRaw]) && (
                 <button onClick={() => navigate("/products/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
