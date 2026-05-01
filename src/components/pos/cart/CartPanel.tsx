@@ -339,7 +339,7 @@ export default function CartPanel() {
   const { theme, setTheme } = useTheme();
 
   // ── Zustand store ──────────────────────────────────────────────────────────
-  const { cart, setCart, setSelectedTable, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setOrderNote, orderNote, holdingOrderId } = usePosStore();
+  const { cart, setCart, setSelectedTable, selectedOrderId, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setOrderNote, orderNote, holdingOrderId } = usePosStore();
 
   // ── Async mutation hooks (passed into store actions) ───────────────────────
   const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
@@ -782,6 +782,10 @@ export default function CartPanel() {
                         return;
                       }
 
+                      console.log(selectedTable);
+                      console.log(selectedOrderId);
+                      
+                      // console.log()
                       if (orderType === "InDine") {
                         if (dineInMode == "add-items") {
                           await handleAddItemsToExistingOrder({ addItemsToOrder });

@@ -260,7 +260,7 @@ export const usePosStore = create<PosState>((set, get) => ({
 
   handleAddItemsToExistingOrder: async ({ addItemsToOrder, customers }) => {
     const { cart, selectedCustomer, holdingOrderId, originalItems, selectedOrderId } = get();
-    const orderId = selectedOrderId ?? holdingOrderId;
+    const orderId = selectedOrderId;
 
     const payload = {
       orderId,

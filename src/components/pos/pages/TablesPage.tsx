@@ -77,12 +77,12 @@ export default function TablesPage() {
   const { t } = useLanguage();
   const [filter, setFilter] = useState<FilterType>("all");
   const { data: tables } = useGetAllTables();
-  const { cart, setScreen, selectedTable, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer, setSelectedOrderId, setDineInMode } = usePosStore();
-  const { data: detailsOrder } = useGetOrderByTableId(selectedTable);
+  const { cart, setScreen, selectedTable, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer, selectedOrderId, setSelectedOrderId, setDineInMode } = usePosStore();
+  const { refetch: fetchOrderDetails } = useGetOrderByTableId(selectedTable);
   const { mutateAsync: freeTable } = useFreeTable();
   useEffect(() => {
-    console.log(selectedTable);
-  }, [selectedTable]);
+    console.log(selectedOrderId);
+  }, [selectedOrderId]);
 
   const filtered = useMemo(
     () =>
@@ -93,7 +93,7 @@ export default function TablesPage() {
     [tables, filter],
   );
 
-  const cartItemsFromOrder = (order: typeof detailsOrder) =>
+  const cartItemsFromOrder = (order) =>
     order.items.map((item) => ({
       productId: item.productId,
       name: item.productName,
@@ -171,10 +171,13 @@ export default function TablesPage() {
                     <Button
                       size="xl"
                       variant="outline"
-                      onClick={() => {
-                        setCart(cartItemsFromOrder(detailsOrder));
+                      onClick={async () => {
+                        const { data: order } = await fetchOrderDetails();
+                        if (!order) return;
+                        setCart(cartItemsFromOrder(order));
                         setDineInMode("add-items");
-                        setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
+                        setSelectedCustomer({ id: order.id, customerName: order.customerName } as Customer);
+                        setSelectedOrderId(order.id);
                         setOrderType("InDine");
                         setSelectedTable2(selectedTable);
                         setScreen("home");
@@ -186,10 +189,12 @@ export default function TablesPage() {
                     {/* Checkout */}
                     <Button
                       size="xl"
-                      onClick={() => {
-                        setCart(cartItemsFromOrder(detailsOrder));
+                      onClick={async () => {
+                        const { data: order } = await fetchOrderDetails();
+                        if (!order) return;
+                        setCart(cartItemsFromOrder(order));
                         setDineInMode("checkout");
-                        setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
+                        setSelectedCustomer({ id: order.id, customerName: order.customerName } as Customer);
                         setOrderType("InDine");
                         setSelectedTable2(selectedTable);
                         setScreen("home");
@@ -202,8 +207,8 @@ export default function TablesPage() {
                   <Button
                     size="xl"
                     onClick={() => {
-                      setCart(cart.length > 0 ? cart : []);
-                      setDineInMode(cart.length > 0 ? "add-items" : "new-order");
+                      setCart([]);
+                      setDineInMode("new-order");
                       setSelectedOrderId(null);
                       setOrderType("InDine");
                       setSelectedTable2(selectedTable);
