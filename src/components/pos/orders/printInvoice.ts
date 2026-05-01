@@ -304,9 +304,9 @@ html, body {
 
     <!-- Simplified Tax Invoice -->
     <div class="hrow">
-      <span class="h-ar">${data?.invoiceName}</span>
+      <span class="h-ar">${data?.customer.taxNumber ? "فاتورة ضريبية" : "فاتورة ضريبية مبسطة"}</span>
       <span class="h-val"></span>
-      <span class="h-en">Simplified Tax Invoice</span>
+      <span class="h-en">${data?.customer?.taxNumber ? "Tax Invoice" : "Simplified Tax Invoice"}</span>
     </div>
 
     <!-- INV NO -->
