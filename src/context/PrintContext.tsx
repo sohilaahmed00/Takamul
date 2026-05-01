@@ -111,15 +111,10 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     const totals = calcTotals(cart, discount);
 
     return {
+      branch: branch,
       logoUrl: branch.imageUrl || "",
       invoiceNumber: String(ext.orderNumber),
-      institutionName: branch.name || "",
-      institutionNameEn: branch.nameEn || "",
-      institutionTaxNumber: branch.taxNumber || "",
-      institutionCommercialRegister: branch.commercialRegister || "",
       invoiceDate: buildInvoiceDateStr(ext),
-      institutionAddress: joinAddress(branch.cityName, branch.stateName, branch.district, branch.street),
-      institutionPhone: branch.phone || "",
       customer: ext.customer!,
       supplier: ext.supplier!,
       items: rawItems.map((item, i) => {

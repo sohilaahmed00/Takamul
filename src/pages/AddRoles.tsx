@@ -158,7 +158,7 @@ const GROUPS: Group[] = [
         permissions: [
           { id: "view", label: "عرض", value: Permissions?.salesOrders?.pos },
           { id: "add", label: "إضافة", value: Permissions?.salesOrders?.addpos },
-        ],
+        ],  
       },
       {
         id: "gift_cards",
