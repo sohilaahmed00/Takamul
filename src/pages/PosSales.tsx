@@ -17,6 +17,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import formatDate from "@/lib/formatDate";
 
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function PosSales() {
   type Payment = SalesOrder["payments"][number];
@@ -46,6 +48,8 @@ export default function PosSales() {
     );
   };
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
+
+  const hasPermission = useAuthStore((state) => state.hasPermission);
   const statusBodyTemplate = useCallback(
     (rowData: SalesOrder) => {
       const isActive = rowData?.orderStatus == "Confirmed";
@@ -116,12 +120,14 @@ export default function PosSales() {
 
                     <DropdownMenuSeparator />
 
-                    <DropdownMenuItem asChild>
-                      <Link to={`/sales/return/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
-                        <RotateCcw size={14} />
-                        إرجاع مبيع
-                      </Link>
-                    </DropdownMenuItem>
+                    {hasPermission(Permissions?.salesReturns?.add) && (
+                      <DropdownMenuItem asChild>
+                        <Link to={`/sales/return/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                          <RotateCcw size={14} />
+                          إرجاع مبيع
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
 
                     <DropdownMenuItem onClick={() => printInvoice(row, "stock")} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
                       <Warehouse size={14} />
