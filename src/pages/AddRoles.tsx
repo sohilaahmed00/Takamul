@@ -164,10 +164,10 @@ const GROUPS: Group[] = [
         id: "gift_cards",
         label: "بطاقات الهدايا",
         permissions: [
-          { id: "view", label: "عرض", value: "بطاقات الهدايا.عرض" },
-          { id: "add", label: "إضافة", value: "بطاقات الهدايا.إضافة" },
-          { id: "edit", label: "تعديل", value: "بطاقات الهدايا.تعديل" },
-          { id: "delete", label: "حذف", value: "بطاقات الهدايا.حذف" },
+          { id: "view", label: "عرض", value: Permissions?.giftCards?.view },
+          { id: "add", label: "إضافة", value: Permissions?.giftCards?.add },
+          { id: "edit", label: "تعديل", value: Permissions?.giftCards?.edit },
+          { id: "delete", label: "حذف", value: Permissions?.giftCards?.delete },
         ],
       },
       {

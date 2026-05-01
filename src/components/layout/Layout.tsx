@@ -250,7 +250,7 @@ export default function Layout() {
                 {/* {hasPermission(Permissions?.salesOrders?.all) && <SubmenuItem label={t("all_sales")} icon={List} path="/sales/all" />} */}
                 {hasPermission(Permissions?.salesOrders?.view) && <SubmenuItem label={t("invoices_a4")} icon={FileText} path="/sales/a4-invoices" />}
                 {hasPermission(Permissions?.salesOrders?.pos) && <SubmenuItem label={t("invoices_pos")} icon={RefreshCcw} path="/sales/pos-invoices" />}
-                {hasAnyPermission([Permissions?.giftCards?.all, Permissions?.giftCards?.view]) && <SubmenuItem label={t("gift_cards")} icon={Gift} path="/sales/gift-cards" />}
+                {hasPermission(Permissions?.giftCards?.view) && <SubmenuItem label={t("gift_cards")} icon={Gift} path="/sales/gift-cards" />}
                 {hasPermission(Permissions?.salesReturns?.view) && <SubmenuItem label={"المرتجعات"} icon={FileText} path="/sales/return" />}
               </motion.div>
             )}
