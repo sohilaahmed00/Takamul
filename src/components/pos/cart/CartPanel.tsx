@@ -803,7 +803,7 @@ export default function CartPanel() {
                 {/* Pay button */}
                 <Button
                   size={"2xl"}
-                  disabled={dineInMode !== "add-items"}
+                  disabled={dineInMode == "add-items"}
                   onClick={async () => {
                     if (cart.length === 0) {
                       notifyError(t("add_items_to_invoice"));
