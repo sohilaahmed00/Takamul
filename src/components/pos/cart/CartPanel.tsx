@@ -378,10 +378,11 @@ export default function CartPanel() {
   }
 
   useEffect(() => {
-    if (customers) {
-      setSelectedCustomer(customers?.items[0]);
+    if (customers?.items?.[0] && !selectedCustomer) {
+      console.log("first");
+      setSelectedCustomer(customers.items[0]);
     }
-  }, [customers]);
+  }, [customers?.items?.[0]?.id]);
 
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
 
@@ -785,7 +786,7 @@ export default function CartPanel() {
                       // console.log()
                       if (orderType === "InDine") {
                         if (dineInMode == "add-items") {
-                          await handleAddItemsToExistingOrder({ addItemsToOrder });
+                          await handleAddItemsToExistingOrder({ addItemsToOrder, customers });
                         } else if (dineInMode == "new-order") {
                           await handleCreateDineInOrder({ createDineInOrderyOrder, customers });
                         }

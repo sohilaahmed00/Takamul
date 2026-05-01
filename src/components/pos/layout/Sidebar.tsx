@@ -17,6 +17,7 @@ import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomer
 import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
 import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerById";
 import { useGetSupplierById } from "@/features/suppliers/hooks/useGetSupplierById";
+import { useBranchStore } from "@/store/employeeStore";
 
 interface OrdersDialogProps {
   open: boolean;
@@ -157,15 +158,13 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                       {order?.orderStatus === "Confirmed" ? (
                         <button
                           onClick={async () => {
+                            const branch = useBranchStore.getState().branch;
                             setSelectCustomerId(order?.customerId);
                             const invoiceData: InvoiceData = {
                               customer: customer,
+                              branch,
                               invoiceNumber: order?.orderNumber,
-                              institutionName: INSTITUTION_NAME,
-                              institutionTaxNumber: INSTITUTION_TAX_NO,
                               invoiceDate: formatDate(order?.orderDate),
-                              institutionAddress: INSTITUTION_ADDRESS,
-                              institutionPhone: INSTITUTION_PHONE,
                               items: order?.items.map((item) => {
                                 const tt: CartItem = {
                                   name: item?.productName,

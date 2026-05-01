@@ -77,7 +77,7 @@ export default function TablesPage() {
   const { t } = useLanguage();
   const [filter, setFilter] = useState<FilterType>("all");
   const { data: tables } = useGetAllTables();
-  const { cart, setScreen, selectedTable, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer, selectedOrderId, setSelectedOrderId, setDineInMode } = usePosStore();
+  const { cart, setScreen, selectedTable, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer, selectedOrderId, setSelectedOrderId, setDineInMode, setOriginalItems } = usePosStore();
   const { refetch: fetchOrderDetails } = useGetOrderByTableId(selectedTable);
   const { mutateAsync: freeTable } = useFreeTable();
   useEffect(() => {
@@ -175,6 +175,7 @@ export default function TablesPage() {
                         const { data: order } = await fetchOrderDetails();
                         if (!order) return;
                         setCart(cartItemsFromOrder(order));
+                        setOriginalItems(cartItemsFromOrder(order));
                         setDineInMode("add-items");
                         setSelectedCustomer({ id: order.id, customerName: order.customerName } as Customer);
                         setSelectedOrderId(order.id);
@@ -193,6 +194,7 @@ export default function TablesPage() {
                         const { data: order } = await fetchOrderDetails();
                         if (!order) return;
                         setCart(cartItemsFromOrder(order));
+                        setOriginalItems(cartItemsFromOrder(order));
                         setDineInMode("checkout");
                         setSelectedCustomer({ id: order.id, customerName: order.customerName } as Customer);
                         setOrderType("InDine");

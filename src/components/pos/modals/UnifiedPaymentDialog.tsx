@@ -266,7 +266,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
 
                 handleConfirmPayment({
                   isHolding: false,
-                  printKitchenBon: mode === "cashier",
+                  shouldPrintKitchenBon: mode === "cashier",
                   payments,
                   createTakwayOrder,
                   createDeliveryOrder,

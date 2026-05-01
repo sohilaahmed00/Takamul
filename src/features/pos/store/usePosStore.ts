@@ -9,6 +9,7 @@ import { CreateSalesOrder } from "@/features/sales/types/sales.types";
 import { Product } from "@/features/products/types/products.types";
 import { useBranchStore } from "@/store/employeeStore";
 import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
+import { PrintKitchenBon, printOrderInvoice } from "@/lib/posPrint";
 
 export type DineInMode = "new-order" | "add-items" | "checkout" | null;
 
@@ -78,9 +79,6 @@ interface PosState {
 
   resetCart: (customers?: { items: Customer[] }) => void;
 
-  printOrderInvoice: (params: { cart: CartItem[]; discount: { type: "pct" | "flat"; value: number }; selectedCustomer: Customer | null; orderNote: string; branch: BranchInfo | null }) => Promise<void>;
-
-  printAddItemsBon: (params: { cart: CartItem[]; originalItems: CartItem[]; selectedCustomer: Customer | null }) => Promise<void>;
   handleReleaseHoldingOrder: (
     payments: CreateSalesOrder["payments"],
     deps: {
@@ -93,7 +91,7 @@ interface PosState {
 
   handleAddItemsToExistingOrder: (deps: { addItemsToOrder: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
 
-  handleConfirmPayment: (params: { printKitchenBon?: boolean; isHolding?: boolean; payments?: { amount: number; treasuryId: number; notes: string }[]; createTakwayOrder: (p: any) => Promise<any>; createDeliveryOrder: (p: any) => Promise<any>; checkoutDineInOrder: (p: any) => Promise<any>; releaseHolding: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
+  handleConfirmPayment: (params: { shouldPrintKitchenBon?: boolean; isHolding?: boolean; payments?: { amount: number; treasuryId: number; notes: string }[]; createTakwayOrder: (p: any) => Promise<any>; createDeliveryOrder: (p: any) => Promise<any>; checkoutDineInOrder: (p: any) => Promise<any>; releaseHolding: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
 }
 
 export const usePosStore = create<PosState>((set, get) => ({
@@ -180,88 +178,8 @@ export const usePosStore = create<PosState>((set, get) => ({
     });
   },
 
-  printAddItemsBon: async ({ cart, originalItems, selectedCustomer }: { cart: PosState["cart"]; originalItems: PosState["originalItems"]; selectedCustomer: PosState["selectedCustomer"] }) => {
-    const addedItems = cart
-      .filter((c) => c.isNew)
-      .map((c) => {
-        const original = originalItems.find((o) => o.productId === c.productId);
-        const addedQty = original ? c.qty - original.qty : c.qty;
-        return { ...c, qty: addedQty };
-      })
-      .filter((c) => c.qty > 0);
-
-    const removedItems = originalItems
-      .map((orig) => {
-        const current = cart.find((c) => c.productId === orig.productId);
-        const removedQty = orig.qty - (current?.qty ?? 0);
-        return removedQty > 0 ? { ...orig, qty: removedQty } : null;
-      })
-      .filter(Boolean);
-
-    const hasAdded = addedItems.length > 0;
-    const hasRemoved = removedItems.length > 0;
-
-    if (!hasAdded && !hasRemoved) return;
-
-    const bonItems: BonData["items"] = [
-      ...removedItems.map((c) => ({
-        productName: c.name ?? "",
-        quantity: c.qty,
-        operationType: "Remove" as const,
-      })),
-      ...addedItems.map((c) => ({
-        productName: c.name ?? "",
-        quantity: c.qty,
-        operationType: "Add" as const,
-      })),
-    ];
-
-    await printPreparationBon({
-      institutionName: INSTITUTION_NAME,
-      invoiceNumber: "-",
-      invoiceDate: formatDate(new Date()),
-      customerName: selectedCustomer?.customerName,
-      items: bonItems,
-    });
-  },
-  printOrderInvoice: async ({ cart, discount, selectedCustomer, orderNote, branch }: { cart: PosState["cart"]; discount: PosState["discount"]; selectedCustomer: PosState["selectedCustomer"]; orderNote: PosState["orderNote"]; branch: BranchInfo | null }) => {
-    const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
-    const totals = calcTotals(cart, hasItemDiscounts ? { type: "pct", value: 0 } : discount);
-    const discountAmount = hasItemDiscounts
-      ? cart.reduce((acc, item) => {
-          const raw = itemBasePriceRaw(item);
-          const afterDisc = itemBasePrice(item);
-          return acc + (raw - afterDisc);
-        }, 0)
-      : totals.discountAmount;
-
-    await printInvoice({
-      logoUrl: branch?.imageUrl,
-      branch,
-      invoiceNumber: `—`,
-      customer: selectedCustomer,
-      invoiceDate: formatDate(new Date()),
-      items: cart.map((item) => {
-        const base = itemBasePrice(item);
-        const tax = calcItemTax(item);
-        return {
-          productName: item.name,
-          quantity: item.qty,
-          unitPrice: Number(base.toFixed(2)),
-          taxAmount: Number(tax.toFixed(2)),
-          total: Number((base + tax).toFixed(2)),
-        };
-      }),
-      subTotal: Number(totals.sub.toFixed(2)),
-      discountAmount: Number(discountAmount),
-      taxAmount: totals.originalTax,
-      grandTotal: totals.total,
-      notes: orderNote,
-    });
-  },
-
   handleReleaseHoldingOrder: async (payments, { releaseHolding, customers }) => {
-    const { holdingOrderId, resetCart, cart, selectedCustomer, discount, orderNote, printOrderInvoice } = get();
+    const { holdingOrderId, resetCart, cart, selectedCustomer, discount, orderNote } = get();
     const branch = useBranchStore.getState().branch;
     if (!holdingOrderId) return;
 
@@ -274,7 +192,8 @@ export const usePosStore = create<PosState>((set, get) => ({
   },
 
   handleCreateDineInOrder: async ({ createDineInOrderyOrder, customers }) => {
-    const { cart, selectedCustomer, discount, selectedGiftCardId, selectedTable, orderNote, resetCart, printAddItemsBon, printOrderInvoice } = get();
+    const { cart, selectedCustomer, discount, selectedGiftCardId, selectedTable, orderNote, resetCart } = get();
+    const branch = useBranchStore.getState().branch;
 
     const payload = {
       customerId: selectedCustomer?.id,
@@ -295,19 +214,13 @@ export const usePosStore = create<PosState>((set, get) => ({
 
     try {
       await createDineInOrderyOrder(payload);
-      await printPreparationBon({
-        institutionName: "بون التحضير",
-        invoiceNumber: "5000",
-        invoiceDate: formatDate(new Date()),
-        customerName: selectedCustomer?.customerName,
-        items: cart.map((c) => ({ productName: c.name, quantity: c.qty, operationType: "Add" })),
-      });
-      resetCart(customers);
+      await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
     } catch {}
+    resetCart(customers);
   },
 
   handleAddItemsToExistingOrder: async ({ addItemsToOrder, customers }) => {
-    const { cart, selectedCustomer, originalItems, selectedOrderId, resetCart, printAddItemsBon } = get();
+    const { cart, selectedCustomer, originalItems, selectedOrderId, resetCart, orderNote } = get();
     const orderId = selectedOrderId;
 
     const payload = {
@@ -319,18 +232,18 @@ export const usePosStore = create<PosState>((set, get) => ({
         discountPercentage: c.itemDiscount?.type === "pct" ? c.itemDiscount.value : 0,
       })),
       additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
-      notes: "",
+      notes: orderNote,
     };
 
     try {
       await addItemsToOrder({ data: payload, id: orderId });
-      await printAddItemsBon({ cart, originalItems, selectedCustomer });
-      resetCart(customers);
+      await PrintKitchenBon({ cart, originalItems, selectedCustomer });
     } catch {}
+    resetCart(customers);
   },
 
-  handleConfirmPayment: async ({ printKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers }) => {
-    const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, handleReleaseHoldingOrder, resetCart, originalItems, dineInMode, printAddItemsBon, printOrderInvoice } = get();
+  handleConfirmPayment: async ({ shouldPrintKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers }) => {
+    const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, handleReleaseHoldingOrder, resetCart, originalItems, dineInMode } = get();
     const branch = useBranchStore.getState().branch;
 
     const payments: CreateSalesOrder["payments"] = isHolding
@@ -398,17 +311,11 @@ export const usePosStore = create<PosState>((set, get) => ({
         await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
 
         if (dineInMode === "add-items") {
-          await printAddItemsBon({ cart, originalItems, selectedCustomer });
+          await PrintKitchenBon({ cart, originalItems, selectedCustomer });
         }
 
-        if (printKitchenBon && orderType !== "InDine") {
-          await printPreparationBon({
-            institutionName: "بون التحضير",
-            invoiceNumber: "5000",
-            invoiceDate: formatDate(new Date()),
-            customerName: selectedCustomer?.customerName,
-            items: cart.map((c) => ({ productName: c.name, quantity: c.qty, operationType: "Add" })),
-          });
+        if (shouldPrintKitchenBon && orderType !== "InDine") {
+          await PrintKitchenBon({ cart, originalItems: [], selectedCustomer });
         }
       }
 
