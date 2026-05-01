@@ -259,7 +259,7 @@ export const usePosStore = create<PosState>((set, get) => ({
   },
 
   handleAddItemsToExistingOrder: async ({ addItemsToOrder, customers }) => {
-    const { cart, selectedCustomer, holdingOrderId, originalItems, selectedOrderId } = get();
+    const { cart, selectedCustomer, holdingOrderId, originalItems, selectedOrderId, resetCart } = get();
     const orderId = selectedOrderId;
 
     const payload = {
@@ -327,17 +327,8 @@ export const usePosStore = create<PosState>((set, get) => ({
 
         await printPreparationBon(sampleBon);
       }
-
-      set({
-        cart: [],
-        originalItems: [],
-        discount: { value: 0, type: "pct" },
-        selectedOrderId: null,
-        selectedCustomer: null,
-        screen: "home",
-        orderNote: "",
-      });
     } catch {}
+    resetCart(customers);
   },
 
   handleConfirmPayment: async ({ printKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers }) => {
