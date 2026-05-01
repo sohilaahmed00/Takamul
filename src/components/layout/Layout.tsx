@@ -100,7 +100,7 @@ export default function Layout() {
   const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
   const permissions = useAuthStore((s) => s.permissions);
 
-  const allReportPermissions = React.useMemo(() => [...Object.values(Permissions?.reports?.products || {}), ...Object.values(Permissions?.reports?.customers || {}), ...Object.values(Permissions?.reports?.suppliers || {}), ...Object.values(Permissions?.reports?.expenses || {}), ...Object.values(Permissions?.reports?.sales || {}), ...Object.values(Permissions?.reports?.purchases || {})], []);
+  const allReportPermissions = React.useMemo(() => [...Object.values(Permissions?.reports?.products || {}), ...Object.values(Permissions?.reports?.customers || {}), ...Object.values(Permissions?.reports?.suppliers || {}), ...Object.values(Permissions?.reports?.expenses || {}), ...Object.values(Permissions?.reports?.sales || {}), ...Object.values(Permissions?.reports?.purchases || {}), ...Object.values(Permissions?.reports?.profits || {})], []);
 
   const toggleSubmenu = (menu: string) => {
     if (!isSidebarOpen && !isMobile) {
