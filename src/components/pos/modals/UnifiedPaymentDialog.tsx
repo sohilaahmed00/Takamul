@@ -85,7 +85,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
   }, [total, isSplit]);
 
   useEffect(() => {
-    if (treasurys?.length && vaultId === null) {
+    if (treasurys && treasurys?.length > 0) {
       setVaultId(treasurys[0].id);
       setSelectedVaultId(treasurys[0].id);
     }

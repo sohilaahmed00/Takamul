@@ -171,9 +171,10 @@ export const usePosStore = create<PosState>((set, get) => ({
       holdingOrderId: null,
       discount: { type: "pct", value: 0 },
       selectedGiftCardId: null,
-      selectedVaultId: null,
+      originalItems: [],
       screen: "home",
       orderNote: "",
+      selectedOrderId: null,
       selectedCustomer: customers?.items?.[0] ?? null,
     });
   },
@@ -186,9 +187,8 @@ export const usePosStore = create<PosState>((set, get) => ({
     try {
       await releaseHolding({ id: holdingOrderId, data: payments });
       await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
-      set({ selectedOrderId: null });
-      resetCart(customers);
     } catch {}
+    resetCart(customers);
   },
 
   handleCreateDineInOrder: async ({ createDineInOrderyOrder, customers }) => {
@@ -319,7 +319,7 @@ export const usePosStore = create<PosState>((set, get) => ({
         }
       }
 
-      resetCart(customers);
     } catch {}
+    resetCart(customers);
   },
 }));
