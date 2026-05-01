@@ -431,6 +431,22 @@ const GROUPS: Group[] = [
     ],
   },
   {
+    id: "expenses",
+    label: "المصروفات",
+    pages: [
+      {
+        id: "expenses_list",
+        label: "المصروفات",
+        permissions: [
+          { id: "view", label: "عرض", value: "المصروفات.عرض" },
+          { id: "add", label: "إضافة", value: "المصروفات.إضافة" },
+          { id: "edit", label: "تعديل", value: "المصروفات.تعديل" },
+          { id: "delete", label: "حذف", value: "المصروفات.حذف" },
+        ],
+      },
+    ],
+  },
+  {
     id: "reports",
     label: "التقارير",
     pages: [
