@@ -285,21 +285,20 @@ export default function EmployeeSalesReport() {
               }}
               loading={isLoading || isFetching}
               responsiveLayout="scroll"
-              className="custom-green-table"
+              className="custom-green-table text-[10px] sm:text-[11px]"
               dataKey="orderNumber"
               emptyMessage={t("no_data", "لا توجد بيانات")}
               stripedRows={false}
             >
-              <Column header={t("serial", "م")} body={(_, opt) => <span className="whitespace-nowrap">{opt.rowIndex + 1}</span>} className="w-16" />
-              <Column header={t("employee_name", "اسم الموظف")} field="employeeName" body={(row) => <span className="whitespace-nowrap">{row.employeeName}</span>} />
-              <Column header={t("order_number", "رقم الفاتورة")} field="orderNumber" body={(row) => <span className="font-bold text-[#22c55e] whitespace-nowrap">{row.orderNumber}</span>} />
-              <Column header={t("date", "التاريخ")} field="orderDate" body={(row) => <span className="whitespace-nowrap">{formatDate(row.orderDate, "default")}</span>} />
-              <Column header={t("customer_name", "اسم العميل")} field="customerName" body={(row) => <span className="whitespace-nowrap">{row.customerName}</span>} />
-              <Column header={t("sub_total", "الإجمالي قبل الضريبة")} field="subTotal" body={(row) => <span className="whitespace-nowrap">{fmt(row.subTotal)}</span>} />
-              <Column header={t("tax_amount", "الضريبة")} field="taxAmount" body={(row) => <span className="whitespace-nowrap">{fmt(row.taxAmount)}</span>} />
-              <Column header={t("grand_total", "الإجمالي")} field="grandTotal" body={(row) => <span className="font-bold whitespace-nowrap">{fmt(row.grandTotal)}</span>} />
-              <Column header={t("order_status", "حالة الطلب")} field="orderStatus" body={(row) => <span className="whitespace-nowrap">{row.orderStatus}</span>} />
-              <Column header={t("payment_status", "حالة الدفع")} field="paymentStatus" body={(row) => <span className="whitespace-nowrap">{row.paymentStatus}</span>} />
+              <Column header={t("serial", "م")} body={(_, opt) => opt.rowIndex + 1} className="w-10 px-1 text-center" headerClassName="px-1 text-center" />
+              <Column header={t("employee_name", "اسم الموظف")} field="employeeName" body={(row) => <span className="whitespace-nowrap">{row.employeeName}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
+              <Column header={t("order_number", "رقم الفاتورة")} field="orderNumber" body={(row) => <span className="font-bold text-[#22c55e] whitespace-nowrap">{row.orderNumber}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
+              <Column header={t("date", "التاريخ")} field="orderDate" body={(row) => <span className="whitespace-nowrap">{formatDate(row.orderDate, "dateOnly")}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
+              <Column header={t("customer_name", "اسم العميل")} field="customerName" body={(row) => <span className="whitespace-nowrap">{row.customerName}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
+              <Column header={t("sub_total", "الإجمالي قبل الضريبة")} field="subTotal" body={(row) => <span className="whitespace-nowrap">{fmt(row.subTotal)}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
+              <Column header={t("tax_amount", "قيمة الضرائب")} field="taxAmount" body={(row) => <span className="whitespace-nowrap">{fmt(row.taxAmount)}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
+              <Column header={t("grand_total", "الإجمالي")} field="grandTotal" body={(row) => <span className="font-bold whitespace-nowrap">{fmt(row.grandTotal)}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
+              <Column header={t("order_status", "حالة الطلب")} field="orderStatus" body={(row) => <span className="whitespace-nowrap">{row.orderStatus}</span>} headerClassName="whitespace-nowrap px-2" className="px-2" />
             </DataTable>
           </div>
         </CardContent>
