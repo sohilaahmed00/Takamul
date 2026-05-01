@@ -7,6 +7,7 @@ import { BonData, printPreparationBon } from "@/components/pos/orders/printPrepa
 import formatDate from "@/lib/formatDate";
 import { CreateSalesOrder } from "@/features/sales/types/sales.types";
 import { Product } from "@/features/products/types/products.types";
+import { useBranchStore } from "@/store/employeeStore";
 
 export type DineInMode = "new-order" | "add-items" | "checkout" | null;
 
@@ -200,8 +201,7 @@ export const usePosStore = create<PosState>((set, get) => ({
         invoiceDate: formatDate(new Date()),
         institutionAddress: INSTITUTION_ADDRESS,
         institutionPhone: INSTITUTION_PHONE,
-        customerName: selectedCustomer?.customerName ?? undefined,
-        customerPhone: undefined,
+        customer: selectedCustomer,
         items: cart.map((item) => {
           const base = itemBasePrice(item);
           const tax = calcItemTax(item);
@@ -345,6 +345,7 @@ export const usePosStore = create<PosState>((set, get) => ({
 
   handleConfirmPayment: async ({ printKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers }) => {
     const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, selectedOrderId, handleReleaseHoldingOrder, resetCart } = get();
+    const branch = useBranchStore.getState().branch;
 
     const payments: CreateSalesOrder["payments"] = isHolding
       ? []
@@ -419,8 +420,9 @@ export const usePosStore = create<PosState>((set, get) => ({
           : totals.discountAmount;
 
         const invoiceData: InvoiceData = {
-          logoUrl: LOGO_URL,
+          logoUrl: branch?.imageUrl,
           invoiceNumber: `—`,
+          customer: selectedCustomer,
           institutionName: INSTITUTION_NAME,
           institutionTaxNumber: INSTITUTION_TAX_NO,
           invoiceDate: formatDate(new Date()),
