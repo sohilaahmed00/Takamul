@@ -115,7 +115,7 @@ const CreatePurchaseInvoice: React.FC = () => {
   }, [wareHouses]);
 
   useEffect(() => {
-    const supplierId = suppliers?.items[0]?.id;
+    const supplierId = suppliers?.items[suppliers.items?.length - 1]?.id;
     if (supplierId && !purchaseOrder) {
       form.setValue("supplierId", supplierId);
     }
