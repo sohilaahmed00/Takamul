@@ -300,7 +300,7 @@ export default function SalesReturnsReport() {
               <Column header={t("customer_name", "اسم العميل")} sortable field="customerName" />
               <Column header={t("invoice_status", "حالة الفاتورة")} sortable body={statusBodyTemplate} field="returnStatus" />
               <Column header={t("total_amount", "الإجمالي")} sortable field="grandTotal" body={(row) => <span className="font-bold">{fmt(row.grandTotal)}</span>} />
-              <Column header={t("refunded_amount", "المبلغ المرتجع")} sortable field="refundedAmount" body={(row) => <span className="font-bold text-slate-700">{fmt(row.refundedAmount)}</span>} />
+             
             </DataTable>
           </div>
         </CardContent>
