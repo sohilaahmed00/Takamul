@@ -364,6 +364,9 @@ export default function CartPanel() {
   const { notifyError, notifySuccess } = useToast();
   const { data: freeTables } = useGetAllTables();
   const navigate = useNavigate();
+  useEffect(() => {
+    console.log(cart);
+  }, [cart]);
 
   function ThemeIcon({ theme }: { theme: string }) {
     if (theme === "dark") return <Moon className="h-3.5 w-3.5" />;

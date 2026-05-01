@@ -37,7 +37,7 @@ const STATUS_MAP: Record<OrderStatusType, string | null> = {
 };
 
 export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
-  const { selectedCustomer, addToCart, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen, setOriginalItems } = usePosStore();
+  const { selectedCustomer, addToCart, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen, setOriginalItems, setDiscount } = usePosStore();
   const [selectedCustomerId, setSelectCustomerId] = useState<number | null>(null);
   const { data: customer } = useGetCustomerById(selectedCustomerId);
 
@@ -220,6 +220,11 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                 isNew: true,
                               }));
                               setOriginalItems(mappedItems);
+                              if (order) {
+                                if (order?.discountAmount) {
+                                  setDiscount({ type: "flat", value: order?.discountAmount });
+                                }
+                              }
                               mappedItems.forEach((item) => addToCart(item));
                               setOrderType(order?.orderType);
                               if (order.orderType === "InDine") {
@@ -256,7 +261,11 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                 isNew: true,
                               }));
                               setOriginalItems(mappedItems);
-
+                              if (order) {
+                                if (order?.discountAmount) {
+                                  setDiscount({ type: "flat", value: order?.discountAmount });
+                                }
+                              }
                               mappedItems.forEach((item) => addToCart(item));
                               setOrderType(order?.orderType);
                               if (order.orderType == "InDine") {
@@ -300,6 +309,11 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                 extras: [],
                               })),
                             );
+                            if (order) {
+                              if (order?.discountAmount) {
+                                setDiscount({ type: "flat", value: order?.discountAmount });
+                              }
+                            }
                             onOpenChange(false);
                             setCashierOpen(true);
                           }}
