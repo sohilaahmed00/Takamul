@@ -61,7 +61,7 @@ export default function RolesPage() {
       </CardHeader>
       <CardContent>
         <DataTable
-          value={roles?.data || []}
+          value={roles?.items || []}
           lazy
           paginator
           rows={entriesPerPage}
@@ -72,7 +72,7 @@ export default function RolesPage() {
             setCurrentPage(e.page + 1);
             setEntriesPerPage(e.rows);
           }}
-          loading={!roles?.data}
+          loading={!roles?.items}
           header={header}
           responsiveLayout="stack"
           className="custom-green-table custom-compact-table"
