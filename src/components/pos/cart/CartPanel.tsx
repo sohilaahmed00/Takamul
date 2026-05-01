@@ -844,7 +844,14 @@ export default function CartPanel() {
                 <Input value={discInput} onChange={(e) => setDiscInput(e.target.value)} className="flex-1 h-12 px-3 border border-gray-200 rounded-xl text-sm outline-none text-right font-semibold focus:border-primary/40 bg-white" placeholder="0" type="number" min="0" />
               </div>
               <div className="flex gap-2">
-                <Button size={"2xl"} className="flex-1" onClick={() => setActiveTab("add")} variant="destructive">
+                <Button
+                  size={"2xl"}
+                  className="flex-1"
+                  onClick={() => {
+                    (setActiveTab("add"), setDiscount({ type: "pct", value: 0 }));
+                  }}
+                  variant="destructive"
+                >
                   {t("cancel")}
                 </Button>
                 <Button size={"2xl"} className="flex-1" onClick={applyDiscount}>
