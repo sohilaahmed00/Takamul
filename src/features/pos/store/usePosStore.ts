@@ -28,8 +28,7 @@ interface PosState {
   cart: CartItem[];
 
   setCart: (cart: CartItem[] | ((prev: CartItem[]) => CartItem[])) => void;
-  addToCart: (item: AddToCartProduct) => void;
-
+  addToCart: (item: CartItem) => void;
   discount: { type: "pct" | "flat"; value: number };
   setDiscount: (d: { type: "pct" | "flat"; value: number }) => void;
 
@@ -150,36 +149,16 @@ export const usePosStore = create<PosState>((set, get) => ({
 
   addToCart: (product) =>
     set((state) => {
-      const existing = state.cart.find((i) => i.productId === product.id);
+      const existing = state.cart.find((i) => i.productId === product.productId);
 
       if (existing) {
         return {
-          cart: state.cart.map(
-            (i) => (i.productId === product.id ? { ...i, qty: i.qty + 1, isNew: true } : i), // ← لو زود كمية حاجة موجودة يبقى new
-          ),
+          cart: state.cart.map((i) => (i.productId === product.productId ? { ...i, qty: i.qty + 1, isNew: true } : i)),
         };
       }
 
       return {
-        cart: [
-          ...state.cart,
-          {
-            productId: product.id,
-            name: product.productNameAr,
-            productNameEn: product.productNameEn,
-            productNameUr: product.productNameUr,
-            price: product.sellingPrice,
-            qty: 1,
-            note: "",
-            op: null,
-            taxamount: product.taxAmount,
-            taxCalculation: product.taxCalculation,
-            itemDiscount: null,
-            taxPercentage: product?.taxPercentage,
-            isNew: true,
-            extras: [],
-          },
-        ],
+        cart: [...state.cart, { ...product, isNew: true }],
       };
     }),
 
@@ -447,9 +426,6 @@ export const usePosStore = create<PosState>((set, get) => ({
           invoiceDate: formatDate(new Date()),
           institutionAddress: INSTITUTION_ADDRESS,
           institutionPhone: INSTITUTION_PHONE,
-          customerName: selectedCustomer?.customerName ?? undefined,
-          invoiceName: selectedCustomer?.taxNumber ? "فاتورة ضريبية مبسطة" : "فاتورة ضريبية",
-          customerPhone: undefined,
           items: cart.map((item) => {
             const base = itemBasePrice(item);
             const tax = calcItemTax(item);

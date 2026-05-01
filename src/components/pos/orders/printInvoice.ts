@@ -1,5 +1,5 @@
-// printInvoice.ts — thermal 80mm — matches design exactly
-
+import { Customer } from "@/features/customers/types/customers.types";
+import { Supplier } from "@/features/suppliers/types/suppliers.types";
 import { printInvoicePrinter } from "@/lib/qzService";
 
 export interface InvoiceItem {
@@ -11,19 +11,18 @@ export interface InvoiceItem {
 }
 
 export interface InvoiceData {
+  id?: number | string;
   logoUrl?: string;
-  invoiceNumber: string;
+  invoiceNumber: string | number;
   institutionName: string;
+  customer: Customer;
+  supplier?: Supplier;
   institutionNameEn?: string;
   institutionTaxNumber: string;
   institutionCommercialRegister?: string;
-  invoiceName: string;
   invoiceDate: string;
   institutionAddress: string;
   institutionPhone: string;
-  customerName?: string;
-  customerPhone?: string;
-  customerAddress?: string;
   items: InvoiceItem[];
   subTotal: number;
   discountAmount: number;
@@ -327,14 +326,14 @@ html, body {
     <!-- Customer Name -->
     <div class="hrow">
       <span class="h-ar">اسم العميل</span>
-      <span class="h-val">${data.customerName ?? "—"}</span>
+      <span class="h-val">${data.customer?.customerName ?? "—"}</span>
       <span class="h-en">Cust Name</span>
     </div>
 
     <!-- Phone No -->
     <div class="hrow">
       <span class="h-ar">رقم الجوال</span>
-      <span class="h-val">${data.customerPhone ?? "—"}</span>
+      <span class="h-val">${data.customer?.phone ?? "—"}</span>
       <span class="h-en">Phone No</span>
     </div>
 

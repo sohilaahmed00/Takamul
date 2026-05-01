@@ -116,10 +116,10 @@ const CreatePurchaseInvoice: React.FC = () => {
 
   useEffect(() => {
     const supplierId = suppliers?.items[0]?.id;
-    if (supplierId) {
+    if (supplierId && !purchaseOrder) {
       form.setValue("supplierId", supplierId);
     }
-  }, [suppliers]);
+  }, [suppliers, purchaseOrder]);
   const {
     fields: itemFields,
     append: appendItem,
