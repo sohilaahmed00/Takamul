@@ -485,12 +485,12 @@ const GROUPS: Group[] = [
       {
         id: "customer_reports",
         label: "تقارير العملاء",
-        permissions: [{ id: "list", label: "تقرير العملاء", value: "التقارير.العملاء" }],
+        permissions: [{ id: "list", label: "تقرير كشف حساب عميل", value: "التقارير.العملاء" }],
       },
       {
         id: "supplier_reports",
         label: "تقارير الموردين",
-        permissions: [{ id: "list", label: "تقرير الموردين", value: "التقارير.الموردين" }],
+        permissions: [{ id: "list", label: "تقرير كشف حساب مورد", value: "التقارير.الموردين" }],
       },
       {
         id: "expenses_reports",
