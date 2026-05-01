@@ -302,7 +302,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission([...Object.values(Permissions?.suppliers), Object.values(Permissions?.supplierTransactions?.view)]) && <SidebarItem icon={Truck} label={t("suppliers")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "suppliers"} onClick={() => toggleSubmenu("suppliers")} />}
+          {hasAnyPermission([...Object.values(Permissions?.suppliers), Object.values(Permissions?.supplierTransactions)]) && <SidebarItem icon={Truck} label={t("suppliers")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "suppliers"} onClick={() => toggleSubmenu("suppliers")} />}
           <AnimatePresence>
             {openSubmenu === "suppliers" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
