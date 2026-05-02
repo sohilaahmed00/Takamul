@@ -85,7 +85,7 @@ export default function SupplierStatementReport() {
 
   const totalDebit = useMemo(() => statementData?.reduce((s, r) => s + (r.debit ?? 0), 0) ?? 0, [statementData]);
   const totalCredit = useMemo(() => statementData?.reduce((s, r) => s + (r.credit ?? 0), 0) ?? 0, [statementData]);
-  const totalBalance = useMemo(() => statementData?.[statementData.length - 1]?.balance ?? 0, [statementData]);
+  const totalBalance = useMemo(() => totalDebit - totalCredit, [totalDebit, totalCredit]);
 
   const selectedSupplierName = suppliersList.find((c) => String(c.id) === searchParams.supplierId)?.supplierName || "";
   const title = t("supplier_account_statement", "كشف حساب مورد");

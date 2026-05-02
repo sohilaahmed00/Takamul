@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { useQuery } from "@tanstack/react-query";
+import { getAllSettings } from "@/features/settings/services/settings";
+import { settingsKeys } from "@/features/settings/keys/settings.keys";
 
 export interface SystemSettings {
   site: {
@@ -230,7 +233,7 @@ const defaultSystemSettings: SystemSettings = {
     imageSize: { width: 800, height: 800 },
     thumbnailSize: { width: 150, height: 150 },
     watermark: false,
-    showWarehouseItems: "اظهار جميع الاصناف حتى لو رصيدها صفر",
+    showWarehouseItems: "إظهار جميع الأصناف حتى لو رصيدها صفر",
     barcodeSeparator: "( _ ) Underscore",
     barcodeStandard: "صورة",
     inventoryTransfer: "تكلفة",
@@ -244,9 +247,9 @@ const defaultSystemSettings: SystemSettings = {
     itemSerial: true,
     addItemMethod: "زيادة كمية البند، إذا كان موجوداً بالفعل في ..",
     cursorPosition: "اضافة منتج جديد",
-    defaultPaymentMethod: "شبكة",
+    defaultPaymentMethod: "",
     serialNameInInvoices: "",
-    defaultPurchasePaymentMethod: "آجل",
+    defaultPurchasePaymentMethod: "",
     enableQuickSearch: true,
     clearSearchFilters: true,
     enableMarketers: false,
@@ -388,19 +391,80 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [systemSettings, setSystemSettings] = useState<SystemSettings>(defaultSystemSettings);
   const [posSettings, setPOSSettings] = useState<POSSettings>(defaultPOSSettings);
 
+  const { data: apiSettings } = useQuery({
+    queryKey: settingsKeys.all,
+    queryFn: getAllSettings,
+  });
+
   useEffect(() => {
-    const savedSystem = localStorage.getItem("systemSettings");
+    if (apiSettings) {
+      setSystemSettings((prev) => ({
+        ...prev,
+        site: {
+          ...prev.site,
+          rowsPerPage: apiSettings.location?.rowsPerPage ?? prev.site.rowsPerPage,
+          showActualBalance: apiSettings.location?.showActualBalance ?? prev.site.showActualBalance,
+          showCostGreaterMsg: apiSettings.location?.showCostGreaterThanSalePriceMessage ?? prev.site.showCostGreaterMsg,
+          showItemCodeInSales: apiSettings.location?.showItemCodeInSalesPrint ?? prev.site.showItemCodeInSales,
+          showItemCodeInQuotes: apiSettings.location?.showItemCodeInQuotations ?? prev.site.showItemCodeInQuotes,
+          showItemCodeInPurchases: apiSettings.location?.showItemCodeInPurchases ?? prev.site.showItemCodeInPurchases,
+          defaultPaymentCompany: String(apiSettings.location?.defaultPaymentCompany ?? prev.site.defaultPaymentCompany),
+        },
+        items: {
+          ...prev.items,
+          itemTax: apiSettings.items?.itemTax ?? prev.items.itemTax,
+          itemExpiry: apiSettings.items?.itemExpiry ?? prev.items.itemExpiry,
+          showWarehouseItems: apiSettings.items?.showWarehouseItems ? "إظهار جميع الأصناف حتى لو رصيدها صفر" : "عدم إظهار جميع الأصناف حتى لو رصيدها صفر",
+          enableSecondLangName: apiSettings.items?.enableSecondLanguageItemName ?? prev.items.enableSecondLangName,
+          showProductBalanceAtSale: apiSettings.items?.showProductBalanceAtSale ?? prev.items.showProductBalanceAtSale,
+        },
+        sales: {
+          ...prev.sales,
+          sellIfZero: apiSettings.sales?.allowSaleWithZeroStock ?? prev.sales.sellIfZero,
+          defaultPaymentMethod: String(apiSettings.sales?.defaultSalesVault ?? prev.sales.defaultPaymentMethod),
+          defaultPurchasePaymentMethod: String(apiSettings.sales?.defaultPurchasesVault ?? prev.sales.defaultPurchasePaymentMethod),
+          showOrderDeviceNumber: apiSettings.sales?.showOrderDeviceNumber ?? prev.sales.showOrderDeviceNumber,
+        },
+        tobacco: {
+          tobaccoFees: apiSettings.tobaccoFees?.tobaccoFees ?? prev.tobacco.tobaccoFees,
+        },
+        barcode: {
+          ...prev.barcode,
+          type: apiSettings.barcodeScale?.barcodeType === 1 ? "الوزن/الكمية" : prev.barcode.type,
+          totalCharacters: apiSettings.barcodeScale?.barcodeTotalCharacters ?? prev.barcode.totalCharacters,
+          flagCharacters: String(apiSettings.barcodeScale?.barcodeFlagCharacters ?? prev.barcode.flagCharacters),
+          codeStart: apiSettings.barcodeScale?.barcodeStartPosition ?? prev.barcode.codeStart,
+          codeLength: apiSettings.barcodeScale?.barcodeCodeCharactersCount ?? prev.barcode.codeLength,
+          weightStart: apiSettings.barcodeScale?.barcodeWeightStartPosition ?? prev.barcode.weightStart,
+          weightLength: apiSettings.barcodeScale?.barcodeWeightCharactersCount ?? prev.barcode.weightLength,
+          weightDivider: apiSettings.barcodeScale?.barcodeDivideWeightBy ?? prev.barcode.weightDivider,
+        }
+      }));
+    }
+  }, [apiSettings]);
+
+  useEffect(() => {
+    // Only load POS settings from localStorage as they aren't in the API yet
     const savedPOS = localStorage.getItem("posSettings");
-    if (savedSystem) setSystemSettings(JSON.parse(savedSystem));
     if (savedPOS) setPOSSettings(JSON.parse(savedPOS));
   }, []);
 
   const updateSystemSettings = (settings: Partial<SystemSettings>) => {
-    setSystemSettings((prev) => ({ ...prev, ...settings }));
+    setSystemSettings((prev) => {
+      const next = { ...prev, ...settings };
+      // Optional: you can still save to localStorage if you want, 
+      // but API data will overwrite it on next refresh for shared fields.
+      localStorage.setItem("systemSettings", JSON.stringify(next));
+      return next;
+    });
   };
 
   const updatePOSSettings = (settings: Partial<POSSettings>) => {
-    setPOSSettings((prev) => ({ ...prev, ...settings }));
+    setPOSSettings((prev) => {
+      const next = { ...prev, ...settings };
+      localStorage.setItem("posSettings", JSON.stringify(next));
+      return next;
+    });
   };
 
   const saveSettings = () => {

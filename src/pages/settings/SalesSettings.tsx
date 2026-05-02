@@ -88,11 +88,11 @@ export default function SalesSettings() {
             <Field>
               <FieldLabel className="gap-x-0">{t("default_sales_payment_method")} <span className="text-red-500">*</span></FieldLabel>
               <Select 
-                value={String(systemSettings.sales.defaultPaymentMethod)} 
+                value={systemSettings.sales.defaultPaymentMethod || ""} 
                 onValueChange={(val) => handleUpdate("defaultPaymentMethod", val)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t("select_treasury") || "اختر الخزينة"} />
+                  <SelectValue placeholder={!treasuries ? t("loading") : (t("select_treasury") || "اختر الخزينة")} />
                 </SelectTrigger>
                 <SelectContent>
                   {treasuries?.map((treasury) => (
@@ -107,11 +107,11 @@ export default function SalesSettings() {
             <Field>
               <FieldLabel className="gap-x-0">{t("default_purchase_payment_method")} <span className="text-red-500">*</span></FieldLabel>
               <Select 
-                value={String(systemSettings.sales.defaultPurchasePaymentMethod)} 
+                value={systemSettings.sales.defaultPurchasePaymentMethod || ""} 
                 onValueChange={(val) => handleUpdate("defaultPurchasePaymentMethod", val)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t("select_treasury") || "اختر الخزينة"} />
+                  <SelectValue placeholder={!treasuries ? t("loading") : (t("select_treasury") || "اختر الخزينة")} />
                 </SelectTrigger>
                 <SelectContent>
                   {treasuries?.map((treasury) => (
