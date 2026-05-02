@@ -6,30 +6,72 @@ import { SettingsResponse } from "../types/settings.types";
 // ===================
 
 export const getAllSettings = () => httpClient<SettingsResponse>(`/Settings`);
-// export const getCategoryClient = (idOrSlug: string | number) =>
-//   httpClient<Category>(`/categories/${idOrSlug}`);
 
 // ===================
-// MUTATIONS (Dashboard)
-// // ===================
+// MUTATIONS
+// ===================
 
-// export const createSalesOrders = (data: CreateSalesOrder) =>
-//   httpClient<{ message: string }>("/sales-orders/a4", {
-//     method: "POST",
-//     data,
-//   });
+export const updateTobaccoFees = (data: { tobaccoFees: number }) =>
+  httpClient("/Settings/tobacco", {
+    method: "PUT",
+    data,
+  });
 
-// export const updateCategory = (id: number, data: CreateCategory) =>
-//   httpClient<CreateResponse>(`/blog/category/${id}`, {
-//     method: "PUT",
-//     data,
-//   });
+export const updateGeneralSettings = (data: { topDataStatus: boolean; image: string }) =>
+  httpClient("/Settings/general", {
+    method: "PUT",
+    data,
+  });
 
-// export const deleteCategory = (id: number) =>
-//   httpClient<void>(`/blog/category/${id}`, {
-//     method: "DELETE",
-//   });
+export const updateSiteSettings = (data: {
+  rowsPerPage: number;
+  defaultPaymentCompany: number;
+  showActualBalance: boolean;
+  showCostGreaterThanSalePriceMessage: boolean;
+  showItemCodeInSalesPrint: boolean;
+  showItemCodeInQuotations: boolean;
+  showItemCodeInPurchases: boolean;
+}) =>
+  httpClient("/Settings/Site", {
+    method: "PUT",
+    data,
+  });
 
-// export function getSalesOrderById(id: number) {
-//   return httpClient<SalesOrder>(`/sales-orders/${id}`);
-// }
+export const updateItemsSettings = (data: {
+  itemTax: boolean;
+  itemExpiry: boolean;
+  showWarehouseItems: boolean;
+  enableSecondLanguageItemName: boolean;
+  showProductBalanceAtSale: boolean;
+  allowPriceChangeOnSale: boolean;
+}) =>
+  httpClient("/Settings/items", {
+    method: "PUT",
+    data,
+  });
+
+export const updateSalesSettings = (data: {
+  allowSaleWithZeroStock: boolean;
+  defaultSalesVault: number;
+  defaultPurchasesVault: number;
+  showOrderDeviceNumber: boolean;
+}) =>
+  httpClient("/Settings/sales", {
+    method: "PUT",
+    data,
+  });
+
+export const updateBarcodeSettings = (data: {
+  barcodeType: number;
+  barcodeTotalCharacters: number;
+  barcodeFlagCharacters: number;
+  barcodeStartPosition: number;
+  barcodeCodeCharactersCount: number;
+  barcodeWeightStartPosition: number;
+  barcodeWeightCharactersCount: number;
+  barcodeDivideWeightBy: number;
+}) =>
+  httpClient("/Settings/barcode", {
+    method: "PUT",
+    data,
+  });

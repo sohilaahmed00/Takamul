@@ -1,13 +1,12 @@
 import React from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings } from "@/context/SettingsContext";
-import { Mail, Save } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import ComboboxField from "@/components/ui/ComboboxField";
 import { Input } from "@/components/ui/input";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function EmailSettings() {
   const { t } = useLanguage();
@@ -47,11 +46,14 @@ export default function EmailSettings() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
             <Field>
               <FieldLabel className="gap-x-0">{t("email_protocol")} <span className="text-red-500">*</span></FieldLabel>
-              <ComboboxField
-                items={["SMTP"]}
-                value={systemSettings.email.protocol}
-                onValueChange={(val) => handleUpdate("protocol", val)}
-              />
+              <Select value={systemSettings.email.protocol} onValueChange={(val) => handleUpdate("protocol", val)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SMTP">SMTP</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
 
             <Field>
@@ -76,11 +78,15 @@ export default function EmailSettings() {
 
             <Field>
               <FieldLabel className="gap-x-0">{t("smtp_encryption")}</FieldLabel>
-              <ComboboxField
-                items={["SSL", "TLS"]}
-                value={systemSettings.email.smtpEncryption}
-                onValueChange={(val) => handleUpdate("smtpEncryption", val)}
-              />
+              <Select value={systemSettings.email.smtpEncryption} onValueChange={(val) => handleUpdate("smtpEncryption", val)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="SSL">SSL</SelectItem>
+                  <SelectItem value="TLS">TLS</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
           </div>
 

@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import type { GetAllTaxesResponse } from "../types/suppliers.types";
+import type { GetAllTaxesResponse, Tax, CreateTax } from "../types/taxes.types";
 
 // ===================
 // GET
@@ -7,30 +7,27 @@ import type { GetAllTaxesResponse } from "../types/suppliers.types";
 
 export const getAllTaxes = () => httpClient<GetAllTaxesResponse>("/Taxes");
 
-// export const getCategoryClient = (idOrSlug: string | number) =>
-//   httpClient<Category>(`/categories/${idOrSlug}`);
+export function getTaxById(id: number) {
+  return httpClient<Tax>(`/Taxes/${id}`);
+}
 
 // ===================
-// MUTATIONS (Dashboard)
-// // ===================
+// MUTATIONS
+// ===================
 
-// export const createSuppliers = (data: createSupplier) =>
-//   httpClient<GetAllSuppliersResponse>("/Suppliers", {
-//     method: "POST",
-//     data,
-//   });
+export const createTax = (data: CreateTax) =>
+  httpClient<Tax>("/Taxes", {
+    method: "POST",
+    data,
+  });
 
-// export const updateSupplier = (id: number, data: createSupplier) =>
-//   httpClient<Supplier>(`/Suppliers/${id}`, {
-//     method: "PUT",
-//     data,
-//   });
+export const updateTax = (id: number, data: CreateTax) =>
+  httpClient<Tax>(`/Taxes/${id}`, {
+    method: "PUT",
+    data,
+  });
 
-// export const deleteSupplier = (id: number) =>
-//   httpClient<string>(`/Suppliers/${id}`, {
-//     method: "DELETE",
-//   });
-
-// export function getSupplierById(id: number) {
-//   return httpClient<Supplier>(`/Suppliers/${id}`);
-// }
+export const deleteTax = (id: number) =>
+  httpClient<void>(`/Taxes/${id}`, {
+    method: "DELETE",
+  });

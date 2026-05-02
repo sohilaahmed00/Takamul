@@ -115,6 +115,9 @@ export interface SystemSettings {
     headerStatus: boolean;
     headerImage: string;
   };
+  tobacco: {
+    tobaccoFees: number;
+  };
   salesPrint: {
     printHeader: boolean;
     headerImage: string;

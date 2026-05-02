@@ -6,25 +6,26 @@ import { Column } from "primereact/column";
 import { Button } from "@/components/ui/button";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { DeliveryCompany } from "@/features/delivery-companies/types/delivery-companies.types";
-import AddDeliveryCompanyModal from "@/components/modals/AddDeliveryCompanyModal";
-import { useDeleteDeliveryCompany } from "@/features/delivery-companies/hooks/useDeleteDeliveryCompany";
-import { useGetAllDeliveryCompanies } from "@/features/delivery-companies/hooks/useGetAllDeliveryCompanies";
+import { Tax } from "@/features/taxes/types/taxes.types";
+import AddTaxModal from "@/components/modals/AddTaxModal.tsx";
+import { useDeleteTax } from "@/features/taxes/hooks/useDeleteTax";
+import { useGetAllTaxes } from "@/features/taxes/hooks/useGetAllTaxes";
 
-const DeliveryCompanies: React.FC = () => {
+export default function TaxesList() {
   const { t, direction } = useLanguage();
 
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<number | undefined>();
-  const { mutate: deleteCompany } = useDeleteDeliveryCompany();
+  const [selectedTax, setSelectedTax] = useState<number | undefined>();
+  const { mutate: deleteTax } = useDeleteTax();
 
-  const { data: companiesResponse, isLoading } = useGetAllDeliveryCompanies({
-    SearchTerm: globalFilterValue,
-    PageSize: 100, // For now, simple list
-  });
+  const { data: taxes, isLoading } = useGetAllTaxes();
 
-  const companies = companiesResponse?.data?.items || [];
+  const filteredTaxes = useMemo(() => {
+    if (!taxes) return [];
+    if (!globalFilterValue) return taxes;
+    return taxes.filter((tax) => tax.name.toLowerCase().includes(globalFilterValue.toLowerCase()));
+  }, [taxes, globalFilterValue]);
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGlobalFilterValue(e.target.value);
@@ -47,34 +48,35 @@ const DeliveryCompanies: React.FC = () => {
     <div className="p-4 space-y-4" dir={direction}>
       <Card>
         <CardHeader>
-          <CardTitle>{t("delivery_companies", "شركات التوصيل")}</CardTitle>
+          <CardTitle>{t("tax_list", "قائمة الضرايب")}</CardTitle>
           <CardDescription>{t("customize_report_below", "يمكنك تخصيص التقرير أدناه")}</CardDescription>
           <CardAction>
             <Button size="xl" variant="default" onClick={() => setIsAddModalOpen(true)}>
               <Plus size={20} />
-              {t("add_delivery_company", "إضافة شركة توصيل")}
+              {t("add_tax", "إضافة ضريبة")}
             </Button>
           </CardAction>
         </CardHeader>
         <CardContent>
-          <DataTable value={companies} loading={isLoading} header={header} paginator rows={10} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" stripedRows={false}>
+          <DataTable value={filteredTaxes} loading={isLoading} header={header} paginator rows={10} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" stripedRows={false}>
             <Column field="id" header={"#"} sortable style={{ width: "10%" }} />
-            <Column field="name" header={t("company_name", "اسم الشركة")} sortable style={{ width: "65%" }} />
+            <Column field="name" header={t("tax_name", "اسم الضريبة")} sortable style={{ width: "40%" }} />
+            <Column field="amount" header={t("tax_amount", "القيمة")} sortable style={{ width: "25%" }} body={(tax: Tax) => <span>{tax.amount}%</span>} />
             <Column
-              header={t("actions", "عمليات")}
+              header={t("promotion_actions", "الإجراءات")}
               style={{ width: "25%" }}
-              body={(company: DeliveryCompany) => (
+              body={(tax: Tax) => (
                 <div className="space-x-2 flex items-center">
                   <button
                     onClick={() => {
-                      setSelectedCompany(company.id);
+                      setSelectedTax(tax.id);
                       setIsAddModalOpen(true);
                     }}
                     className="btn-minimal-action"
                   >
                     <Edit2 size={16} />
                   </button>
-                  <button onClick={() => deleteCompany(company.id)} className="btn-minimal-action">
+                  <button onClick={() => deleteTax(tax.id)} className="btn-minimal-action">
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -84,16 +86,14 @@ const DeliveryCompanies: React.FC = () => {
         </CardContent>
       </Card>
 
-      <AddDeliveryCompanyModal
-        company={companies.find((c) => c.id === selectedCompany)}
+      <AddTaxModal
+        tax={taxes?.find((t) => t.id === selectedTax)}
         isOpen={isAddModalOpen}
         onClose={() => {
           setIsAddModalOpen(false);
-          setSelectedCompany(undefined);
+          setSelectedTax(undefined);
         }}
       />
     </div>
   );
-};
-
-export default DeliveryCompanies;
+}
