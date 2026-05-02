@@ -212,10 +212,10 @@ html, body {
   font-weight: 900;
 }
 
-.totals-table tr:last-child td {
-  font-size: 8pt;
-  font-weight: 900;
-}
+// .totals-table tr:last-child td {
+//   font-size: 8pt;
+//   font-weight: 900;
+// }
 
 /* ── FOOTER ROWS ── */
 .frow {
