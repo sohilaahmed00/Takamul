@@ -60,7 +60,7 @@ export default function TablesList() {
           </CardAction>
         </CardHeader>
         <CardContent>
-          <DataTable value={filteredTables} loading={isLoading} header={header} paginator rows={10} rowsPerPageOptions={[5, 10, 25]} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" stripedRows={false}>
+          <DataTable value={filteredTables} loading={isLoading} header={header} paginator rows={10} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" stripedRows={false}>
             <Column field="id" header={t("id")} sortable style={{ width: "10%" }} />
             <Column field="tableName" header={"اسم الطاولة"} sortable style={{ width: "40%" }} />
             <Column header={t("status")} style={{ width: "25%" }} body={statusBody} />

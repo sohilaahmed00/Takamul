@@ -4,9 +4,8 @@ import { useSettings, type SystemSettings } from "@/context/SettingsContext";
 import { Settings, Star, Percent, FileText, Printer, Save, Truck, Coins, Users, DollarSign, Grid3x3, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import ComboboxField from "@/components/ui/ComboboxField";
 import { Input } from "@/components/ui/input";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Upload, X } from "lucide-react";
 import { FileUpload, FileUploadDropzone, FileUploadTrigger, FileUploadList, FileUploadItem, FileUploadItemPreview, FileUploadItemMetadata, FileUploadItemDelete } from "@/components/ui/file-upload";
@@ -16,6 +15,11 @@ import Currencies from "./Currencies";
 import CustomerGroups from "./CustomerGroups";
 import PriceGroups from "./PriceGroups";
 import TablesList from "./Tables";
+import TaxesList from "./TaxesList";
+import { useUpdateTobaccoFees } from "@/features/settings/hooks/useUpdateTobaccoFees";
+import { useUpdateGeneralSettings } from "@/features/settings/hooks/useUpdateSettings";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Field, FieldLabel } from "@/components/ui/field";
 
 interface SettingSectionProps {
   id: string;
@@ -54,6 +58,8 @@ export default function SystemSettings() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
   const { systemSettings, updateSystemSettings, saveSettings } = useSettings();
+  const { mutate: updateTobaccoFees } = useUpdateTobaccoFees();
+  const { mutate: updateGeneral } = useUpdateGeneralSettings();
   const [activeSection, setActiveSection] = React.useState("points");
   const [headerImageFiles, setHeaderImageFiles] = React.useState<File[]>([]);
 
@@ -160,26 +166,45 @@ export default function SystemSettings() {
             )}
 
             {activeSection === "tobacco" && (
-              <SettingSection id="tobacco" title={t("tobacco_fees", "رسوم التبغ")} hideSave>
-                <div className="min-h-[300px] flex items-center justify-center">
-                  <div className="text-center p-8 rounded-2xl bg-[var(--bg-main)]/50 border border-dashed border-[var(--border)] max-w-sm mx-auto">
-                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Percent size={32} className="text-gray-400" />
+              <SettingSection id="tobacco" title={t("tobacco_fees", "رسوم التبغ")} onSave={() => {
+                updateTobaccoFees({ tobaccoFees: systemSettings.tobacco?.tobaccoFees || 0 });
+              }}>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-4">
+                    <h3 className="font-bold text-[var(--text-main)]">{t("tobacco_tax", "ضريبه التبغ")}</h3>
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <label className="block text-xs text-[var(--text-muted)] mb-1">{t("tobacco_tax_value", "قيمة ضريبة التبغ")}</label>
+                        <Input 
+                          type="number" 
+                          value={systemSettings.tobacco?.tobaccoFees || 0} 
+                          onChange={(e) => handleUpdate("tobacco" as any, "tobaccoFees", parseFloat(e.target.value))} 
+                          className="w-full p-2 border border-[var(--border)] rounded-lg bg-[var(--input-bg)] text-[var(--text-main)]" 
+                        />
+                      </div>
                     </div>
-                    <h3 className="text-lg font-bold text-[var(--text-main)] mb-2">{t("tobacco_fees", "رسوم التبغ")}</h3>
-                    <p className="text-[var(--text-muted)] font-medium">{t("not_determined_yet", "لم يتم التحديد بعد")}</p>
                   </div>
                 </div>
               </SettingSection>
             )}
 
             {activeSection === "reports" && (
-              <SettingSection id="reports" title={t("report_settings", "إعدادات التقارير")} onSave={handleSave}>
+              <SettingSection id="reports" title={t("report_settings", "إعدادات التقارير")} onSave={() => {
+                updateGeneral({ topDataStatus: systemSettings.reports.headerStatus, image: systemSettings.reports.headerImage });
+              }}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-[var(--text-main)] mb-1">حالة الترويسة العلوية</label>
-                    <ComboboxField items={["إظهار", "إخفاء"]} value={systemSettings.reports.headerStatus ? "إظهار" : "إخفاء"} onValueChange={(val) => handleUpdate("reports", "headerStatus", val === "إظهار")} />
-                  </div>
+                  <Field>
+                    <FieldLabel className="text-sm font-medium text-[var(--text-main)] mb-1">حالة الترويسة العلوية</FieldLabel>
+                    <Select value={systemSettings.reports.headerStatus ? "إظهار" : "إخفاء"} onValueChange={(val) => handleUpdate("reports", "headerStatus", val === "إظهار")}>
+                      <SelectTrigger className="w-full h-11">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="إظهار">إظهار</SelectItem>
+                        <SelectItem value="إخفاء">إخفاء</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </Field>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-main)] mb-1">صورة الترويسة العلوية Max( 2500px w * 600px h)</label>
                     <div className="mt-2">
@@ -256,11 +281,7 @@ export default function SystemSettings() {
             )}
 
 
-            {activeSection === "delivery" && (
-              <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
-                <DeliveryCompanies />
-              </div>
-            )}
+            {activeSection === "delivery" && <DeliveryCompanies />}
 
             {activeSection === "currencies" && (
               <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
@@ -280,19 +301,7 @@ export default function SystemSettings() {
               </div>
             )}
 
-            {activeSection === "taxes" && (
-              <SettingSection id="taxes" title={t("tax_list", "قائمة الضرايب")} hideSave>
-                <div className="min-h-[300px] flex items-center justify-center">
-                  <div className="text-center p-8 rounded-2xl bg-[var(--bg-main)]/50 border border-dashed border-[var(--border)] max-w-sm mx-auto">
-                    <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Percent size={32} className="text-gray-400" />
-                    </div>
-                    <h3 className="text-lg font-bold text-[var(--text-main)] mb-2">{t("tax_list", "قائمة الضرايب")}</h3>
-                    <p className="text-[var(--text-muted)] font-medium">{t("not_determined_yet", "لم يتم التحديد بعد")}</p>
-                  </div>
-                </div>
-              </SettingSection>
-            )}
+            {activeSection === "taxes" && <TaxesList />}
 
             {activeSection === "tables" && <TablesList />}
           </div>

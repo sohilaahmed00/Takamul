@@ -1,18 +1,19 @@
 import React from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings } from "@/context/SettingsContext";
-import { Barcode, Save } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import ComboboxField from "@/components/ui/ComboboxField";
 import { Input } from "@/components/ui/input";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUpdateBarcodeSettings } from "@/features/settings/hooks/useUpdateSettings";
 
 export default function BarcodeSettings() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { systemSettings, updateSystemSettings, saveSettings } = useSettings();
+  const { systemSettings, updateSystemSettings } = useSettings();
+  const { mutate: updateBarcode } = useUpdateBarcodeSettings();
 
   const handleUpdate = (field: string, value: any) => {
     updateSystemSettings({
@@ -20,6 +21,19 @@ export default function BarcodeSettings() {
         ...(systemSettings.barcode as any),
         [field]: value,
       },
+    });
+  };
+
+  const onSave = () => {
+    updateBarcode({
+      barcodeType: 0, // Defaulting as types are numeric in API
+      barcodeTotalCharacters: systemSettings.barcode.totalCharacters,
+      barcodeFlagCharacters: parseInt(systemSettings.barcode.flagCharacters) || 0,
+      barcodeStartPosition: systemSettings.barcode.codeStart,
+      barcodeCodeCharactersCount: systemSettings.barcode.codeLength,
+      barcodeWeightStartPosition: systemSettings.barcode.weightStart,
+      barcodeWeightCharactersCount: systemSettings.barcode.weightLength,
+      barcodeDivideWeightBy: systemSettings.barcode.weightDivider,
     });
   };
 
@@ -47,11 +61,14 @@ export default function BarcodeSettings() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
             <Field>
               <FieldLabel className="gap-x-0">{t("barcode_type")}</FieldLabel>
-              <ComboboxField
-                items={[t("weight_qty_type") || "الوزن/الكمية"]}
-                value={systemSettings.barcode.type === "الوزن/الكمية" ? (t("weight_qty_type") || "الوزن/الكمية") : systemSettings.barcode.type}
-                onValueChange={(val) => handleUpdate("type", "الوزن/الكمية")}
-              />
+              <Select value={systemSettings.barcode.type} onValueChange={(val) => handleUpdate("type", val)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="الوزن/الكمية">{t("weight_qty_type") || "الوزن/الكمية"}</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
 
             <Field>
@@ -95,7 +112,7 @@ export default function BarcodeSettings() {
               إلغاء
             </Button>
             <div className="flex flex-col-reverse lg:flex-row items-center gap-3 w-full lg:w-auto">
-              <Button size="lg" type="button" onClick={saveSettings} className="w-full lg:w-auto px-8 h-12 text-base">
+              <Button size="lg" type="button" onClick={onSave} className="w-full lg:w-auto px-8 h-12 text-base">
                 {t("save_settings") || "حفظ الإعدادات"}
               </Button>
             </div>

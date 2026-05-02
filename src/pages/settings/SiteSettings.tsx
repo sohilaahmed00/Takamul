@@ -1,49 +1,40 @@
 import React from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useNavigate } from "react-router-dom";
-import { useSettingsStore } from "@/features/settings/store/settingsStore";
-
 import { useForm, Controller } from "react-hook-form";
-
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
-
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { useUpdateSiteSettings } from "@/features/settings/hooks/useUpdateSettings";
+import { useSettings } from "@/context/SettingsContext";
 
 export default function SiteSettings() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-
-  const settings = useSettingsStore((state) => state?.settings);
+  const { systemSettings } = useSettings();
+  const { mutate: updateSite } = useUpdateSiteSettings();
 
   const enableStr = t("enable_option") || "تمكين";
   const disableStr = t("disable_option") || "تعطيل";
 
   const { control, handleSubmit } = useForm({
     defaultValues: {
-      rowsPerPage: settings?.location?.rowsPerPage ?? 10,
-      defaultPaymentCompany: settings?.location?.defaultPaymentCompany ?? "",
-
-      showActualBalance: settings?.location?.showActualBalance ?? true,
-
-      showCostGreaterThanSalePriceMessage: settings?.location?.showCostGreaterThanSalePriceMessage ?? true,
-
-      showItemCodeInSalesPrint: settings?.location?.showItemCodeInSalesPrint ?? true,
-
-      showItemCodeInQuotations: settings?.location?.showItemCodeInQuotations ?? true,
-
-      showItemCodeInPurchases: settings?.location?.showItemCodeInPurchases ?? true,
+      rowsPerPage: systemSettings.site.rowsPerPage,
+      defaultPaymentCompany: 0,
+      showActualBalance: systemSettings.site.showActualBalance,
+      showCostGreaterThanSalePriceMessage: systemSettings.site.showCostGreaterMsg,
+      showItemCodeInSalesPrint: systemSettings.site.showItemCodeInSales,
+      showItemCodeInQuotations: systemSettings.site.showItemCodeInQuotes,
+      showItemCodeInPurchases: systemSettings.site.showItemCodeInPurchases,
     },
   });
 
   const onSubmit = (data: any) => {
-    console.log(data);
+    updateSite(data);
   };
 
   const booleanToString = (val: boolean) => (val ? enableStr : disableStr);
-
   const stringToBoolean = (val: string) => val === enableStr;
 
   return (
@@ -63,12 +54,10 @@ export default function SiteSettings() {
               render={({ field }) => (
                 <Field>
                   <FieldLabel>{t("rows_per_page")} *</FieldLabel>
-
                   <Select value={String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
-
                     <SelectContent>
                       {[10, 25, 50].map((num) => (
                         <SelectItem key={num} value={String(num)}>
@@ -88,12 +77,10 @@ export default function SiteSettings() {
               render={({ field }) => (
                 <Field>
                   <FieldLabel>{t("show_actual_balance_entities")} *</FieldLabel>
-
                   <Select value={booleanToString(field.value)} onValueChange={(val) => field.onChange(stringToBoolean(val))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
-
                     <SelectContent>
                       <SelectItem value={enableStr}>{enableStr}</SelectItem>
                       <SelectItem value={disableStr}>{disableStr}</SelectItem>
@@ -110,12 +97,10 @@ export default function SiteSettings() {
               render={({ field }) => (
                 <Field>
                   <FieldLabel>{t("show_cost_greater_msg")} *</FieldLabel>
-
                   <Select value={booleanToString(field.value)} onValueChange={(val) => field.onChange(stringToBoolean(val))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
-
                     <SelectContent>
                       <SelectItem value={enableStr}>{enableStr}</SelectItem>
                       <SelectItem value={disableStr}>{disableStr}</SelectItem>
@@ -132,12 +117,10 @@ export default function SiteSettings() {
               render={({ field }) => (
                 <Field>
                   <FieldLabel>{t("show_item_code_in_sales_print")} *</FieldLabel>
-
                   <Select value={booleanToString(field.value)} onValueChange={(val) => field.onChange(stringToBoolean(val))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
-
                     <SelectContent>
                       <SelectItem value={enableStr}>{enableStr}</SelectItem>
                       <SelectItem value={disableStr}>{disableStr}</SelectItem>
@@ -154,12 +137,10 @@ export default function SiteSettings() {
               render={({ field }) => (
                 <Field>
                   <FieldLabel>{t("show_item_code_in_quotes")} *</FieldLabel>
-
                   <Select value={booleanToString(field.value)} onValueChange={(val) => field.onChange(stringToBoolean(val))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
-
                     <SelectContent>
                       <SelectItem value={enableStr}>{enableStr}</SelectItem>
                       <SelectItem value={disableStr}>{disableStr}</SelectItem>
@@ -176,12 +157,10 @@ export default function SiteSettings() {
               render={({ field }) => (
                 <Field>
                   <FieldLabel>{t("show_item_code_in_purchases")} *</FieldLabel>
-
                   <Select value={booleanToString(field.value)} onValueChange={(val) => field.onChange(stringToBoolean(val))}>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue />
                     </SelectTrigger>
-
                     <SelectContent>
                       <SelectItem value={enableStr}>{enableStr}</SelectItem>
                       <SelectItem value={disableStr}>{disableStr}</SelectItem>
@@ -192,12 +171,10 @@ export default function SiteSettings() {
             />
           </div>
 
-          {/* Buttons */}
           <div className="flex flex-col-reverse lg:flex-row justify-between py-4 border px-3 gap-3 rounded border-gray-100 mt-8">
             <Button size="lg" variant="destructive" type="button" className="w-full lg:w-auto px-8 h-12" onClick={() => navigate(-1)}>
               إلغاء
             </Button>
-
             <Button size="lg" type="submit" className="w-full lg:w-auto px-8 h-12 text-base">
               {t("save_settings") || "حفظ الإعدادات"}
             </Button>

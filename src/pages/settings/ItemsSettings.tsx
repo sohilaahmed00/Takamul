@@ -1,17 +1,18 @@
 import React from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings } from "@/context/SettingsContext";
-import { Package, Save } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import ComboboxField from "@/components/ui/ComboboxField";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Field, FieldLabel } from "@/components/ui/field";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUpdateItemsSettings } from "@/features/settings/hooks/useUpdateSettings";
 
 export default function ItemsSettings() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { systemSettings, updateSystemSettings, saveSettings } = useSettings();
+  const { systemSettings, updateSystemSettings } = useSettings();
+  const { mutate: updateItems } = useUpdateItemsSettings();
 
   const handleUpdate = (field: string, value: any) => {
     updateSystemSettings({
@@ -22,9 +23,19 @@ export default function ItemsSettings() {
     });
   };
 
+  const onSave = () => {
+    updateItems({
+      itemTax: systemSettings.items.itemTax,
+      itemExpiry: systemSettings.items.itemExpiry,
+      showWarehouseItems: systemSettings.items.showWarehouseItems === "إظهار جميع الأصناف حتى لو رصيدها صفر",
+      enableSecondLanguageItemName: systemSettings.items.enableSecondLangName,
+      showProductBalanceAtSale: systemSettings.items.showProductBalanceAtSale,
+      allowPriceChangeOnSale: true, // Defaulting to true as it might be required by API
+    });
+  };
+
   const enableStr = t("enable_option") || "تمكين";
   const disableStr = t("disable_option") || "تعطيل";
-  const booleanItems = [enableStr, disableStr];
 
   return (
     <div className="space-y-4 pb-24">
@@ -50,56 +61,67 @@ export default function ItemsSettings() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
             <Field>
               <FieldLabel className="gap-x-0">{t("settings_item_tax")} <span className="text-red-500">*</span></FieldLabel>
-              <ComboboxField
-                items={booleanItems}
-                value={systemSettings.items.itemTax ? enableStr : disableStr}
-                onValueChange={(val) => handleUpdate("itemTax", val === enableStr)}
-              />
+              <Select value={systemSettings.items.itemTax ? enableStr : disableStr} onValueChange={(val) => handleUpdate("itemTax", val === enableStr)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
+                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
 
             <Field>
               <FieldLabel className="gap-x-0">{t("item_expiry_setting")} <span className="text-red-500">*</span></FieldLabel>
-              <ComboboxField
-                items={booleanItems}
-                value={systemSettings.items.itemExpiry ? enableStr : disableStr}
-                onValueChange={(val) => handleUpdate("itemExpiry", val === enableStr)}
-              />
+              <Select value={systemSettings.items.itemExpiry ? enableStr : disableStr} onValueChange={(val) => handleUpdate("itemExpiry", val === enableStr)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
+                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
 
             <Field>
               <FieldLabel className="gap-x-0">{t("show_warehouse_items_setting")} <span className="text-red-500">*</span></FieldLabel>
-              <ComboboxField
-                items={[t("show_all_items_even_zero") || "إظهار جميع الأصناف حتى لو رصيدها صفر", t("hide_all_items_if_zero") || "عدم إظهار جميع الأصناف حتى لو رصيدها صفر"]}
-                value={systemSettings.items.showWarehouseItems}
-                onValueChange={(val) => handleUpdate("showWarehouseItems", val)}
-              />
+              <Select value={systemSettings.items.showWarehouseItems} onValueChange={(val) => handleUpdate("showWarehouseItems", val)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="إظهار جميع الأصناف حتى لو رصيدها صفر">{t("show_all_items_even_if_balance_is_zero")}</SelectItem>
+                  <SelectItem value="عدم إظهار جميع الأصناف حتى لو رصيدها صفر">{t("dont_show_all_items_even_if_balance_is_zero")}</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
 
             <Field>
               <FieldLabel className="gap-x-0">{t("enable_second_lang_name")} <span className="text-red-500">*</span></FieldLabel>
-              <ComboboxField
-                items={booleanItems}
-                value={systemSettings.items.enableSecondLangName ? enableStr : disableStr}
-                onValueChange={(val) => handleUpdate("enableSecondLangName", val === enableStr)}
-              />
-            </Field>
-
-            <Field>
-              <FieldLabel className="gap-x-0">{t("enable_third_lang_name")} <span className="text-red-500">*</span></FieldLabel>
-              <ComboboxField
-                items={booleanItems}
-                value={systemSettings.items.enableThirdLangName ? enableStr : disableStr}
-                onValueChange={(val) => handleUpdate("enableThirdLangName", val === enableStr)}
-              />
+              <Select value={systemSettings.items.enableSecondLangName ? enableStr : disableStr} onValueChange={(val) => handleUpdate("enableSecondLangName", val === enableStr)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
+                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
 
             <Field>
               <FieldLabel className="gap-x-0">{t("show_product_balance_at_sale")} <span className="text-red-500">*</span></FieldLabel>
-              <ComboboxField
-                items={booleanItems}
-                value={systemSettings.items.showProductBalanceAtSale ? enableStr : disableStr}
-                onValueChange={(val) => handleUpdate("showProductBalanceAtSale", val === enableStr)}
-              />
+              <Select value={systemSettings.items.showProductBalanceAtSale ? enableStr : disableStr} onValueChange={(val) => handleUpdate("showProductBalanceAtSale", val === enableStr)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
+                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
+                </SelectContent>
+              </Select>
             </Field>
           </div>
 
@@ -108,7 +130,7 @@ export default function ItemsSettings() {
               إلغاء
             </Button>
             <div className="flex flex-col-reverse lg:flex-row items-center gap-3 w-full lg:w-auto">
-              <Button size="lg" type="button" onClick={saveSettings} className="w-full lg:w-auto px-8 h-12 text-base">
+              <Button size="lg" type="button" onClick={onSave} className="w-full lg:w-auto px-8 h-12 text-base">
                 {t("save_settings") || "حفظ الإعدادات"}
               </Button>
             </div>
