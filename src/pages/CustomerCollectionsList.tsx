@@ -21,10 +21,13 @@ import type { CustomerTransaction } from "@/features/customer-transactions/types
 
 import { Input } from "@/components/ui/input";
 import { exportCustomPDF, printCustomHTML, getVoucherHTML } from "@/utils/customExportUtils";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function CustomerCollectionsList() {
   const { direction, t, language } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
+  const hasPermission = useAuthStore((state) => state.hasPermission);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
@@ -119,21 +122,25 @@ export default function CustomerCollectionsList() {
   const actionBodyTemplate = (row: CustomerTransaction) => {
     return (
       <div className="flex items-center gap-2 justify-center">
-        <button
-          onClick={() => openEditModal(row)}
-          className="btn-minimal-action btn-compact-action"
-          type="button"
-        >
-          <Edit2 size={16} />
-        </button>
+        {hasPermission(Permissions.customerTransactions.edit) && (
+          <button
+            onClick={() => openEditModal(row)}
+            className="btn-minimal-action btn-compact-action"
+            type="button"
+          >
+            <Edit2 size={16} />
+          </button>
+        )}
 
-        <button
-          onClick={() => openDeleteModal(row)}
-          className="btn-minimal-action btn-compact-action text-red-600"
-          type="button"
-        >
-          <Trash2 size={16} />
-        </button>
+        {hasPermission(Permissions.customerTransactions.delete) && (
+          <button
+            onClick={() => openDeleteModal(row)}
+            className="btn-minimal-action btn-compact-action text-red-600"
+            type="button"
+          >
+            <Trash2 size={16} />
+          </button>
+        )}
 
         <button
           onClick={() => handlePrint(row)}
@@ -188,10 +195,12 @@ export default function CustomerCollectionsList() {
           </CardTitle>
 
           <CardAction>
-            <Button size={"xl"} onClick={openAddModal} variant="default">
-              <Plus size={18} />
-              {t("add_customer_collection")}
-            </Button>
+            {hasPermission(Permissions.customerTransactions.add) && (
+              <Button size={"xl"} onClick={openAddModal} variant="default">
+                <Plus size={18} />
+                {t("add_customer_collection")}
+              </Button>
+            )}
           </CardAction>
         </CardHeader>
 
@@ -342,23 +351,27 @@ export default function CustomerCollectionsList() {
                       </div>
 
                       <div className="flex items-center gap-2 pt-1">
-                        <button
-                          onClick={() => openEditModal(row)}
-                          className="btn-minimal-action btn-compact-action"
-                          type="button"
-                        >
-                          <Edit2 size={16} />
-                          <span className="text-xs px-1">{t("edit")}</span>
-                        </button>
+                        {hasPermission(Permissions.customerTransactions.edit) && (
+                          <button
+                            onClick={() => openEditModal(row)}
+                            className="btn-minimal-action btn-compact-action"
+                            type="button"
+                          >
+                            <Edit2 size={16} />
+                            <span className="text-xs px-1">{t("edit")}</span>
+                          </button>
+                        )}
 
-                        <button
-                          onClick={() => openDeleteModal(row)}
-                          className="btn-minimal-action btn-compact-action text-red-600"
-                          type="button"
-                        >
-                          <Trash2 size={16} />
-                          <span className="text-xs px-1">{t("delete")}</span>
-                        </button>
+                        {hasPermission(Permissions.customerTransactions.delete) && (
+                          <button
+                            onClick={() => openDeleteModal(row)}
+                            className="btn-minimal-action btn-compact-action text-red-600"
+                            type="button"
+                          >
+                            <Trash2 size={16} />
+                            <span className="text-xs px-1">{t("delete")}</span>
+                          </button>
+                        )}
 
                         <button
                           onClick={() => handlePrint(row)}

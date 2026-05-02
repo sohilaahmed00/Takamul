@@ -7,5 +7,5 @@ export const useGetOrderByTableId = (id?: number) =>
   useQuery<SalesOrder>({
     queryKey: posKeys.table(id),
     queryFn: () => getOrderByTableId(id),
-    enabled: !!id,
+    enabled: false,
   });

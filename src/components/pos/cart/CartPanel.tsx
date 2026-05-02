@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import AddParnterModal from "@/components/modals/AddParnterModal";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
-import { calcItemTax, calcTotals, CartItem, DELIVERY_COMPANIES, itemBasePrice, itemTotal, OrderType } from "@/constants/data";
+import { calcItemTax, calcTotals, CartItem, DELIVERY_COMPANIES, format, itemBasePrice, itemTotal, OrderType } from "@/constants/data";
 import { useGetAllAdditions } from "@/features/Additions/hooks/useGetAllAdditions";
 import type { Addition } from "@/features/Additions/types/additions.types";
 import { useGetGiftCards } from "@/features/gift-cards/hooks/useGetGiftCards";
@@ -31,6 +31,8 @@ import { useCreateDineInOrder, useCheckoutDineInOrder } from "@/features/pos/hoo
 import { useUpdateDineInOrder } from "@/features/pos/hooks/useUpdateDineInOrder";
 import { useReleaseHolding } from "@/features/pos/hooks/useReleaseHolding";
 import { usePosStore } from "@/features/pos/store/usePosStore";
+import { DeliveryCompany } from "@/types";
+import { useGetAllDeliveryCompanies } from "@/features/delivery-companies/hooks/useGetAllDeliveryCompanies";
 
 const TABS = ["add", "discount", "coupon", "note"] as const;
 
@@ -339,7 +341,7 @@ export default function CartPanel() {
   const { theme, setTheme } = useTheme();
 
   // ── Zustand store ──────────────────────────────────────────────────────────
-  const { cart, setCart, setSelectedTable, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setOrderNote, orderNote, holdingOrderId } = usePosStore();
+  const { cart, setCart, setSelectedTable, selectedOrderId, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setOrderNote, orderNote } = usePosStore();
 
   // ── Async mutation hooks (passed into store actions) ───────────────────────
   const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
@@ -348,6 +350,7 @@ export default function CartPanel() {
   const { mutateAsync: releaseHolding } = useReleaseHolding();
   const { mutateAsync: checkoutDineInOrder } = useCheckoutDineInOrder();
   const { mutateAsync: addItemsToOrder } = useUpdateDineInOrder();
+  const { data: deliveryCompanies } = useGetAllDeliveryCompanies();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [discInput, setDiscInput] = useState("");
@@ -364,6 +367,9 @@ export default function CartPanel() {
   const { notifyError, notifySuccess } = useToast();
   const { data: freeTables } = useGetAllTables();
   const navigate = useNavigate();
+  useEffect(() => {
+    console.log(cart);
+  }, [cart]);
 
   function ThemeIcon({ theme }: { theme: string }) {
     if (theme === "dark") return <Moon className="h-3.5 w-3.5" />;
@@ -378,10 +384,11 @@ export default function CartPanel() {
   }
 
   useEffect(() => {
-    if (customers) {
-      setSelectedCustomer(customers?.items[0]);
+    if (customers?.items?.[0] && !selectedCustomer) {
+      console.log("first");
+      setSelectedCustomer(customers.items[0]);
     }
-  }, [customers]);
+  }, [customers?.items?.[0]?.id]);
 
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
 
@@ -563,9 +570,9 @@ export default function CartPanel() {
                       <SelectValue placeholder={t("delivery_company")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {DELIVERY_COMPANIES.map((d) => (
-                        <SelectItem key={d} value={d}>
-                          {d}
+                      {deliveryCompanies?.data?.items.map((d) => (
+                        <SelectItem key={d.id} value={d.id.toString()}>
+                          {d.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -659,7 +666,7 @@ export default function CartPanel() {
                     {/* السعر قبل الضريبة */}
                     <div className="text-right">
                       {hasDisc && <div className="text-[10px] text-gray-300 line-through">{origBasePrice.toFixed(2)}</div>}
-                      <div className="text-xs font-semibold text-gray-700 flex items-center flex-row">{itemBasePrice(item).toFixed(2)}</div>
+                      <div className="text-xs font-semibold text-gray-700 flex items-center flex-row">{format(itemBasePrice(item))}</div>
                     </div>
                     {/* ض.ق.م */}
                     <div className="text-right">
@@ -729,45 +736,35 @@ export default function CartPanel() {
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                 <span>{t("subtotal")}</span>
                 <div className="flex items-center gap-1.5">
-                  {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{sub?.toFixed(2)}</span>}
-                  <span className="font-semibold text-foreground">{subAfterDiscount.toFixed(2)}</span>
+                  {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{format(sub)}</span>}
+                  <span className="font-semibold text-foreground">{format(subAfterDiscount)}</span>
                 </div>
               </div>
               <div className="flex justify-between text-xs text-gray-500 mb-1.5">
                 <span>{t("tax_label")}</span>
                 <div className="flex items-center gap-1.5">
-                  {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{originalTax.toFixed(2)}</span>}
-                  <span className="font-semibold text-foreground">{taxAfterDiscount.toFixed(2)}</span>
+                  {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{format(originalTax)}</span>}
+                  <span className="font-semibold text-foreground">{format(taxAfterDiscount)}</span>
                 </div>
               </div>
 
               <div className="flex justify-between text-sm font-black text-foreground mt-2 pt-1 border-t border-border mb-3">
                 <span>{t("payable_amount")}</span>
                 <div className="flex items-center gap-1.5">
-                  {discount.value > 0 && <span className="text-gray-300 line-through text-xs font-normal">{(sub + originalTax).toFixed(2)}</span>}
-                  <span>{total.toFixed(2)}</span>
+                  {discount.value > 0 && <span className="text-gray-300 line-through text-xs font-normal">{format(sub + originalTax)}</span>}
+                  <span>{format(total)}</span>
                 </div>
               </div>
 
               <div className="flex gap-2">
                 {/* Hold button */}
-                <Button
-                  // زر Hold
-                  onClick={async () => {
-                    if (cart.length === 0) {
-                      notifyError(t("add_items_to_invoice"));
-                      return;
-                    }
-
-                    if (orderType === "InDine") {
-                      if (dineInMode === "add-items") {
-                        await handleAddItemsToExistingOrder({ addItemsToOrder });
-                      } else if (dineInMode === "checkout") {
-                        setCashierOpen(true);
-                      } else {
-                        await handleCreateDineInOrder({ createDineInOrderyOrder, customers });
+                {orderType !== "InDine" ? (
+                  <Button
+                    onClick={async () => {
+                      if (cart.length === 0) {
+                        notifyError(t("add_items_to_invoice"));
+                        return;
                       }
-                    } else {
                       await handleConfirmPayment({
                         isHolding: true,
                         createTakwayOrder,
@@ -776,14 +773,39 @@ export default function CartPanel() {
                         releaseHolding,
                         customers,
                       });
-                    }
-                  }}
-                  size={"2xl"}
-                  className="flex-1"
-                  variant="outline"
-                >
-                  {t("hold_cart")} <Pause />
-                </Button>
+                    }}
+                    size={"2xl"}
+                    className="flex-1"
+                    variant="outline"
+                  >
+                    {t("hold_cart")} <Pause />
+                  </Button>
+                ) : (
+                  <Button
+                    disabled={dineInMode == "checkout"}
+                    onClick={async () => {
+                      if (cart.length === 0) {
+                        notifyError(t("add_items_to_invoice"));
+                        return;
+                      }
+
+                      // console.log()
+                      if (orderType === "InDine") {
+                        if (dineInMode == "add-items") {
+                          await handleAddItemsToExistingOrder({ addItemsToOrder, customers });
+                        } else if (dineInMode == "new-order") {
+                          await handleCreateDineInOrder({ createDineInOrderyOrder, customers });
+                        }
+                      }
+                    }}
+                    size={"2xl"}
+                    className="flex-1"
+                    variant="outline"
+                  >
+                    إرسال للتجهيز
+                    <Plus />
+                  </Button>
+                )}
 
                 {/* Pay button */}
                 <Button
@@ -828,7 +850,14 @@ export default function CartPanel() {
                 <Input value={discInput} onChange={(e) => setDiscInput(e.target.value)} className="flex-1 h-12 px-3 border border-gray-200 rounded-xl text-sm outline-none text-right font-semibold focus:border-primary/40 bg-white" placeholder="0" type="number" min="0" />
               </div>
               <div className="flex gap-2">
-                <Button size={"2xl"} className="flex-1" onClick={() => setActiveTab("add")} variant="destructive">
+                <Button
+                  size={"2xl"}
+                  className="flex-1"
+                  onClick={() => {
+                    (setActiveTab("add"), setDiscount({ type: "pct", value: 0 }));
+                  }}
+                  variant="destructive"
+                >
                   {t("cancel")}
                 </Button>
                 <Button size={"2xl"} className="flex-1" onClick={applyDiscount}>
@@ -864,7 +893,6 @@ export default function CartPanel() {
 
       <UnifiedPaymentDialog open={cashierOpen} onOpenChange={setCashierOpen} mode="cashier" onCancel={() => setCashierOpen(false)} />
       <AddParnterModal isOpen={openDialog} onClose={() => setOpenDialog(false)} />
-
       <ItemNumPadDialog
         item={selectedCartItem}
         open={!!selectedCartItem}

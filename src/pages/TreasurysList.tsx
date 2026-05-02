@@ -20,6 +20,8 @@ import TreasuryModal from "@/components/modals/TreasuryModal";
 import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 type TreasuryRow = {
   id: number;
@@ -31,6 +33,8 @@ type TreasuryRow = {
 export default function TreasurysList() {
   const { t, direction } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   const { data: treasurys, isLoading } = useGetAllTreasurys();
   const { mutateAsync: deleteTreasury, isPending: isDeleting } = useDeleteTreasury();
@@ -125,16 +129,18 @@ export default function TreasurysList() {
           <CardDescription>{t("treasuries_page_desc")}</CardDescription>
 
           <CardAction>
-            <Button
-              variant="default"
-              onClick={() => {
-                setSelectedTreasuryId(undefined);
-                setIsModalOpen(true);
-              }}
-            >
-              <Plus size={18} />
-              {t("add_treasury_btn")}
-            </Button>
+            {hasPermission(Permissions.treasury.add) && (
+              <Button
+                variant="default"
+                onClick={() => {
+                  setSelectedTreasuryId(undefined);
+                  setIsModalOpen(true);
+                }}
+              >
+                <Plus size={18} />
+                {t("add_treasury_btn")}
+              </Button>
+            )}
           </CardAction>
         </CardHeader>
 
@@ -193,29 +199,35 @@ export default function TreasurysList() {
                   body={(row: TreasuryRow) => formatNumber(row.currentBalance)}
                 />
 
-                <Column
-                  header={t("actions")}
-                  style={{ minWidth: "9rem", whiteSpace: "nowrap" }}
-                  body={(row: TreasuryRow) => (
-                    <div className="space-x-2">
-                      <button
-                        onClick={() => handleEdit(row.id)}
-                        className="btn-minimal-action btn-compact-action"
-                        type="button"
-                      >
-                        <Edit2 size={16} />
-                      </button>
+                {hasAnyPermission([Permissions.treasury.edit, Permissions.treasury.delete]) && (
+                  <Column
+                    header={t("actions")}
+                    style={{ minWidth: "9rem", whiteSpace: "nowrap" }}
+                    body={(row: TreasuryRow) => (
+                      <div className="space-x-2">
+                        {hasPermission(Permissions.treasury.edit) && (
+                          <button
+                            onClick={() => handleEdit(row.id)}
+                            className="btn-minimal-action btn-compact-action"
+                            type="button"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                        )}
 
-                      <button
-                        onClick={() => askDelete(row)}
-                        className="btn-minimal-action btn-compact-action"
-                        type="button"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  )}
-                />
+                        {hasPermission(Permissions.treasury.delete) && (
+                          <button
+                            onClick={() => askDelete(row)}
+                            className="btn-minimal-action btn-compact-action"
+                            type="button"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  />
+                )}
               </DataTable>
             </div>
           </div>
@@ -285,23 +297,27 @@ export default function TreasurysList() {
                       </div>
 
                       <div className="flex items-center gap-2 pt-1">
-                        <button
-                          onClick={() => handleEdit(row.id)}
-                          className="btn-minimal-action btn-compact-action"
-                          type="button"
-                        >
-                          <Edit2 size={16} />
-                          <span className="text-xs px-1">{t("edit")}</span>
-                        </button>
+                        {hasPermission(Permissions.treasury.edit) && (
+                          <button
+                            onClick={() => handleEdit(row.id)}
+                            className="btn-minimal-action btn-compact-action"
+                            type="button"
+                          >
+                            <Edit2 size={16} />
+                            <span className="text-xs px-1">{t("edit")}</span>
+                          </button>
+                        )}
 
-                        <button
-                          onClick={() => askDelete(row)}
-                          className="btn-minimal-action btn-compact-action text-red-600"
-                          type="button"
-                        >
-                          <Trash2 size={16} />
-                          <span className="text-xs px-1">{t("delete")}</span>
-                        </button>
+                        {hasPermission(Permissions.treasury.delete) && (
+                          <button
+                            onClick={() => askDelete(row)}
+                            className="btn-minimal-action btn-compact-action text-red-600"
+                            type="button"
+                          >
+                            <Trash2 size={16} />
+                            <span className="text-xs px-1">{t("delete")}</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

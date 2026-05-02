@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import { initQZ } from "@/lib/qzService";
 import { usePosStore } from "@/features/pos/store/usePosStore";
 import { useBranchStore } from "@/store/employeeStore";
+import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 
 function PageContent() {
   const { screen } = usePosStore();
@@ -37,6 +38,7 @@ function PageContent() {
 
 export default function AppLayout() {
   const { setScreen, resetCart } = usePosStore();
+  const { data: customers } = useGetAllCustomers();
   const { fetchBranch } = useBranchStore();
   useEffect(() => {
     fetchBranch();
@@ -44,7 +46,7 @@ export default function AppLayout() {
 
   useEffect(() => {
     setScreen("home");
-    resetCart();
+    resetCart(customers);
   }, []);
 
   useEffect(() => {

@@ -1,13 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table } from "@/features/pos/types/pos.types";
-import { CreditCard, Plus } from "lucide-react";
+import { CreditCard, Plus, Trash2 } from "lucide-react";
 import { useGetOrderByTableId } from "@/features/pos/hooks/useGetOrderByTableId";
 import { Customer } from "@/features/customers/types/customers.types";
 import { useLanguage } from "@/context/LanguageContext";
 import { useGetAllTables } from "@/features/tables/hooks/useGetAllTables";
 import { usePosStore } from "@/features/pos/store/usePosStore";
+import { useFreeTable } from "@/features/tables/hooks/useFreeTable";
 
 type TableStatus = "Free" | "Occupied";
 type FilterType = "all" | "Free" | "Occupied";
@@ -74,11 +75,14 @@ export function TableCard({ table, selected, onClick }: TableCardProps) {
 
 export default function TablesPage() {
   const { t } = useLanguage();
-  const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const { data: tables } = useGetAllTables();
-  const { setScreen, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer, setSelectedOrderId, setDineInMode } = usePosStore();
-  const { data: detailsOrder } = useGetOrderByTableId(selectedTable);
+  const { cart, setScreen, selectedTable, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer, selectedOrderId, setSelectedOrderId, setDineInMode, setOriginalItems } = usePosStore();
+  const { refetch: fetchOrderDetails } = useGetOrderByTableId(selectedTable);
+  const { mutateAsync: freeTable } = useFreeTable();
+  useEffect(() => {
+    console.log(selectedOrderId);
+  }, [selectedOrderId]);
 
   const filtered = useMemo(
     () =>
@@ -89,7 +93,7 @@ export default function TablesPage() {
     [tables, filter],
   );
 
-  const cartItemsFromOrder = (order: typeof detailsOrder) =>
+  const cartItemsFromOrder = (order) =>
     order.items.map((item) => ({
       productId: item.productId,
       name: item.productName,
@@ -122,7 +126,7 @@ export default function TablesPage() {
       </div>
 
       {/* Table grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 px-4 mt-4 flex-1 overflow-y-auto pb-4">{filtered.length === 0 ? <div className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-5 flex items-center justify-center text-muted-foreground text-sm py-12">{t("no_tables_found")}</div> : filtered?.map((table) => <TableCard key={table.id} table={table} selected={selectedTable === table.id} onClick={() => setSelectedTable(selectedTable === table.id ? null : table.id)} />)}</div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 px-4 mt-4 flex-1 overflow-y-auto pb-4">{filtered.length === 0 ? <div className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-5 flex items-center justify-center text-muted-foreground text-sm py-12">{t("no_tables_found")}</div> : filtered?.map((table) => <TableCard key={table.id} table={table} selected={selectedTable === table.id} onClick={() => setSelectedTable2(selectedTable === table.id ? null : table.id)} />)}</div>
 
       {/* Footer */}
       <div className="bg-background border-t border-border px-4 py-3 flex items-center justify-between">
@@ -154,14 +158,27 @@ export default function TablesPage() {
 
                 {isOccupied ? (
                   <>
+                    <Button
+                      size="xl"
+                      variant="destructive"
+                      onClick={async () => {
+                        await freeTable(selectedTable);
+                      }}
+                    >
+                      <Trash2 size={14} /> إلغاء الاوردر
+                    </Button>
                     {/* Add items */}
                     <Button
                       size="xl"
                       variant="outline"
-                      onClick={() => {
-                        setCart(cartItemsFromOrder(detailsOrder));
+                      onClick={async () => {
+                        const { data: order } = await fetchOrderDetails();
+                        if (!order) return;
+                        setCart(cartItemsFromOrder(order));
+                        setOriginalItems(cartItemsFromOrder(order));
                         setDineInMode("add-items");
-                        setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
+                        setSelectedCustomer({ id: order.id, customerName: order.customerName } as Customer);
+                        setSelectedOrderId(order.id);
                         setOrderType("InDine");
                         setSelectedTable2(selectedTable);
                         setScreen("home");
@@ -173,10 +190,13 @@ export default function TablesPage() {
                     {/* Checkout */}
                     <Button
                       size="xl"
-                      onClick={() => {
-                        setCart(cartItemsFromOrder(detailsOrder));
+                      onClick={async () => {
+                        const { data: order } = await fetchOrderDetails();
+                        if (!order) return;
+                        setCart(cartItemsFromOrder(order));
+                        setOriginalItems(cartItemsFromOrder(order));
                         setDineInMode("checkout");
-                        setSelectedCustomer({ id: detailsOrder.id, customerName: detailsOrder.customerName } as Customer);
+                        setSelectedCustomer({ id: order.id, customerName: order.customerName } as Customer);
                         setOrderType("InDine");
                         setSelectedTable2(selectedTable);
                         setScreen("home");

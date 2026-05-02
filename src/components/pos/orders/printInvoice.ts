@@ -1,5 +1,6 @@
-// printInvoice.ts — thermal 80mm — matches design exactly
-
+import { Customer } from "@/features/customers/types/customers.types";
+import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
+import { Supplier } from "@/features/suppliers/types/suppliers.types";
 import { printInvoicePrinter } from "@/lib/qzService";
 
 export interface InvoiceItem {
@@ -11,19 +12,13 @@ export interface InvoiceItem {
 }
 
 export interface InvoiceData {
+  id?: number | string;
+  branch: BranchInfo;
   logoUrl?: string;
-  invoiceNumber: string;
-  institutionName: string;
-  institutionNameEn?: string;
-  institutionTaxNumber: string;
-  institutionCommercialRegister?: string;
-  invoiceName: string;
+  invoiceNumber: string | number;
+  customer: Customer;
+  supplier?: Supplier;
   invoiceDate: string;
-  institutionAddress: string;
-  institutionPhone: string;
-  customerName?: string;
-  customerPhone?: string;
-  customerAddress?: string;
   items: InvoiceItem[];
   subTotal: number;
   discountAmount: number;
@@ -284,7 +279,7 @@ html, body {
 
   <!-- LOGO -->
   <div class="logo">
-    ${data.logoUrl ? `<img src="${data.logoUrl}" alt="logo"/>` : `<span>اللوجو</span>`}
+    ${data.branch.imageUrl ? `<img src="${data.branch.imageUrl}" alt="logo"/>` : `<span>اللوجو</span>`}
   </div>
 
   <!-- HEADER INFO ROWS -->
@@ -292,22 +287,22 @@ html, body {
 
     <!-- Institution: AR right | EN left -->
     <div class="hrow inst-row">
-      <span class="h-ar">${data.institutionName}</span>
-      <span class="h-en">${data.institutionNameEn ?? ""}</span>
+      <span class="h-ar">${data.branch?.name}</span>
+      <span class="h-en">${data.branch?.nameEn ?? ""}</span>
     </div>
 
     <!-- VAT NO: AR | value | EN -->
     <div class="hrow">
       <span class="h-ar">الرقم الضريبي</span>
-      <span class="h-val">${data.institutionTaxNumber}</span>
+      <span class="h-val">${data.branch?.taxNumber}</span>
       <span class="h-en">VAT NO</span>
     </div>
 
     <!-- Simplified Tax Invoice -->
     <div class="hrow">
-      <span class="h-ar">${data?.invoiceName}</span>
+      <span class="h-ar">${data?.customer.taxNumber ? "فاتورة ضريبية" : "فاتورة ضريبية مبسطة"}</span>
       <span class="h-val"></span>
-      <span class="h-en">Simplified Tax Invoice</span>
+      <span class="h-en">${data?.customer?.taxNumber ? "Tax Invoice" : "Simplified Tax Invoice"}</span>
     </div>
 
     <!-- INV NO -->
@@ -327,14 +322,14 @@ html, body {
     <!-- Customer Name -->
     <div class="hrow">
       <span class="h-ar">اسم العميل</span>
-      <span class="h-val">${data.customerName ?? "—"}</span>
+      <span class="h-val">${data.customer?.customerName ?? "—"}</span>
       <span class="h-en">Cust Name</span>
     </div>
 
     <!-- Phone No -->
     <div class="hrow">
       <span class="h-ar">رقم الجوال</span>
-      <span class="h-val">${data.customerPhone ?? "—"}</span>
+      <span class="h-val">${data.customer?.phone ?? "—"}</span>
       <span class="h-en">Phone No</span>
     </div>
 
@@ -388,12 +383,12 @@ html, body {
   <!-- FOOTER: Phone -->
   <div class="frow">
     <span class="f-ar">رقم الجوال</span>
-    <span class="f-val">${data.institutionPhone || "—"}</span>
+    <span class="f-val">${data.branch?.phone || "—"}</span>
     <span class="f-en">Phone NO</span>
   </div>
 
   <!-- FOOTER: Address -->
-  <div class="addr-row">${data.institutionAddress || "—"}</div>
+  <div class="addr-row">${data.branch?.address || "—"}</div>
 
   <!-- FOOTER: Notes -->
   

@@ -12,6 +12,8 @@ import AddEmployeeModal from "@/components/modals/AddEmployeeModal";
 import { Input } from "@/components/ui/input";
 import { Employee } from "@/features/employees/types/employees.types";
 import { useDeleteEmployee } from "@/features/employees/hooks/useDeleteEmployee";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function AllEmployees() {
   const { t, direction } = useLanguage();
@@ -43,29 +45,23 @@ export default function AllEmployees() {
     );
   };
 
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
   const header = useMemo(() => renderHeader(), [globalFilterValue]);
 
   return (
-    <div className="space-y-4 pb-12">
-      {/* Breadcrumb */}
-      <div className="text-sm text-gray-500 flex items-center gap-1 font-medium px-2">
-        <span onClick={() => navigate("/")} className="cursor-pointer hover:text-[var(--primary)]">
-          {t("home")}
-        </span>
-        <span>/</span>
-        <span className="text-gray-800">Employees</span>
-      </div>
-
-      {/* Card */}
+    <>
       <Card>
         <CardHeader>
           <CardTitle>الموظفين</CardTitle>
           <CardDescription>إدارة الموظفين</CardDescription>
-          <CardAction>
-            <Button size="xl" onClick={() => setIsAddModalOpen(true)}>
-              إضافة موظف
-            </Button>
-          </CardAction>
+          {hasPermission(Permissions?.employees?.add) && (
+            <CardAction>
+              <Button size="xl" onClick={() => setIsAddModalOpen(true)}>
+                إضافة موظف
+              </Button>
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent>
           <DataTable
@@ -88,25 +84,31 @@ export default function AllEmployees() {
           >
             <Column header="الإسم" body={(row) => `${row.firstName} `} />
             <Column field="mobile" header="رقم الجوال" />
-            <Column
-              header="العمليات"
-              body={(raw: Employee) => (
-                <div className="space-x-2">
-                  <Button
-                    onClick={() => {
-                      setSelectedEmployee(raw);
-                      setIsAddModalOpen(true);
-                    }}
-                    className="btn-minimal-action btn-compact-action"
-                  >
-                    <Edit2 size={16} />
-                  </Button>
-                  <button onClick={() => deleteUser(raw?.id)} className="btn-minimal-action btn-compact-action text-red-500">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              )}
-            />
+            {hasAnyPermission([Permissions?.employees?.edit, Permissions?.employees?.delete]) && (
+              <Column
+                header="العمليات"
+                body={(raw: Employee) => (
+                  <div className="space-x-2">
+                    {hasPermission(Permissions?.employees?.edit) && (
+                      <Button
+                        onClick={() => {
+                          setSelectedEmployee(raw);
+                          setIsAddModalOpen(true);
+                        }}
+                        className="btn-minimal-action btn-compact-action"
+                      >
+                        <Edit2 size={16} />
+                      </Button>
+                    )}
+                    {hasAnyPermission(Permissions?.employees?.delete) && (
+                      <button onClick={() => deleteUser(raw?.id)} className="btn-minimal-action btn-compact-action text-red-500">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              />
+            )}
           </DataTable>
         </CardContent>
       </Card>
@@ -118,6 +120,6 @@ export default function AllEmployees() {
         }}
         employee={selectedEmployee}
       />
-    </div>
+    </>
   );
 }

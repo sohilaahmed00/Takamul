@@ -15,6 +15,10 @@ import type { SalesOrder } from "@/features/sales/types/sales.types";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { usePrint } from "@/context/PrintContext";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
+import { format } from "@/constants/data";
+import formatDate from "@/lib/formatDate";
 
 export default function A4Sales() {
   type Payment = SalesOrder["payments"][number];
@@ -50,6 +54,8 @@ export default function A4Sales() {
     },
     [language, t],
   );
+
+  const hasPermission = useAuthStore((state) => state.hasPermission);
   return (
     <div className="space-y-4 pb-12" dir={direction}>
       <Card>
@@ -83,11 +89,11 @@ export default function A4Sales() {
             stripedRows={false}
           >
             <Column header={t("invoice_number")} sortable field="orderNumber" />
-            <Column header={t("date")} sortable field="orderDate" body={(row) => new Date(row.orderDate).toLocaleDateString("ar-EG")} />
+            <Column header={t("date")} sortable field="orderDate" body={(row) => formatDate(row.orderDate)} />
             <Column header={t("customer_name")} sortable field="customerName" />
             <Column header={t("cashier")} sortable field="createdBy" />
             <Column header={t("invoice_status")} sortable body={(rawData) => statusBodyTemplate(rawData)} field="orderStatus" />
-            <Column header={t("total_amount")} sortable field="grandTotal" />
+            <Column header={t("total_amount")} sortable field="grandTotal" body={(row: SalesOrder) => format(row.grandTotal)} />
             <Column header={t("paid_amount")} sortable field="payments" body={(rowData) => rowData.payments?.reduce((sum: number, p: Payment) => sum + p.amount, 0) ?? 0} />
             {/* <Column header={t("remaining_amount")} sortable field="" /> */}
             <Column
@@ -112,12 +118,14 @@ export default function A4Sales() {
 
                     <DropdownMenuSeparator />
 
-                    <DropdownMenuItem asChild>
-                      <Link to={`/sales/return/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
-                        <RotateCcw size={14} />
-                        إرجاع مبيع
-                      </Link>
-                    </DropdownMenuItem>
+                    {hasPermission(Permissions?.salesReturns?.add) && (
+                      <DropdownMenuItem asChild>
+                        <Link to={`/sales/return/${row?.id}`} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md">
+                          <RotateCcw size={14} />
+                          إرجاع مبيع
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
 
                     <DropdownMenuItem onClick={() => printInvoice(row, "stock")} className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer">
                       <Warehouse size={14} />

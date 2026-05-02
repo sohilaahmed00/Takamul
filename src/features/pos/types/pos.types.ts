@@ -67,7 +67,9 @@ export type CreateTakeawayOrder = {
   additionIds: number[];
 };
 
-export type CreateDeliveryOrder = CreateTakeawayOrder;
+export type CreateDeliveryOrder = CreateTakeawayOrder & {
+  deliveryCompanyId: number;
+};
 export type CreateDineInOrder = Omit<CreateTakeawayOrder, "giftCardId" | "payments" | "globalDiscountPercentage" | "globalDiscountValue" | "holdingOrderId"> & {
   tableId: number;
 };

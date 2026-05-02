@@ -13,6 +13,11 @@ import { InvoiceData, printInvoice } from "../orders/printInvoice";
 import { useNavigate } from "react-router-dom";
 import { UnifiedPaymentDialog } from "../modals/UnifiedPaymentDialog";
 import { usePosStore } from "@/features/pos/store/usePosStore";
+import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
+import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSuppliers";
+import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerById";
+import { useGetSupplierById } from "@/features/suppliers/hooks/useGetSupplierById";
+import { useBranchStore } from "@/store/employeeStore";
 
 interface OrdersDialogProps {
   open: boolean;
@@ -32,7 +37,10 @@ const STATUS_MAP: Record<OrderStatusType, string | null> = {
 };
 
 export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
-  const { selectedCustomer, addToCart, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen, setOriginalItems } = usePosStore();
+  const { selectedCustomer, addToCart, setCart, setHoldingOrderId, setDineInMode, setOrderType, setSelectedOrderId, setSelectedTable, setScreen, setOriginalItems, setDiscount, resetCart } = usePosStore();
+  const [selectedCustomerId, setSelectCustomerId] = useState<number | null>(null);
+  const { data: customers } = useGetAllCustomers();
+  const { data: customer } = useGetCustomerById(selectedCustomerId);
 
   const [activeStatus, setActiveStatus] = useState<OrderStatusType>("الكل");
   const { t } = useLanguage();
@@ -151,15 +159,13 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                       {order?.orderStatus === "Confirmed" ? (
                         <button
                           onClick={async () => {
+                            const branch = useBranchStore.getState().branch;
+                            setSelectCustomerId(order?.customerId);
                             const invoiceData: InvoiceData = {
+                              customer: customer,
+                              branch,
                               invoiceNumber: order?.orderNumber,
-                              institutionName: INSTITUTION_NAME,
-                              institutionTaxNumber: INSTITUTION_TAX_NO,
                               invoiceDate: formatDate(order?.orderDate),
-                              institutionAddress: INSTITUTION_ADDRESS,
-                              institutionPhone: INSTITUTION_PHONE,
-                              customerName: selectedCustomer?.customerName ?? undefined,
-                              customerPhone: order?.customerPhone,
                               items: order?.items.map((item) => {
                                 const tt: CartItem = {
                                   name: item?.productName,
@@ -169,7 +175,6 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                   taxCalculation: item?.taxCalculation,
                                   productId: item?.id,
                                   taxPercentage: item?.taxPercentage,
-                                  op: null,
                                 };
                                 const base = itemBasePrice(tt);
                                 const tax = calcItemTax(tt);
@@ -197,50 +202,38 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         <div className="flex items-center gap-x-2">
                           <button
                             onClick={() => {
-                              onOpenChange(false);
+                              resetCart(customers);
                               setScreen("home");
-                              setCart(
-                                order.items.map((item) => ({
-                                  productId: item.productId,
-                                  name: item.productName,
-                                  productNameEn: item.productName,
-                                  productNameUr: item.productName,
-                                  price: item?.sellingPrice,
-                                  qty: item.quantity,
-                                  note: "",
-                                  op: null,
-                                  taxamount: item.taxAmountProduct,
-                                  taxCalculation: item.taxCalculation,
-                                  taxPercentage: item?.taxPercentage,
-                                  itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
-                                  extras: [],
-                                })),
-                              );
+                              const mappedItems = order.items.map((item) => ({
+                                productId: item.productId,
+                                name: item.productName,
+                                productNameEn: item.productName,
+                                productNameUr: item.productName,
+                                price: item?.sellingPrice,
+                                qty: item.quantity,
+                                note: "",
+                                op: null,
+                                taxamount: item.taxAmountProduct,
+                                taxCalculation: item.taxCalculation,
+                                taxPercentage: item?.taxPercentage,
+                                itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+                                extras: [],
+                                isNew: true,
+                              }));
+                              console.log(mappedItems);
+                              setOriginalItems(mappedItems);
+                              if (order && order?.discountAmount) {
+                                setDiscount({ type: "flat", value: order?.discountAmount });
+                              }
+                              mappedItems.forEach((item) => addToCart(item));
+                              setOrderType(order?.orderType);
                               if (order.orderType === "InDine") {
-                                setOrderType("InDine");
                                 setDineInMode("add-items");
                                 setSelectedOrderId(order?.id);
-                                setOriginalItems(
-                                  order.items.map((item) => ({
-                                    productId: item.productId,
-                                    name: item.productName,
-                                    productNameEn: item.productName,
-                                    productNameUr: item.productName,
-                                    price: item?.sellingPrice,
-                                    qty: item.quantity,
-                                    note: "",
-                                    op: null,
-                                    taxamount: item.taxAmountProduct,
-                                    taxCalculation: item.taxCalculation,
-                                    taxPercentage: item?.taxPercentage,
-                                    itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
-                                    extras: [],
-                                  })),
-                                );
                               } else {
                                 setHoldingOrderId(order?.id);
-                                setOrderType(order?.orderType);
                               }
+                              onOpenChange(false);
                             }}
                             className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
                           >
@@ -250,43 +243,33 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                           <button
                             title="استكمال الدفع"
                             onClick={() => {
-                              setScreen("home");
-                              console.log(order?.items);
-                              setCart(
-                                order.items.map((item) => ({
-                                  productId: item.productId,
-                                  name: item.productName,
-                                  productNameEn: item.productName,
-                                  productNameUr: item.productName,
-                                  price: item?.sellingPrice,
-                                  qty: item.quantity,
-                                  note: "",
-                                  op: null,
-                                  taxamount: item.taxAmountProduct,
-                                  taxCalculation: item.taxCalculation,
-                                  taxPercentage: item?.taxPercentage,
-                                  itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
-                                  extras: [],
-                                })),
-                              );
-                              setOriginalItems(
-                                order.items.map((item) => ({
-                                  productId: item.productId,
-                                  name: item.productName,
-                                  productNameEn: item.productName,
-                                  productNameUr: item.productName,
-                                  price: item?.sellingPrice,
-                                  qty: item.quantity,
-                                  note: "",
-                                  op: null,
-                                  taxamount: item.taxAmountProduct,
-                                  taxCalculation: item.taxCalculation,
-                                  taxPercentage: item?.taxPercentage,
-                                  itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
-                                  extras: [],
-                                })),
-                              );
+                              resetCart(customers);
                               onOpenChange(false);
+                              setScreen("home");
+                              const mappedItems = order.items.map((item) => ({
+                                productId: item.productId,
+                                name: item.productName,
+                                productNameEn: item.productName,
+                                productNameUr: item.productName,
+                                price: item?.sellingPrice,
+                                qty: item.quantity,
+                                note: "",
+                                op: null,
+                                taxamount: item.taxAmountProduct,
+                                taxCalculation: item.taxCalculation,
+                                taxPercentage: item?.taxPercentage,
+                                itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+                                extras: [],
+                                isNew: true,
+                              }));
+
+                              setOriginalItems(mappedItems);
+                              if (order) {
+                                if (order?.discountAmount) {
+                                  setDiscount({ type: "flat", value: order?.discountAmount });
+                                }
+                              }
+                              mappedItems.forEach((item) => addToCart(item));
                               setOrderType(order?.orderType);
                               if (order.orderType == "InDine") {
                                 if (order.orderStatus === "InProgress") {
@@ -296,7 +279,6 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                 }
                               } else {
                                 setHoldingOrderId(order?.id);
-                                setOrderType(order?.orderType);
                               }
                             }}
                             className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
@@ -310,6 +292,8 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         <button
                           title="استكمال الفاتورة"
                           onClick={() => {
+                            resetCart(customers);
+
                             setHoldingOrderId(order?.id);
                             setOrderType(order?.orderType);
                             setScreen("home");
@@ -330,6 +314,11 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                 extras: [],
                               })),
                             );
+                            if (order) {
+                              if (order?.discountAmount) {
+                                setDiscount({ type: "flat", value: order?.discountAmount });
+                              }
+                            }
                             onOpenChange(false);
                             setCashierOpen(true);
                           }}

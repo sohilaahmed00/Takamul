@@ -21,10 +21,14 @@ import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { Item } from "@/features/items/types/items.types";
 
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function ItemsList() {
   const { direction, t } = useLanguage();
   const { notifySuccess, notifyError } = useToast();
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -90,21 +94,25 @@ export default function ItemsList() {
 
   const actionBodyTemplate = (row: Item) => (
     <div className="flex items-center gap-2 justify-center">
-      <button
-        onClick={() => openEditModal(row)}
-        className="btn-minimal-action btn-compact-action"
-        type="button"
-      >
-        <Edit2 size={16} />
-      </button>
+      {hasPermission(Permissions.items.edit) && (
+        <button
+          onClick={() => openEditModal(row)}
+          className="btn-minimal-action btn-compact-action"
+          type="button"
+        >
+          <Edit2 size={16} />
+        </button>
+      )}
 
-      <button
-        onClick={() => setItemToDelete(row)}
-        className="btn-minimal-action btn-compact-action text-red-600"
-        type="button"
-      >
-        <Trash2 size={16} />
-      </button>
+      {hasPermission(Permissions.items.delete) && (
+        <button
+          onClick={() => setItemToDelete(row)}
+          className="btn-minimal-action btn-compact-action text-red-600"
+          type="button"
+        >
+          <Trash2 size={16} />
+        </button>
+      )}
     </div>
   );
 
@@ -140,10 +148,12 @@ export default function ItemsList() {
           <CardDescription>{t("items_desc")}</CardDescription>
 
           <CardAction>
-            <Button onClick={openAddModal} variant="default">
-              <Plus size={18} />
-              {t("add_item")}
-            </Button>
+            {hasPermission(Permissions.items.add) && (
+              <Button onClick={openAddModal} variant="default">
+                <Plus size={18} />
+                {t("add_item")}
+              </Button>
+            )}
           </CardAction>
         </CardHeader>
 
@@ -178,12 +188,14 @@ export default function ItemsList() {
                 body={statusBodyTemplate}
                 style={{ width: "25%" }}
               />
-              <Column
-                header={t("actions")}
-                body={actionBodyTemplate}
-                style={{ width: "20%" }}
-                bodyStyle={{ whiteSpace: "nowrap", textAlign: "center" }}
-              />
+              {hasAnyPermission([Permissions.items.edit, Permissions.items.delete]) && (
+                <Column
+                  header={t("actions")}
+                  body={actionBodyTemplate}
+                  style={{ width: "20%" }}
+                  bodyStyle={{ whiteSpace: "nowrap", textAlign: "center" }}
+                />
+              )}
             </DataTable>
           </div>
 
@@ -218,23 +230,27 @@ export default function ItemsList() {
 
                   <div className="p-4 space-y-4">
                     <div className="flex items-center gap-2 pt-1">
-                      <button
-                        onClick={() => openEditModal(row)}
-                        className="btn-minimal-action btn-compact-action"
-                        type="button"
-                      >
-                        <Edit2 size={16} />
-                        <span className="text-xs px-1">{t("edit")}</span>
-                      </button>
+                      {hasPermission(Permissions.items.edit) && (
+                        <button
+                          onClick={() => openEditModal(row)}
+                          className="btn-minimal-action btn-compact-action"
+                          type="button"
+                        >
+                          <Edit2 size={16} />
+                          <span className="text-xs px-1">{t("edit")}</span>
+                        </button>
+                      )}
 
-                      <button
-                        onClick={() => setItemToDelete(row)}
-                        className="btn-minimal-action btn-compact-action text-red-600"
-                        type="button"
-                      >
-                        <Trash2 size={16} />
-                        <span className="text-xs px-1">{t("delete")}</span>
-                      </button>
+                      {hasPermission(Permissions.items.delete) && (
+                        <button
+                          onClick={() => setItemToDelete(row)}
+                          className="btn-minimal-action btn-compact-action text-red-600"
+                          type="button"
+                        >
+                          <Trash2 size={16} />
+                          <span className="text-xs px-1">{t("delete")}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

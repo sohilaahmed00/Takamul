@@ -22,6 +22,10 @@ import formatDate from "@/lib/formatDate";
 
 import { Input } from "@/components/ui/input";
 import { useDeleteQuotation } from "@/features/quotation/hooks/useDeleteQuotation";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
+import { Quotation } from "@/features/quotation/types/quotations.types";
+import { format } from "@/constants/data";
 
 export default function QuotesList() {
   const { t, direction } = useLanguage();
@@ -29,12 +33,7 @@ export default function QuotesList() {
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
   const { printInvoice } = usePrint();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showCount, setShowCount] = useState(10);
   const [activeActionMenu, setActiveActionMenu] = useState<string | null>(null);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState<string | null>(null);
-  const [showAddModal, setShowAddModal] = useState(false);
   const { data: quotations } = useGetAllQuotations();
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const { mutate: deleteQuotation } = useDeleteQuotation();
@@ -69,6 +68,8 @@ export default function QuotesList() {
     );
   };
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
+  const hasPermission = useAuthStore((state) => state?.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state?.hasAnyPermission);
   return (
     <Card>
       <CardHeader className="">
@@ -104,7 +105,7 @@ export default function QuotesList() {
           <Column header={t("customer_name")} sortable field="customerName" />
           <Column header={"اسم المستخدم"} sortable field="createdBy" />
           <Column header={t("discount_amount")} sortable field="discountAmount" />
-          <Column header={t("total_amount")} sortable field="grandTotal" />
+          <Column header={t("total_amount")} sortable field="grandTotal" body={(row: Quotation) => format(row?.grandTotal)} />
           <Column
             header={t("actions")}
             body={(row) => (
@@ -122,17 +123,21 @@ export default function QuotesList() {
                 >
                   <Printer size={16} />
                 </button>
-                <Link to={`/quotes/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
-                  <Edit2 size={16} />
-                </Link>
-                <button
-                  onClick={() => {
-                    deleteQuotation(row?.id);
-                  }}
-                  className="btn-minimal-action btn-compact-action text-red-500"
-                >
-                  <Trash2 size={16} />
-                </button>
+                {hasPermission(Permissions?.quotations?.edit) && (
+                  <Link to={`/quotes/edit/${row?.id}`} className="btn-minimal-action btn-compact-action">
+                    <Edit2 size={16} />
+                  </Link>
+                )}
+                {hasPermission(Permissions?.quotations?.delete) && (
+                  <button
+                    onClick={() => {
+                      deleteQuotation(row?.id);
+                    }}
+                    className="btn-minimal-action btn-compact-action text-red-500"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </div>
             )}
           />

@@ -115,11 +115,11 @@ const CreatePurchaseInvoice: React.FC = () => {
   }, [wareHouses]);
 
   useEffect(() => {
-    const supplierId = suppliers?.items[0]?.id;
-    if (supplierId) {
+    const supplierId = suppliers?.items[suppliers.items?.length - 1]?.id;
+    if (supplierId && !purchaseOrder) {
       form.setValue("supplierId", supplierId);
     }
-  }, [suppliers]);
+  }, [suppliers, purchaseOrder]);
   const {
     fields: itemFields,
     append: appendItem,
@@ -630,7 +630,14 @@ const CreatePurchaseInvoice: React.FC = () => {
           </div>
 
           <div className=" p-5 sm:p-6 rounded-sm border border-gray-100 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
-            <Button type="button" variant="destructive" className="h-12 px-4" onClick={() => {}}>
+            <Button
+              type="button"
+              variant="destructive"
+              className="h-12 px-4"
+              onClick={() => {
+                navigate("/purchases");
+              }}
+            >
               {t("cancel_and_return")}
             </Button>
 

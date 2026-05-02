@@ -1,3 +1,5 @@
+import { ApiResponse, Paginated } from "@/types";
+
 export interface DeliveryCompany {
   id: number;
   name: string;

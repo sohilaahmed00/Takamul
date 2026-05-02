@@ -38,11 +38,8 @@ const getSchema = (isEditMode: boolean) =>
     })
     .refine(
       (data) => {
-        // في حالة الإضافة لازم يتطابقوا
         if (!isEditMode) return data.password === data.confirmPassword;
 
-        // في التعديل:
-        // لو كتب باسورد → لازم confirm يساويه
         if (data.password) return data.password === data.confirmPassword;
 
         return true;
@@ -213,7 +210,7 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {roles?.data?.map((c) => (
+                        {roles?.items?.map((c) => (
                           <SelectItem key={c.roleId} value={String(c.roleName)}>
                             {c.roleName}
                           </SelectItem>

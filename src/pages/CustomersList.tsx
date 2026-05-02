@@ -12,9 +12,13 @@ import AddParnterModal from "@/components/modals/AddParnterModal";
 import { Card, CardAction, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Customer } from "@/features/customers/types/customers.types";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function CustomersList() {
   const { t, direction } = useLanguage();
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   const [entriesPerPage, setEntriesPerPage] = useState(5);
   const [currentPage, setCurrentPage] = useState(1);
@@ -51,10 +55,12 @@ export default function CustomersList() {
           <CardTitle> {t("customers")}</CardTitle>
           <CardDescription>{t("customize_report_below")}</CardDescription>
           <CardAction>
-            <Button size="xl" variant={"default"} onClick={() => setIsAddModalOpen(true)}>
-              <Plus size={20} />
-              {t("add_customer")}
-            </Button>
+            {hasPermission(Permissions.customers.add) && (
+              <Button size="xl" variant={"default"} onClick={() => setIsAddModalOpen(true)}>
+                <Plus size={20} />
+                {t("add_customer")}
+              </Button>
+            )}
           </CardAction>
         </CardHeader>
         <CardContent>
@@ -80,26 +86,32 @@ export default function CustomersList() {
             <Column field="id" header={t("code")} sortable style={{ width: "10%" }} />
             <Column field="customerName" header={t("name")} sortable style={{ width: "30%" }} />
             <Column field="phone" header={t("phone")} style={{ width: "20%" }} />
-            <Column
-              header={t("actions")}
-              style={{ width: "20%" }}
-              body={(customer) => (
-                <div className="space-x-2">
-                  <button
-                    onClick={() => {
-                      setSelectedCustomer(customer);
-                      setIsAddModalOpen(true);
-                    }}
-                    className="btn-minimal-action"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button onClick={async () => await deleteCustomer(customer.id)} className="btn-minimal-action">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              )}
-            />
+            {hasAnyPermission([Permissions.customers.edit, Permissions.customers.disable]) && (
+              <Column
+                header={t("actions")}
+                style={{ width: "20%" }}
+                body={(customer) => (
+                  <div className="space-x-2">
+                    {hasPermission(Permissions.customers.edit) && (
+                      <button
+                        onClick={() => {
+                          setSelectedCustomer(customer);
+                          setIsAddModalOpen(true);
+                        }}
+                        className="btn-minimal-action"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    )}
+                    {hasPermission(Permissions.customers.disable) && (
+                      <button onClick={async () => await deleteCustomer(customer.id)} className="btn-minimal-action">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              />
+            )}
           </DataTable>
         </CardContent>
       </Card>

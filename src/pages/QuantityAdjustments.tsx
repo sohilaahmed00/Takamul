@@ -14,6 +14,8 @@ import formatDate from "@/lib/formatDate";
 import { Input } from "@/components/ui/input";
 import { exportCustomPDF, printCustomHTML, getQuantityAdjustmentHTML } from "@/utils/customExportUtils";
 import { useDeleteQuantityAdjustment } from "@/features/quantity-adjustments/hooks/useDeleteQuantityAdjustment";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function QuantityAdjustments() {
@@ -66,18 +68,21 @@ export default function QuantityAdjustments() {
     );
   };
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
+  const hasPermission = useAuthStore((state) => state.hasPermission);
 
   return (
     <Card>
       <CardHeader className="max-md:flex max-md:flex-col">
         <CardTitle>{t("quantity_adjustments")}</CardTitle>
         <CardDescription>{t("quantity_adjustments_desc")}</CardDescription>
-        <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
-          {" "}
-          <Button size="xl" variant={"default"} asChild>
-            <Link to={"/products/quantity-adjustments/create"}>{t("add_quantity_adjustment")}</Link>
-          </Button>
-        </CardAction>
+        {hasPermission(Permissions?.stockInventory?.bulkAdjust) && (
+          <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
+            {" "}
+            <Button size="xl" variant={"default"} asChild>
+              <Link to={"/products/quantity-adjustments/create"}>{t("add_quantity_adjustment")}</Link>
+            </Button>
+          </CardAction>
+        )}
       </CardHeader>
       <CardContent>
         <DataTable
@@ -106,9 +111,11 @@ export default function QuantityAdjustments() {
             header={t("actions")}
             body={(product: QuantityAdjustment) => (
               <div className="space-x-2 flex items-center justify-center rtl:space-x-reverse">
-                <Link to={`/products/quantity-adjustments/edit/${product?.id}`} className="btn-minimal-action btn-edit">
-                  <Edit2 size={16} />
-                </Link>
+                {hasPermission(Permissions?.stockInventory?.editAdjustment) && (
+                  <Link to={`/products/quantity-adjustments/edit/${product?.id}`} className="btn-minimal-action btn-edit">
+                    <Edit2 size={16} />
+                  </Link>
+                )}
                 <Link to={`/products/quantity-adjustments/view/${product?.id}`} onClick={async () => {}} className="btn-minimal-action btn-view">
                   <Eye size={16} />
                 </Link>
@@ -118,9 +125,11 @@ export default function QuantityAdjustments() {
                 <button onClick={() => handleExportPDF(product)} className="btn-minimal-action btn-compact-action text-slate-600" type="button" disabled={printingRow === product.id} title={"PDF"}>
                   <FileText size={16} />
                 </button>
-                <button onClick={() => deleteQuantityAdjustmen(product.id)} className="btn-minimal-action">
-                  <Trash2 size={16} />
-                </button>
+                {hasPermission(Permissions?.stockInventory?.deleteAdjustment) && (
+                  <button onClick={() => deleteQuantityAdjustmen(product.id)} className="btn-minimal-action">
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </div>
             )}
           />

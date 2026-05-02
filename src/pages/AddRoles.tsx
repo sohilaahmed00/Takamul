@@ -37,6 +37,7 @@ export interface Group {
   id: string;
   label: string;
   pages: Page[];
+  permissions?: Permission[];
 }
 
 // ─── Static Data ─────────────────────────────────────────────────────────────
@@ -102,10 +103,10 @@ const GROUPS: Group[] = [
         id: "stock_adjustments",
         label: "تعديلات الكمية",
         permissions: [
-          { id: "view", label: "عرض", value: "المخزون.عرض التسويات" },
-          { id: "add", label: "إضافة", value: "المخزون.تعديل جماعي" },
-          { id: "edit", label: "تعديل", value: "المخزون.تعديل تسوية" },
-          { id: "delete", label: "حذف", value: "المخزون.حذف تسوية" },
+          { id: "view", label: "عرض", value: Permissions?.stockInventory?.view },
+          { id: "add", label: "إضافة", value: Permissions?.stockInventory?.bulkAdjust },
+          { id: "edit", label: "تعديل", value: Permissions?.stockInventory?.editAdjustment },
+          { id: "delete", label: "حذف", value: Permissions?.stockInventory?.deleteAdjustment },
         ],
       },
       {
@@ -164,10 +165,18 @@ const GROUPS: Group[] = [
         id: "gift_cards",
         label: "بطاقات الهدايا",
         permissions: [
-          { id: "view", label: "عرض", value: "بطاقات الهدايا.عرض" },
-          { id: "add", label: "إضافة", value: "بطاقات الهدايا.إضافة" },
-          { id: "edit", label: "تعديل", value: "بطاقات الهدايا.تعديل" },
-          { id: "delete", label: "حذف", value: "بطاقات الهدايا.حذف" },
+          { id: "view", label: "عرض", value: Permissions?.giftCards?.view },
+          { id: "add", label: "إضافة", value: Permissions?.giftCards?.add },
+          { id: "edit", label: "تعديل", value: Permissions?.giftCards?.edit },
+          { id: "delete", label: "حذف", value: Permissions?.giftCards?.delete },
+        ],
+      },
+      {
+        id: "sales_returns",
+        label: "المرتجعات",
+        permissions: [
+          { id: "view", label: "عرض", value: Permissions?.salesReturns?.view },
+          { id: "add", label: "إضافة", value: Permissions?.salesReturns?.add },
         ],
       },
     ],
@@ -180,9 +189,9 @@ const GROUPS: Group[] = [
         id: "quotations_list",
         label: "قائمة عروض الاسعار",
         permissions: [
-          { id: "view", label: "عرض", value: "عروض الأسعار.عرض" },
-          { id: "edit", label: "تعديل", value: "عروض الأسعار.تعديل" },
-          { id: "delete", label: "حذف", value: "عروض الأسعار.حذف" },
+          { id: "view", label: "عرض", value: Permissions?.quotations?.add },
+          { id: "edit", label: "تعديل", value: Permissions?.quotations?.edit },
+          { id: "delete", label: "حذف", value: Permissions?.quotations?.delete },
         ],
       },
       {
@@ -254,28 +263,28 @@ const GROUPS: Group[] = [
         ],
       },
       {
-        id: "roels",
+        id: "roles",
         label: "الصلاحيات",
         permissions: [
           {
             id: "view",
-            label: "عرض الادوار",
-            value: "الأدوار.عرض",
+            label: "عرض الصلاحيات",
+            value: Permissions?.roles?.view,
           },
           {
-            id: "view2",
-            label: "عرض الصلاحيات",
-            value: "الأدوار.عرض الصلاحيات",
+            id: "add",
+            label: "إضافة صلاحيات",
+            value: Permissions?.roles?.add,
           },
           {
             id: "edit",
-            label: "تعديل الادوار",
-            value: "الأدوار.تعديل",
+            label: "تعديل الصلاحيات",
+            value: Permissions?.roles?.edit,
           },
           {
             id: "delete",
-            label: "حذف الادوار",
-            value: "الأدوار.حذف",
+            label: "حذف الصلاحيات",
+            value: Permissions?.roles?.delete,
           },
         ],
       },
@@ -286,23 +295,23 @@ const GROUPS: Group[] = [
           {
             id: "view",
             label: "عرض",
-            value: "الموظفين.عرض",
+            value: Permissions?.employees?.view,
           },
 
           {
             id: "add",
             label: "إضافة",
-            value: "الموظفين.إضافة",
+            value: Permissions?.employees?.add,
           },
           {
             id: "edit",
             label: "تعديل",
-            value: "الموظفين.تعديل",
+            value: Permissions?.employees?.edit,
           },
           {
             id: "delete",
             label: "حذف ",
-            value: "الموظفين.حذف",
+            value: Permissions?.employees?.delete,
           },
         ],
       },
@@ -409,17 +418,34 @@ const GROUPS: Group[] = [
   {
     id: "warehouses",
     label: "المخازن",
-    pages: [
-      {
-        id: "warehouses_list",
-        label: "المخازن",
-        permissions: [
-          { id: "view", label: "عرض", value: "المستودعات.عرض" },
-          { id: "add", label: "إضافة", value: "المستودعات.إضافة" },
-          { id: "edit", label: "تعديل", value: "المستودعات.تعديل" },
-          { id: "delete", label: "حذف", value: "المستودعات.حذف" },
-        ],
-      },
+    pages: [],
+    permissions: [
+      { id: "view", label: "عرض", value: "المستودعات.عرض" },
+      { id: "add", label: "إضافة", value: "المستودعات.إضافة" },
+      { id: "edit", label: "تعديل", value: "المستودعات.تعديل" },
+      { id: "delete", label: "حذف", value: "المستودعات.حذف" },
+    ],
+  },
+  {
+    id: "expenses",
+    label: "المصروفات",
+    pages: [],
+    permissions: [
+      { id: "view", label: "عرض", value: "المصروفات.عرض" },
+      { id: "add", label: "إضافة", value: "المصروفات.إضافة" },
+      { id: "edit", label: "تعديل", value: "المصروفات.تعديل" },
+      { id: "delete", label: "حذف", value: "المصروفات.حذف" },
+    ],
+  },
+  {
+    id: "items",
+    label: "البنود",
+    pages: [],
+    permissions: [
+      { id: "view", label: "عرض", value: "البنود.عرض" },
+      { id: "add", label: "إضافة", value: "البنود.إضافة" },
+      { id: "edit", label: "تعديل", value: "البنود.تعديل" },
+      { id: "delete", label: "حذف", value: "البنود.حذف" },
     ],
   },
   {
@@ -430,181 +456,52 @@ const GROUPS: Group[] = [
         id: "items_reports",
         label: "تقارير الأصناف",
         permissions: [
-          {
-            id: "view",
-            label: "عرض",
-            value: "التقارير.المنتجات",
-            subPermissions: [
-              {
-                id: "inventory",
-                label: "تقرير جرد الأصناف",
-                value: "reports.items.inventory",
-              },
-              {
-                id: "stock_alert",
-                label: "تقرير تنبيهات المخزون",
-                value: "reports.items.stock_alert",
-              },
-              {
-                id: "movement",
-                label: "تقرير حركة الصنف",
-                value: "reports.items.movement",
-              },
-              {
-                id: "top_selling",
-                label: "تقرير المنتج الأكثر مبيعًا",
-                value: "reports.items.top_selling",
-              },
-            ],
-          },
+          { id: "inventory", label: "تقرير جرد الأصناف", value: Permissions?.reports?.products?.inventory },
+          { id: "stockAlerts", label: "تقرير تنبيهات المخزون", value: Permissions?.reports?.products?.stockAlerts },
+          { id: "movement", label: "تقرير حركة الصنف", value: Permissions?.reports?.products?.movement },
+          { id: "topSelling", label: "تقرير المنتج الأكثر مبيعًا", value: Permissions?.reports?.products?.topSelling },
         ],
       },
       {
         id: "sales_reports",
         label: "تقارير المبيعات",
         permissions: [
-          {
-            id: "view",
-            label: "عرض",
-            value: "التقارير.المبيعات",
-            subPermissions: [
-              {
-                id: "shifts",
-                label: "تقرير الورديات",
-                value: "reports.sales.shifts",
-              },
-              {
-                id: "item_sales",
-                label: "تقرير مبيعات صنف",
-                value: "reports.sales.item",
-              },
-              {
-                id: "daily_sales",
-                label: "إجمالي المبيعات على مستوى الأيام",
-                value: "reports.sales.daily",
-              },
-              {
-                id: "invoice_sales",
-                label: "إجمالي المبيعات على مستوى الفواتير",
-                value: "reports.sales.invoice",
-              },
-              {
-                id: "employee_sales",
-                label: "تقرير مبيعات موظف",
-                value: "reports.sales.employee",
-              },
-            ],
-          },
+          { id: "daily", label: "إجمالي المبيعات على مستوى الأيام", value: "التقارير.مبيعات على مستوى الايام" },
+          { id: "invoices", label: "إجمالي المبيعات على مستوى الفواتير", value: "التقارير.مبيعات على مستوى ارقام الفواتير" },
+          { id: "returns", label: "تقرير مرتجع المبيعات", value: "التقارير.مرتجع المبيعات" },
+          { id: "employee", label: "تقرير مبيعات موظف", value: "التقارير.مبيعات موظف" },
+          { id: "sales", label: "تقرير مبيعات صنف", value: Permissions?.reports?.products?.sales },
         ],
       },
       {
         id: "purchase_reports",
         label: "تقارير المشتريات",
         permissions: [
-          {
-            id: "view",
-            label: "عرض",
-            value: "التقارير.المشتريات",
-            subPermissions: [
-              {
-                id: "item_purchases",
-                label: "تقرير مشتريات صنف",
-                value: "reports.purchases.item",
-              },
-              {
-                id: "daily_purchases",
-                label: "تقرير مشتريات على مستوى الأيام",
-                value: "reports.purchases.daily",
-              },
-              {
-                id: "invoice_purchases",
-                label: "تقرير مشتريات على مستوى الفواتير",
-                value: "reports.purchases.invoice",
-              },
-            ],
-          },
+          { id: "daily", label: "تقرير مشتريات على مستوى الأيام", value: "التقارير.مشتريات على مستوى الايام" },
+          { id: "invoices", label: "تقرير مشتريات على مستوى الفواتير", value: "التقارير.مشتريات على مستوى ارقام الفواتير" },
+          { id: "purchases", label: "تقرير مشتريات صنف", value: Permissions?.reports?.products?.purchases },
         ],
       },
       {
         id: "customer_reports",
         label: "تقارير العملاء",
-        permissions: [
-          {
-            id: "view",
-            label: "عرض",
-            value: "التقارير.العملاء",
-            subPermissions: [
-              {
-                id: "customer_statement",
-                label: "تقرير كشف حساب عميل",
-                value: "reports.customers.statement",
-              },
-            ],
-          },
-        ],
+        permissions: [{ id: "list", label: "تقرير كشف حساب عميل", value: "التقارير.العملاء" }],
       },
       {
         id: "supplier_reports",
         label: "تقارير الموردين",
-        permissions: [
-          {
-            id: "view",
-            label: "عرض",
-            value: "التقارير.الموردين",
-            subPermissions: [
-              {
-                id: "supplier_statement",
-                label: "تقرير كشف حساب مورد",
-                value: "reports.suppliers.statement",
-              },
-            ],
-          },
-        ],
+        permissions: [{ id: "list", label: "تقرير كشف حساب مورد", value: "التقارير.الموردين" }],
       },
       {
         id: "expenses_reports",
         label: "تقارير المصروفات",
-        permissions: [
-          {
-            id: "view",
-            label: "عرض",
-            subPermissions: [
-              {
-                id: "expenses",
-                label: "تقرير المصروفات",
-                value: "reports.expenses.all",
-              },
-            ],
-          },
-        ],
+        permissions: [{ id: "list", label: "تقرير المصروفات", value: "التقارير.المصروفات" }],
       },
       {
-        id: "expenses_reports",
-        label: "تقارير المصروفات",
-        permissions: [
-          {
-            id: "view",
-            label: "عرض",
-            subPermissions: [
-              {
-                id: "expenses",
-                label: "تقرير المصروفات",
-                value: "reports.expenses.all",
-              },
-            ],
-          },
-        ],
+        id: "profits_reports",
+        label: "تقارير الأرباح",
+        permissions: [{ id: "list", label: "تقرير الأرباح", value: Permissions?.reports?.profits?.list }],
       },
-      // {
-      //   id: "profits_reports",
-      //   label: "تقارير الأرباح",
-      //   permissions: [
-      //     {
-      //       id: "view",
-      //       label: "عرض",
-      //     },
-      //   ],
-      // },
     ],
   },
 ];
@@ -631,6 +528,10 @@ function buildInitialState(groups: Group[]): CheckedMap {
         }
       });
     });
+
+    (g.permissions ?? []).forEach((_, ri) => {
+      map[leafKey(gi, -1, ri)] = false;
+    });
   });
   return map;
 }
@@ -645,7 +546,12 @@ function getStatus(keys: string[], map: CheckedMap): "none" | "some" | "all" {
 
 function keysForGroup(groups: Group[], gi: number): string[] {
   const g = groups[gi];
-  return g.pages.flatMap((page, pi) => page.permissions.flatMap((perm, ri) => ((perm.subPermissions ?? []).length > 0 ? perm.subPermissions!.map((_, si) => leafKey(gi, pi, ri, si)) : [leafKey(gi, pi, ri)])));
+
+  const pageKeys = g.pages.flatMap((page, pi) => page.permissions.flatMap((perm, ri) => ((perm.subPermissions ?? []).length > 0 ? perm.subPermissions!.map((_, si) => leafKey(gi, pi, ri, si)) : [leafKey(gi, pi, ri)])));
+
+  const directKeys = (g.permissions ?? []).map((_, ri) => leafKey(gi, -1, ri));
+
+  return [...pageKeys, ...directKeys];
 }
 
 function keysForPage(gi: number, pi: number, page: Page): string[] {
@@ -673,6 +579,11 @@ function collectSelectedPermissions(groups: Group[], checked: CheckedMap): strin
           }
         }
       });
+    });
+    (g.permissions ?? []).forEach((perm, ri) => {
+      if (checked[leafKey(gi, -1, ri)] && perm.value) {
+        result.add(perm.value);
+      }
     });
   });
   return Array.from(result);
@@ -707,20 +618,25 @@ export default function PermissionsTree() {
     const newChecked: CheckedMap = {};
 
     GROUPS.forEach((g, gi) => {
+      // الـ pages العادية
       g.pages.forEach((page, pi) => {
         page.permissions.forEach((perm, ri) => {
           if ((perm.subPermissions ?? []).length > 0) {
             perm.subPermissions!.forEach((sub, si) => {
               const key = leafKey(gi, pi, ri, si);
-
               newChecked[key] = permissionsSet.has(sub.value);
             });
           } else {
             const key = leafKey(gi, pi, ri);
-
             newChecked[key] = permissionsSet.has(perm.value!);
           }
         });
+      });
+
+      // ← الـ direct permissions على الـ group
+      (g.permissions ?? []).forEach((perm, ri) => {
+        const key = leafKey(gi, -1, ri);
+        newChecked[key] = permissionsSet.has(perm.value!);
       });
     });
 
@@ -754,7 +670,7 @@ export default function PermissionsTree() {
     } else {
       await createRole({ roleName: roleName, permissions: selectedPermissions });
     }
-    navigate("/roles");
+    // navigate("/roles");
   };
 
   return (
@@ -793,10 +709,15 @@ export default function PermissionsTree() {
               return (
                 <div key={`g_${gi}`} className={cn(gi !== GROUPS.length - 1 && "border-b border-border")}>
                   {/* Group Row */}
-                  <div className="flex items-center gap-2 px-3 py-2.5 bg-muted/40 hover:bg-muted/70 cursor-pointer select-none" onClick={() => setOpenGroups(toggle(openGroups, `g_${gi}`))}>
-                    <TreeCheckbox status={gStatus} onChange={() => setKeys(gKeys, gStatus !== "all")} />
-                    <Folder className="w-4 h-4 text-amber-500 shrink-0" />
-                    <span className="flex-1 text-sm font-medium text-foreground">{group.label}</span>
+                  <div className={cn("flex items-center gap-2 px-3 py-2.5 hover:bg-muted/70 cursor-pointer select-none", gStatus === "some" ? "bg-primary/5" : "bg-muted/40")} onClick={() => setOpenGroups(toggle(openGroups, `g_${gi}`))}>
+                    <div onClick={(e) => e.stopPropagation()}>
+                      {" "}
+                      {/* ← هنا */}
+                      <TreeCheckbox status={gStatus} onChange={() => setKeys(gKeys, gStatus !== "all")} />
+                    </div>{" "}
+                    <Folder className={cn("w-4 h-4 shrink-0", gStatus !== "none" ? "text-primary" : "text-amber-500")} />
+                    <span className={cn("flex-1 text-sm font-medium", gStatus !== "none" ? "text-primary" : "text-foreground")}>{group.label}</span>
+                    {gStatus === "some" && <span className="text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded-full">جزئي</span>}
                     <ChevronLeft className={cn("w-3.5 h-3.5 text-muted-foreground transition-transform", gOpen && "-rotate-90")} />
                   </div>
 
@@ -811,11 +732,19 @@ export default function PermissionsTree() {
 
                         return (
                           <div key={pageKey} className={cn(pi !== group.pages.length - 1 && "border-b border-border")}>
-                            {/* Page Row */}
-                            <div className="flex items-center gap-2 px-3 py-2 pr-7 hover:bg-muted/40 cursor-pointer select-none bg-background" onClick={() => setOpenPages(toggle(openPages, pageKey))}>
-                              <TreeCheckbox status={pStatus} onChange={() => setKeys(pKeys, pStatus !== "all")} />
-                              <Folder className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                              <span className="flex-1 text-sm text-foreground">{page.label}</span>
+                            <div
+                              className={cn(
+                                "flex items-center gap-2 px-3 py-2 pr-7 cursor-pointer select-none",
+                                pStatus === "some" ? "bg-primary/5 hover:bg-primary/10" : "bg-background hover:bg-muted/40", // ← هنا
+                              )}
+                              onClick={() => setOpenPages(toggle(openPages, pageKey))}
+                            >
+                              <div onClick={(e) => e.stopPropagation()}>
+                                {" "}
+                                <TreeCheckbox status={pStatus} onChange={() => setKeys(pKeys, pStatus !== "all")} />
+                              </div>{" "}
+                              <Folder className={cn("w-3.5 h-3.5 shrink-0", pStatus !== "none" ? "text-primary" : "text-amber-400")} />
+                              <span className={cn("flex-1 text-sm", pStatus !== "none" ? "text-primary font-medium" : "text-foreground")}>{page.label}</span>
                               <ChevronLeft className={cn("w-3 h-3 text-muted-foreground transition-transform", pOpen && "-rotate-90")} />
                             </div>
 
@@ -868,6 +797,16 @@ export default function PermissionsTree() {
                                 })}
                               </div>
                             )}
+                          </div>
+                        );
+                      })}
+                      {(group.permissions ?? []).map((perm, ri) => {
+                        const key = leafKey(gi, -1, ri);
+                        return (
+                          <div key={key} className={cn("flex items-center gap-2 px-3 py-2 pr-7 bg-background border-t border-border select-none")}>
+                            <Checkbox checked={checked[key] ?? false} onCheckedChange={() => toggleSub(key)} />
+                            <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                            <span className="flex-1 text-sm text-foreground">{perm.label}</span>
                           </div>
                         );
                       })}

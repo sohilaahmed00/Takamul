@@ -14,5 +14,5 @@ export type CreateRole = {
 export type UpdateRole = Omit<Role, "roleName">;
 
 export interface GetAllRolesResponse extends PaginationMeta {
-  data: Role[];
+  items: Role[];
 }

@@ -32,6 +32,10 @@ export const getAllFreeTables = () =>
   httpClient<GetAllTablesResponse>("/dining-tables/free", {
     method: "GET",
   });
+export const freeTable = (id: number) =>
+  httpClient<{ message: string }>(`/dining-tables/${id}/free`, {
+    method: "PUT",
+  });
 
 export const deleteTable = (id: number) =>
   httpClient<{ message: string }>(`/dining-tables/${id}`, {

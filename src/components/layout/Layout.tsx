@@ -100,6 +100,8 @@ export default function Layout() {
   const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
   const permissions = useAuthStore((s) => s.permissions);
 
+  const allReportPermissions = React.useMemo(() => [...Object.values(Permissions?.reports?.products || {}), ...Object.values(Permissions?.reports?.customers || {}), ...Object.values(Permissions?.reports?.suppliers || {}), ...Object.values(Permissions?.reports?.expenses || {}), ...Object.values(Permissions?.reports?.sales || {}), ...Object.values(Permissions?.reports?.purchases || {}), ...Object.values(Permissions?.reports?.profits || {})], []);
+
   const toggleSubmenu = (menu: string) => {
     if (!isSidebarOpen && !isMobile) {
       setIsSidebarOpen(true);
@@ -234,25 +236,24 @@ export default function Layout() {
             {openSubmenu === "products" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 {hasAnyPermission([Permissions?.products?.BranchedView, Permissions?.products?.DirectView, Permissions?.products?.PreparedView, Permissions?.products?.RawMaterialView, Permissions?.products?.view]) && <SubmenuItem label={t("products_list")} icon={List} path="/products" />}
-                {(hasPermission(Permissions?.products?.add) || hasPermission(Permissions?.products?.addDirect) || hasPermission(Permissions?.products?.addVariant) || hasPermission(Permissions?.products?.addReady) || hasPermission(Permissions?.products?.addRaw)) && <SubmenuItem label={t("add_product")} icon={PlusCircle} path="/products/create" />}
+                {(hasPermission(Permissions?.products?.addDirect) || hasPermission(Permissions?.products?.addBranch) || hasPermission(Permissions?.products?.addPrepared) || hasPermission(Permissions?.products?.addRaw)) && <SubmenuItem label={t("add_product")} icon={PlusCircle} path="/products/create" />}
                 {/* <SubmenuItem label={t("print_barcode")} icon={Tag} path="/products/barcode" /> */}
-                {hasAnyPermission([Permissions?.stockInventory?.view, Permissions?.stockInventory?.all]) && <SubmenuItem label={t("quantity_adjustments")} icon={SlidersHorizontal} path="/products/quantity-adjustments" />}
+                {hasAnyPermission([Permissions?.stockInventory?.view, Permissions?.stockInventory?.view]) && <SubmenuItem label={t("quantity_adjustments")} icon={SlidersHorizontal} path="/products/quantity-adjustments" />}
                 {hasAnyPermission([Permissions?.productCategories?.view, Permissions?.productCategories?.all]) && <SubmenuItem label={t("groups")} icon={Folder} path="/products/groups" />}
                 {(hasPermission(Permissions?.units?.all) || hasPermission(Permissions?.units?.view)) && <SubmenuItem label={t("units")} icon={Wrench} path="/products/units" />}
                 {hasAnyPermission([Permissions?.additions?.view, Permissions?.additions?.all]) && <SubmenuItem label={t("additions")} icon={Folder} path="/products/additions" />}
               </motion.div>
             )}
           </AnimatePresence>
-          {/* {hasAnyPermission(Object.values(Permissions?.salesOrders)) && }{" "} */}
-          <SidebarItem icon={ShoppingCart} label={t("sales")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "sales"} onClick={() => toggleSubmenu("sales")} />
+          {hasAnyPermission([...Object.values(Permissions?.salesOrders), ...Object.values(Permissions?.salesReturns), ...Object.values(Permissions?.giftCards)]) && <SidebarItem icon={ShoppingCart} label={t("sales")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "sales"} onClick={() => toggleSubmenu("sales")} />}
           <AnimatePresence>
             {openSubmenu === "sales" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
                 {/* {hasPermission(Permissions?.salesOrders?.all) && <SubmenuItem label={t("all_sales")} icon={List} path="/sales/all" />} */}
                 {hasPermission(Permissions?.salesOrders?.view) && <SubmenuItem label={t("invoices_a4")} icon={FileText} path="/sales/a4-invoices" />}
                 {hasPermission(Permissions?.salesOrders?.pos) && <SubmenuItem label={t("invoices_pos")} icon={RefreshCcw} path="/sales/pos-invoices" />}
-                {hasAnyPermission([Permissions?.giftCards?.all, Permissions?.giftCards?.view]) && <SubmenuItem label={t("gift_cards")} icon={Gift} path="/sales/gift-cards" />}
-                {<SubmenuItem label={"المرتجعات"} icon={FileText} path="/sales/return" />}
+                {hasPermission(Permissions?.giftCards?.view) && <SubmenuItem label={t("gift_cards")} icon={Gift} path="/sales/gift-cards" />}
+                {hasPermission(Permissions?.salesReturns?.view) && <SubmenuItem label={"المرتجعات"} icon={FileText} path="/sales/return" />}
               </motion.div>
             )}
           </AnimatePresence>
@@ -260,7 +261,7 @@ export default function Layout() {
           <AnimatePresence>
             {openSubmenu === "quotes" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                {hasAnyPermission([Permissions?.quotations?.all, Permissions?.quotations?.view]) && <SubmenuItem label={t("quotes_list")} icon={List} path="/quotes" />}
+                {hasPermission(Permissions?.quotations?.view) && <SubmenuItem label={t("quotes_list")} icon={List} path="/quotes" />}
                 {hasPermission(Permissions?.quotations?.add) && <SubmenuItem label={t("add_quote")} icon={PlusCircle} path="/quotes/create" />}
               </motion.div>
             )}
@@ -274,15 +275,15 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object.values(Permissions?.users)) && <SidebarItem icon={Users} label={t("users")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "users"} onClick={() => toggleSubmenu("users")} />}
+          {hasAnyPermission([...Object.values(Permissions?.users), ...Object.values(Permissions?.roles), ...Object.values(Permissions?.employees)]) && <SidebarItem icon={Users} label={t("users")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "users"} onClick={() => toggleSubmenu("users")} />}
           <AnimatePresence>
             {openSubmenu === "users" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                {hasAnyPermission([Permissions?.users?.view, Permissions?.users?.all]) && <SubmenuItem label={t("users_list")} icon={List} path="/users" />}
+                {hasPermission(Permissions?.users?.view) && <SubmenuItem label={t("users_list")} icon={List} path="/users" />}
                 {/* <SubmenuItem label={t("user_groups")} icon={Users} path="/users/groups" /> */}
                 <SubmenuItem label={t("pos_devices")} icon={Monitor} path="/pos-devices" />
-                {hasAnyPermission([Permissions?.roles?.view, Permissions?.roles?.all]) && <SubmenuItem label={"الصلاحيات"} icon={Shield} path="/roles" />}
-                {hasAnyPermission([Permissions?.employees?.view, Permissions?.employees?.all]) && <SubmenuItem label={"الموظفين"} icon={Users} path="/employyes" />}
+                {hasPermission(Permissions?.roles?.view) && <SubmenuItem label={"الصلاحيات"} icon={Shield} path="/roles" />}
+                {hasPermission(Permissions?.employees?.view) && <SubmenuItem label={"الموظفين"} icon={Users} path="/employyes" />}
               </motion.div>
             )}
           </AnimatePresence>
@@ -294,7 +295,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object.values(Permissions?.customers)) && <SidebarItem icon={User} label={t("customers")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "customers"} onClick={() => toggleSubmenu("customers")} />}
+          {hasAnyPermission([...Object.values(Permissions?.customers), Object.values(Permissions?.customerTransactions)]) && <SidebarItem icon={User} label={t("customers")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "customers"} onClick={() => toggleSubmenu("customers")} />}
           <AnimatePresence>
             {openSubmenu === "customers" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -303,7 +304,7 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object.values(Permissions?.suppliers)) && <SidebarItem icon={Truck} label={t("suppliers")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "suppliers"} onClick={() => toggleSubmenu("suppliers")} />}
+          {hasAnyPermission([...Object.values(Permissions?.suppliers), Object.values(Permissions?.supplierTransactions)]) && <SidebarItem icon={Truck} label={t("suppliers")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "suppliers"} onClick={() => toggleSubmenu("suppliers")} />}
           <AnimatePresence>
             {openSubmenu === "suppliers" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
@@ -330,11 +331,11 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          {hasAnyPermission(Object.values(Permissions?.warehouses)) && <SidebarItem icon={Store} label={t("warehouses")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "warehouses"} onClick={() => toggleSubmenu("warehouses")} />}
+          {userName == "superadmin" && <SidebarItem icon={Store} label={t("warehouses")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "warehouses"} onClick={() => toggleSubmenu("warehouses")} />}
           <AnimatePresence>
             {openSubmenu === "warehouses" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                {hasPermission(Permissions?.warehouses?.view) && <SubmenuItem label={t("warehouses_list")} icon={List} path="/warehouses" />}
+                {userName == "superadmin" && <SubmenuItem label={t("warehouses_list")} icon={List} path="/warehouses" />}
               </motion.div>
             )}
           </AnimatePresence>
@@ -348,39 +349,40 @@ export default function Layout() {
               </motion.div>
             )}
           </AnimatePresence>
-          <SidebarItem icon={BarChart} label={t("reports")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "reports"} onClick={() => toggleSubmenu("reports")} />
+          {hasAnyPermission(allReportPermissions) && <SidebarItem icon={BarChart} label={t("reports")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "reports"} onClick={() => toggleSubmenu("reports")} />}
           <AnimatePresence>
             {openSubmenu === "reports" && showSidebarContent && (
               <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                <SubmenuItem label={t("item_reports")} icon={Package} path="/reports/category/items" />
-                <SubmenuItem label={t("sales_reports")} icon={ShoppingCart} path="/reports/category/sales" />
-                <SubmenuItem label={t("purchase_reports")} icon={CornerUpLeft} path="/reports/category/purchases" />
-                <SubmenuItem label={t("customer_reports")} icon={User} path="/reports/category/customers" />
+                {hasAnyPermission(Object.values(Permissions?.reports?.products || {})) && <SubmenuItem label={t("item_reports")} icon={Package} path="/reports/category/items" />}
+                {hasAnyPermission(Object.values(Permissions?.reports?.sales || {})) && <SubmenuItem label={t("sales_reports")} icon={ShoppingCart} path="/reports/category/sales" />}
+                {hasAnyPermission(Object.values(Permissions?.reports?.purchases || {})) && <SubmenuItem label={t("purchase_reports")} icon={CornerUpLeft} path="/reports/category/purchases" />}
+                {hasPermission(Permissions?.reports?.customers?.list) && <SubmenuItem label={t("customer_reports")} icon={User} path="/reports/category/customers" />}
+                {hasPermission(Permissions?.reports?.suppliers?.list) && <SubmenuItem label={t("suppliers_reports", "تقارير الموردين")} icon={Truck} path="/reports/category/suppliers" />}
+                {hasPermission(Permissions?.reports?.expenses?.list) && <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />}
+                {hasPermission(Permissions?.reports?.profits?.list) && <SubmenuItem label={t("profits_reports")} icon={Calculator} path="/reports/category/profits" />}
 
-                <SubmenuItem label={t("suppliers_reports", "تقارير الموردين")} icon={Truck} path="/reports/category/suppliers" />
-                <SubmenuItem label={t("expense_reports")} icon={DollarSign} path="/reports/category/expenses" />
-                <SubmenuItem label={t("profits_reports")} icon={Calculator} path="/reports/category/profits" />
                 <div className="h-px bg-gray-100 my-1 mx-2" />
 
                 {/* <SubmenuItem label={t("sales_report_by_category")} icon={List} path="/reports/sales-by-category" /> */}
               </motion.div>
             )}
           </AnimatePresence>
-          <SidebarItem icon={Settings} label={t("settings")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "settings"} onClick={() => toggleSubmenu("settings")} />
-          <AnimatePresence>
-            {openSubmenu === "settings" && showSidebarContent && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
-                <SubmenuItem label={t("system_settings")} icon={Settings} path="/settings/system" />
-                <SubmenuItem label={t("site_settings") || "إعدادات الموقع"} icon={Settings} path="/settings/site" />
-                <SubmenuItem label={t("items_settings") || "إعدادات الأصناف"} icon={Package} path="/settings/items" />
-                <SubmenuItem label={t("sales_settings") || "إعدادات المبيعات"} icon={ShoppingCart} path="/settings/sales" />
-                <SubmenuItem label={t("barcode_scale") || "ميزان الباركود"} icon={Barcode} path="/settings/barcode" />
-                <SubmenuItem label={t("email_settings") || "البريد الإلكتروني"} icon={Mail} path="/settings/email" />
-                {/* <SubmenuItem label={t("delivery_companies")} icon={Truck} path="/settings/delivery-companies" />
+          {userName == "superadmin" && <SidebarItem icon={Settings} label={t("settings")} hasSubmenu isSidebarOpen={showSidebarContent} isOpen={openSubmenu === "settings"} onClick={() => toggleSubmenu("settings")} />}
+          {userName == "superadmin" && (
+            <AnimatePresence>
+              {openSubmenu === "settings" && showSidebarContent && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className={cn("overflow-hidden space-y-1 pr-2", direction === "rtl" ? "mr-4 border-r border-gray-100" : "ml-4 border-l border-gray-100 pl-2 pr-0")}>
+                  <SubmenuItem label={t("system_settings")} icon={Settings} path="/settings/system" />
+                  <SubmenuItem label={t("site_settings") || "إعدادات الموقع"} icon={Settings} path="/settings/site" />
+                  <SubmenuItem label={t("items_settings") || "إعدادات الأصناف"} icon={Package} path="/settings/items" />
+                  <SubmenuItem label={t("sales_settings") || "إعدادات المبيعات"} icon={ShoppingCart} path="/settings/sales" />
+                  <SubmenuItem label={t("barcode_scale") || "ميزان الباركود"} icon={Barcode} path="/settings/barcode" />
+                  <SubmenuItem label={t("email_settings") || "البريد الإلكتروني"} icon={Mail} path="/settings/email" />
+                  {/* <SubmenuItem label={t("delivery_companies")} icon={Truck} path="/settings/delivery-companies" />
                 <SubmenuItem label={t("currencies")} icon={Coins} path="/settings/currencies" />
                 <SubmenuItem label={t("customer_groups")} icon={Users} path="/settings/customer-groups" />
                 <SubmenuItem label={t("price_groups")} icon={DollarSign} path="/settings/price-groups" /> */}
-                {/* <SubmenuItem
+                  {/* <SubmenuItem
                   label={t("change_logo")}
                   icon={Upload}
                   onClick={() => {
@@ -388,7 +390,7 @@ export default function Layout() {
                     if (isMobile) setIsMobileMenuOpen(false);
                   }}
                 /> */}
-                {/* <SubmenuItem label={t("currencies")} icon={Coins} path="/settings/currencies" />
+                  {/* <SubmenuItem label={t("currencies")} icon={Coins} path="/settings/currencies" />
                 <SubmenuItem label={t("customer_groups")} icon={Link} path="/settings/customer-groups" />
                 <SubmenuItem label={t("pricing_groups")} icon={DollarSign} path="/settings/price-groups" />
                 <SubmenuItem label={t("basic_categories")} icon={Briefcase} path="/settings/basic-categories" />
@@ -406,9 +408,10 @@ export default function Layout() {
                 <SubmenuItem label={t("group_permissions")} icon={Key} path="/settings/groups" />
                 <SubmenuItem label={t("site_logins")} icon={FileText} />
                 <SubmenuItem label={t("reports")} icon={BarChart} path="/reports" /> */}
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
         </div>
       </motion.aside>
 
@@ -437,15 +440,19 @@ export default function Layout() {
                   <span>{t("sales_a4_quick")}</span>
                 </button>
               )}
-              <button onClick={() => navigate("/pos")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
-                <ShoppingCart size={16} />
-                <span>{t("pos_quick")}</span>
-              </button>
+              {hasPermission(Permissions?.salesOrders?.addpos) && (
+                <button onClick={() => navigate("/pos")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+                  <ShoppingCart size={16} />
+                  <span>{t("pos_quick")}</span>
+                </button>
+              )}
 
-              <button onClick={() => navigate("/products/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
-                <Package size={16} />
-                <span>{t("add_product")}</span>
-              </button>
+              {hasAnyPermission([Permissions?.products?.addDirect, Permissions?.products?.addBranch, Permissions?.products?.addPrepared, Permissions?.products?.addRaw]) && (
+                <button onClick={() => navigate("/products/create")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 rounded-full transition-all duration-200 hover:shadow-sm active:scale-95">
+                  <Package size={16} />
+                  <span>{t("add_product")}</span>
+                </button>
+              )}
             </div>
 
             <div className="relative">

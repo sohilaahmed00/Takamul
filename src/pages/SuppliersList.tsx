@@ -12,9 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Supplier } from "@/features/suppliers/types/suppliers.types";
 import { useDeleteSupplier } from "@/features/suppliers/hooks/useDeleteSupplier";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function SuppliersList() {
   const { t, direction } = useLanguage();
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,10 +76,12 @@ export default function SuppliersList() {
           </CardTitle>
           <CardDescription>{t("suppliers_desc")}</CardDescription>
           <CardAction>
-            <Button size="xl" variant={"default"} onClick={() => setIsModalOpen(true)}>
-              <Plus size={18} />
-              {t("add_supplier")}
-            </Button>
+            {hasPermission(Permissions.suppliers.add) && (
+              <Button size="xl" variant={"default"} onClick={() => setIsModalOpen(true)}>
+                <Plus size={18} />
+                {t("add_supplier")}
+              </Button>
+            )}
           </CardAction>
         </CardHeader>
         <CardContent>
@@ -102,30 +108,36 @@ export default function SuppliersList() {
             <Column field="id" header={t("code")} sortable />
             <Column field="supplierName" header={t("name")} sortable />
             <Column field="phone" header={t("phone")} />
-            <Column
-              header={t("actions")}
-              body={(supplier) => (
-                <div className="space-x-2">
-                  <button
-                    onClick={() => {
-                      setSelectedSupplier(supplier);
-                      setIsModalOpen(true);
-                    }}
-                    className="btn-minimal-action btn-compact-action"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={async () => {
-                      await deleteSupplier(supplier?.id);
-                    }}
-                    className="btn-minimal-action btn-compact-action"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              )}
-            />
+            {hasAnyPermission([Permissions.suppliers.edit, Permissions.suppliers.delete]) && (
+              <Column
+                header={t("actions")}
+                body={(supplier) => (
+                  <div className="space-x-2">
+                    {hasPermission(Permissions.suppliers.edit) && (
+                      <button
+                        onClick={() => {
+                          setSelectedSupplier(supplier);
+                          setIsModalOpen(true);
+                        }}
+                        className="btn-minimal-action btn-compact-action"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    )}
+                    {hasPermission(Permissions.suppliers.delete) && (
+                      <button
+                        onClick={async () => {
+                          await deleteSupplier(supplier?.id);
+                        }}
+                        className="btn-minimal-action btn-compact-action"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              />
+            )}
           </DataTable>
         </CardContent>
       </Card>

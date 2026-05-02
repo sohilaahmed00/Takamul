@@ -29,8 +29,22 @@ export default function ProductsList() {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [globalFilterValue, setGlobalFilterValue] = useState("");
+  const hasPermission = useAuthStore((s) => s.hasPermission);
+  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
+  const hasAllPermissions = useAuthStore((s) => s.hasAllPermissions);
   type ProductType = "Direct" | "Branched" | "Prepared" | "RawMatrial";
-  const [activeTab, setActiveTab] = useState<ProductType | "allProducts">("allProducts");
+  const getInitialTab = (): ProductType | "allProducts" => {
+    if (hasAllPermissions([Permissions?.products?.DirectView, Permissions?.products?.BranchedView, Permissions?.products?.PreparedView, Permissions?.products?.RawMaterialView])) return "allProducts";
+
+    if (hasPermission(Permissions?.products?.DirectView)) return "Direct";
+    if (hasPermission(Permissions?.products?.BranchedView)) return "Branched";
+    if (hasPermission(Permissions?.products?.PreparedView)) return "Prepared";
+    if (hasPermission(Permissions?.products?.RawMaterialView)) return "RawMatrial";
+
+    return "allProducts";
+  };
+
+  const [activeTab, setActiveTab] = useState<ProductType | "allProducts">(getInitialTab);
   const entriesPerPage = rows ?? 5;
   const { mutateAsync: deleteProduct } = useDeleteProduct();
   const { data: products, isLoading } = useGetAllProducts(
@@ -43,8 +57,6 @@ export default function ProductsList() {
       enabled: activeTab === "allProducts",
     },
   );
-  const hasPermission = useAuthStore((s) => s.hasPermission);
-  const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
 
   const { data: productsDirect } = useGetAllProductsDirect(
     {
@@ -177,27 +189,27 @@ export default function ProductsList() {
         <CardContent>
           <Tabs value={activeTab} onValueChange={handleTabChange} className="border border-gray-200 rounded-t-md overflow-hidden">
             <TabsList variant={"line"} className="flex overflow-x-auto justify-start gap-x-2 md:gap-x-8 h-fit! pb-1 max-lg:w-full [&::-webkit-scrollbar]:hidden">
-              {hasPermission("المنتجات.عرض") && (
+              {hasAllPermissions([Permissions?.products?.DirectView, Permissions?.products?.BranchedView, Permissions?.products?.PreparedView, Permissions?.products?.RawMaterialView]) && (
                 <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="allProducts">
                   جميع الأصناف
                 </TabsTrigger>
               )}
-              {hasAnyPermission(["المنتجات.عرض الاصناف المباشرة", "المنتجات.عرض"]) && (
+              {hasPermission(Permissions?.products?.DirectView) && (
                 <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="Direct">
                   الأصناف المباشرة
                 </TabsTrigger>
               )}
-              {hasAnyPermission(["المنتجات.عرض الاصناف المتفرعه", "المنتجات.عرض"]) && (
+              {hasPermission(Permissions?.products?.BranchedView) && (
                 <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="Branched">
                   الأصناف المتفرعة
                 </TabsTrigger>
               )}
-              {hasAnyPermission(["المنتجات.عرض الخامات", "المنتجات.عرض"]) && (
+              {hasPermission(Permissions?.products?.PreparedView) && (
                 <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="Prepared">
                   الأصناف المجهزة
                 </TabsTrigger>
               )}
-              {hasAnyPermission(["المنتجات.عرض الاصناف المجهزة", "المنتجات.عرض"]) && (
+              {hasPermission(Permissions?.products?.RawMaterialView) && (
                 <TabsTrigger className="py-2! whitespace-nowrap shrink-0" value="RawMatrial">
                   الخامات
                 </TabsTrigger>
@@ -216,7 +228,6 @@ export default function ProductsList() {
             onPage={(e: DataTablePageEvent) => {
               if (e.page === undefined) return;
               setCurrentPage(e.page + 1);
-              setEntriesPerPage(e.rows);
             }}
             header={header}
             responsiveLayout="stack"

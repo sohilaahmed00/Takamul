@@ -16,7 +16,8 @@ import formatDate from "@/lib/formatDate";
 import AddGiftCardModal from "@/components/modals/AddGiftCardModal";
 
 import { Input } from "@/components/ui/input";
-
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function GiftCards() {
   const { direction, t } = useLanguage();
@@ -34,6 +35,8 @@ export default function GiftCards() {
     setGlobalFilterValue(value);
     setCurrentPage(1);
   };
+  const hasPermission = useAuthStore((state) => state?.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state?.hasAnyPermission);
   const renderHeader = () => {
     return (
       <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -56,7 +59,7 @@ export default function GiftCards() {
         style={{
           backgroundColor: isActive ? "var(--status-active-bg)" : "var(--status-inactive-bg)",
           color: isActive ? "var(--status-active-text)" : "var(--status-inactive-text)",
-          border: !isActive ? "var(--status-inactive-border)" : "none"
+          border: !isActive ? "var(--status-inactive-border)" : "none",
         }}
       >
         {isActive ? "نشط" : "غير نشط"}
@@ -71,11 +74,13 @@ export default function GiftCards() {
         <CardHeader className="max-md:flex max-md:flex-col">
           <CardTitle>{t("gift_cards_list") || "قائمة كروت الهدايا"}</CardTitle>
           <CardDescription>{t("manage_gift_cards") || "إدارة كروت الهدايا"}</CardDescription>
-          <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
-            <Button size="xl" variant={"default"} onClick={() => setIsAddModalOpen(true)}>
-              {t("add_gift_card") || "إضافة كارت هدية"}
-            </Button>
-          </CardAction>
+          {hasPermission(Permissions?.giftCards?.add) && (
+            <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
+              <Button size="xl" variant={"default"} onClick={() => setIsAddModalOpen(true)}>
+                {t("add_gift_card") || "إضافة كارت هدية"}
+              </Button>
+            </CardAction>
+          )}
         </CardHeader>
         <CardContent>
           <DataTable
@@ -104,30 +109,36 @@ export default function GiftCards() {
             <Column header={t("expiry_date") || "تاريخ الانتهاء"} field="expiryDate" body={(raw: GiftCard) => <span>{formatDate(raw?.expiryDate ?? "")}</span>} sortable />
             <Column header={t("status") || "الحالة"} field="isActive" body={(rawData) => statusBodyTemplate(rawData)} sortable />
             <Column header={t("notes") || "ملاحظات"} field="notes" />
-            <Column
-              header={t("actions")}
-              body={(giftCard: GiftCard) => (
-                <div className="space-x-2">
-                  <button
-                    onClick={() => {
-                      setSelectedGiftCard(giftCard);
-                      setIsAddModalOpen(true);
-                    }}
-                    className="btn-minimal-action btn-edit"
-                  >
-                    <Edit2 size={16} />
-                  </button>
-                  <button
-                    onClick={() => {
-                      deleteGiftCard(giftCard?.id);
-                    }}
-                    className="btn-minimal-action btn-delete"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              )}
-            />
+            {hasAnyPermission([Permissions?.giftCards?.edit, Permissions?.giftCards?.delete]) && (
+              <Column
+                header={t("actions")}
+                body={(giftCard: GiftCard) => (
+                  <div className="space-x-2">
+                    {hasPermission(Permissions?.giftCards?.edit) && (
+                      <button
+                        onClick={() => {
+                          setSelectedGiftCard(giftCard);
+                          setIsAddModalOpen(true);
+                        }}
+                        className="btn-minimal-action btn-edit"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                    )}
+                    {hasPermission(Permissions?.giftCards?.delete) && (
+                      <button
+                        onClick={() => {
+                          deleteGiftCard(giftCard?.id);
+                        }}
+                        className="btn-minimal-action btn-delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
+              />
+            )}
           </DataTable>
         </CardContent>
       </Card>

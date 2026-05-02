@@ -16,10 +16,13 @@ import { Combobox, ComboboxContent, ComboboxEmpty, ComboboxInput, ComboboxItem, 
 
 import { Input } from "@/components/ui/input";
 import { exportCustomPDF, printCustomHTML, getVoucherHTML } from "@/utils/customExportUtils";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function SupplierPaymentsList() {
   const { direction, t, language } = useLanguage();
   const { notifyError, notifySuccess } = useToast();
+  const hasPermission = useAuthStore((state) => state.hasPermission);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
@@ -102,13 +105,11 @@ export default function SupplierPaymentsList() {
   const actionBodyTemplate = (row: SupplierTransaction) => {
     return (
       <div className="flex items-center gap-2 justify-center">
-        <button onClick={() => openEditModal(row)} className="btn-minimal-action btn-compact-action" type="button">
-          <Edit2 size={16} />
-        </button>
-
-        <button onClick={() => openDeleteModal(row)} className="btn-minimal-action btn-compact-action" type="button">
-          <Trash2 size={16} />
-        </button>
+        {hasPermission(Permissions.supplierTransactions.edit) && (
+          <button onClick={() => openEditModal(row)} className="btn-minimal-action btn-compact-action" type="button">
+            <Edit2 size={16} />
+          </button>
+        )}
 
         <button onClick={() => handlePrint(row)} className="btn-minimal-action btn-compact-action text-blue-600" type="button" title={t("print", "طباعة")}>
           <Printer size={16} />
@@ -117,6 +118,11 @@ export default function SupplierPaymentsList() {
         <button onClick={() => handleExportPDF(row)} className="btn-minimal-action btn-compact-action text-slate-600" type="button" disabled={printingRow === row.id} title={"PDF"}>
           <FileText size={16} />
         </button>
+        {hasPermission(Permissions.supplierTransactions.delete) && (
+          <button onClick={() => openDeleteModal(row)} className="btn-minimal-action btn-compact-action" type="button">
+            <Trash2 size={16} />
+          </button>
+        )}
       </div>
     );
   };
@@ -152,10 +158,12 @@ export default function SupplierPaymentsList() {
           </CardTitle>
 
           <CardAction>
-            <Button size={"xl"} onClick={openAddModal} variant="default">
-              <Plus size={18} />
-              {t("add_supplier_payment")}
-            </Button>
+            {hasPermission(Permissions.supplierTransactions.add) && (
+              <Button size={"xl"} onClick={openAddModal} variant="default">
+                <Plus size={18} />
+                {t("add_supplier_payment")}
+              </Button>
+            )}
           </CardAction>
         </CardHeader>
 
@@ -232,15 +240,19 @@ export default function SupplierPaymentsList() {
                     </div>
 
                     <div className="flex items-center gap-2 pt-1">
-                      <button onClick={() => openEditModal(row)} className="btn-minimal-action btn-compact-action" type="button">
-                        <Edit2 size={16} />
-                        <span className="text-xs px-1">{t("edit")}</span>
-                      </button>
+                      {hasPermission(Permissions.supplierTransactions.edit) && (
+                        <button onClick={() => openEditModal(row)} className="btn-minimal-action btn-compact-action" type="button">
+                          <Edit2 size={16} />
+                          <span className="text-xs px-1">{t("edit")}</span>
+                        </button>
+                      )}
 
-                      <button onClick={() => openDeleteModal(row)} className="btn-minimal-action btn-compact-action text-red-600" type="button">
-                        <Trash2 size={16} />
-                        <span className="text-xs px-1">{t("delete")}</span>
-                      </button>
+                      {hasPermission(Permissions.supplierTransactions.delete) && (
+                        <button onClick={() => openDeleteModal(row)} className="btn-minimal-action btn-compact-action text-red-600" type="button">
+                          <Trash2 size={16} />
+                          <span className="text-xs px-1">{t("delete")}</span>
+                        </button>
+                      )}
 
                       <button onClick={() => handlePrint(row)} className="btn-minimal-action btn-compact-action text-blue-600" type="button">
                         <Printer size={16} />

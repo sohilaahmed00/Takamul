@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, SaudiRiyal } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import useToast from "@/hooks/useToast";
 import { usePosStore } from "@/features/pos/store/usePosStore";
+import { CartItem } from "@/constants/data";
 
 export default function HomePage() {
   const { language, t } = useLanguage();
@@ -55,8 +56,19 @@ export default function HomePage() {
       setSelectedProductId(null);
       setTimeout(() => setSelectedProductId(item?.id), 0);
     } else {
-      console.log(item)
-      addToCart(item);
+      const mapped: CartItem = {
+        price: item?.sellingPrice,
+        qty: 1,
+        taxamount: item?.taxAmount,
+        taxCalculation: item?.taxCalculation,
+        taxPercentage: item?.taxPercentage,
+        isNew: true,
+        productId: item?.id,
+        name: item?.productNameAr,
+        productNameEn: item?.productNameEn,
+        productNameUr: item?.productNameEn,
+      };
+      addToCart(mapped);
     }
   };
 
@@ -80,7 +92,6 @@ export default function HomePage() {
     (barcode: string) => {
       const product = products?.items?.find((p) => p.barcode === barcode);
       if (!product) {
-        console.warn("المنتج مش موجود:", barcode);
         return;
       }
       setCart((prev) => {
@@ -173,7 +184,7 @@ export default function HomePage() {
                   setCurrentSubCat(null);
                 }}
                 className={`px-9.5 py-3 rounded-full text-sm border transition-colors shrink-0
-                  ${c.id === currentCat ? "bg-primary text-primary-foreground border-primary font-semibold" : "bg-card text-muted-foreground border-border hover:border-primary/40"}`}
+                    ${c.id === currentCat ? "bg-primary text-primary-foreground border-primary font-semibold" : "bg-card text-muted-foreground border-border hover:border-primary/40"}`}
               >
                 {getCategoryName(c)}
               </button>

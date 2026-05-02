@@ -14,12 +14,16 @@ import { Column } from "primereact/column";
 import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { BranchListItem } from "@/features/Branches/types/Branches.types";
 import useToast from "@/hooks/useToast";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 import { Input } from "@/components/ui/input";
 
 export default function Branches() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
   const { notifyError } = useToast();
 
   const [entriesPerPage, setEntriesPerPage] = useState(10);
@@ -84,18 +88,22 @@ export default function Branches() {
 
   const actionsBody = (row: BranchListItem) => (
     <div className="space-x-2">
-      <Link
-        to={`/branches/edit/${row.id}`}
-        className="btn-minimal-action btn-edit"
-      >
-        <Edit2 size={16} />
-      </Link>
-      <Link
-        to={`/branches/view/${row.id}`}
-        className="btn-minimal-action btn-view"
-      >
-        <Eye size={16} />
-      </Link>
+      {hasPermission(Permissions.branches.edit) && (
+        <Link
+          to={`/branches/edit/${row.id}`}
+          className="btn-minimal-action btn-edit"
+        >
+          <Edit2 size={16} />
+        </Link>
+      )}
+      {hasPermission(Permissions.branches.view) && (
+        <Link
+          to={`/branches/view/${row.id}`}
+          className="btn-minimal-action btn-view"
+        >
+          <Eye size={16} />
+        </Link>
+      )}
       {/* <button
         onClick={() => setRowToDelete(row)}
         className="btn-minimal-action btn-delete"
@@ -117,12 +125,14 @@ export default function Branches() {
             {t("branches_desc") || "إدارة وعرض فروع المنشأة"}
           </CardDescription> */}
           <CardAction className="max-md:flex max-md:justify-end max-md:mt-2">
-            <Button size="xl" variant="default" asChild>
-              <Link to="/branches/create">
-                <Plus size={18} />
-                {t("add_branch") || "إضافة فرع"}
-              </Link>
-            </Button>
+            {hasPermission(Permissions.branches.add) && (
+              <Button size="xl" variant="default" asChild>
+                <Link to="/branches/create">
+                  <Plus size={18} />
+                  {t("add_branch") || "إضافة فرع"}
+                </Link>
+              </Button>
+            )}
           </CardAction>
         </CardHeader>
 
@@ -167,11 +177,13 @@ export default function Branches() {
               body={statusBody}
               bodyStyle={{ textAlign: "center" }}
             />
-            <Column
-              header={t("actions") || "الإجراءات"}
-              body={actionsBody}
-              bodyStyle={{ whiteSpace: "nowrap" }}
-            />
+            {hasAnyPermission([Permissions.branches.edit, Permissions.branches.view]) && (
+              <Column
+                header={t("actions") || "الإجراءات"}
+                body={actionsBody}
+                bodyStyle={{ whiteSpace: "nowrap" }}
+              />
+            )}
           </DataTable>
         </CardContent>
       </Card>

@@ -6,7 +6,6 @@ export interface Customer {
   customerName: string;
 
   phone: string;
-  mobile: string;
 
   address: string | null;
   buildingNumber: string | null;
@@ -19,7 +18,7 @@ export interface Customer {
   state: string | null;
   stateName: string | null;
   stateId: number | null;
-  
+
   district: string | null;
   street: string | null;
 

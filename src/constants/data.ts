@@ -34,7 +34,6 @@ export interface CartItem {
   qty: number;
   note?: string;
   taxamount: number;
-  op?: number | null;
   itemDiscount?: { type: "pct" | "flat"; value: number } | null;
   taxCalculation: number;
   taxPercentage: number;
@@ -58,6 +57,7 @@ export function itemBasePriceRaw(item: Omit<CartItem, "name" | "op" | "productId
 
   return base;
 }
+
 export function itemBasePrice(item: Omit<CartItem, "name" | "op" | "productId" | "note">): number {
   const baseBeforeTax = itemBasePriceRaw(item);
 
@@ -77,6 +77,12 @@ export function calcItemTax(item: CartItem): number {
 
   return 0;
 }
+
+export const format = (n) =>
+  new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(n);
 
 export function itemTotal(item: CartItem): number {
   return itemBasePrice(item) + calcItemTax(item);

@@ -1,12 +1,12 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { AUTH_API_BASE } from '@/lib/utils';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { AUTH_API_BASE } from "@/lib/utils";
 
 export interface Supplier {
   id: number;
   supplierCode?: number | null;
 
   supplierName: string;
-  name?: string; // legacy alias
+  name?: string;
 
   email?: string;
   phone?: string;
@@ -46,18 +46,16 @@ interface SuppliersContextType {
 
 const SuppliersContext = createContext<SuppliersContextType | undefined>(undefined);
 
-export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const API_BASE = AUTH_API_BASE || 'https://erptakamul.runasp.net';
+export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const API_BASE = AUTH_API_BASE || "https://erptakamul.runasp.net";
 
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(false);
 
   const authHeaders = () => {
-    const token = localStorage.getItem('takamul_token');
+    const token = localStorage.getItem("takamul_token");
     return {
-      Accept: 'application/json',
+      Accept: "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
   };
@@ -68,8 +66,8 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
       const j = await res.json();
       if (j?.errors) {
         const lines = Object.entries(j.errors)
-          .map(([k, v]: any) => `${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
-          .join(' | ');
+          .map(([k, v]: any) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`)
+          .join(" | ");
         msg = `${msg} - ${lines}`;
       } else if (j?.title) {
         msg = `${msg} - ${j.title}`;
@@ -89,7 +87,7 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const normalizeSupplier = (s: Partial<Supplier> & Record<string, any>): Supplier => {
-    const supplierName = String(s?.supplierName ?? s?.name ?? '').trim();
+    const supplierName = String(s?.supplierName ?? s?.name ?? "").trim();
 
     return {
       id: Number(s?.id ?? 0),
@@ -98,39 +96,37 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
       supplierName,
       name: supplierName,
 
-      email: s?.email ? String(s.email) : '',
-      phone: s?.phone ? String(s.phone) : '',
-      mobile: String(s?.mobile ?? s?.phone ?? ''),
+      email: s?.email ? String(s.email) : "",
+      phone: s?.phone ? String(s.phone) : "",
+      mobile: String(s?.mobile ?? s?.phone ?? ""),
 
-      address: String(s?.address ?? ''),
-      city: String(s?.city ?? ''),
-      state: String(s?.state ?? ''),
-      country: String(s?.country ?? ''),
-      postalCode: String(s?.postalCode ?? ''),
+      address: String(s?.address ?? ""),
+      city: String(s?.city ?? ""),
+      state: String(s?.state ?? ""),
+      country: String(s?.country ?? ""),
+      postalCode: String(s?.postalCode ?? ""),
 
-      taxNumber: s?.taxNumber ? String(s.taxNumber) : '',
+      taxNumber: s?.taxNumber ? String(s.taxNumber) : "",
       paymentTerms: s?.paymentTerms ?? 30,
       isActive: Boolean(s?.isActive ?? true),
 
-      createdAt: s?.createdAt ? String(s.createdAt) : '',
+      createdAt: s?.createdAt ? String(s.createdAt) : "",
       updatedAt: s?.updatedAt ?? null,
 
-      commercialRegistration: s?.commercialRegistration
-        ? String(s.commercialRegistration)
-        : '',
+      commercialRegistration: s?.commercialRegistration ? String(s.commercialRegistration) : "",
       openingBalance: Number(s?.openingBalance ?? 0),
     };
   };
 
   const saveLocalBackup = (list: Supplier[]) => {
     try {
-      localStorage.setItem('takamul_suppliers', JSON.stringify(list));
+      localStorage.setItem("takamul_suppliers", JSON.stringify(list));
     } catch {}
   };
 
   const loadLocalBackup = (): Supplier[] => {
     try {
-      const saved = localStorage.getItem('takamul_suppliers');
+      const saved = localStorage.getItem("takamul_suppliers");
       if (!saved) return [];
       const parsed = JSON.parse(saved);
       return Array.isArray(parsed) ? parsed.map(normalizeSupplier) : [];
@@ -147,7 +143,7 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       if (!res.ok) {
-        console.warn('Failed to fetch suppliers. status:', res.status);
+        console.warn("Failed to fetch suppliers. status:", res.status);
         const localData = loadLocalBackup();
         setSuppliers(localData);
         return;
@@ -158,7 +154,7 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
       setSuppliers(normalized);
       saveLocalBackup(normalized);
     } catch (e) {
-      console.error('Error fetching suppliers', e);
+      console.error("Error fetching suppliers", e);
       const localData = loadLocalBackup();
       setSuppliers(localData);
     } finally {
@@ -176,20 +172,20 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
         normalizeSupplier({
           id: 1,
           supplierCode: 1,
-          supplierName: 'مورد عام',
-          name: 'مورد عام',
-          email: 'general@example.com',
-          phone: '966500000000',
-          mobile: '966500000000',
-          taxNumber: '1234567890',
-          address: '',
-          city: '',
-          state: '',
-          country: '',
-          postalCode: '',
+          supplierName: "مورد عام",
+          name: "مورد عام",
+          email: "general@example.com",
+          phone: "966500000000",
+          mobile: "966500000000",
+          taxNumber: "1234567890",
+          address: "",
+          city: "",
+          state: "",
+          country: "",
+          postalCode: "",
           isActive: true,
           paymentTerms: 30,
-          commercialRegistration: '',
+          commercialRegistration: "",
           openingBalance: 0,
         }),
       ]);
@@ -205,26 +201,26 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
   const getSupplierById = (id: number) => suppliers.find((s) => s.id === id);
 
   const normalizePayload = (p: Partial<Supplier>) => {
-    const supplierName = String(p.supplierName ?? p.name ?? '').trim();
-    const mobile = String(p.mobile ?? p.phone ?? '').trim();
+    const supplierName = String(p.supplierName ?? p.name ?? "").trim();
+    const mobile = String(p.mobile ?? p.phone ?? "").trim();
 
-    const address = String(p.address ?? '').trim();
-    const city = String(p.city ?? '').trim();
-    const state = String(p.state ?? '').trim();
-    const country = String(p.country ?? '').trim();
-    const postalCode = String(p.postalCode ?? '').trim();
+    const address = String(p.address ?? "").trim();
+    const city = String(p.city ?? "").trim();
+    const state = String(p.state ?? "").trim();
+    const country = String(p.country ?? "").trim();
+    const postalCode = String(p.postalCode ?? "").trim();
 
     return {
       supplierName,
-      email: String(p.email ?? '').trim(),
-      phone: String(p.phone ?? '').trim(),
+      email: String(p.email ?? "").trim(),
+      phone: String(p.phone ?? "").trim(),
       mobile,
       address,
       city,
       state,
       country,
       postalCode,
-      taxNumber: String(p.taxNumber ?? '').trim(),
+      taxNumber: String(p.taxNumber ?? "").trim(),
       paymentTerms: p.paymentTerms ?? 30,
       isActive: p.isActive ?? true,
     };
@@ -235,8 +231,8 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
       const body = normalizePayload(payload);
 
       const res = await fetch(`${API_BASE}/api/Suppliers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify(body),
       });
 
@@ -249,13 +245,10 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const updateSupplier = async (
-    id: number,
-    updates: Partial<Supplier>
-  ): Promise<ApiResult> => {
+  const updateSupplier = async (id: number, updates: Partial<Supplier>): Promise<ApiResult> => {
     try {
       const current = getSupplierById(id);
-      if (!current) return { ok: false, message: 'المورد غير موجود' };
+      if (!current) return { ok: false, message: "المورد غير موجود" };
 
       const merged = normalizeSupplier({
         ...current,
@@ -266,8 +259,8 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
       const body = normalizePayload(merged);
 
       const res = await fetch(`${API_BASE}/api/Suppliers/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...authHeaders() },
         body: JSON.stringify(body),
       });
 
@@ -283,7 +276,7 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
   const deleteSupplier = async (id: number): Promise<ApiResult> => {
     try {
       const res = await fetch(`${API_BASE}/api/Suppliers/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: authHeaders(),
       });
 
@@ -315,6 +308,6 @@ export const SuppliersProvider: React.FC<{ children: React.ReactNode }> = ({
 
 export const useSuppliers = () => {
   const ctx = useContext(SuppliersContext);
-  if (!ctx) throw new Error('useSuppliers must be used within SuppliersProvider');
+  if (!ctx) throw new Error("useSuppliers must be used within SuppliersProvider");
   return ctx;
 };

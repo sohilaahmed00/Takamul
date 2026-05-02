@@ -14,6 +14,8 @@ import { useGetAllRoles } from "@/features/roles/hooks/useGetAllRoles";
 import { Role } from "@/features/roles/types/roles.types";
 import { useDeleteRole } from "@/features/roles/hooks/useDeleteRole";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 export default function RolesPage() {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
@@ -41,21 +43,25 @@ export default function RolesPage() {
     );
   };
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
+  const hasPermission = useAuthStore((state) => state?.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state?.hasAnyPermission);
 
   return (
     <Card>
       <CardHeader className="">
         <CardTitle>الصللاحيات</CardTitle>
         <CardDescription>إدارة الصلاحيات</CardDescription>
-        <CardAction>
-          <Button size="xl" variant={"default"} asChild>
-            <Link to={"/add-roles"}>إضافة صلاحية</Link>
-          </Button>
-        </CardAction>
+        {hasPermission(Permissions?.roles?.add) && (
+          <CardAction>
+            <Button size="xl" variant={"default"} asChild>
+              <Link to={"/add-roles"}>إضافة صلاحية</Link>
+            </Button>
+          </CardAction>
+        )}
       </CardHeader>
       <CardContent>
         <DataTable
-          value={roles?.data || []}
+          value={roles?.items || []}
           lazy
           paginator
           rows={entriesPerPage}
@@ -66,7 +72,7 @@ export default function RolesPage() {
             setCurrentPage(e.page + 1);
             setEntriesPerPage(e.rows);
           }}
-          loading={!roles?.data}
+          loading={!roles?.items}
           header={header}
           responsiveLayout="stack"
           className="custom-green-table custom-compact-table"
@@ -75,21 +81,27 @@ export default function RolesPage() {
         >
           <Column header={"اسم الصلاحية"} sortable field="roleName" />
           <Column header={"عدد الاذونات"} sortable field="permissions" body={(raw: Role) => raw?.permissions?.length} />
-          <Column
-            header={t("actions")}
-            body={(raw: Role) => {
-              return (
-                <div className="space-x-2">
-                  <Link to={`/roles/${raw?.roleId}`} className="btn-minimal-action btn-edit">
-                    <Edit2 size={16} />
-                  </Link>
-                  <button onClick={() => deleterole(raw?.roleName)} className="btn-minimal-action btn-delete">
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              );
-            }}
-          />
+          {hasAnyPermission([Permissions?.roles?.edit, Permissions?.roles?.delete]) && (
+            <Column
+              header={t("actions")}
+              body={(raw: Role) => {
+                return (
+                  <div className="space-x-2">
+                    {hasPermission(Permissions?.roles?.edit) && (
+                      <Link to={`/roles/${raw?.roleId}`} className="btn-minimal-action btn-edit">
+                        <Edit2 size={16} />
+                      </Link>
+                    )}
+                    {hasPermission(Permissions?.roles?.delete) && (
+                      <button onClick={() => deleterole(raw?.roleName)} className="btn-minimal-action btn-delete">
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                );
+              }}
+            />
+          )}
         </DataTable>
       </CardContent>
     </Card>

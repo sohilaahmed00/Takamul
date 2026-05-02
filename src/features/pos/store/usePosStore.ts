@@ -7,6 +7,10 @@ import { BonData, printPreparationBon } from "@/components/pos/orders/printPrepa
 import formatDate from "@/lib/formatDate";
 import { CreateSalesOrder } from "@/features/sales/types/sales.types";
 import { Product } from "@/features/products/types/products.types";
+import { useBranchStore } from "@/store/employeeStore";
+import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
+import { PrintKitchenBon, printOrderInvoice } from "@/lib/posPrint";
+import { CreateDeliveryOrder } from "../types/pos.types";
 
 export type DineInMode = "new-order" | "add-items" | "checkout" | null;
 
@@ -28,8 +32,7 @@ interface PosState {
   cart: CartItem[];
 
   setCart: (cart: CartItem[] | ((prev: CartItem[]) => CartItem[])) => void;
-  addToCart: (item: AddToCartProduct) => void;
-
+  addToCart: (item: CartItem) => void;
   discount: { type: "pct" | "flat"; value: number };
   setDiscount: (d: { type: "pct" | "flat"; value: number }) => void;
 
@@ -89,7 +92,7 @@ interface PosState {
 
   handleAddItemsToExistingOrder: (deps: { addItemsToOrder: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
 
-  handleConfirmPayment: (params: { printKitchenBon?: boolean; isHolding?: boolean; payments?: { amount: number; treasuryId: number; notes: string }[]; createTakwayOrder: (p: any) => Promise<any>; createDeliveryOrder: (p: any) => Promise<any>; checkoutDineInOrder: (p: any) => Promise<any>; releaseHolding: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
+  handleConfirmPayment: (params: { shouldPrintKitchenBon?: boolean; isHolding?: boolean; payments?: { amount: number; treasuryId: number; notes: string }[]; createTakwayOrder: (p: any) => Promise<any>; createDeliveryOrder: (p: any) => Promise<any>; checkoutDineInOrder: (p: any) => Promise<any>; releaseHolding: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
 }
 
 export const usePosStore = create<PosState>((set, get) => ({
@@ -150,36 +153,16 @@ export const usePosStore = create<PosState>((set, get) => ({
 
   addToCart: (product) =>
     set((state) => {
-      const existing = state.cart.find((i) => i.productId === product.id);
+      const existing = state.cart.find((i) => i.productId === product.productId);
 
       if (existing) {
         return {
-          cart: state.cart.map(
-            (i) => (i.productId === product.id ? { ...i, qty: i.qty + 1, isNew: true } : i), // ← لو زود كمية حاجة موجودة يبقى new
-          ),
+          cart: state.cart.map((i) => (i.productId === product.productId ? { ...i, qty: i.qty + 1, isNew: true } : i)),
         };
       }
 
       return {
-        cart: [
-          ...state.cart,
-          {
-            productId: product.id,
-            name: product.productNameAr,
-            productNameEn: product.productNameEn,
-            productNameUr: product.productNameUr,
-            price: product.sellingPrice,
-            qty: 1,
-            note: "",
-            op: null,
-            taxamount: product.taxAmount,
-            taxCalculation: product.taxCalculation,
-            itemDiscount: null,
-            taxPercentage: product?.taxPercentage,
-            isNew: true,
-            extras: [],
-          },
-        ],
+        cart: [...state.cart, { ...product, isNew: true }],
       };
     }),
 
@@ -189,74 +172,36 @@ export const usePosStore = create<PosState>((set, get) => ({
       holdingOrderId: null,
       discount: { type: "pct", value: 0 },
       selectedGiftCardId: null,
-      selectedVaultId: null,
+      originalItems: [],
       screen: "home",
       orderNote: "",
+      selectedOrderId: null,
       selectedCustomer: customers?.items?.[0] ?? null,
     });
   },
 
   handleReleaseHoldingOrder: async (payments, { releaseHolding, customers }) => {
-    const { holdingOrderId, resetCart, cart, selectedCustomer, discount } = get();
+    const { holdingOrderId, resetCart, cart, selectedCustomer, discount, orderNote } = get();
+    const branch = useBranchStore.getState().branch;
     if (!holdingOrderId) return;
 
     try {
       await releaseHolding({ id: holdingOrderId, data: payments });
-
-      const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
-      const totals = calcTotals(cart, hasItemDiscounts ? { type: "pct", value: 0 } : discount);
-      const discountAmount = hasItemDiscounts
-        ? cart.reduce((acc, item) => {
-            const raw = itemBasePriceRaw(item);
-            const afterDisc = itemBasePrice(item);
-            return acc + (raw - afterDisc);
-          }, 0)
-        : totals.discountAmount;
-
-      const invoiceData: InvoiceData = {
-        logoUrl: LOGO_URL,
-        invoiceNumber: `—`,
-        institutionName: INSTITUTION_NAME,
-        institutionTaxNumber: INSTITUTION_TAX_NO,
-        invoiceDate: formatDate(new Date()),
-        institutionAddress: INSTITUTION_ADDRESS,
-        institutionPhone: INSTITUTION_PHONE,
-        customerName: selectedCustomer?.customerName ?? undefined,
-        customerPhone: undefined,
-        items: cart.map((item) => {
-          const base = itemBasePrice(item);
-          const tax = calcItemTax(item);
-          return {
-            productName: item.name,
-            quantity: item.qty,
-            unitPrice: Number(base.toFixed(2)),
-            taxAmount: Number(tax.toFixed(2)),
-            total: Number((base + tax).toFixed(2)),
-          };
-        }),
-        subTotal: Number(totals.sub.toFixed(2)),
-        discountAmount: Number(discountAmount),
-        taxAmount: totals.originalTax,
-        grandTotal: totals.total,
-        notes: INSTITUTION_NOTES,
-      };
-
-      await printInvoice(invoiceData);
-
-      set({ selectedOrderId: null });
+      await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
+      await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
       resetCart(customers);
     } catch {}
   },
 
   handleCreateDineInOrder: async ({ createDineInOrderyOrder, customers }) => {
     const { cart, selectedCustomer, discount, selectedGiftCardId, selectedTable, orderNote, resetCart } = get();
-
+    const branch = useBranchStore.getState().branch;
     const payload = {
       customerId: selectedCustomer?.id,
       warehouseId: 1,
       notes: orderNote,
-      globalDiscountValue: 0,
-      globalDiscountPercentage: discount,
+      globalDiscountValue: discount.type == "flat" ? discount?.value : 0,
+      globalDiscountPercentage: discount.type == "pct" ? discount?.value : 0,
       giftCardId: selectedGiftCardId,
       additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
       tableId: Number(selectedTable),
@@ -270,21 +215,16 @@ export const usePosStore = create<PosState>((set, get) => ({
 
     try {
       await createDineInOrderyOrder(payload);
-      const sampleBon: BonData = {
-        institutionName: "بون التحضير",
-        invoiceNumber: "5000",
-        invoiceDate: formatDate(new Date()),
-        customerName: selectedCustomer?.customerName,
-        items: cart.map((c) => ({ productName: c.name, quantity: c.qty, operationType: "Add" })),
-      };
-      printPreparationBon(sampleBon);
+      await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
       resetCart(customers);
-    } catch {}
+    } catch (error) {
+      console.log(error);
+    }
   },
 
   handleAddItemsToExistingOrder: async ({ addItemsToOrder, customers }) => {
-    const { cart, selectedCustomer, holdingOrderId, originalItems, selectedOrderId } = get();
-    const orderId = selectedOrderId ?? holdingOrderId;
+    const { cart, selectedCustomer, originalItems, selectedOrderId, resetCart, orderNote } = get();
+    const orderId = selectedOrderId;
 
     const payload = {
       orderId,
@@ -295,77 +235,19 @@ export const usePosStore = create<PosState>((set, get) => ({
         discountPercentage: c.itemDiscount?.type === "pct" ? c.itemDiscount.value : 0,
       })),
       additionIds: cart.flatMap((c) => (c.extras ?? []).map((e) => e.id!)).filter(Boolean),
-      notes: "",
+      notes: orderNote,
     };
 
     try {
       await addItemsToOrder({ data: payload, id: orderId });
-
-      const addedItems = cart
-        .filter((c) => c.isNew)
-        .map((c) => {
-          const original = originalItems.find((o) => o.productId === c.productId);
-          const addedQty = original ? c.qty - original.qty : c.qty;
-          return { ...c, qty: addedQty };
-        })
-        .filter((c) => c.qty > 0);
-
-      const removedItems = originalItems
-        .map((orig) => {
-          const current = cart.find((c) => c.productId === orig.productId);
-          const removedQty = orig.qty - (current?.qty ?? 0);
-          return removedQty > 0 ? { ...orig, qty: removedQty } : null;
-        })
-        .filter(Boolean);
-
-      const hasAdded = addedItems.length > 0;
-      const hasRemoved = removedItems.length > 0;
-
-      if (hasAdded || hasRemoved) {
-        const bonItems: BonData["items"] =
-          hasRemoved && !hasAdded
-            ? cart.map((c) => ({
-                productName: c.name ?? "",
-                quantity: c.qty,
-                operationType: "Remove" as const,
-              }))
-            : hasAdded && !hasRemoved
-              ? addedItems.map((c) => ({
-                  productName: c.name ?? "",
-                  quantity: c.qty,
-                  operationType: "Add" as const,
-                }))
-              : cart.map((c) => ({
-                  productName: c.name ?? "",
-                  quantity: c.qty,
-                  operationType: "Remove" as const,
-                }));
-
-        const sampleBon: BonData = {
-          institutionName: INSTITUTION_NAME,
-          invoiceNumber: String(orderId),
-          invoiceDate: formatDate(new Date()),
-          customerName: selectedCustomer?.customerName,
-          items: bonItems,
-        };
-
-        await printPreparationBon(sampleBon);
-      }
-
-      set({
-        cart: [],
-        originalItems: [],
-        discount: { value: 0, type: "pct" },
-        selectedOrderId: null,
-        selectedCustomer: null,
-        screen: "home",
-        orderNote: "",
-      });
+      await PrintKitchenBon({ cart, originalItems, selectedCustomer });
     } catch {}
+    resetCart(customers);
   },
 
-  handleConfirmPayment: async ({ printKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers }) => {
-    const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, selectedOrderId, handleReleaseHoldingOrder, resetCart } = get();
+  handleConfirmPayment: async ({ shouldPrintKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers }) => {
+    const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, handleReleaseHoldingOrder, resetCart, originalItems, dineInMode, selectedDelivery } = get();
+    const branch = useBranchStore.getState().branch;
 
     const payments: CreateSalesOrder["payments"] = isHolding
       ? []
@@ -415,7 +297,8 @@ export const usePosStore = create<PosState>((set, get) => ({
         if (orderType === "TakeAway") {
           await createTakwayOrder(basePayload);
         } else {
-          await createDeliveryOrder(basePayload);
+          const delvierypaLoad: CreateDeliveryOrder = { ...basePayload, deliveryCompanyId: Number(selectedDelivery) };
+          await createDeliveryOrder(delvierypaLoad);
         }
       } else if (orderType === "InDine") {
         await checkoutDineInOrder({
@@ -429,59 +312,16 @@ export const usePosStore = create<PosState>((set, get) => ({
       }
 
       if (!isHolding) {
-        const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
-        const totals = calcTotals(cart, hasItemDiscounts ? { type: "pct", value: 0 } : discount);
-        const discountAmount = hasItemDiscounts
-          ? cart.reduce((acc, item) => {
-              const raw = itemBasePriceRaw(item);
-              const afterDisc = itemBasePrice(item);
-              return acc + (raw - afterDisc);
-            }, 0)
-          : totals.discountAmount;
+        await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
 
-        const invoiceData: InvoiceData = {
-          logoUrl: LOGO_URL,
-          invoiceNumber: `—`,
-          institutionName: INSTITUTION_NAME,
-          institutionTaxNumber: INSTITUTION_TAX_NO,
-          invoiceDate: formatDate(new Date()),
-          institutionAddress: INSTITUTION_ADDRESS,
-          institutionPhone: INSTITUTION_PHONE,
-          customerName: selectedCustomer?.customerName ?? undefined,
-          invoiceName: selectedCustomer?.taxNumber ? "فاتورة ضريبية مبسطة" : "فاتورة ضريبية",
-          customerPhone: undefined,
-          items: cart.map((item) => {
-            const base = itemBasePrice(item);
-            const tax = calcItemTax(item);
-            return {
-              productName: item.name,
-              quantity: item.qty,
-              unitPrice: Number(base.toFixed(2)),
-              taxAmount: Number(tax.toFixed(2)),
-              total: Number((base + tax).toFixed(2)),
-            };
-          }),
-          subTotal: Number(totals.sub.toFixed(2)),
-          discountAmount: Number(discountAmount),
-          taxAmount: totals.originalTax,
-          grandTotal: totals.total,
-          notes: orderNote,
-        };
+        if (dineInMode === "add-items") {
+          await PrintKitchenBon({ cart, originalItems, selectedCustomer });
+        }
 
-        const sampleBon: BonData = {
-          institutionName: "بون التحضير",
-          invoiceNumber: "5000",
-          invoiceDate: formatDate(new Date()),
-          customerName: selectedCustomer?.customerName,
-          items: cart.map((c) => ({ productName: c.name, quantity: c.qty, operationType: "Add" })),
-        };
-
-        await printInvoice(invoiceData);
-        if (printKitchenBon && orderType !== "InDine") {
-          await printPreparationBon(sampleBon);
+        if (shouldPrintKitchenBon && orderType !== "InDine") {
+          await PrintKitchenBon({ cart, originalItems: [], selectedCustomer });
         }
       }
-
       resetCart(customers);
     } catch {}
   },

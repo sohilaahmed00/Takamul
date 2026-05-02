@@ -3,7 +3,6 @@ import { printKitchenPrinter } from "@/lib/qzService";
 export interface BonItem {
   productName: string;
   quantity: number;
-  operationType: "Add" | "Remove";
 }
 
 export interface BonData {
@@ -15,9 +14,7 @@ export interface BonData {
 }
 
 export async function printPreparationBon(data: BonData): Promise<void> {
-  const isRemove = data.items.every((item) => item.operationType === "Remove");
-  const isMixed = data.items.some((item) => item.operationType === "Add") && data.items.some((item) => item.operationType === "Remove");
-  const bonTitle = isRemove ? "بون تعديل" : "بون تحضير";
+  const bonTitle = data?.institutionName;
   const itemRows = data.items
     .map(
       (item) => `

@@ -11,9 +11,12 @@ import { useGetAllInternalTreasuryTransfers } from "@/features/internal-treasury
 import type { InternalTreasuryTransferRow } from "@/features/internal-treasury-transfers/types/internalTreasuryTransfers.types";
 
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function InternalTransfersList() {
   const { t, direction } = useLanguage();
+  const hasPermission = useAuthStore((state) => state.hasPermission);
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -91,10 +94,12 @@ export default function InternalTransfersList() {
           <CardDescription>{t("customize_report_below")}</CardDescription>
 
           <CardAction>
-            <Button size="xl" onClick={() => setIsAddModalOpen(true)} variant="default">
-              <Plus size={18} />
-              {t("add_internal_transfer")}
-            </Button>
+            {hasPermission(Permissions.treasury.transferadd) && (
+              <Button size="xl" onClick={() => setIsAddModalOpen(true)} variant="default">
+                <Plus size={18} />
+                {t("add_internal_transfer")}
+              </Button>
+            )}
           </CardAction>
         </CardHeader>
 

@@ -23,10 +23,14 @@ import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import type { Expense } from "@/features/expenses/types/expenses.types";
 
 import { Input } from "@/components/ui/input";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function Expenses() {
   const { direction, t } = useLanguage();
   const { notifyError } = useToast();
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
@@ -115,21 +119,25 @@ export default function Expenses() {
 
   const actionBodyTemplate = (row: Expense) => (
     <div className="flex items-center gap-2 justify-center">
-      <button
-        onClick={() => openEditModal(row)}
-        className="btn-minimal-action btn-compact-action"
-        type="button"
-      >
-        <Edit2 size={16} />
-      </button>
+      {hasPermission(Permissions.expenses.edit) && (
+        <button
+          onClick={() => openEditModal(row)}
+          className="btn-minimal-action btn-compact-action"
+          type="button"
+        >
+          <Edit2 size={16} />
+        </button>
+      )}
 
-      <button
-        onClick={() => setRowToDelete(row)}
-        className="btn-minimal-action btn-compact-action text-red-600"
-        type="button"
-      >
-        <Trash2 size={16} />
-      </button>
+      {hasPermission(Permissions.expenses.delete) && (
+        <button
+          onClick={() => setRowToDelete(row)}
+          className="btn-minimal-action btn-compact-action text-red-600"
+          type="button"
+        >
+          <Trash2 size={16} />
+        </button>
+      )}
     </div>
   );
 
@@ -165,10 +173,12 @@ export default function Expenses() {
           <CardDescription>{t("expenses_desc")}</CardDescription>
 
           <CardAction>
-            <Button onClick={openAddModal} variant="default">
-              <Plus size={18} />
-              {t("add_expense")}
-            </Button>
+            {hasPermission(Permissions.expenses.add) && (
+              <Button onClick={openAddModal} variant="default">
+                <Plus size={18} />
+                {t("add_expense")}
+              </Button>
+            )}
           </CardAction>
         </CardHeader>
 
@@ -234,12 +244,14 @@ export default function Expenses() {
                 body={(row) => row.notes || "-"}
                 style={{ width: "12%" }}
               />
-              <Column
-                header={t("actions")}
-                body={actionBodyTemplate}
-                style={{ width: "10%" }}
-                bodyStyle={{ whiteSpace: "nowrap", textAlign: "center" }}
-              />
+              {hasAnyPermission([Permissions.expenses.edit, Permissions.expenses.delete]) && (
+                <Column
+                  header={t("actions")}
+                  body={actionBodyTemplate}
+                  style={{ width: "10%" }}
+                  bodyStyle={{ whiteSpace: "nowrap", textAlign: "center" }}
+                />
+              )}
             </DataTable>
           </div>
 
@@ -306,23 +318,27 @@ export default function Expenses() {
                     </div>
 
                     <div className="flex items-center gap-2 pt-1">
-                      <button
-                        onClick={() => openEditModal(row)}
-                        className="btn-minimal-action btn-compact-action"
-                        type="button"
-                      >
-                        <Edit2 size={16} />
-                        <span className="text-xs px-1">{t("edit")}</span>
-                      </button>
+                      {hasPermission(Permissions.expenses.edit) && (
+                        <button
+                          onClick={() => openEditModal(row)}
+                          className="btn-minimal-action btn-compact-action"
+                          type="button"
+                        >
+                          <Edit2 size={16} />
+                          <span className="text-xs px-1">{t("edit")}</span>
+                        </button>
+                      )}
 
-                      <button
-                        onClick={() => setRowToDelete(row)}
-                        className="btn-minimal-action btn-compact-action text-red-600"
-                        type="button"
-                      >
-                        <Trash2 size={16} />
-                        <span className="text-xs px-1">{t("delete")}</span>
-                      </button>
+                      {hasPermission(Permissions.expenses.delete) && (
+                        <button
+                          onClick={() => setRowToDelete(row)}
+                          className="btn-minimal-action btn-compact-action text-red-600"
+                          type="button"
+                        >
+                          <Trash2 size={16} />
+                          <span className="text-xs px-1">{t("delete")}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>

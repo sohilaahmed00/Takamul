@@ -166,7 +166,6 @@ export function useAddProduct() {
     };
   }, [CostPrice, SellingPrice, TaxId, TaxCalculation, taxesData]);
 
-  // ── Auto-calculate cost for Prepared ──────────────────────────────────────
   useEffect(() => {
     if (productType !== "Prepared") return;
 
@@ -181,7 +180,6 @@ export function useAddProduct() {
     setValue("CostPrice", totalCost, { shouldValidate: true });
   }, [rawMaterials, productRawMatrial?.items, productType, setValue]);
 
-  // ── Edit mode reset ────────────────────────────────────────────────────────
   useEffect(() => {
     if (!id) return;
 

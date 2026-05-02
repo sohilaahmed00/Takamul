@@ -1,12 +1,22 @@
 import { Permission } from "@/lib/permissions";
 import { JwtPayload } from "jwt-decode";
 
+export type Paginated<T> = {
+  items: T;
+  totalCount: number;
+  pageNumber: number;
+  pageSize: number;
+  totalPages: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
+};
 export type ApiResponse<T> = {
   success: boolean;
   message: string;
   data: T;
   errors: string[];
 };
+
 export const PurchaseStatus = {
   RECEIVED: "RECEIVED",
   PENDING: "PENDING",

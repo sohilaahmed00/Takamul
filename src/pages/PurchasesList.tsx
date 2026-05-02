@@ -14,6 +14,8 @@ import formatDate from "@/lib/formatDate";
 
 import { Input } from "@/components/ui/input";
 import { useDeletePurchaseOrder } from "@/features/purchases/hooks/useDeletePurchaseOrder";
+import { useAuthStore } from "@/store/authStore";
+import { Permissions } from "@/lib/permissions";
 
 export default function PurchasesList() {
   const { t, direction } = useLanguage();
@@ -50,16 +52,15 @@ export default function PurchasesList() {
 
   const header = useMemo(() => renderHeader(), [globalFilterValue, t]);
 
+  const hasPermission = useAuthStore((state) => state.hasPermission);
+  const hasAnyPermission = useAuthStore((state) => state.hasAnyPermission);
+
   return (
     <Card dir={direction}>
       <CardHeader>
         <CardTitle>{t("purchases_management")}</CardTitle>
         <CardDescription>{t("purchases_management_desc")}</CardDescription>
-        {/* <CardAction>
-          <Button size="xl" variant="default" asChild>
-            <Link to="/purchases/create">{t("add_purchase_invoice")}</Link>
-          </Button>
-        </CardAction> */}
+      
       </CardHeader>
 
       <CardContent>
@@ -103,12 +104,16 @@ export default function PurchasesList() {
                 >
                   <Printer size={16} />
                 </button>
-                <Link to={`/purchases/edit/${purchase?.id}`} className="btn-minimal-action btn-edit">
-                  <Edit2 size={16} />
-                </Link>
-                <button onClick={() => deletePurchaseOrder(purchase?.id)} className="btn-minimal-action btn-delete">
-                  <Trash2 size={16} />
-                </button>
+                {hasPermission(Permissions?.purchaseOrders?.edit) && (
+                  <Link to={`/purchases/edit/${purchase?.id}`} className="btn-minimal-action btn-edit">
+                    <Edit2 size={16} />
+                  </Link>
+                )}
+                {hasPermission(Permissions?.purchaseOrders?.cancel) && (
+                  <button onClick={() => deletePurchaseOrder(purchase?.id)} className="btn-minimal-action btn-delete">
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </div>
             )}
           />
