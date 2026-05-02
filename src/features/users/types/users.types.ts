@@ -33,7 +33,6 @@ export type UpdateUser = {
   userName?: string;
   email?: string;
   newPassword?: string;
-  roleName: string;
 };
 
 export interface GetAllUsersResponse extends PaginationMeta {
