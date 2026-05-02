@@ -32,6 +32,10 @@ export const getPOSDeviceById = (id: number) => httpClient<GetPOSDevicesResponse
 // MUTATIONS (Dashboard)
 // // ===================
 
+export const cancelOrder = (id: number) =>
+  httpClient<{ message: string }>(`/sales-orders/${id}/cancel`, {
+    method: "PUT",
+  });
 export const createTakwayOrder = (data: CreateTakeawayOrder) =>
   httpClient<{ message: string }>("/sales-orders/pos/takeaway", {
     method: "POST",

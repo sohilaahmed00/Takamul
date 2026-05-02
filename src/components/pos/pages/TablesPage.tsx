@@ -9,6 +9,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { useGetAllTables } from "@/features/tables/hooks/useGetAllTables";
 import { usePosStore } from "@/features/pos/store/usePosStore";
 import { useFreeTable } from "@/features/tables/hooks/useFreeTable";
+import { useCancelOrder } from "@/features/pos/hooks/useCancelOrder";
 
 type TableStatus = "Free" | "Occupied";
 type FilterType = "all" | "Free" | "Occupied";
@@ -76,6 +77,7 @@ export function TableCard({ table, selected, onClick }: TableCardProps) {
 export default function TablesPage() {
   const { t } = useLanguage();
   const [filter, setFilter] = useState<FilterType>("all");
+  const { mutateAsync: cancelOrder } = useCancelOrder();
   const { data: tables } = useGetAllTables();
   const { cart, setScreen, selectedTable, setSelectedTable: setSelectedTable2, setOrderType, setCart, setSelectedCustomer, selectedOrderId, setSelectedOrderId, setDineInMode, setOriginalItems } = usePosStore();
   const { refetch: fetchOrderDetails } = useGetOrderByTableId(selectedTable);
@@ -162,7 +164,8 @@ export default function TablesPage() {
                       size="xl"
                       variant="destructive"
                       onClick={async () => {
-                        await freeTable(selectedTable);
+                        await cancelOrder(table?.currentOrderId);
+                        setSelectedTable2(null);
                       }}
                     >
                       <Trash2 size={14} /> إلغاء الاوردر

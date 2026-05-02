@@ -36,7 +36,7 @@ export interface CartItem {
   taxamount: number;
   itemDiscount?: { type: "pct" | "flat"; value: number } | null;
   taxCalculation: number;
-  taxPercentage: number;
+  taxPercentage?: number;
   extras?: CartExtra[];
   isNew?: boolean;
 }

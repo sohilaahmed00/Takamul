@@ -64,7 +64,6 @@ export interface PrintContextType {
 const PrintContext = createContext<PrintContextType | null>(null);
 export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useLanguage();
-  console.log("first");
   const { data: branchInfo } = useBranch();
   const prepareExtendedData = useCallback(
     async (data: PrintableData): Promise<ExtendedData> => {
