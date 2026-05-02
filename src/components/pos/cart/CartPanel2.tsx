@@ -151,7 +151,6 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
           taxamount: item?.taxAmount,
           taxCalculation: item?.taxCalculation,
           productId: item?.id,
-
         };
         const base = itemBasePrice(tt);
         const tax = calcItemTax(tt);
@@ -886,6 +885,8 @@ export default function CartPanel2() {
             {cart.map((item, idx) => {
               const base = itemBasePrice(item);
               const tax = calcItemTax(item);
+              const itemWithoutDisc = { ...item, itemDiscount: null };
+              const origBasePrice = itemBasePrice(itemWithoutDisc);
               const rowTotal = base + tax;
               const discVal = item.itemDiscount ? (item.itemDiscount.type === "pct" ? (itemBasePrice({ ...item, itemDiscount: null }) * item.itemDiscount.value) / 100 : item.itemDiscount.value) : 0;
               const discPctVal = item.itemDiscount?.type === "pct" ? item.itemDiscount.value : 0;
@@ -898,7 +899,7 @@ export default function CartPanel2() {
 
                   <td className="text-start px-2 w-[300px] whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</td>
 
-                  <td className="whitespace-nowrap">{base.toFixed(2)}</td>
+                  <td className="whitespace-nowrap">{origBasePrice.toFixed(2)}</td>
 
                   <td>
                     <div className="flex items-center justify-center border border-gray-200 rounded-lg bg-white w-fit mx-auto">

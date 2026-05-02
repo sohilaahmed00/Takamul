@@ -24,16 +24,14 @@ import { usePosStore } from "@/features/pos/store/usePosStore";
 export default function Topbar2() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [employee, setEmployee] = useState("");
-  const [notes, setNotes] = useState("");
   const { data: customers } = useGetAllCustomers({ page: 1, limit: 10000 });
-  const { selectedCustomer, setSelectedCustomer } = usePosStore();
+  const { selectedCustomer, setSelectedCustomer, setOrderNote, orderNote } = usePosStore();
   const [openDialog, setOpenDialog] = useState(false);
   const [balanceSelectedCustomer, setBalanceSelectedCustomer] = useState<number | null>(null);
   const [showKeyboard, setShowKeyboard] = useState(false);
   const { data: wareHouses } = useGetAllWareHouses();
   const [selectedWarehouse, setSelectedWarehouse] = useState<string>(String(wareHouses?.[0]?.id ?? ""));
   const { data: employees } = useGetAllEmployees({ page: 1, limit: 10000 });
-
   const [input, setInput] = useState("");
   const { t } = useLanguage();
   useEffect(() => {
@@ -192,7 +190,7 @@ export default function Topbar2() {
 
             <div className="flex flex-col gap-1">
               <Label className="text-[10px] text-[#000052] dark:text-muted-foreground">ملاحظات</Label>
-              <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="min-h-10 text-[11px] bg-white border-[#000052] text-[#000052] dark:bg-background dark:border-border dark:text-foreground rounded-sm resize-none py-1" rows={1} placeholder="أضف ملاحظة..." />
+              <Textarea value={orderNote} onChange={(e) => setOrderNote(e.target.value)} className="min-h-10 text-[11px] bg-white border-[#000052] text-[#000052] dark:bg-background dark:border-border dark:text-foreground rounded-sm resize-none py-1" rows={1} placeholder="أضف ملاحظة..." />
             </div>
           </div>
         </div>
