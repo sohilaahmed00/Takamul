@@ -31,6 +31,8 @@ import { useCreateDineInOrder, useCheckoutDineInOrder } from "@/features/pos/hoo
 import { useUpdateDineInOrder } from "@/features/pos/hooks/useUpdateDineInOrder";
 import { useReleaseHolding } from "@/features/pos/hooks/useReleaseHolding";
 import { usePosStore } from "@/features/pos/store/usePosStore";
+import { DeliveryCompany } from "@/types";
+import { useGetAllDeliveryCompanies } from "@/features/delivery-companies/hooks/useGetAllDeliveryCompanies";
 
 const TABS = ["add", "discount", "coupon", "note"] as const;
 
@@ -339,7 +341,7 @@ export default function CartPanel() {
   const { theme, setTheme } = useTheme();
 
   // ── Zustand store ──────────────────────────────────────────────────────────
-  const { cart, setCart, setSelectedTable, selectedOrderId, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setOrderNote, orderNote, holdingOrderId } = usePosStore();
+  const { cart, setCart, setSelectedTable, selectedOrderId, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setOrderNote, orderNote } = usePosStore();
 
   // ── Async mutation hooks (passed into store actions) ───────────────────────
   const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
@@ -348,6 +350,7 @@ export default function CartPanel() {
   const { mutateAsync: releaseHolding } = useReleaseHolding();
   const { mutateAsync: checkoutDineInOrder } = useCheckoutDineInOrder();
   const { mutateAsync: addItemsToOrder } = useUpdateDineInOrder();
+  const { data: deliveryCompanies } = useGetAllDeliveryCompanies();
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]>("add");
   const [discType, setDiscType] = useState<"pct" | "flat">("pct");
   const [discInput, setDiscInput] = useState("");
@@ -567,9 +570,9 @@ export default function CartPanel() {
                       <SelectValue placeholder={t("delivery_company")} />
                     </SelectTrigger>
                     <SelectContent>
-                      {DELIVERY_COMPANIES.map((d) => (
-                        <SelectItem key={d} value={d}>
-                          {d}
+                      {deliveryCompanies?.data?.items.map((d) => (
+                        <SelectItem key={d.id} value={d.id.toString()}>
+                          {d.name}
                         </SelectItem>
                       ))}
                     </SelectContent>

@@ -10,6 +10,7 @@ import { Product } from "@/features/products/types/products.types";
 import { useBranchStore } from "@/store/employeeStore";
 import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
 import { PrintKitchenBon, printOrderInvoice } from "@/lib/posPrint";
+import { CreateDeliveryOrder } from "../types/pos.types";
 
 export type DineInMode = "new-order" | "add-items" | "checkout" | null;
 
@@ -245,7 +246,7 @@ export const usePosStore = create<PosState>((set, get) => ({
   },
 
   handleConfirmPayment: async ({ shouldPrintKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers }) => {
-    const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, handleReleaseHoldingOrder, resetCart, originalItems, dineInMode } = get();
+    const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, handleReleaseHoldingOrder, resetCart, originalItems, dineInMode, selectedDelivery } = get();
     const branch = useBranchStore.getState().branch;
 
     const payments: CreateSalesOrder["payments"] = isHolding
@@ -296,7 +297,8 @@ export const usePosStore = create<PosState>((set, get) => ({
         if (orderType === "TakeAway") {
           await createTakwayOrder(basePayload);
         } else {
-          await createDeliveryOrder(basePayload);
+          const delvierypaLoad: CreateDeliveryOrder = { ...basePayload, deliveryCompanyId: Number(selectedDelivery) };
+          await createDeliveryOrder(delvierypaLoad);
         }
       } else if (orderType === "InDine") {
         await checkoutDineInOrder({
