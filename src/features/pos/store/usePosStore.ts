@@ -214,7 +214,6 @@ export const usePosStore = create<PosState>((set, get) => ({
 
     try {
       await createDineInOrderyOrder(payload);
-      await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount });
       await PrintKitchenBon({ cart, originalItems, selectedCustomer });
       resetCart(customers);
     } catch {}
