@@ -19,17 +19,29 @@ export default function SiteSettings() {
   const enableStr = t("enable_option") || "تمكين";
   const disableStr = t("disable_option") || "تعطيل";
 
-  const { control, handleSubmit } = useForm({
+  const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       rowsPerPage: systemSettings.site.rowsPerPage,
-      defaultPaymentCompany: 0,
       showActualBalance: systemSettings.site.showActualBalance,
       showCostGreaterThanSalePriceMessage: systemSettings.site.showCostGreaterMsg,
       showItemCodeInSalesPrint: systemSettings.site.showItemCodeInSales,
       showItemCodeInQuotations: systemSettings.site.showItemCodeInQuotes,
       showItemCodeInPurchases: systemSettings.site.showItemCodeInPurchases,
+      defaultPaymentCompany: Number(systemSettings.site.defaultPaymentCompany) || 0,
     },
   });
+
+  React.useEffect(() => {
+    reset({
+      rowsPerPage: systemSettings.site.rowsPerPage,
+      showActualBalance: systemSettings.site.showActualBalance,
+      showCostGreaterThanSalePriceMessage: systemSettings.site.showCostGreaterMsg,
+      showItemCodeInSalesPrint: systemSettings.site.showItemCodeInSales,
+      showItemCodeInQuotations: systemSettings.site.showItemCodeInQuotes,
+      showItemCodeInPurchases: systemSettings.site.showItemCodeInPurchases,
+      defaultPaymentCompany: Number(systemSettings.site.defaultPaymentCompany) || 0,
+    });
+  }, [systemSettings.site, reset]);
 
   const onSubmit = (data: any) => {
     updateSite(data);
