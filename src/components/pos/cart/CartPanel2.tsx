@@ -29,6 +29,8 @@ import { AddToCartProduct, usePosStore } from "@/features/pos/store/usePosStore"
 import { useCreateTakwayOrder } from "@/features/pos/hooks/useCreateTakeawayOrder";
 import { useReleaseHolding } from "@/features/pos/hooks/useReleaseHolding";
 import useToast from "@/hooks/useToast";
+import { Customer } from "@/features/customers/types/customers.types";
+import { useBranchStore } from "@/store/employeeStore";
 
 function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   const [open, setOpen] = useState(false);
@@ -85,8 +87,9 @@ function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
 }
 
 // ===== Bottom Sheet Component =====
-function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen, addToCart, setOrderType, setDineInMode, setSelectedOrderId, setSelectedTable, setHoldingOrderId, onOpenChange }: { order: SalesOrder | null; open: boolean; onClose: () => void; selectedCustomer: any; setScreen: any; setHoldingOrderId: (id: number) => void; addToCart: (p: AddToCartProduct) => void; setOrderType: any; setDineInMode: any; setSelectedOrderId: any; setSelectedTable: any; onOpenChange: (v: boolean) => void }) {
+function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen, setOrderType, setDineInMode, setSelectedOrderId, setSelectedTable, setHoldingOrderId, onOpenChange, customers }: { customers: { items: Customer[] }; order: SalesOrder | null; open: boolean; onClose: () => void; selectedCustomer: any; setScreen: any; setHoldingOrderId: (id: number) => void; setOrderType: any; setDineInMode: any; setSelectedOrderId: any; setSelectedTable: any; onOpenChange: (v: boolean) => void }) {
   if (!order) return null;
+  const { resetCart, setOriginalItems, setDiscount, addToCart } = usePosStore();
 
   const isConfirmed = order.orderStatus === "Confirmed";
   const isInProgress = order.orderStatus === "InProgress";
@@ -94,66 +97,84 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
   const badgeCls = isConfirmed ? "bg-green-100 text-green-700" : order.orderStatus?.toLowerCase() === "unconfirmed" ? "bg-yellow-100 text-yellow-700" : order.orderStatus?.toLowerCase() === "cancelled" ? "bg-red-100 text-red-600" : "bg-sky-100 text-sky-600";
 
   const handleAddItems = () => {
+    resetCart(customers);
     setScreen("home");
-    order.items.map((item) => {
-      const pro: AddToCartProduct = {
-        id: item?.id,
-        productNameAr: item?.productName,
-        taxAmount: item?.taxAmount,
-        taxCalculation: item?.taxCalculation,
-        productNameEn: item?.productName,
-        productNameUr: item?.productName,
-        sellingPrice: item?.priceAfterTax,
-      };
-      addToCart(pro);
-    });
-
+    const mappedItems = order.items.map((item) => ({
+      productId: item.productId,
+      name: item.productName,
+      productNameEn: item.productName,
+      productNameUr: item.productName,
+      price: item?.sellingPrice,
+      qty: item.quantity,
+      note: "",
+      op: null,
+      taxamount: item.taxAmountProduct,
+      taxCalculation: item.taxCalculation,
+      taxPercentage: item?.taxPercentage,
+      itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+      extras: [],
+      isNew: true,
+    }));
+    setOriginalItems(mappedItems);
+    if (order && order?.discountAmount) {
+      setDiscount({ type: "flat", value: order?.discountAmount });
+    }
+    mappedItems.forEach((item) => addToCart(item));
+    setOrderType(order?.orderType);
     onClose();
     onOpenChange(false);
   };
 
   const handleCheckout = () => {
+    resetCart(customers);
+    onOpenChange(false);
     setScreen("home");
-    order.items.map((item) => {
-      const pro: AddToCartProduct = {
-        id: item?.id,
-        productNameAr: item?.productName,
-        taxAmount: item?.taxAmount,
-        taxCalculation: item?.taxCalculation,
-        productNameEn: item?.productName,
-        productNameUr: item?.productName,
-        sellingPrice: item?.priceAfterTax,
-      };
-      addToCart(pro);
-    });
-    if (isInProgress) {
-      setOrderType("dine-in");
-      setDineInMode("checkout");
-      setSelectedOrderId(order?.id);
-      setSelectedTable(order?.tableId);
+    const mappedItems = order.items.map((item) => ({
+      productId: item.productId,
+      name: item.productName,
+      productNameEn: item.productName,
+      productNameUr: item.productName,
+      price: item?.sellingPrice,
+      qty: item.quantity,
+      note: "",
+      op: null,
+      taxamount: item.taxAmountProduct,
+      taxCalculation: item.taxCalculation,
+      taxPercentage: item?.taxPercentage,
+      itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+      extras: [],
+      isNew: true,
+    }));
+    setOriginalItems(mappedItems);
+    if (order?.discountAmount) {
+      setDiscount({ type: "flat", value: order?.discountAmount });
     }
+    mappedItems.forEach((item) => addToCart(item));
+    setOrderType(order?.orderType);
+    setHoldingOrderId(order?.id);
     onClose();
     onOpenChange(false);
   };
 
   const handlePrint = async () => {
+    const branch = useBranchStore.getState().branch;
+    setSelectCustomerId(order?.customerId);
+    const total = order?.payments.reduce((sum, p) => sum + p.amount, 0);
     const invoiceData: InvoiceData = {
-      logoUrl: LOGO_URL,
-      invoiceNumber: `—`,
-      institutionName: INSTITUTION_NAME,
-      institutionTaxNumber: INSTITUTION_TAX_NO,
-      invoiceDate: formatDate(new Date()),
-      institutionAddress: INSTITUTION_ADDRESS,
-      institutionPhone: INSTITUTION_PHONE,
-      customerName: selectedCustomer?.customerName ?? undefined,
-      customerPhone: undefined,
+      paidAmount: total,
+      customer: customer,
+      branch,
+      invoiceNumber: order?.orderNumber,
+      invoiceDate: formatDate(order?.orderDate),
       items: order?.items.map((item) => {
         const tt: CartItem = {
-          price: item?.unitPrice,
+          name: item?.productName,
+          price: item?.priceAfterTax,
           qty: item?.quantity,
           taxamount: item?.taxAmount,
           taxCalculation: item?.taxCalculation,
           productId: item?.id,
+          taxPercentage: item?.taxPercentage,
         };
         const base = itemBasePrice(tt);
         const tax = calcItemTax(tt);
@@ -313,9 +334,10 @@ interface InvoicesDialogProps {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   onSelect?: (invoice: SalesOrder) => void;
+  customers: { items: Customer[] };
 }
 
-export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogProps) {
+export function InvoicesDialog({ open, onOpenChange, onSelect, customers }: InvoicesDialogProps) {
   const { selectedCustomer, addToCart, setCart, setDineInMode, setOrderType, setSelectedOrderId, setHoldingOrderId, setSelectedTable, setScreen } = usePosStore();
   const [activeType, setActiveType] = useState<InvoiceType>("الكل");
   const [search, setSearch] = useState("");
@@ -561,7 +583,7 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
         </div>
 
         {/* ===== Bottom Sheet ===== */}
-        <OrderActionsDrawer order={selectedOrder ?? null} open={!!openMenuId} onClose={() => setOpenMenuId(null)} selectedCustomer={selectedCustomer} setHoldingOrderId={setHoldingOrderId} setScreen={setScreen} addToCart={addToCart} setOrderType={setOrderType} setDineInMode={setDineInMode} setSelectedOrderId={setSelectedOrderId} setSelectedTable={setSelectedTable} onOpenChange={onOpenChange} />
+        <OrderActionsDrawer customers={customers} order={selectedOrder ?? null} open={!!openMenuId} onClose={() => setOpenMenuId(null)} selectedCustomer={selectedCustomer} setHoldingOrderId={setHoldingOrderId} setScreen={setScreen} addToCart={addToCart} setOrderType={setOrderType} setDineInMode={setDineInMode} setSelectedOrderId={setSelectedOrderId} setSelectedTable={setSelectedTable} onOpenChange={onOpenChange} />
       </DialogContent>
     </Dialog>
   );
@@ -723,7 +745,7 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
 
 export default function CartPanel2() {
   const { t } = useLanguage();
-  const { cart, setCart, discount, setDiscount, setScreen, setSelectedCustomer, selectedCustomer, orderType, handleConfirmPayment, dineInMode, handleAddItemsToExistingOrder, addToCart } = usePosStore();
+  const { cart, setCart, discount, setDiscount, handleConfirmPayment, handleAddItemsToExistingOrder, addToCart } = usePosStore();
   const [quotationOpen, setQuotationOpen] = useState(false);
   const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
   const { data: customers } = useGetAllCustomers();
@@ -1205,6 +1227,7 @@ export default function CartPanel2() {
         // }}
       />{" "} */}
       <InvoicesDialog
+        customers={customers}
         open={invoicesOpen}
         onOpenChange={setInvoicesOpen}
         onSelect={(invoice) => {

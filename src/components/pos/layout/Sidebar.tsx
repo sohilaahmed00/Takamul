@@ -161,7 +161,9 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                           onClick={async () => {
                             const branch = useBranchStore.getState().branch;
                             setSelectCustomerId(order?.customerId);
+                            const total = order?.payments.reduce((sum, p) => sum + p.amount, 0);
                             const invoiceData: InvoiceData = {
+                              paidAmount: total,
                               customer: customer,
                               branch,
                               invoiceNumber: order?.orderNumber,
