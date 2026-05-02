@@ -360,16 +360,12 @@ export default function CartPanel() {
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<"idle" | "valid" | "invalid" | "used">("idle");
   const [appliedCard, setAppliedCard] = useState<GiftCard | null>(null);
-
   const { data: customers, isLoading: loadingCustomers } = useGetAllCustomers({ page: 1, limit: 100 });
   const { data: additions } = useGetAllAdditions();
   const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax, itemDiscountsTotal, discountAmount } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const { notifyError, notifySuccess } = useToast();
   const { data: freeTables } = useGetAllTables();
   const navigate = useNavigate();
-  useEffect(() => {
-    console.log(cart);
-  }, [cart]);
 
   function ThemeIcon({ theme }: { theme: string }) {
     if (theme === "dark") return <Moon className="h-3.5 w-3.5" />;

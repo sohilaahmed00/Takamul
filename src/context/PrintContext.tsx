@@ -118,8 +118,10 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     const discVal = Number(ext.discountAmount);
     const discount = discVal > 0 ? { type: "flat" as const, value: discVal } : { type: "pct" as const, value: 0 };
     const totals = calcTotals(cart, discount);
+    const total = ext?.payments.reduce((sum, p) => sum + p.amount, 0);
 
     return {
+      paidAmount: total,
       branch: branch,
       logoUrl: branch.imageUrl || "",
       invoiceNumber: String(ext.orderNumber || ext?.quotationNumber),

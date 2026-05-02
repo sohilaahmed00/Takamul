@@ -151,7 +151,7 @@ function OrderActionsDrawer({ order, open, onClose, selectedCustomer, setScreen,
           taxamount: item?.taxAmount,
           taxCalculation: item?.taxCalculation,
           productId: item?.id,
-          op: null,
+
         };
         const base = itemBasePrice(tt);
         const tax = calcItemTax(tt);
@@ -314,7 +314,7 @@ interface InvoicesDialogProps {
 }
 
 export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogProps) {
-  const { selectedCustomer, addToCart, setDineInMode, setOrderType, setSelectedOrderId, setHoldingOrderId, setSelectedTable, setScreen } = usePosStore();
+  const { selectedCustomer, addToCart, setCart, setDineInMode, setOrderType, setSelectedOrderId, setHoldingOrderId, setSelectedTable, setScreen } = usePosStore();
   const [activeType, setActiveType] = useState<InvoiceType>("الكل");
   const [search, setSearch] = useState("");
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
@@ -443,43 +443,37 @@ export function InvoicesDialog({ open, onOpenChange, onSelect }: InvoicesDialogP
                       {order?.orderStatus === "Confirmed" ? (
                         <button
                           onClick={async () => {
-                            const invoiceData: InvoiceData = {
-                              logoUrl: LOGO_URL,
-                              invoiceNumber: `—`,
-                              institutionName: INSTITUTION_NAME,
-                              institutionTaxNumber: INSTITUTION_TAX_NO,
-                              invoiceDate: formatDate(new Date()),
-                              institutionAddress: INSTITUTION_ADDRESS,
-                              institutionPhone: INSTITUTION_PHONE,
-                              customerName: selectedCustomer?.customerName ?? undefined,
-                              customerPhone: undefined,
-                              items: order?.items.map((item) => {
-                                const tt: CartItem = {
-                                  name: item?.productName,
-                                  price: item?.priceAfterTax,
-                                  qty: item?.quantity,
-                                  taxamount: item?.taxAmount,
-                                  taxCalculation: item?.taxCalculation,
-                                  productId: item?.id,
-                                  op: null,
-                                };
-                                const base = itemBasePrice(tt);
-                                const tax = calcItemTax(tt);
-                                return {
-                                  productName: tt.name,
-                                  quantity: tt.qty,
-                                  unitPrice: Number(base.toFixed(2)),
-                                  taxAmount: Number(tax.toFixed(2)),
-                                  total: Number((base + tax).toFixed(2)),
-                                };
-                              }),
-                              subTotal: Number(order?.subTotal.toFixed(2)),
-                              discountAmount: Number(order?.discountAmount.toFixed(2)),
-                              taxAmount: order?.taxAmount,
-                              grandTotal: order?.grandTotal,
-                              notes: INSTITUTION_NOTES,
-                            };
-                            await printInvoice(invoiceData);
+                            // const invoiceData: InvoiceData = {
+                            //   logoUrl: LOGO_URL,
+                            //   invoiceNumber: `—`,
+                            //   customerPhone: undefined,
+                            //   items: order?.items.map((item) => {
+                            //     const tt: CartItem = {
+                            //       name: item?.productName,
+                            //       price: item?.priceAfterTax,
+                            //       qty: item?.quantity,
+                            //       taxamount: item?.taxAmount,
+                            //       taxCalculation: item?.taxCalculation,
+                            //       productId: item?.id,
+                            //       op: null,
+                            //     };
+                            //     const base = itemBasePrice(tt);
+                            //     const tax = calcItemTax(tt);
+                            //     return {
+                            //       productName: tt.name,
+                            //       quantity: tt.qty,
+                            //       unitPrice: Number(base.toFixed(2)),
+                            //       taxAmount: Number(tax.toFixed(2)),
+                            //       total: Number((base + tax).toFixed(2)),
+                            //     };
+                            //   }),
+                            //   subTotal: Number(order?.subTotal.toFixed(2)),
+                            //   discountAmount: Number(order?.discountAmount.toFixed(2)),
+                            //   taxAmount: order?.taxAmount,
+                            //   grandTotal: order?.grandTotal,
+                            //   notes: INSTITUTION_NOTES,
+                            // };
+                            // await printInvoice(invoiceData);
                           }}
                           className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
                         >
@@ -727,7 +721,7 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
 
 export default function CartPanel2() {
   const { t } = useLanguage();
-  const { cart, setCart, discount, setDiscount, setScreen, setSelectedCustomer, selectedCustomer, orderType, handleConfirmPayment, dineInMode, handleAddItemsToExistingOrder } = usePos();
+  const { cart, setCart, discount, setDiscount, setScreen, setSelectedCustomer, selectedCustomer, orderType, handleConfirmPayment, dineInMode, handleAddItemsToExistingOrder, addToCart } = usePosStore();
   const [quotationOpen, setQuotationOpen] = useState(false);
   const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const subRaw = useMemo(() => cart.reduce((s, item) => s + itemBasePriceRaw(item), 0), [cart]);
@@ -862,26 +856,19 @@ export default function CartPanel2() {
               <td className="w-[300px] whitespace-nowrap">
                 <ProductSearch
                   onSelect={(product) => {
-                    setCart((prev) => {
-                      const exists = prev.findIndex((i) => i.productId === product.id);
-                      if (exists !== -1) return prev.map((i, idx) => (idx === exists ? { ...i, qty: i.qty + 1 } : i));
-
-                      return [
-                        ...prev,
-                        {
-                          name: product.productNameAr,
-                          productNameEn: product.productNameEn,
-                          productNameUr: product.productNameUr,
-                          price: product.sellingPrice,
-                          qty: 1,
-                          note: "",
-                          op: null,
-                          taxamount: product.taxAmount,
-                          productId: product.id,
-                          taxCalculation: product.taxCalculation,
-                        },
-                      ];
-                    });
+                    const mapped: CartItem = {
+                      price: product?.sellingPrice,
+                      qty: 1,
+                      taxamount: product?.taxAmount,
+                      taxCalculation: product?.taxCalculation,
+                      taxPercentage: product?.taxPercentage,
+                      isNew: true,
+                      productId: product?.id,
+                      name: product?.productNameAr,
+                      productNameEn: product?.productNameEn,
+                      productNameUr: product?.productNameEn,
+                    };
+                    addToCart(mapped);
                   }}
                 />
               </td>

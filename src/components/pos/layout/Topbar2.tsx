@@ -19,13 +19,14 @@ import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHou
 import { Warehouse } from "@/features/Warehouses/types/Warehouses.types";
 import { WareHouse } from "@/features/wareHouse/types/wareHouse.types";
 import { useGetAllEmployees } from "@/features/employees/hooks/useGetAllEmployees";
+import { usePosStore } from "@/features/pos/store/usePosStore";
 
 export default function Topbar2() {
   const [deliveryDate, setDeliveryDate] = useState("");
   const [employee, setEmployee] = useState("");
   const [notes, setNotes] = useState("");
   const { data: customers } = useGetAllCustomers({ page: 1, limit: 10000 });
-  const { selectedCustomer, setSelectedCustomer } = usePos();
+  const { selectedCustomer, setSelectedCustomer } = usePosStore();
   const [openDialog, setOpenDialog] = useState(false);
   const [balanceSelectedCustomer, setBalanceSelectedCustomer] = useState<number | null>(null);
   const [showKeyboard, setShowKeyboard] = useState(false);
