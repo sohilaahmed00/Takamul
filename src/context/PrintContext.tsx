@@ -1,4 +1,4 @@
-import React, { useContext, ReactNode, useCallback } from "react";
+import React, { useContext, ReactNode, useCallback, createContext } from "react";
 import { printVoucher, getClaimReceiptHTML, exportCustomPDF, exportToExcel, exportToCSV } from "@/utils/customExportUtils";
 import { useLanguage } from "./LanguageContext";
 import { getStockReceiptHTML } from "@/print/stockReceiptHTML";
@@ -9,7 +9,6 @@ import { getA4InvoiceHTML } from "@/print/A4InvoiceTemplate";
 import { getA4PrintHTML } from "@/print/GenericA4Template";
 import { InvoiceData, printInvoice as thermalPrint } from "@/components/pos/orders/printInvoice";
 import { calcItemTax, calcTotals, CartItem } from "@/constants/data";
-import { PrintContext, PrintType } from "./PrintContextDefinitions";
 import { BranchInfo, useBranch } from "@/features/EmployeeBranches/hooks/useBranch";
 import { SalesOrder } from "@/features/sales/types/sales.types";
 import { Purchase } from "@/features/purchases/types/purchase.types";
@@ -26,7 +25,8 @@ const buildInvoiceDateStr = (data: any): string => {
   return raw ? new Date(raw).toLocaleString("en-GB") : new Date().toLocaleString("en-GB");
 };
 
-type PrintableData = SalesOrder | Quotation | Purchase | InvoiceData;
+type PrintableData = SalesOrder | Purchase | InvoiceData | Quotation;
+export type PrintType = "invoice" | "stock" | "claim" | "roll" | "quotation" | "purchase";
 
 type RawItem = {
   productId?: number;
@@ -46,22 +46,31 @@ type RawItem = {
   lineTotal?: number;
 };
 
-type ExtendedData = SalesOrder &
-  Purchase & {
-    branchInfo: BranchInfo;
-    customer?: Customer;
-    supplier?: Supplier;
-    note?: string;
-    description?: string;
-  };
+export type ExtendedData = Partial<SalesOrder & Purchase & Quotation> & {
+  branchInfo: BranchInfo;
+  customer?: Customer;
+  supplier?: Supplier;
+  note?: string;
+  description?: string;
+};
+
+export interface PrintContextType {
+  printInvoice: (data: PrintableData, type?: PrintType) => Promise<void>;
+  printRoll: (data: InvoiceData) => Promise<void>;
+  exportPDF: (data: InvoiceData) => Promise<void>;
+  exportExcel: (data: InvoiceData) => Promise<void>;
+  exportCSV: (data: InvoiceData) => Promise<void>;
+}
+const PrintContext = createContext<PrintContextType | null>(null);
 export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useLanguage();
+  console.log("first");
   const { data: branchInfo } = useBranch();
   const prepareExtendedData = useCallback(
     async (data: PrintableData): Promise<ExtendedData> => {
       const ext: ExtendedData = { ...(data as any), branchInfo: branchInfo! };
       if (ext.customer || ext.supplier) return ext;
-      const cId = "customerId" in data ? data.customerId : undefined;
+      const cId = "customerId" in data || "customerid" in data ? ((data as any).customerId ?? (data as any).customerid) : undefined;
       const sId = "supplierId" in data ? data.supplierId : undefined;
 
       if (cId) {
@@ -114,7 +123,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     return {
       branch: branch,
       logoUrl: branch.imageUrl || "",
-      invoiceNumber: String(ext.orderNumber),
+      invoiceNumber: String(ext.orderNumber || ext?.quotationNumber),
       invoiceDate: buildInvoiceDateStr(ext),
       customer: ext.customer!,
       supplier: ext.supplier!,

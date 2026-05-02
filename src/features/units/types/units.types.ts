@@ -4,6 +4,7 @@ export interface Unit {
   id: number;
   name: string;
   description?: string;
+  taxCode: string | null;
 }
 
 export interface UnitsResponse extends PaginationMeta {
@@ -19,10 +20,7 @@ export interface GetAllUnitsParams {
 export interface CreateUnitPayload {
   name: string;
   description?: string;
+  taxCode: string;
 }
 
-export interface UpdateUnitPayload {
-  id?: number;
-  name: string;
-  description?: string;
-}
+export type UpdateUnitPayload = CreateUnitPayload;

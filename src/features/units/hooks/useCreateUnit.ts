@@ -3,6 +3,7 @@ import { createUnit } from "../services/units.service";
 import { unitsKeys } from "../keys/units.keys";
 import useToast from "@/hooks/useToast";
 import { handleApiError } from "@/lib/handleApiError";
+import { handleApiSuccess } from "@/lib/handleApiSuccess";
 
 export const useCreateUnit = () => {
   const queryClient = useQueryClient();
@@ -11,7 +12,7 @@ export const useCreateUnit = () => {
     mutationFn: createUnit,
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: unitsKeys.all });
-      notifySuccess(response?.message);
+      handleApiSuccess(response, notifySuccess);
     },
     onError: (error) => handleApiError(error, notifyError),
   });

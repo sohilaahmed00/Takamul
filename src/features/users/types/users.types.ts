@@ -9,6 +9,10 @@ export interface User {
   brunchId: number;
   brunchName: string;
   roleName: string;
+  roles: {
+    roleId: number;
+    roleName: string;
+  }[];
 }
 export type CreateUser = {
   employee: {

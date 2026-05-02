@@ -30,7 +30,7 @@ import { useGetAllCategories } from "@/features/categories/hooks/useGetAllCatego
 import { useCreateCategory } from "@/features/categories/hooks/useCreateCategory";
 import { useUpdateCategory } from "@/features/categories/hooks/useUpdateCategory";
 import { Textarea } from "../ui/textarea";
-import type { Unit } from "@/features/units/types/units.types";
+import type { CreateUnitPayload, Unit } from "@/features/units/types/units.types";
 import { useUpdateUnit } from "@/features/units/hooks/useUpdateUnit";
 import { useCreateUnit } from "@/features/units/hooks/useCreateUnit";
 
@@ -44,6 +44,7 @@ const UnitSchema = z.object({
   name: z.string().min(3, "الاسم يجب أن يكون 3 أحرف على الأقل"),
   unitCode: z.string().min(1, "يرجى إدخال كود الوحدة"),
   description: z.string().optional(),
+  taxCode: z.number({ error: "يرجى ادخال كود الوحدة" }).min(1, "يرجى ادخال كود الوحدة"),
 });
 
 export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps) {
@@ -57,7 +58,7 @@ export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps
     defaultValues: {
       name: "",
       description: "",
-      unitCode: "",
+      taxCode: undefined,
     },
   });
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps
       form.reset({
         name: unit?.name ?? "",
         description: unit.description ?? "",
+        taxCode: Number(unit?.taxCode),
       });
     } else {
       form.reset();
@@ -75,10 +77,15 @@ export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps
   const onSubmit = async (data: z.infer<typeof UnitSchema>) => {
     try {
       // console.log([...formData.entries()]);
+      const payload = {
+        name: data?.name,
+        taxCode: String(data?.taxCode),
+        description: data?.description,
+      };
       if (!unit) {
-        await createUnit(data);
+        await createUnit(payload);
       } else {
-        await updateUpdateUnit({ id: Number(unit?.id), data });
+        await updateUpdateUnit({ id: Number(unit?.id), data: payload });
       }
     } catch (error) {
       // if (axios.isAxiosError(error)) {
@@ -101,7 +108,7 @@ export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps
             </DialogTitle>
           </DialogHeader>
 
-          <form id="addCustomerForm" onSubmit={form.handleSubmit(onSubmit)} className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
+          <form id="addCustomerForm" onSubmit={form.handleSubmit(onSubmit, (errors) => console.log(errors))} className="-mx-4 no-scrollbar max-h-[50vh] overflow-y-auto px-4">
             <div className="grid grid-cols-1 gap-5 p-2">
               <Controller
                 name="name"
@@ -118,12 +125,12 @@ export default function UnitModal({ isOpen, onClose, unit }: UnitModalModalProps
                 )}
               />
               <Controller
-                name="unitCode"
+                name="taxCode"
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
                     <FieldLabel>
-                     الكود الضريبي<span className="text-red-500">*</span>
+                      الكود الضريبي<span className="text-red-500">*</span>
                     </FieldLabel>
 
                     <Input {...field} placeholder={"ادخل كود الضريبي"} />

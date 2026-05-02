@@ -108,12 +108,12 @@ export default function QuotesList() {
           <Column header={t("total_amount")} sortable field="grandTotal" body={(row: Quotation) => format(row?.grandTotal)} />
           <Column
             header={t("actions")}
-            body={(row) => (
+            body={(row: Quotation) => (
               <div className="flex gap-2 justify-center items-center">
                 <button
                   onClick={async () => {
                     try {
-                      const fullData = await getQuotationById(row.id);
+                      const fullData: Quotation = await getQuotationById(row.id);
                       printInvoice(fullData, "quotation");
                     } catch (err) {
                       console.error("Print failed", err);

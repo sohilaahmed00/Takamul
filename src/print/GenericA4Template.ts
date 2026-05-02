@@ -1,21 +1,20 @@
+import { ExtendedData } from "@/context/PrintContext";
 import { tafqeet } from "../utils/tafqeet";
 import { itemBasePrice, calcItemTax, calcTotals, type CartItem } from "@/constants/data";
+import { Supplier } from "@/features/suppliers/types/suppliers.types";
+import { Customer } from "@/features/customers/types/customers.types";
+import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
 
 type PrintType = "sale" | "quotation" | "purchase";
 
-export const getA4PrintHTML = (
-  data: any,
-  type: PrintType,
-  t: any,
-  passedApiBase?: string
-): string => {
-  const branch = data.branchInfo || data.branch || {};
-  const customer = data.customerData || data.customer || data.supplier || {};
-  const items = data.items || data.orderItems || data.quotationItems || data.purchaseItems || [];
+export const getA4PrintHTML = (data: ExtendedData, type: PrintType, t: any, passedApiBase?: string): string => {
+  const branch = data?.branchInfo as BranchInfo;
+  const partner = data?.customer as Customer;
+  const items = data?.items || [];
   const apiBase = passedApiBase || "";
 
   // ── Date formatting ──────────────────────────────────────────────────────────
-  let dateVal = data.createdAt || data.date || data.orderDate || data.quotationDate || data.invoiceDate;
+  let dateVal = data.orderDate || data.quotationDate;
   let formattedDate = "-";
   let formattedTime = "-";
   if (dateVal) {
@@ -45,23 +44,22 @@ export const getA4PrintHTML = (
   const partyNameLabel = t("name", "الاسم");
 
   // ── Party Fields ─────────────────────────────────────────────────────────────
-  const partyName = customer.customerName || customer.supplierName || data.customerName || data.supplierName || "-";
-  const partyPhone = customer.mobile || customer.phone || data.customerPhone || data.supplierPhone || "-";
-  const partyTaxNo = customer.taxNumber || data.customerTaxNo || data.supplierTaxNo || "-";
-  const partyCommercial = customer.commercialRegister || data.customerCommercialNo || data.supplierCommercialNo || "-";
+  const partyName = partner?.customerName || "-";
+  const partyPhone = partner?.phone || "-";
+  const partyTaxNo = partner?.taxNumber || "-";
+  const partyCommercial = partner?.commercialRegister || "-";
 
-  const country = customer.countryName || customer.country || "";
-  const city = customer.cityName || customer.city || "";
-  const state = customer.stateName || customer.state || "";
-  const district = customer.district || "";
-  const street = customer.street || customer.address || data.customerAddress || data.supplierAddress || "";
+  const country = partner?.countryName || "";
+  const city = partner?.cityName || "";
+  const state = partner?.stateName || "";
+  const district = partner?.district || "";
+  const street = partner?.street || partner?.address || "";
   const partyAddress = [city, state, district, street].filter(Boolean).join(" / ") || "-";
 
-  const partyPostal = customer.postalCode || data.customerZipCode || data.supplierZipCode || "-";
-  const partySubNo = customer.additionalNumber || data.customerSubNo || data.supplierSubNo || "-";
-  const partyBuilding = customer.buildingNumber || data.customerBuildingNo || data.supplierBuildingNo || "-";
-
-  const docNo = data.orderNumber || data.invoiceNo || data.quotationNumber || data.purchaseOrderNumber || "-";
+  const partyPostal = partner?.postalCode || "-";
+  const partySubNo = partner?.additionalNumber || "-";
+  const partyBuilding = partner?.buildingNumber || "-";
+  const docNo = data.orderNumber || data.quotationNumber || data.purchaseOrderNumber || "-";
 
   // ── Logo URL ────────────────────────────────────────────────────────────────
   const getFullImageUrl = (url: string | null | undefined): string => {
@@ -70,7 +68,7 @@ export const getA4PrintHTML = (
     if (!apiBase) return url;
     return `${apiBase}/${url.replace(/^\/+/, "")}`;
   };
-  const branchLogo = getFullImageUrl(branch.imageUrl);
+  const branchLogo = getFullImageUrl(branch?.imageUrl);
 
   // ── Cart Logic ───────────────────────────────────────────────────────────────
   const cart: CartItem[] = items.map((item: any) => {
@@ -78,7 +76,7 @@ export const getA4PrintHTML = (
     const flat = Number(item?.discountValue ?? item?.discountAmount ?? 0);
     const itemDiscount: CartItem["itemDiscount"] = pct > 0 ? { type: "pct", value: pct } : flat > 0 ? { type: "flat", value: flat } : null;
 
-    const price = type === "purchase" || item.taxCalculation === 3 ? (item.unitPrice || item.price) : (item.priceBeforeTax ?? item.unitPrice ?? item.price ?? 0);
+    const price = type === "purchase" || item.taxCalculation === 3 ? item.unitPrice || item.price : (item.priceBeforeTax ?? item.unitPrice ?? item.price ?? 0);
 
     const taxCalc = item.taxCalculation === "Includestax" || item.taxCalculation === 3 ? 3 : 2;
 
@@ -95,29 +93,23 @@ export const getA4PrintHTML = (
     };
   });
 
-  const discVal = Number(data.discountAmount || data.discountValue || data.discount || data.globalDiscountAmount || 0);
+  const discVal = Number(data.discountAmount || 0);
   const totals = calcTotals(cart, { type: "flat", value: discVal });
 
   const totBeforeVAT = data.subTotal !== undefined ? Number(data.subTotal) : totals.sub;
-  const totalVAT     = data.taxAmount !== undefined ? Number(data.taxAmount) : totals.tax;
-  const discount     = data.discountAmount !== undefined ? Number(data.discountAmount) : totals.discountAmount;
-  const finalTotal   = data.grandTotal !== undefined ? Number(data.grandTotal) : totals.total;
+  const totalVAT = data.taxAmount !== undefined ? Number(data.taxAmount) : totals.tax;
+  const discount = data.discountAmount !== undefined ? Number(data.discountAmount) : totals.discountAmount;
+  const finalTotal = data.grandTotal !== undefined ? Number(data.grandTotal) : totals.total;
 
-  const itemRows = items.map((item: any, index: number) => {
-    const qty      = Number(item.quantity ?? 1);
-    const price    = item.unitPrice !== undefined 
-      ? Number(item.unitPrice) 
-      : (item.lineTotal !== undefined && qty > 0 
-          ? Number(item.lineTotal) / qty 
-          : (Number(item.unitPrice || 0) * 1.15));
-    const subTotal = item.lineSubTotal !== undefined ? Number(item.lineSubTotal) : 
-                    (item.lineSubtotal !== undefined ? Number(item.lineSubtotal) : 
-                    (item.subTotal !== undefined ? Number(item.subTotal) : 
-                    (Number(item.priceBeforeTax || item.unitPrice || 0) * qty)));
-    const taxAmt   = item.taxAmount !== undefined ? Number(item.taxAmount) : calcItemTax(cart[index]);
-    const netTotal = item.lineTotal !== undefined ? Number(item.lineTotal) : (subTotal + taxAmt);
+  const itemRows = items
+    .map((item: any, index: number) => {
+      const qty = Number(item.quantity ?? 1);
+      const price = item.unitPrice !== undefined ? Number(item.unitPrice) : item.lineTotal !== undefined && qty > 0 ? Number(item.lineTotal) / qty : Number(item.unitPrice || 0) * 1.15;
+      const subTotal = item.lineSubTotal !== undefined ? Number(item.lineSubTotal) : item.lineSubtotal !== undefined ? Number(item.lineSubtotal) : item.subTotal !== undefined ? Number(item.subTotal) : Number(item.priceBeforeTax || item.unitPrice || 0) * qty;
+      const taxAmt = item.taxAmount !== undefined ? Number(item.taxAmount) : calcItemTax(cart[index]);
+      const netTotal = item.lineTotal !== undefined ? Number(item.lineTotal) : subTotal + taxAmt;
 
-    return `
+      return `
       <tr>
         <td style="text-align:center;">${item.productName || item.name || "-"}</td>
         <td>${item.unitName || item.baseUnitName || "قطعة"}</td>
@@ -127,7 +119,8 @@ export const getA4PrintHTML = (
         <td>${taxAmt.toFixed(2)}</td>
         <td>${netTotal.toFixed(2)}</td>
       </tr>`;
-  }).join("");
+    })
+    .join("");
 
   return `<!DOCTYPE html>
 <html dir="rtl" lang="ar">
@@ -179,10 +172,10 @@ export const getA4PrintHTML = (
   <div class="main-content">
   <div class="header-grid">
     <div class="header-col">
-      <div class="company-title">${branch.name || "-"}</div>
+      <div class="company-title">${branch?.name || "-"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("vat_number", "الرقم الضريبي")}</div>
-        <div class="meta-value">${branch.taxNumber || "-"}</div>
+        <div class="meta-value">${branch?.taxNumber || "-"}</div>
         <div class="meta-label-en">VAT No.</div>
       </div>
       <div class="meta-row">
@@ -192,7 +185,9 @@ export const getA4PrintHTML = (
       </div>
     </div>
     <div class="logo-container" id="logo-box">
-      ${branchLogo ? `
+      ${
+        branchLogo
+          ? `
         <img src="${branchLogo}" alt="Logo" 
              style="max-height: 85px; max-width: 100%; object-fit: contain;"
              onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='flex';"
@@ -200,17 +195,19 @@ export const getA4PrintHTML = (
         <div id="logo-fallback" style="display: none; font-size: 14px; font-weight: 700; flex-direction: column; align-items: center; width: 100%;">
           <div>Logo / اللوجو</div>
         </div>
-      ` : `
+      `
+          : `
         <div style="font-size: 14px; font-weight: 700; display: flex; flex-direction: column; align-items: center; width: 100%;">
           <div>Logo / اللوجو</div>
         </div>
-      `}
+      `
+      }
     </div>
     <div class="header-col">
-      <div class="company-title">${branch.nameEn || "-"}</div>
+      <div class="company-title">${branch?.nameEn || "-"}</div>
       <div class="meta-row">
         <div class="meta-label-ar">${t("commercial_register", "سجل التجاري")}</div>
-        <div class="meta-value">${branch.commercialRegister || "-"}</div>
+        <div class="meta-value">${branch?.commercialRegister || "-"}</div>
         <div class="meta-label-en">Comm. No.</div>
       </div>
       <div class="meta-row">
@@ -223,7 +220,7 @@ export const getA4PrintHTML = (
 
   <div class="doc-type-container">
     <div class="doc-type-item">${docTitleAr}</div>
-    <div class="doc-type-item">${t("seller_name", "اسم البائع")} : ${data.createdBy || data.sellerName || "-"}</div>
+    <div class="doc-type-item">${t("seller_name", "اسم البائع")} : ${data.createdBy || "-"}</div>
   </div>
 
   <div style="margin-bottom:10px;">
@@ -306,8 +303,8 @@ export const getA4PrintHTML = (
   </div>
 
   <div class="full-width-bar" style="display: flex; justify-content: center; gap: 20px;">
-    <span>${t("address", "العنوان")} : ${[branch.cityName, branch.stateName, branch.district, branch.street].filter(Boolean).join(" / ") || branch.address || "-"}</span>
-    <span>${t("phone", "رقم الجوال")} : ${branch.phone || "-"}</span>
+    <span>${t("address", "العنوان")} : ${[branch?.cityName, branch?.stateName, branch?.district, branch?.street].filter(Boolean).join(" / ") || branch?.address || "-"}</span>
+    <span>${t("phone", "رقم الجوال")} : ${branch?.phone || "-"}</span>
   </div>
 </body>
 </html>`;

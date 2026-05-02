@@ -76,7 +76,7 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
         email: user?.email,
         branchId: user?.brunchId,
         mobile: user?.mobile,
-        roleName: user?.roleName,
+        roleName: user?.roles[0]?.roleName,
         userName: user?.userName,
       });
     }
@@ -204,7 +204,7 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
                   <FieldLabel>
                     الصلاحية <span className="text-red-500">*</span>
                   </FieldLabel>
-                  <Select value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(value)}>
+                  <Select key={field?.value} value={field.value ? String(field.value) : ""} onValueChange={(value) => field.onChange(value)}>
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="اختر الصلاحية" />
                     </SelectTrigger>
