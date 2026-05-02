@@ -1,5 +1,5 @@
 // ─── OrdersDialog.tsx & Sidebar.tsx ──────────────────────────────────────────
-import { Clock, CreditCard, FileText, Play, Plus, Printer, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
+import { Clock, CreditCard, Eye, FileText, Play, Plus, Printer, SaudiRiyal, Search, Tag, User, X } from "lucide-react";
 import { calcItemTax, itemBasePrice, NAV_ITEMS } from "@/constants/data";
 import { AddToCartProduct, INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL } from "@/features/pos/store/usePosStore";
 import type { CartItem, Screen } from "@/constants/data";
@@ -198,6 +198,41 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                         >
                           <Printer size={13} />
                         </button>
+                      ) : order?.orderStatus === "Cancelled" ? (
+                        <button
+                          title="إضافة للسلة"
+                          onClick={() => {
+                            resetCart(customers);
+                            setScreen("home");
+                            const mappedItems = order.items.map((item) => ({
+                              productId: item.productId,
+                              name: item.productName,
+                              productNameEn: item.productName,
+                              productNameUr: item.productName,
+                              price: item?.sellingPrice,
+                              qty: item.quantity,
+                              note: "",
+                              op: null,
+                              taxamount: item.taxAmountProduct,
+                              taxCalculation: item.taxCalculation,
+                              taxPercentage: item?.taxPercentage,
+                              itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+                              extras: [],
+                              isNew: true,
+                            }));
+                            setOriginalItems(mappedItems);
+                            if (order?.discountAmount) {
+                              setDiscount({ type: "flat", value: order.discountAmount });
+                            }
+                            mappedItems.forEach((item) => addToCart(item));
+                            setOrderType(order?.orderType);
+                            setHoldingOrderId(order?.id);
+                            onOpenChange(false);
+                          }}
+                          className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
+                        >
+                          <Eye size={13} />
+                        </button>
                       ) : (
                         <div className="flex items-center gap-x-2">
                           <button
@@ -262,12 +297,9 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                 extras: [],
                                 isNew: true,
                               }));
-
                               setOriginalItems(mappedItems);
-                              if (order) {
-                                if (order?.discountAmount) {
-                                  setDiscount({ type: "flat", value: order?.discountAmount });
-                                }
+                              if (order?.discountAmount) {
+                                setDiscount({ type: "flat", value: order?.discountAmount });
                               }
                               mappedItems.forEach((item) => addToCart(item));
                               setOrderType(order?.orderType);
@@ -293,7 +325,6 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                           title="استكمال الفاتورة"
                           onClick={() => {
                             resetCart(customers);
-
                             setHoldingOrderId(order?.id);
                             setOrderType(order?.orderType);
                             setScreen("home");
@@ -314,10 +345,8 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                 extras: [],
                               })),
                             );
-                            if (order) {
-                              if (order?.discountAmount) {
-                                setDiscount({ type: "flat", value: order?.discountAmount });
-                              }
+                            if (order?.discountAmount) {
+                              setDiscount({ type: "flat", value: order?.discountAmount });
                             }
                             onOpenChange(false);
                             setCashierOpen(true);

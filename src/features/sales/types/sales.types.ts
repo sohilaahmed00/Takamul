@@ -46,7 +46,7 @@ export interface SalesOrder {
   taxAmount: number;
   discountAmount: number;
   grandTotal: number;
-  orderStatus: "Confirmed" | "UnConfirmed" | "InProgress" | "Canceled";
+  orderStatus: "Confirmed" | "UnConfirmed" | "InProgress" | "Cancelled";
   paymentStatus: string;
   notes: string;
   items: OrderItem[];
