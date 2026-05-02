@@ -226,7 +226,6 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                             }
                             mappedItems.forEach((item) => addToCart(item));
                             setOrderType(order?.orderType);
-                            setHoldingOrderId(order?.id);
                             onOpenChange(false);
                           }}
                           className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
