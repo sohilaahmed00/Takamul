@@ -1,29 +1,32 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Banknote, ShoppingBag, Loader2, TrendingUp, CreditCard, SaudiRiyal, Calendar, ArrowUpLeft } from "lucide-react";
-
+import { Banknote, ShoppingBag, Loader2, TrendingUp, SaudiRiyal } from "lucide-react";
 import RecentTransactions from "@/components/RecentTransactions";
 import { motion } from "framer-motion";
 import { useTheme } from "@/context/ThemeContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings } from "@/context/SettingsContext";
-import { useSales } from "@/context/SalesContext";
-import { usePurchases } from "@/context/PurchasesContext";
-import { useExpenses } from "@/context/ExpensesContext";
 import { formatCurrency } from "@/lib/format";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
+import { useTodaySales, useTodayPurchases, useTodayExpenses, useTodayProfit } from "@/features/statistics/hooks/useStatistics";
 
-const StatCard = ({ title, value, icon: Icon, colorClass, bgClass, textColor = "text-white", delay, onClick }: any) => {
+const StatCard = ({ title, value, icon: Icon, colorClass, bgClass, textColor = "text-white", delay, onClick, isLoading }: any) => {
   const { t, direction, language } = useLanguage();
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay }} onClick={onClick} className={`rounded-xl p-4 shadow-lg relative overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform ${bgClass} ${textColor}`}>
       <div className="relative z-10">
         <p className="opacity-80 text-base font-bold mb-1 truncate">{title}</p>
-        <h3 className="text-2xl md:text-3xl font-bold flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
-          {value}
-          {language === "ar" ? <SaudiRiyal size={30} className="opacity-90" /> : <span className="text-2xl font-bold opacity-90 ml-1">SAR</span>}
-        </h3>
+        {isLoading ? (
+          <div className="h-9 flex items-center">
+            <Loader2 size={24} className="animate-spin opacity-50" />
+          </div>
+        ) : (
+          <h3 className="text-2xl md:text-3xl font-bold flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
+            {value}
+            {language === "ar" ? <SaudiRiyal size={30} className="opacity-90" /> : <span className="text-2xl font-bold opacity-90 ml-1">SAR</span>}
+          </h3>
+        )}
       </div>
       <div className={`absolute ${direction === "rtl" ? "-left-6" : "-right-6"} -bottom-6 opacity-10`}>
         <Icon size={120} />
@@ -33,28 +36,23 @@ const StatCard = ({ title, value, icon: Icon, colorClass, bgClass, textColor = "
 };
 
 export default function Dashboard() {
-  const [isLoading, setIsLoading] = useState(true);
-  const { theme } = useTheme();
   const { t, direction } = useLanguage();
   const { systemSettings } = useSettings();
-  const { sales } = useSales();
-  const { purchases } = usePurchases();
-  const { expenses } = useExpenses();
   const navigate = useNavigate();
-  const currentDateFormatted = new Date().toLocaleDateString("en-GB").replace(/\//g, "-");
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);
 
-  const totalSalesValue = sales.reduce((sum, s) => sum + s.grandTotal, 0);
-  const totalPurchasesValue = purchases.reduce((sum, p) => sum + p.total, 0);
-  const totalExpensesValue = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const netProfitValue = totalSalesValue - totalPurchasesValue - totalExpensesValue;
-  const totalReceivablesValue = sales.reduce((sum, s) => sum + s.remaining, 0);
+  const { data: todaySales, isLoading: salesLoading, isError: salesError } = useTodaySales();
+  const { data: todayPurchases, isLoading: purchasesLoading, isError: purchasesError } = useTodayPurchases();
+  const { data: todayExpenses, isLoading: expensesLoading, isError: expensesError } = useTodayExpenses();
+  const { data: todayProfit, isLoading: profitLoading, isError: profitError } = useTodayProfit();
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1500);
-    return () => clearTimeout(timer);
-  }, []);
+  const totalSalesValue = Number(todaySales?.totalSales ?? 0);
+  const totalPurchasesValue = Number(todayPurchases?.totalPurchases ?? 0);
+  const totalExpensesValue = Number(todayExpenses?.totalExpenses ?? 0);
+  const netProfitValue = Number(todayProfit?.netProfit ?? 0);
+
+  const isLoading = salesLoading || purchasesLoading || expensesLoading || profitLoading;
 
   if (isLoading) {
     return (
@@ -75,10 +73,49 @@ export default function Dashboard() {
         <div className="space-y-4 relative dashboard-page" dir={direction}>
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {hasPermission(Permissions?.salesOrders?.view) && <StatCard title={t("total_sales")} value={`${formatCurrency(totalSalesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}`} icon={SaudiRiyal} bgClass="bg-[var(--dashboard-sales)]" textColor="text-[var(--dashboard-sales-text)]" delay={0.1} />}
-            {hasPermission(Permissions?.expenses?.view) && <StatCard title={t("total_expenses")} value={formatCurrency(totalExpensesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })} icon={Banknote} bgClass="bg-[var(--dashboard-expenses)]" textColor="text-[var(--dashboard-expenses-text)]" delay={0.2} />}
-            <StatCard title={t("net_profit")} value={formatCurrency(netProfitValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })} icon={TrendingUp} bgClass="bg-[var(--dashboard-profit)]" textColor="text-[var(--dashboard-profit-text)]" delay={0.3} onClick={() => navigate("/reports/profit")} />
-            {hasPermission(Permissions?.purchaseOrders?.view) && <StatCard title={t("total_purchases")} value={formatCurrency(totalPurchasesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })} icon={ShoppingBag} bgClass="bg-[var(--dashboard-purchases)]" textColor="text-[var(--dashboard-purchases-text)]" delay={0.4} />}
+            {hasPermission(Permissions?.salesOrders?.view) && (
+              <StatCard 
+                title={t("total_sales")} 
+                value={`${formatCurrency(totalSalesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })}`} 
+                icon={SaudiRiyal} 
+                bgClass="bg-[var(--dashboard-sales)]" 
+                textColor="text-[var(--dashboard-sales-text)]" 
+                delay={0.1} 
+                isLoading={salesLoading}
+              />
+            )}
+            {hasPermission(Permissions?.expenses?.view) && (
+              <StatCard 
+                title={t("total_expenses")} 
+                value={formatCurrency(totalExpensesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })} 
+                icon={Banknote} 
+                bgClass="bg-[var(--dashboard-expenses)]" 
+                textColor="text-[var(--dashboard-expenses-text)]" 
+                delay={0.2} 
+                isLoading={expensesLoading}
+              />
+            )}
+            <StatCard 
+              title={t("net_profit")} 
+              value={formatCurrency(netProfitValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })} 
+              icon={TrendingUp} 
+              bgClass="bg-[var(--dashboard-profit)]" 
+              textColor="text-[var(--dashboard-profit-text)]" 
+              delay={0.3} 
+              onClick={() => navigate("/reports/profit")} 
+              isLoading={profitLoading}
+            />
+            {hasPermission(Permissions?.purchaseOrders?.view) && (
+              <StatCard 
+                title={t("total_purchases")} 
+                value={formatCurrency(totalPurchasesValue, { ...systemSettings, money: { ...systemSettings.money, showCurrencySymbol: false } })} 
+                icon={ShoppingBag} 
+                bgClass="bg-[var(--dashboard-purchases)]" 
+                textColor="text-[var(--dashboard-purchases-text)]" 
+                delay={0.4} 
+                isLoading={purchasesLoading}
+              />
+            )}
           </div>
 
           {/* Charts Section */}
