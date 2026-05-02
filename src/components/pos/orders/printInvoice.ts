@@ -387,7 +387,7 @@ html, body {
     <tr>
       <td class="t-ar">المتبقي</td>
       <td class="t-val">${fmt(data.grandTotal - data?.paidAmount)} ${riyal}</td>
-      <td class="t-en">remaining</td>
+      <td class="t-en">Remaining</td>
     </tr>
   </table>
 
