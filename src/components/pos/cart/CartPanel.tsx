@@ -370,7 +370,6 @@ export default function CartPanel() {
   const navigate = useNavigate();
   const [shiftReportOpen, setShiftReportOpen] = useState(false);
 
-  // Mock data for the shift report
   const mockShiftData: ShiftReportData = {
     shiftNumber: "1010005",
     userName: "كاشير 1",
@@ -378,23 +377,23 @@ export default function CartPanel() {
     fromTime: "05:01 PM",
     toTime: "12:04 AM",
     items: [
-      { index: 1, productName: "منتج بيع", price: 5.00, quantity: 7.00, total: 35.00 },
-      { index: 2, productName: "صنف جديد", price: 10.00, quantity: 12.00, total: 120.00 },
+      { index: 1, productName: "منتج بيع", price: 5.0, quantity: 7.0, total: 35.0 },
+      { index: 2, productName: "صنف جديد", price: 10.0, quantity: 12.0, total: 120.0 },
     ],
-    totalBeforeTax: 130.30,
-    totalTax: 24.70,
-    grandTotal: 155.00,
+    totalBeforeTax: 130.3,
+    totalTax: 24.7,
+    grandTotal: 155.0,
     payment: {
-      cash: 55.00,
-      network: 100.00,
-      delivery: 0.00,
+      cash: 55.0,
+      network: 100.0,
+      delivery: 0.0,
     },
-    totalPurchases: 0.00,
-    totalExpenses: 0.00,
+    totalPurchases: 0.0,
+    totalExpenses: 0.0,
     deliveryCompanies: [
-      { name: "هنقرستيشن", amount: 0.00 },
-      { name: "كيتا", amount: 0.00 },
-      { name: "نينجا", amount: 0.00 },
+      { name: "هنقرستيشن", amount: 0.0 },
+      { name: "كيتا", amount: 0.0 },
+      { name: "نينجا", amount: 0.0 },
     ],
   };
 
@@ -412,7 +411,6 @@ export default function CartPanel() {
 
   useEffect(() => {
     if (customers?.items?.[0] && !selectedCustomer) {
-      console.log("first");
       setSelectedCustomer(customers.items[0]);
     }
   }, [customers?.items?.[0]?.id]);
@@ -440,7 +438,6 @@ export default function CartPanel() {
     );
   };
 
-  // ── per-item extras ────────────────────────────────────────────────────────
   const saveExtras = (idx: number, selectedIds: number[]) => {
     setCart((prev) =>
       prev.map((item, i) => {
@@ -479,10 +476,8 @@ export default function CartPanel() {
   return (
     <>
       <div className="flex flex-col border-r border-border" style={{ width: 550, flexShrink: 0 }}>
-        {/* ── Header ── */}
         <div className="px-3 border-b border-border flex items-center justify-between py-3 shrink-0">
           <div className="flex items-center gap-4">
-            {/* Network */}
             <div className="flex items-center gap-1">
               <span className={`text-xs font-bold ${networkSpeed === "slow" ? "text-red-500" : networkSpeed === "medium" ? "text-yellow-500" : "text-green-500"}`}>{networkSpeed === "slow" ? t("speed_slow") : networkSpeed === "medium" ? t("speed_medium") : t("speed_fast")}</span>
               <button className={networkSpeed === "slow" ? "text-red-500" : networkSpeed === "medium" ? "text-yellow-500" : "text-green-500"}>
@@ -495,7 +490,6 @@ export default function CartPanel() {
               </button>
             </div>
 
-            {/* Language */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-xs gap-1.5">
@@ -510,7 +504,6 @@ export default function CartPanel() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Theme */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-xs gap-1.5">
@@ -549,11 +542,7 @@ export default function CartPanel() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Button 
-              onClick={() => setShiftReportOpen(true)}
-              size="sm" 
-              className="rounded-full h-7 text-[11px] transition-all duration-200 shrink-0"
-            >
+            <Button onClick={() => setShiftReportOpen(true)} size="sm" className="rounded-full h-7 text-[11px] transition-all duration-200 shrink-0">
               <Pause className="w-3 h-3" />
               غلق الوردية
             </Button>
@@ -614,7 +603,6 @@ export default function CartPanel() {
           </div>
         </div>
 
-        {/* ── Customer Row ── */}
         <div className="px-3 py-[14.75px] border-b border-border flex items-center gap-2">
           {!selectedCustomer ? (
             <div className="w-full">
@@ -644,7 +632,6 @@ export default function CartPanel() {
           </Button>
         </div>
 
-        {/* ── Cart Items ── */}
         <div className="flex-1 overflow-y-auto px-2 py-1.5 space-y-1">
           {cart?.length === 0 ? (
             <div className="p-5 text-center text-gray-400 text-xs">{t("cart_is_empty")}</div>
@@ -942,13 +929,11 @@ export default function CartPanel() {
           saveExtras(idx, selectedIds);
         }}
       />
-      <ShiftReportModal 
-        isOpen={shiftReportOpen} 
-        onClose={() => setShiftReportOpen(false)} 
+      <ShiftReportModal
+        isOpen={shiftReportOpen}
+        onClose={() => setShiftReportOpen(false)}
         data={mockShiftData}
         onConfirmCloseShift={() => {
-          // Here you would call the actual close shift API
-          console.log("Shift Closed");
           setShiftReportOpen(false);
         }}
       />

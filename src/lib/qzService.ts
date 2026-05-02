@@ -1,7 +1,6 @@
 import * as qz from "qz-tray";
 import { sha256 } from "js-sha256";
 import { KJUR, KEYUTIL, hextob64 } from "jsrsasign";
-/* ───────── إعداد QZ ───────── */
 qz.api.setSha256Type((data: any) => sha256(data));
 qz.api.setPromiseType((resolver: any) => new Promise(resolver));
 
@@ -34,7 +33,6 @@ qz.security.setSignaturePromise((toSign) => {
   };
 });
 
-/* ───────── الاتصال ───────── */
 async function connect() {
   if (!qz.websocket.isActive()) {
     await qz.websocket.connect();
@@ -60,13 +58,11 @@ export async function initQZ() {
 // }
 
 // getPrinters();
-/* ───────── أسماء الطابعات ───────── */
 const PRINTERS = {
   invoice: "POS-80",
   kitchen: "Kitchen",
 };
 
-/* ───────── الطباعة العامة ───────── */
 async function printToPrinter(html: string, printerName: string) {
   if (!qz.websocket.isActive()) {
     throw new Error("QZ not connected");
