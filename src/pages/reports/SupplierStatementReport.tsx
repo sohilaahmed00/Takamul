@@ -103,9 +103,9 @@ export default function SupplierStatementReport() {
     ].join(" | ");
 
     const summaryCards = [
-      { title: t("total_purchases", "إجمالي المشتريات"), value: `${formatNumber(totalDebit)} ${t('sar', 'ر.с')}`, color: "orange" },
-      { title: t("total_payments", "إجمالي المدفوعات"), value: `${formatNumber(totalCredit)} ${t('sar', 'ر.с')}`, color: "teal" },
-      { title: t("total_debit", "إجمالي المديونية"), value: `${formatNumber(totalBalance)} ${t('sar', 'ر.с')}`, color: "blue" },
+      { title: t("total_purchases", "إجمالي المشتريات"), value: `${formatNumber(totalDebit)} ${t('sar', 'ر.س')}`, color: "orange" },
+      { title: t("total_payments", "إجمالي المدفوعات"), value: `${formatNumber(totalCredit)} ${t('sar', 'ر.س')}`, color: "teal" },
+      { title: t("total_debit", "إجمالي المديونية"), value: `${formatNumber(totalBalance)} ${t('sar', 'ر.س')}`, color: "blue" },
     ];
 
     const columns = [
