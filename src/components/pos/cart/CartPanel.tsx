@@ -33,6 +33,8 @@ import { useReleaseHolding } from "@/features/pos/hooks/useReleaseHolding";
 import { usePosStore } from "@/features/pos/store/usePosStore";
 import { DeliveryCompany } from "@/types";
 import { useGetAllDeliveryCompanies } from "@/features/delivery-companies/hooks/useGetAllDeliveryCompanies";
+import ShiftReportModal from "../modals/ShiftReportModal";
+import { ShiftReportData } from "../orders/printShiftReport";
 
 const TABS = ["add", "discount", "coupon", "note"] as const;
 
@@ -366,6 +368,35 @@ export default function CartPanel() {
   const { notifyError, notifySuccess } = useToast();
   const { data: freeTables } = useGetAllTables();
   const navigate = useNavigate();
+  const [shiftReportOpen, setShiftReportOpen] = useState(false);
+
+  // Mock data for the shift report
+  const mockShiftData: ShiftReportData = {
+    shiftNumber: "1010005",
+    userName: "كاشير 1",
+    shiftDate: "2026/05/03",
+    fromTime: "05:01 PM",
+    toTime: "12:04 AM",
+    items: [
+      { index: 1, productName: "منتج بيع", price: 5.00, quantity: 7.00, total: 35.00 },
+      { index: 2, productName: "صنف جديد", price: 10.00, quantity: 12.00, total: 120.00 },
+    ],
+    totalBeforeTax: 130.30,
+    totalTax: 24.70,
+    grandTotal: 155.00,
+    payment: {
+      cash: 55.00,
+      network: 100.00,
+      delivery: 0.00,
+    },
+    totalPurchases: 0.00,
+    totalExpenses: 0.00,
+    deliveryCompanies: [
+      { name: "هنقرستيشن", amount: 0.00 },
+      { name: "كيتا", amount: 0.00 },
+      { name: "نينجا", amount: 0.00 },
+    ],
+  };
 
   function ThemeIcon({ theme }: { theme: string }) {
     if (theme === "dark") return <Moon className="h-3.5 w-3.5" />;
@@ -518,7 +549,11 @@ export default function CartPanel() {
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <Button size="sm" className="rounded-full h-7 text-[11px] transition-all duration-200 shrink-0">
+            <Button 
+              onClick={() => setShiftReportOpen(true)}
+              size="sm" 
+              className="rounded-full h-7 text-[11px] transition-all duration-200 shrink-0"
+            >
               <Pause className="w-3 h-3" />
               غلق الوردية
             </Button>
@@ -905,6 +940,16 @@ export default function CartPanel() {
         onSaveExtras={(selectedIds) => {
           const idx = cart.indexOf(selectedCartItem!);
           saveExtras(idx, selectedIds);
+        }}
+      />
+      <ShiftReportModal 
+        isOpen={shiftReportOpen} 
+        onClose={() => setShiftReportOpen(false)} 
+        data={mockShiftData}
+        onConfirmCloseShift={() => {
+          // Here you would call the actual close shift API
+          console.log("Shift Closed");
+          setShiftReportOpen(false);
         }}
       />
     </>

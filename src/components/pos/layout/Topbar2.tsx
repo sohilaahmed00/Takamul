@@ -20,6 +20,8 @@ import { Warehouse } from "@/features/Warehouses/types/Warehouses.types";
 import { WareHouse } from "@/features/wareHouse/types/wareHouse.types";
 import { useGetAllEmployees } from "@/features/employees/hooks/useGetAllEmployees";
 import { usePosStore } from "@/features/pos/store/usePosStore";
+import ShiftReportModal from "../modals/ShiftReportModal";
+import { ShiftReportData } from "../orders/printShiftReport";
 
 export default function Topbar2() {
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -34,6 +36,35 @@ export default function Topbar2() {
   const { data: employees } = useGetAllEmployees({ page: 1, limit: 10000 });
   const [input, setInput] = useState("");
   const { t } = useLanguage();
+  const [shiftReportOpen, setShiftReportOpen] = useState(false);
+
+  // Mock data for the shift report
+  const mockShiftData: ShiftReportData = {
+    shiftNumber: "1010005",
+    userName: "كاشير 1",
+    shiftDate: "2026/05/03",
+    fromTime: "05:01 PM",
+    toTime: "12:04 AM",
+    items: [
+      { index: 1, productName: "منتج بيع", price: 5.00, quantity: 7.00, total: 35.00 },
+      { index: 2, productName: "صنف جديد", price: 10.00, quantity: 12.00, total: 120.00 },
+    ],
+    totalBeforeTax: 130.30,
+    totalTax: 24.70,
+    grandTotal: 155.00,
+    payment: {
+      cash: 55.00,
+      network: 100.00,
+      delivery: 0.00,
+    },
+    totalPurchases: 0.00,
+    totalExpenses: 0.00,
+    deliveryCompanies: [
+      { name: "هنقرستيشن", amount: 0.00 },
+      { name: "كيتا", amount: 0.00 },
+      { name: "نينجا", amount: 0.00 },
+    ],
+  };
   useEffect(() => {
     if (customers) {
       setSelectedCustomer(customers?.items[0]);
@@ -108,7 +139,11 @@ export default function Topbar2() {
             </div>
 
             <div className="flex items-center gap-1">
-              <Button size="sm" className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 dark:bg-muted dark:text-foreground dark:hover:bg-muted/70 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200">
+              <Button 
+                onClick={() => setShiftReportOpen(true)}
+                size="sm" 
+                className="rounded-full h-7 text-[11px] bg-[#000052] hover:bg-blue-900 dark:bg-muted dark:text-foreground dark:hover:bg-muted/70 hover:shadow-[0_0_0_3px_rgba(30,58,138,0.2)] transition-all duration-200"
+              >
                 <Pause className="w-3 h-3" />
                 غلق الوردية
               </Button>
@@ -206,6 +241,16 @@ export default function Topbar2() {
           />
         </div>
       )}
+      <ShiftReportModal 
+        isOpen={shiftReportOpen} 
+        onClose={() => setShiftReportOpen(false)} 
+        data={mockShiftData}
+        onConfirmCloseShift={() => {
+          // Here you would call the actual close shift API
+          console.log("Shift Closed");
+          setShiftReportOpen(false);
+        }}
+      />
     </>
   );
 }
