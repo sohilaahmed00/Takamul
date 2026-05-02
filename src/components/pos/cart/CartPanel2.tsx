@@ -440,7 +440,7 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
   const [search, setSearch] = useState("");
   const { data: quotations } = useGetAllQuotations();
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000 });
-  const { setCart } = usePos();
+  const { setCart } = usePosStore();
 
   const found = search.trim() ? quotations?.find((q) => q.quotationNumber === search.trim()) : null;
 
