@@ -26,6 +26,7 @@ export interface InvoiceData {
   grandTotal: number;
   notes?: string;
   qrCodeUrl?: string;
+  paidAmount: number;
 }
 
 export async function printInvoice(data: InvoiceData): Promise<void> {
@@ -376,6 +377,16 @@ html, body {
     <tr>
       <td class="t-ar">الاجمالي النهائي</td>
       <td class="t-val">${fmt(data.grandTotal)} ${riyal}</td>
+      <td class="t-en">Net Total</td>
+    </tr>
+    <tr>
+      <td class="t-ar">المدفوع</td>
+      <td class="t-val">${fmt(data?.paidAmount)} ${riyal}</td>
+      <td class="t-en">Net Total</td>
+    </tr>
+    <tr>
+      <td class="t-ar">المتبقي</td>
+      <td class="t-val">${fmt(data.grandTotal - data?.paidAmount)} ${riyal}</td>
       <td class="t-en">Net Total</td>
     </tr>
   </table>

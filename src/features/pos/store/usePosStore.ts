@@ -181,20 +181,19 @@ export const usePosStore = create<PosState>((set, get) => ({
   },
 
   handleReleaseHoldingOrder: async (payments, { releaseHolding, customers }) => {
-    const { holdingOrderId, resetCart, cart, selectedCustomer, discount, orderNote } = get();
+    const { holdingOrderId, resetCart, cart, selectedCustomer, discount, orderNote, paidAmount } = get();
     const branch = useBranchStore.getState().branch;
     if (!holdingOrderId) return;
 
     try {
       await releaseHolding({ id: holdingOrderId, data: payments });
-      await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
-      await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
+      await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount });
       resetCart(customers);
     } catch {}
   },
 
   handleCreateDineInOrder: async ({ createDineInOrderyOrder, customers }) => {
-    const { cart, selectedCustomer, discount, selectedGiftCardId, selectedTable, orderNote, resetCart } = get();
+    const { cart, selectedCustomer, discount, selectedGiftCardId, selectedTable, orderNote, resetCart, paidAmount } = get();
     const branch = useBranchStore.getState().branch;
     const payload = {
       customerId: selectedCustomer?.id,
@@ -215,7 +214,7 @@ export const usePosStore = create<PosState>((set, get) => ({
 
     try {
       await createDineInOrderyOrder(payload);
-      await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
+      await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount });
       resetCart(customers);
     } catch (error) {
       console.log(error);
@@ -312,7 +311,7 @@ export const usePosStore = create<PosState>((set, get) => ({
       }
 
       if (!isHolding) {
-        await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch });
+        await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount });
 
         if (dineInMode === "add-items") {
           await PrintKitchenBon({ cart, originalItems, selectedCustomer });
