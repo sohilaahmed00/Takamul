@@ -7,12 +7,14 @@ import { useNavigate } from "react-router-dom";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUpdateSalesSettings } from "@/features/settings/hooks/useUpdateSettings";
+import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
 
 export default function SalesSettings() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { systemSettings, updateSystemSettings } = useSettings();
   const { mutate: updateSales } = useUpdateSalesSettings();
+  const { data: treasuries } = useGetAllTreasurys();
 
   const handleUpdate = (field: string, value: any) => {
     updateSystemSettings({
@@ -26,8 +28,8 @@ export default function SalesSettings() {
   const onSave = () => {
     updateSales({
       allowSaleWithZeroStock: systemSettings.sales.sellIfZero,
-      defaultSalesVault: 0, // Placeholder as not clearly mapped
-      defaultPurchasesVault: 0, // Placeholder
+      defaultSalesVault: Number(systemSettings.sales.defaultPaymentMethod) || 0,
+      defaultPurchasesVault: Number(systemSettings.sales.defaultPurchasePaymentMethod) || 0,
       showOrderDeviceNumber: systemSettings.sales.showOrderDeviceNumber,
     });
   };
@@ -86,16 +88,18 @@ export default function SalesSettings() {
             <Field>
               <FieldLabel className="gap-x-0">{t("default_sales_payment_method")} <span className="text-red-500">*</span></FieldLabel>
               <Select 
-                value={systemSettings.sales.defaultPaymentMethod} 
+                value={String(systemSettings.sales.defaultPaymentMethod)} 
                 onValueChange={(val) => handleUpdate("defaultPaymentMethod", val)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder={t("select_treasury") || "اختر الخزينة"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="شبكة">{t("payment_network") || "شبكة"}</SelectItem>
-                  <SelectItem value="كاش">{t("payment_cash") || "كاش"}</SelectItem>
-                  <SelectItem value="آجل">{t("payment_credit") || "آجل"}</SelectItem>
+                  {treasuries?.map((treasury) => (
+                    <SelectItem key={treasury.id} value={String(treasury.id)}>
+                      {treasury.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </Field>
@@ -103,32 +107,22 @@ export default function SalesSettings() {
             <Field>
               <FieldLabel className="gap-x-0">{t("default_purchase_payment_method")} <span className="text-red-500">*</span></FieldLabel>
               <Select 
-                value={systemSettings.sales.defaultPurchasePaymentMethod} 
+                value={String(systemSettings.sales.defaultPurchasePaymentMethod)} 
                 onValueChange={(val) => handleUpdate("defaultPurchasePaymentMethod", val)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue />
+                  <SelectValue placeholder={t("select_treasury") || "اختر الخزينة"} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="شبكة">{t("payment_network") || "شبكة"}</SelectItem>
-                  <SelectItem value="كاش">{t("payment_cash") || "كاش"}</SelectItem>
-                  <SelectItem value="آجل">{t("payment_credit") || "آجل"}</SelectItem>
+                  {treasuries?.map((treasury) => (
+                    <SelectItem key={treasury.id} value={String(treasury.id)}>
+                      {treasury.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </Field>
 
-            <Field>
-              <FieldLabel className="gap-x-0">{t("show_service_number")} <span className="text-red-500">*</span></FieldLabel>
-              <Select value={systemSettings.sales.showServiceNumber ? enableStr : disableStr} onValueChange={(val) => handleUpdate("showServiceNumber", val === enableStr)}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={enableStr}>{enableStr}</SelectItem>
-                  <SelectItem value={disableStr}>{disableStr}</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
 
             <Field>
               <FieldLabel className="gap-x-0">{t("show_order_device_number")} <span className="text-red-500">*</span></FieldLabel>
