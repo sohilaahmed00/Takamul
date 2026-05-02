@@ -116,7 +116,6 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
       <td>${subTotal.toFixed(2)}</td>
       <td>${taxAmt.toFixed(2)}</td>
       <td>${netTotal.toFixed(2)}</td>
-      <td>${netTotal.toFixed(2)}</td>
  
     </tr>`,
     )
