@@ -92,7 +92,7 @@ interface PosState {
 
   handleAddItemsToExistingOrder: (deps: { addItemsToOrder: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
 
-  handleConfirmPayment: (params: { shouldPrintKitchenBon?: boolean; isHolding?: boolean; payments?: { amount: number; treasuryId: number; notes: string }[]; createTakwayOrder?: (p: any) => Promise<any>; createDeliveryOrder?: (p: any) => Promise<any>; checkoutDineInOrder?: (p: any) => Promise<any>; releaseHolding?: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
+  handleConfirmPayment: (params: { shouldPrintKitchenBon?: boolean; isHolding?: boolean; payments?: { amount: number; treasuryId: number; notes: string }[]; createTakwayOrder: (p: any) => Promise<any>; createDeliveryOrder: (p: any) => Promise<any>; checkoutDineInOrder: (p: any) => Promise<any>; releaseHolding: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
 }
 
 export const usePosStore = create<PosState>((set, get) => ({
@@ -311,7 +311,7 @@ export const usePosStore = create<PosState>((set, get) => ({
 
       if (!isHolding) {
         await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount });
-
+        console.log("print");
         if (dineInMode === "add-items") {
           await PrintKitchenBon({ cart, originalItems, selectedCustomer });
         }
