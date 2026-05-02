@@ -733,7 +733,7 @@ export default function CartPanel2() {
 
   const handleApplyDiscount = () => {
     const base = sub + taxAfterDiscount;
-    if (discPct) setDiscount({ type: "pct", value: (base * parseFloat(discPct)) / 100 });
+    if (discPct) setDiscount({ type: "pct", value: Number(discPct) });
     if (discFlat) setDiscount({ type: "flat", value: parseFloat(discFlat) });
   };
 
@@ -885,8 +885,6 @@ export default function CartPanel2() {
             {cart.map((item: CartItem, idx) => {
               const base = itemBasePrice(item);
               const tax = calcItemTax(item);
-              const itemWithoutDisc = { ...item, itemDiscount: null };
-              const origBasePrice = itemBasePrice(itemWithoutDisc);
               const rowTotal = base + tax;
               const discVal = item.itemDiscount ? (item.itemDiscount.type === "pct" ? (itemBasePrice({ ...item, itemDiscount: null }) * item.itemDiscount.value) / 100 : item.itemDiscount.value) : 0;
               const discPctVal = item.itemDiscount?.type === "pct" ? item.itemDiscount.value : 0;
