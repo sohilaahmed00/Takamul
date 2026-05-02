@@ -336,30 +336,39 @@ export function InvoicesDialog({ open, onOpenChange, onSelect, customers }: Invo
                             title="استكمال الدفع"
                             onClick={() => {
                               resetCart(customers);
-                              setHoldingOrderId(order?.id);
-                              setOrderType(order?.orderType);
+                              onOpenChange(false);
                               setScreen("home");
-                              setCart(
-                                order.items.map((item) => ({
-                                  productId: item.productId,
-                                  name: item.productName,
-                                  productNameEn: item.productName,
-                                  productNameUr: item.productName,
-                                  price: item?.sellingPrice,
-                                  qty: item.quantity,
-                                  note: "",
-                                  op: null,
-                                  taxamount: item.taxAmountProduct,
-                                  taxCalculation: item.taxCalculation,
-                                  taxPercentage: item?.taxPercentage,
-                                  itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
-                                  extras: [],
-                                })),
-                              );
+                              const mappedItems = order.items.map((item) => ({
+                                productId: item.productId,
+                                name: item.productName,
+                                productNameEn: item.productName,
+                                productNameUr: item.productName,
+                                price: item?.sellingPrice,
+                                qty: item.quantity,
+                                note: "",
+                                op: null,
+                                taxamount: item.taxAmountProduct,
+                                taxCalculation: item.taxCalculation,
+                                taxPercentage: item?.taxPercentage,
+                                itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+                                extras: [],
+                                isNew: true,
+                              }));
+                              setOriginalItems(mappedItems);
                               if (order?.discountAmount) {
                                 setDiscount({ type: "flat", value: order?.discountAmount });
                               }
-                              onOpenChange(false);
+                              mappedItems.forEach((item) => addToCart(item));
+                              setOrderType(order?.orderType);
+                              if (order.orderType == "InDine") {
+                                if (order.orderStatus === "InProgress") {
+                                  setDineInMode("checkout");
+                                  setSelectedTable(order?.tableId);
+                                  setSelectedOrderId(order?.id);
+                                }
+                              } else {
+                                setHoldingOrderId(order?.id);
+                              }
                             }}
                             className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
                           >
@@ -372,12 +381,31 @@ export function InvoicesDialog({ open, onOpenChange, onSelect, customers }: Invo
                         <button
                           title="استكمال الفاتورة"
                           onClick={() => {
+                            resetCart(customers);
                             setHoldingOrderId(order?.id);
                             setOrderType(order?.orderType);
                             setScreen("home");
-                            // setCart(cartItems);
+                            setCart(
+                              order.items.map((item) => ({
+                                productId: item.productId,
+                                name: item.productName,
+                                productNameEn: item.productName,
+                                productNameUr: item.productName,
+                                price: item?.sellingPrice,
+                                qty: item.quantity,
+                                note: "",
+                                op: null,
+                                taxamount: item.taxAmountProduct,
+                                taxCalculation: item.taxCalculation,
+                                taxPercentage: item?.taxPercentage,
+                                itemDiscount: item.discountValue > 0 ? { type: "flat" as const, value: item.discountValue } : null,
+                                extras: [],
+                              })),
+                            );
+                            if (order?.discountAmount) {
+                              setDiscount({ type: "flat", value: order?.discountAmount });
+                            }
                             onOpenChange(false);
-                            // setCashierOpen(true);
                           }}
                           className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
                         >
