@@ -26,6 +26,9 @@ import { InvoiceData, printInvoice } from "../orders/printInvoice";
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from "@/components/ui/drawer";
 import { Separator } from "@/components/ui/separator";
 import { AddToCartProduct, usePosStore } from "@/features/pos/store/usePosStore";
+import { useCreateTakwayOrder } from "@/features/pos/hooks/useCreateTakeawayOrder";
+import { useReleaseHolding } from "@/features/pos/hooks/useReleaseHolding";
+import useToast from "@/hooks/useToast";
 
 function ProductSearch({ onSelect }: { onSelect: (product: Product) => void }) {
   const [open, setOpen] = useState(false);
@@ -722,6 +725,9 @@ export default function CartPanel2() {
   const { t } = useLanguage();
   const { cart, setCart, discount, setDiscount, setScreen, setSelectedCustomer, selectedCustomer, orderType, handleConfirmPayment, dineInMode, handleAddItemsToExistingOrder, addToCart } = usePosStore();
   const [quotationOpen, setQuotationOpen] = useState(false);
+  const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
+  const { data: customers } = useGetAllCustomers();
+  const { mutateAsync: releaseHolding } = useReleaseHolding();
   const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const subRaw = useMemo(() => cart.reduce((s, item) => s + itemBasePriceRaw(item), 0), [cart]);
   const [noteIndex, setNoteIndex] = useState<number | null>(null);
@@ -730,9 +736,8 @@ export default function CartPanel2() {
   const [discFlat, setDiscFlat] = useState("");
   const [paymentOpen, setPaymentOpen] = useState(false);
   const [invoicesOpen, setInvoicesOpen] = useState(false);
-
+  const { notifyError } = useToast();
   const handleApplyDiscount = () => {
-    const base = sub + taxAfterDiscount;
     if (discPct) setDiscount({ type: "pct", value: Number(discPct) });
     if (discFlat) setDiscount({ type: "flat", value: Number(discFlat) });
   };
@@ -1014,18 +1019,33 @@ export default function CartPanel2() {
               <span className="font-medium text-gray-800">{subRaw.toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between px-3 py-2 border-b border-gray-300 gap-2 flex-wrap">
-              <span className="text-gray-500 font-bold shrink-0">خصم على الفاتورة</span>
-              <div className="flex items-end gap-1 mr-auto">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500 font-bold shrink-0">خصم على الفاتورة</span>
+                {discount.value > 0 && (
+                  <button
+                    onClick={() => {
+                      setDiscount({ type: "pct", value: 0 });
+                      setDiscPct("");
+                      setDiscFlat("");
+                    }}
+                    className="flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-full px-3 py-1 hover:bg-red-100 active:bg-red-200 transition-colors min-h-[32px]"
+                  >
+                    <span className="text-red-500 text-[12px] font-semibold">{discount.type === "pct" ? `${discount.value}%` : `${discount.value.toFixed(2)}`}</span>
+                    <span className="w-5 h-5 rounded-full bg-red-200 text-red-500 text-[12px] flex items-center justify-center hover:bg-red-400 hover:text-white leading-none">×</span>
+                  </button>
+                )}
+              </div>
+              <div className="flex items-end gap-2 mr-auto">
                 <div className="flex flex-col items-center gap-0.5">
                   <span className="text-[10px] text-gray-400">نسبة</span>
-                  <input type="number" min="0" max="100" value={discPct} onChange={(e) => setDiscPct(e.target.value)} className="w-14 h-6 text-[11px] text-center border border-gray-200 rounded px-1" />
+                  <input type="number" min="0" max="100" value={discPct} onChange={(e) => setDiscPct(e.target.value)} className="w-16 h-8 text-[12px] text-center border border-gray-200 rounded px-1" />
                 </div>
                 <div className="flex flex-col items-center gap-0.5">
                   <span className="text-[10px] text-gray-400">قيمة</span>
-                  <input type="number" min="0" value={discFlat} onChange={(e) => setDiscFlat(e.target.value)} className="w-14 h-6 text-[11px] text-center border border-gray-200 rounded px-1" />
+                  <input type="number" min="0" value={discFlat} onChange={(e) => setDiscFlat(e.target.value)} className="w-16 h-8 text-[12px] text-center border border-gray-200 rounded px-1" />
                 </div>
-                <Button size="sm" className="h-6 bg-[#000052] hover:bg-blue-900 text-white text-[11px] shrink-0 self-end mb-0.5" onClick={handleApplyDiscount}>
-                  تطبيق الخصم
+                <Button size="sm" className="h-8 px-4 bg-[#000052] hover:bg-blue-900 active:bg-blue-950 text-white text-[12px] shrink-0 self-end" onClick={handleApplyDiscount}>
+                  تطبيق
                 </Button>
               </div>
             </div>
@@ -1043,13 +1063,23 @@ export default function CartPanel2() {
             <div className="flex items-center justify-between px-3 py-2 border-b border-gray-300">
               <span className="text-gray-500 font-bold">إجمالي الضريبة</span>
               <div className="flex items-center gap-2">
-                <span className="text-gray-400 text-[10px]">0%</span>
+                {discount.value > 0 && <span className="text-gray-300 line-through text-[10px]">{originalTax.toFixed(2)}</span>}
                 <span className="font-medium text-gray-800">{taxAfterDiscount.toFixed(2)}</span>
               </div>
             </div>
             <div className="flex items-center justify-between px-3 py-2">
               <span className="text-gray-500 font-bold">الإجمالي النهائي</span>
-              <span className="font-medium text-blue-700">{total.toFixed(2)}</span>
+              <div className="flex items-center gap-2">
+                {discount.value > 0 && (
+                  <>
+                    <span className="text-gray-300 line-through text-[10px]">{(sub + originalTax).toFixed(2)}</span>
+                    <button onClick={() => setDiscount({ type: "pct", value: 0 })} className="w-4 h-4 rounded-full bg-gray-200 text-gray-500 text-xs flex items-center justify-center hover:bg-red-100 hover:text-red-500 leading-none">
+                      ×
+                    </button>
+                  </>
+                )}
+                <span className="font-medium text-blue-700">{total.toFixed(2)}</span>
+              </div>
             </div>
           </div>
 
@@ -1069,8 +1099,17 @@ export default function CartPanel2() {
 
             <div className="flex items-center justify-center border-b border-gray-300 p-2">
               <button
-                onClick={() => {
-                  handleConfirmPayment({ isHolding: true });
+                onClick={async () => {
+                  if (cart.length === 0) {
+                    notifyError(t("add_items_to_invoice"));
+                    return;
+                  }
+                  await handleConfirmPayment({
+                    isHolding: true,
+                    createTakwayOrder,
+                    releaseHolding,
+                    customers,
+                  });
                 }}
                 className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-3 py-1 rounded-md h-full w-full"
               >
