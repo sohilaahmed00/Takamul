@@ -216,9 +216,7 @@ export const usePosStore = create<PosState>((set, get) => ({
       await createDineInOrderyOrder(payload);
       await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount });
       resetCart(customers);
-    } catch (error) {
-      console.log(error);
-    }
+    } catch {}
   },
 
   handleAddItemsToExistingOrder: async ({ addItemsToOrder, customers }) => {
@@ -240,8 +238,8 @@ export const usePosStore = create<PosState>((set, get) => ({
     try {
       await addItemsToOrder({ data: payload, id: orderId });
       await PrintKitchenBon({ cart, originalItems, selectedCustomer });
+      resetCart(customers);
     } catch {}
-    resetCart(customers);
   },
 
   handleConfirmPayment: async ({ shouldPrintKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers }) => {
