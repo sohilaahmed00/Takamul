@@ -428,6 +428,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         tobacco: {
           tobaccoFees: apiSettings.tobaccoFees?.tobaccoFees ?? prev.tobacco.tobaccoFees,
         },
+        reports: {
+          ...prev.reports,
+          headerStatus: apiSettings.general?.topDataStatus ?? prev.reports.headerStatus,
+          headerImage: apiSettings.general?.image ?? prev.reports.headerImage,
+        },
         barcode: {
           ...prev.barcode,
           type: apiSettings.barcodeScale?.barcodeType === 1 ? "الوزن/الكمية" : prev.barcode.type,
