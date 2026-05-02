@@ -40,7 +40,7 @@ export default function Currencies() {
       {currency.isDefault ? (
         <span className="flex items-center gap-1 text-green-600 font-medium text-sm">
           <CheckCircle2 size={16} />
-          {t("default") || "الافتراضية"}
+          {t("default_option") || "الافتراضية"}
         </span>
       ) : (
         <button
