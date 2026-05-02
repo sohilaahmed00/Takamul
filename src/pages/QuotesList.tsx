@@ -24,6 +24,8 @@ import { Input } from "@/components/ui/input";
 import { useDeleteQuotation } from "@/features/quotation/hooks/useDeleteQuotation";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
+import { Quotation } from "@/features/quotation/types/quotations.types";
+import { format } from "@/constants/data";
 
 export default function QuotesList() {
   const { t, direction } = useLanguage();
@@ -103,7 +105,7 @@ export default function QuotesList() {
           <Column header={t("customer_name")} sortable field="customerName" />
           <Column header={"اسم المستخدم"} sortable field="createdBy" />
           <Column header={t("discount_amount")} sortable field="discountAmount" />
-          <Column header={t("total_amount")} sortable field="grandTotal" />
+          <Column header={t("total_amount")} sortable field="grandTotal" body={(row: Quotation) => format(row?.grandTotal)} />
           <Column
             header={t("actions")}
             body={(row) => (

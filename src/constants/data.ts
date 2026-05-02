@@ -57,6 +57,7 @@ export function itemBasePriceRaw(item: Omit<CartItem, "name" | "op" | "productId
 
   return base;
 }
+
 export function itemBasePrice(item: Omit<CartItem, "name" | "op" | "productId" | "note">): number {
   const baseBeforeTax = itemBasePriceRaw(item);
 
@@ -82,6 +83,7 @@ export const format = (n) =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(n);
+
 export function itemTotal(item: CartItem): number {
   return itemBasePrice(item) + calcItemTax(item);
 }

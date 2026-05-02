@@ -203,7 +203,6 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                           <button
                             onClick={() => {
                               resetCart(customers);
-                              onOpenChange(false);
                               setScreen("home");
                               const mappedItems = order.items.map((item) => ({
                                 productId: item.productId,
@@ -221,11 +220,10 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                                 extras: [],
                                 isNew: true,
                               }));
+                              console.log(mappedItems);
                               setOriginalItems(mappedItems);
-                              if (order) {
-                                if (order?.discountAmount) {
-                                  setDiscount({ type: "flat", value: order?.discountAmount });
-                                }
+                              if (order && order?.discountAmount) {
+                                setDiscount({ type: "flat", value: order?.discountAmount });
                               }
                               mappedItems.forEach((item) => addToCart(item));
                               setOrderType(order?.orderType);
@@ -235,6 +233,7 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                               } else {
                                 setHoldingOrderId(order?.id);
                               }
+                              onOpenChange(false);
                             }}
                             className="w-7 h-7 flex items-center justify-center rounded-lg border border-border hover:border-primary hover:text-primary text-muted-foreground transition-colors shrink-0"
                           >

@@ -663,7 +663,7 @@ export default function CartPanel() {
                     {/* السعر قبل الضريبة */}
                     <div className="text-right">
                       {hasDisc && <div className="text-[10px] text-gray-300 line-through">{origBasePrice.toFixed(2)}</div>}
-                      <div className="text-xs font-semibold text-gray-700 flex items-center flex-row">{itemBasePrice(item).toFixed(2)}</div>
+                      <div className="text-xs font-semibold text-gray-700 flex items-center flex-row">{format(itemBasePrice(item))}</div>
                     </div>
                     {/* ض.ق.م */}
                     <div className="text-right">
