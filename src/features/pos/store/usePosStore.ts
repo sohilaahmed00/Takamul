@@ -193,7 +193,7 @@ export const usePosStore = create<PosState>((set, get) => ({
   },
 
   handleCreateDineInOrder: async ({ createDineInOrderyOrder, customers }) => {
-    const { cart, selectedCustomer, discount, selectedGiftCardId, selectedTable, orderNote, resetCart, paidAmount } = get();
+    const { cart, selectedCustomer, discount, selectedGiftCardId, selectedTable, orderNote, resetCart, paidAmount, originalItems } = get();
     const branch = useBranchStore.getState().branch;
     const payload = {
       customerId: selectedCustomer?.id,
@@ -215,6 +215,7 @@ export const usePosStore = create<PosState>((set, get) => ({
     try {
       await createDineInOrderyOrder(payload);
       await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount });
+      await PrintKitchenBon({ cart, originalItems, selectedCustomer });
       resetCart(customers);
     } catch {}
   },
