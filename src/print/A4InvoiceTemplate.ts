@@ -24,7 +24,7 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
 
   // ── Customer fields ──────────────────────────────────────────────────────────
   const custName = customer.customerName || order.customerName || order.supplierName || order.supplier || "-";
-  const custPhone = customer.mobile || customer.phone || order.customerPhone || order.supplierPhone || "-";
+  const custPhone = customer.phone || customer.phone || order.customerPhone || order.supplierPhone || "-";
   const custTaxNo = customer.taxNumber || order.customerTaxNo || order.supplierTaxNo || "-";
   const custCommercial = customer.commercialRegister || order.customerCommercialNo || order.supplierCommercialNo || "-";
   const city = customer.cityName || customer.city || "";
@@ -102,6 +102,8 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
   const totalVAT = order.taxAmount !== undefined ? Number(order.taxAmount) : totals.tax;
   const discount = order.discountAmount !== undefined ? Number(order.discountAmount) : totals.discountAmount;
   const finalTotal = order.grandTotal !== undefined ? Number(order.grandTotal) : totals.total;
+  const total = order?.payments.reduce((sum, p) => sum + p.amount, 0);
+  const remaining = finalTotal > 0 ? finalTotal - total : 0;
 
   const itemRows = computedItems
     .map(
@@ -114,6 +116,8 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
       <td>${subTotal.toFixed(2)}</td>
       <td>${taxAmt.toFixed(2)}</td>
       <td>${netTotal.toFixed(2)}</td>
+      <td>${netTotal.toFixed(2)}</td>
+ 
     </tr>`,
     )
     .join("");
@@ -549,6 +553,7 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
         <th style="width: 12%;">${t("sub_total", "اجمالي فرعي")}<span class="en-sub">Sub Total</span></th>
         <th style="width: 10%;">${t("tax", "الضريبة")}<span class="en-sub">Tax %15</span></th>
         <th style="width: 13%;">${t("net_total", "الاجمالي النهائي")}<span class="en-sub">Net Total</span></th>
+        
       </tr>
     </thead>
     <tbody>${itemRows}</tbody>
@@ -589,6 +594,16 @@ export const getA4InvoiceHTML = (order: any, t: any, passedApiBase?: string): st
         <td class="lbl-ar">${t("final_total", "الاجمالي النهائي")}</td>
         <td class="val-cell">${finalTotal.toFixed(2)}</td>
         <td class="lbl-en">NET TOTAL</td>
+      </tr>
+      <tr class="net-total-row">
+        <td class="lbl-ar">${t("credit", "المدفوع")}</td>
+        <td class="val-cell">${total.toFixed(2)}</td>
+        <td class="lbl-en">PAID AMOUNT</td>
+      </tr>
+      <tr class="net-total-row">
+        <td class="lbl-ar">${t("remaining", "المتبقي")}</td>
+        <td class="val-cell">${remaining.toFixed(2)}</td>
+        <td class="lbl-en">REMAINING</td>
       </tr>
     </table>
   </div>
