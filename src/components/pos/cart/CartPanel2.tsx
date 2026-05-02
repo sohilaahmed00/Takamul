@@ -734,7 +734,7 @@ export default function CartPanel2() {
   const handleApplyDiscount = () => {
     const base = sub + taxAfterDiscount;
     if (discPct) setDiscount({ type: "pct", value: Number(discPct) });
-    if (discFlat) setDiscount({ type: "flat", value: parseFloat(discFlat) });
+    if (discFlat) setDiscount({ type: "flat", value: Number(discFlat) });
   };
 
   const removeItem = (idx: number) => setCart((p) => p.filter((_, i) => i !== idx));
