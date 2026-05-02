@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { calcItemTax, calcTotals, CartItem, itemBasePrice, itemBasePriceRaw } from "@/constants/data";
+import { calcItemTax, calcTotals, CartItem, format, itemBasePrice, itemBasePriceRaw, itemUnitPriceRaw } from "@/constants/data";
 import { INSTITUTION_ADDRESS, INSTITUTION_NAME, INSTITUTION_NOTES, INSTITUTION_PHONE, INSTITUTION_TAX_NO, LOGO_URL, usePos } from "@/context/PosContext";
 import { useLanguage } from "@/context/LanguageContext";
 import { CheckCircle2, Clock, CreditCard, FileCheck, FileText, Hash, Mail, MessageCircle, MoreVertical, Play, Plus, Printer, SaudiRiyal, Save, Search, SlidersHorizontal, Tag, Trash2, User, Vault, X, XCircle } from "lucide-react";
@@ -882,7 +882,7 @@ export default function CartPanel2() {
             </tr>
 
             {/* Cart Rows */}
-            {cart.map((item, idx) => {
+            {cart.map((item: CartItem, idx) => {
               const base = itemBasePrice(item);
               const tax = calcItemTax(item);
               const itemWithoutDisc = { ...item, itemDiscount: null };
@@ -899,7 +899,7 @@ export default function CartPanel2() {
 
                   <td className="text-start px-2 w-[300px] whitespace-nowrap overflow-hidden text-ellipsis">{item.name}</td>
 
-                  <td className="whitespace-nowrap">{origBasePrice.toFixed(2)}</td>
+                  <td className="whitespace-nowrap">{format(itemUnitPriceRaw(item))}</td>
 
                   <td>
                     <div className="flex items-center justify-center border border-gray-200 rounded-lg bg-white w-fit mx-auto">

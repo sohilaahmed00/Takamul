@@ -48,8 +48,14 @@ export interface HeldCart {
   time: string;
 }
 
+export function itemUnitPriceRaw(item: Omit<CartItem, "name" | "op" | "productId" | "note">): number {
+  const unitPrice = item.price;
+  const taxValue = item.taxamount ?? 0;
+  if (item.taxCalculation === 2 || item.taxCalculation === 3) return unitPrice - taxValue;
+  return unitPrice;
+}
 // ─── HELPERS ─────────────────────────────────────────────────────────────────
-
+// بترجع السعر قبل الضريبة
 export function itemBasePriceRaw(item: Omit<CartItem, "name" | "op" | "productId" | "note">): number {
   const base = item.price * item.qty;
   const taxValue = (item.taxamount ?? 0) * item.qty;
@@ -58,6 +64,7 @@ export function itemBasePriceRaw(item: Omit<CartItem, "name" | "op" | "productId
   return base;
 }
 
+// بترجع السعر بعد الخصم
 export function itemBasePrice(item: Omit<CartItem, "name" | "op" | "productId" | "note">): number {
   const baseBeforeTax = itemBasePriceRaw(item);
 
