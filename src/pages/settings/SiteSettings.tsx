@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel } from "@/components/ui/field";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { useUpdateSiteSettings } from "@/features/settings/hooks/useUpdateSettings";
 import { useSettings } from "@/context/SettingsContext";
 
@@ -54,18 +55,12 @@ export default function SiteSettings() {
               render={({ field }) => (
                 <Field>
                   <FieldLabel>{t("rows_per_page")} *</FieldLabel>
-                  <Select value={String(field.value)} onValueChange={(val) => field.onChange(Number(val))}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {[10, 25, 50].map((num) => (
-                        <SelectItem key={num} value={String(num)}>
-                          {num}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Input 
+                    {...field} 
+                    type="number" 
+                    onChange={(e) => field.onChange(Number(e.target.value))} 
+                    className="w-full h-11"
+                  />
                 </Field>
               )}
             />

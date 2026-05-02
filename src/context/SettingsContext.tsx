@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 export interface SystemSettings {
   site: {
@@ -405,7 +406,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const saveSettings = () => {
     localStorage.setItem("systemSettings", JSON.stringify(systemSettings));
     localStorage.setItem("posSettings", JSON.stringify(posSettings));
-    alert("Settings saved successfully!");
+    toast.success("تم حفظ الإعدادات بنجاح");
   };
 
   return (
