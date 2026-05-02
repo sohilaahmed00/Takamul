@@ -8,6 +8,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Tax } from "@/features/taxes/types/taxes.types";
 import AddTaxModal from "@/components/modals/AddTaxModal.tsx";
+import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import { useDeleteTax } from "@/features/taxes/hooks/useDeleteTax";
 import { useGetAllTaxes } from "@/features/taxes/hooks/useGetAllTaxes";
 
@@ -16,8 +17,10 @@ export default function TaxesList() {
 
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTax, setSelectedTax] = useState<number | undefined>();
-  const { mutate: deleteTax } = useDeleteTax();
+  const [taxToDelete, setTaxToDelete] = useState<number | undefined>();
+  const { mutate: deleteTax, isPending: isDeleting } = useDeleteTax();
 
   const { data: taxes, isLoading } = useGetAllTaxes();
 
@@ -58,7 +61,7 @@ export default function TaxesList() {
           </CardAction>
         </CardHeader>
         <CardContent>
-          <DataTable value={filteredTaxes} loading={isLoading} header={header} paginator rows={10} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" stripedRows={false}>
+          <DataTable value={filteredTaxes} loading={isLoading} header={header} paginator rows={10} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" stripedRows={false} emptyMessage={t("no_data") || "لا توجد بيانات"}>
             <Column field="id" header={"#"} sortable style={{ width: "10%" }} />
             <Column field="name" header={t("tax_name", "اسم الضريبة")} sortable style={{ width: "40%" }} />
             <Column field="amount" header={t("tax_amount", "القيمة")} sortable style={{ width: "25%" }} body={(tax: Tax) => <span>{tax.amount}%</span>} />
@@ -76,7 +79,13 @@ export default function TaxesList() {
                   >
                     <Edit2 size={16} />
                   </button>
-                  <button onClick={() => deleteTax(tax.id)} className="btn-minimal-action">
+                  <button 
+                    onClick={() => {
+                      setTaxToDelete(tax.id);
+                      setIsDeleteModalOpen(true);
+                    }} 
+                    className="btn-minimal-action"
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -93,6 +102,27 @@ export default function TaxesList() {
           setIsAddModalOpen(false);
           setSelectedTax(undefined);
         }}
+      />
+
+      <DeleteTreasuryDialog
+        open={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setTaxToDelete(undefined);
+        }}
+        onConfirm={() => {
+          if (taxToDelete) {
+            deleteTax(taxToDelete, {
+              onSuccess: () => {
+                setIsDeleteModalOpen(false);
+                setTaxToDelete(undefined);
+              }
+            });
+          }
+        }}
+        itemName={taxes?.find((t) => t.id === taxToDelete)?.name}
+        itemLabel={t("tax") || "الضريبة"}
+        loading={isDeleting}
       />
     </div>
   );

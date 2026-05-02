@@ -3,6 +3,8 @@ import type { PaginationMeta } from "@/types";
 export interface CreateTable {
   tableName: string;
 }
+
+export type UpdateTable = CreateTable;
 export interface Table {
   id: number;
   tableName: string;

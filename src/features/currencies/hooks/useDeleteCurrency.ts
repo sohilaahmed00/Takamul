@@ -1,19 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteTax } from "../services/taxes";
-import { taxesKeys } from "../keys/taxes.keys";
+import { deleteCurrency } from "../services/currencies";
 import useToast from "@/hooks/useToast";
 import { useLanguage } from "@/context/LanguageContext";
 
-export const useDeleteTax = () => {
+export const useDeleteCurrency = () => {
   const queryClient = useQueryClient();
   const { notifySuccess } = useToast();
   const { t } = useLanguage();
 
   return useMutation({
-    mutationFn: (id: number) => deleteTax(id),
+    mutationFn: (id: number) => deleteCurrency(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: taxesKeys.list() });
-      notifySuccess(t("tax_deleted_successfully") || "تم حذف الضريبة بنجاح");
+      queryClient.invalidateQueries({ queryKey: ["currencies"] });
+      notifySuccess(t("currency_deleted_successfully") || "تم حذف العملة بنجاح");
     },
   });
 };

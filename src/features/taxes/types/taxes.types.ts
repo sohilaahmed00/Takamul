@@ -9,4 +9,6 @@ export interface CreateTax {
   amount: number;
 }
 
+export type UpdateTax = CreateTax;
+
 export type GetAllTaxesResponse = Tax[];

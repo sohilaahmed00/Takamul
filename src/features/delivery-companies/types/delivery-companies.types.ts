@@ -7,6 +7,8 @@ export interface CreateDeliveryCompany {
   name: string;
 }
 
+export type UpdateDeliveryCompany = CreateDeliveryCompany;
+
 export interface GetAllDeliveryCompaniesResponse {
   success: boolean;
   message: string;

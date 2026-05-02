@@ -1,16 +1,20 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateDeliveryCompany } from "../services/delivery-companies";
 import { deliveryCompaniesKeys } from "../keys/delivery-companies.keys";
-import { CreateDeliveryCompany } from "../types/delivery-companies.types";
+import { UpdateDeliveryCompany } from "../types/delivery-companies.types";
+import useToast from "@/hooks/useToast";
+import { useLanguage } from "@/context/LanguageContext";
 
 export const useUpdateDeliveryCompany = () => {
   const queryClient = useQueryClient();
+  const { notifySuccess } = useToast();
+  const { t } = useLanguage();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: CreateDeliveryCompany }) => updateDeliveryCompany(id, data),
-    onSuccess: (_, variables) => {
+    mutationFn: ({ id, data }: { id: number; data: UpdateDeliveryCompany }) => updateDeliveryCompany(id, data),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: deliveryCompaniesKeys.all });
-      queryClient.invalidateQueries({ queryKey: deliveryCompaniesKeys.detail(variables.id) });
+      notifySuccess(t("delivery_company_updated_successfully") || "تم تحديث شركة التوصيل بنجاح");
     },
   });
 };

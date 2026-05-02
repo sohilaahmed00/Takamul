@@ -8,6 +8,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Table } from "@/features/pos/types/pos.types";
 import AddTableModal from "@/components/modals/AddTableModal";
+import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import { useDeleteTable } from "@/features/tables/hooks/useDeleteTable";
 import { useGetAllTables } from "@/features/tables/hooks/useGetAllTables";
 
@@ -16,8 +17,10 @@ export default function TablesList() {
 
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedTable, setSelectedTable] = useState<number | undefined>();
-  const { mutate: deleteTable } = useDeleteTable();
+  const [tableToDelete, setTableToDelete] = useState<number | undefined>();
+  const { mutate: deleteTable, isPending: isDeleting } = useDeleteTable();
 
   const { data: tables, isLoading } = useGetAllTables();
 
@@ -60,7 +63,7 @@ export default function TablesList() {
           </CardAction>
         </CardHeader>
         <CardContent>
-          <DataTable value={filteredTables} loading={isLoading} header={header} paginator rows={10} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" stripedRows={false}>
+          <DataTable value={filteredTables} loading={isLoading} header={header} paginator rows={10} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" stripedRows={false} emptyMessage={t("no_data") || "لا توجد بيانات"}>
             <Column field="id" header={t("id")} sortable style={{ width: "10%" }} />
             <Column field="tableName" header={"اسم الطاولة"} sortable style={{ width: "40%" }} />
             <Column header={t("status")} style={{ width: "25%" }} body={statusBody} />
@@ -78,7 +81,13 @@ export default function TablesList() {
                   >
                     <Edit2 size={16} />
                   </button>
-                  <button onClick={() => deleteTable(table.id)} className="btn-minimal-action">
+                  <button 
+                    onClick={() => {
+                      setTableToDelete(table.id);
+                      setIsDeleteModalOpen(true);
+                    }} 
+                    className="btn-minimal-action"
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -95,6 +104,27 @@ export default function TablesList() {
           setIsAddModalOpen(false);
           setSelectedTable(undefined);
         }}
+      />
+
+      <DeleteTreasuryDialog
+        open={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setTableToDelete(undefined);
+        }}
+        onConfirm={() => {
+          if (tableToDelete) {
+            deleteTable(tableToDelete, {
+              onSuccess: () => {
+                setIsDeleteModalOpen(false);
+                setTableToDelete(undefined);
+              }
+            });
+          }
+        }}
+        itemName={tables?.find((t) => t.id === tableToDelete)?.tableName}
+        itemLabel={t("table") || "الطاولة"}
+        loading={isDeleting}
       />
     </div>
   );

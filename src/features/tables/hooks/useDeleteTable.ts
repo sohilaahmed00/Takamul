@@ -1,24 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteTable } from "../services/tables";
 import { tablesKeys } from "../keys/tables.keys";
-import { addTable, deleteTable, getAllTables } from "../services/tables";
-import { CreateTable } from "../types/tables.types";
 import useToast from "@/hooks/useToast";
-import { handleApiSuccess } from "@/lib/handleApiSuccess";
-import { handleApiError } from "@/lib/handleApiError";
+import { useLanguage } from "@/context/LanguageContext";
 
 export const useDeleteTable = () => {
   const queryClient = useQueryClient();
-  const { notifyError, notifySuccess } = useToast();
+  const { notifySuccess } = useToast();
+  const { t } = useLanguage();
+
   return useMutation({
     mutationFn: (id: number) => deleteTable(id),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries({
-        queryKey: tablesKeys.all,
-      });
-      handleApiSuccess(response, notifySuccess);
-    },
-    onError: (error) => {
-      handleApiError(error, notifyError);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: tablesKeys.all });
+      notifySuccess(t("table_deleted_successfully") || "تم حذف الطاولة بنجاح");
     },
   });
 };

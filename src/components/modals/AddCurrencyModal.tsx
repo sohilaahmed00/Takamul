@@ -1,98 +1,125 @@
-import React, { useState, useEffect } from "react";
-import { useLanguage } from "@/context/LanguageContext";
-import { useCurrencies, type Currency } from "@/context/CurrenciesContext";
-import ResponsiveModal from "./ResponsiveModal";
-
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { useLanguage } from "@/context/LanguageContext";
+import { Currency, CreateCurrency } from "@/features/currencies/types/currencies.types";
+import { useAddCurrency } from "@/features/currencies/hooks/useAddCurrency";
+import { useUpdateCurrency } from "@/features/currencies/hooks/useUpdateCurrency";
+import { Switch } from "@/components/ui/switch";
 
 interface AddCurrencyModalProps {
+  currency?: Currency;
   isOpen: boolean;
   onClose: () => void;
-  currency?: Currency | null;
 }
 
-export default function AddCurrencyModal({ isOpen, onClose, currency }: AddCurrencyModalProps) {
+export default function AddCurrencyModal({ currency, isOpen, onClose }: AddCurrencyModalProps) {
   const { t, direction } = useLanguage();
-  const { addCurrency, updateCurrency } = useCurrencies();
+  const { mutate: addCurrency, isPending: isAdding } = useAddCurrency();
+  const { mutate: updateCurrency, isPending: isUpdating } = useUpdateCurrency();
 
-  const [formData, setFormData] = useState({
-    code: "",
-    name: "",
-    symbol: "",
-    exchangeRate: "",
-    autoUpdate: false,
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<CreateCurrency>({
+    defaultValues: {
+      name: "",
+      code: "",
+      symbol: "",
+      isDefault: false,
+    },
   });
 
   useEffect(() => {
     if (currency) {
-      setFormData({
-        code: currency.code,
+      reset({
         name: currency.name,
+        code: currency.code,
         symbol: currency.symbol,
-        exchangeRate: currency.exchangeRate,
-        autoUpdate: currency.autoUpdate,
+        isDefault: currency.isDefault,
       });
     } else {
-      setFormData({
-        code: "",
+      reset({
         name: "",
+        code: "",
         symbol: "",
-        exchangeRate: "",
-        autoUpdate: false,
+        isDefault: false,
       });
     }
-  }, [currency, isOpen]);
+  }, [currency, reset, isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (data: CreateCurrency) => {
     if (currency) {
-      updateCurrency(currency.id, formData);
+      updateCurrency(
+        { id: currency.id, data },
+        {
+          onSuccess: () => {
+            onClose();
+            reset();
+          },
+        }
+      );
     } else {
-      addCurrency(formData);
+      addCurrency(data, {
+        onSuccess: () => {
+          onClose();
+          reset();
+        },
+      });
     }
-    onClose();
   };
 
+  const isDefault = watch("isDefault");
+
   return (
-    <ResponsiveModal isOpen={isOpen} onClose={onClose} title={currency ? t("edit_currency") : t("add_currency")} maxWidth="max-w-lg">
-      <form onSubmit={handleSubmit} className="p-6 space-y-6" dir={direction}>
-        <p className="text-sm text-[var(--text-muted)] text-center">{t("please_enter_info_below")}</p>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label className="takamol-label">{t("currency_code")} *</label>
-            <Input type="text" required value={formData.code} onChange={(e) => setFormData({ ...formData, code: e.target.value })}  />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]" dir={direction}>
+        <DialogHeader>
+          <DialogTitle>{currency ? t("edit_currency") : t("add_currency")}</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
+          <Field>
+            <FieldLabel>{t("currency_name")} *</FieldLabel>
+            <Input {...register("name", { required: true })} placeholder={t("currency_name")} />
+            {errors.name && <span className="text-red-500 text-xs">{t("required_field")}</span>}
+          </Field>
+          <Field>
+            <FieldLabel>{t("currency_code")} *</FieldLabel>
+            <Input {...register("code", { required: true })} placeholder={t("currency_code")} />
+            {errors.code && <span className="text-red-500 text-xs">{t("required_field")}</span>}
+          </Field>
+          <Field>
+            <FieldLabel>{t("currency_symbol")} *</FieldLabel>
+            <Input {...register("symbol", { required: true })} placeholder={t("currency_symbol")} />
+            {errors.symbol && <span className="text-red-500 text-xs">{t("required_field")}</span>}
+          </Field>
+          <div className="flex items-center justify-between space-x-2 border p-3 rounded-md">
+            <FieldLabel className="mb-0 cursor-pointer" htmlFor="is-default-switch">
+              {t("set_as_default_currency") || "تعيين كعملة افتراضية"}
+            </FieldLabel>
+            <Switch
+              id="is-default-switch"
+              checked={isDefault}
+              onCheckedChange={(checked) => setValue("isDefault", checked)}
+            />
           </div>
-
-          <div className="space-y-2">
-            <label className="takamol-label">{t("currency_name")} *</label>
-            <Input type="text" required value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })}  />
-          </div>
-
-          <div className="space-y-2">
-            <label className="takamol-label">{t("symbol")} *</label>
-            <Input type="text" required value={formData.symbol} onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}  />
-          </div>
-
-          <div className="space-y-2">
-            <label className="takamol-label">{t("exchange_rate")} *</label>
-            <Input type="text" required value={formData.exchangeRate} onChange={(e) => setFormData({ ...formData, exchangeRate: e.target.value })}  />
-          </div>
-
-          <div className="flex items-center gap-3 pt-2">
-            <Input type="checkbox" id="autoUpdate" checked={formData.autoUpdate} onChange={(e) => setFormData({ ...formData, autoUpdate: e.target.checked })} className="w-5 h-5 accent-[var(--primary)] rounded cursor-pointer" />
-            <label htmlFor="autoUpdate" className="text-sm font-bold text-[var(--text-main)] cursor-pointer">
-              {t("auto_update")}
-            </label>
-          </div>
-        </div>
-
-        <div className="pt-6 border-t border-[var(--border)]">
-          <button type="submit" className="btn-primary w-full">
-            {currency ? t("update") : t("add_currency")}
-          </button>
-        </div>
-      </form>
-    </ResponsiveModal>
+        </form>
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose} type="button">
+            {t("cancel")}
+          </Button>
+          <Button onClick={handleSubmit(onSubmit)} disabled={isAdding || isUpdating}>
+            {currency ? t("save_changes") : t("add")}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

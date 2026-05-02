@@ -8,6 +8,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { DeliveryCompany } from "@/features/delivery-companies/types/delivery-companies.types";
 import AddDeliveryCompanyModal from "@/components/modals/AddDeliveryCompanyModal";
+import DeleteTreasuryDialog from "@/components/modals/DeleteTreasuryDialog";
 import { useDeleteDeliveryCompany } from "@/features/delivery-companies/hooks/useDeleteDeliveryCompany";
 import { useGetAllDeliveryCompanies } from "@/features/delivery-companies/hooks/useGetAllDeliveryCompanies";
 
@@ -16,8 +17,10 @@ const DeliveryCompanies: React.FC = () => {
 
   const [globalFilterValue, setGlobalFilterValue] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<number | undefined>();
-  const { mutate: deleteCompany } = useDeleteDeliveryCompany();
+  const [companyToDelete, setCompanyToDelete] = useState<number | undefined>();
+  const { mutate: deleteCompany, isPending: isDeleting } = useDeleteDeliveryCompany();
 
   const { data: companiesResponse, isLoading } = useGetAllDeliveryCompanies({
     SearchTerm: globalFilterValue,
@@ -57,7 +60,7 @@ const DeliveryCompanies: React.FC = () => {
           </CardAction>
         </CardHeader>
         <CardContent>
-          <DataTable value={companies} loading={isLoading} header={header} paginator rows={10} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" stripedRows={false}>
+          <DataTable value={companies} loading={isLoading} header={header} paginator rows={10} responsiveLayout="stack" className="custom-green-table custom-compact-table" dataKey="id" stripedRows={false} emptyMessage={t("no_data") || "لا توجد بيانات"}>
             <Column field="id" header={"#"} sortable style={{ width: "10%" }} />
             <Column field="name" header={t("company_name", "اسم الشركة")} sortable style={{ width: "65%" }} />
             <Column
@@ -74,7 +77,13 @@ const DeliveryCompanies: React.FC = () => {
                   >
                     <Edit2 size={16} />
                   </button>
-                  <button onClick={() => deleteCompany(company.id)} className="btn-minimal-action">
+                  <button 
+                    onClick={() => {
+                      setCompanyToDelete(company.id);
+                      setIsDeleteModalOpen(true);
+                    }} 
+                    className="btn-minimal-action"
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -91,6 +100,27 @@ const DeliveryCompanies: React.FC = () => {
           setIsAddModalOpen(false);
           setSelectedCompany(undefined);
         }}
+      />
+
+      <DeleteTreasuryDialog
+        open={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setCompanyToDelete(undefined);
+        }}
+        onConfirm={() => {
+          if (companyToDelete) {
+            deleteCompany(companyToDelete, {
+              onSuccess: () => {
+                setIsDeleteModalOpen(false);
+                setCompanyToDelete(undefined);
+              }
+            });
+          }
+        }}
+        itemName={companies.find((c) => c.id === companyToDelete)?.name}
+        itemLabel={t("delivery_company") || "شركة التوصيل"}
+        loading={isDeleting}
       />
     </div>
   );
