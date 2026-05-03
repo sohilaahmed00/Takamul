@@ -16,6 +16,8 @@ import { useCheckoutDineInOrder } from "@/features/pos/hooks/useCreateDineInOrde
 import { useReleaseHolding } from "@/features/pos/hooks/useReleaseHolding";
 import { useGetAllCustomers } from "@/features/customers/hooks/useGetAllCustomers";
 import { usePosStore } from "@/features/pos/store/usePosStore";
+import { useGenerateCSR } from "@/features/ZatcaRegistration/hooks/useGenerateCSR";
+import { useGenerateQR } from "@/features/zatcaInvoice/hooks/useGenerateQR";
 
 type PaymentMode = "cashier" | "payment";
 type SaveAction = "pdf" | "whatsapp" | "email" | "save_only";
@@ -61,6 +63,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
   const { data: treasurys } = useGetAllTreasurys();
   const { data: customers } = useGetAllCustomers();
   const { selectedCustomer, cart, discount, setPaidAmount, setSelectedVaultId, handleConfirmPayment } = usePosStore();
+  const { mutateAsync: generateQR } = useGenerateQR();
 
   // ── deps ──────────────────────────────────────────────────────────────────
   const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
@@ -206,7 +209,6 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
               />
             )}
           </div>
-
           {isSplit && (
             <div className="flex flex-col gap-3">
               <div className={cn("grid gap-2", splits.length === 1 && "grid-cols-1", splits.length === 2 && "grid-cols-2", splits.length >= 3 && "grid-cols-3")}>
@@ -273,6 +275,7 @@ export function UnifiedPaymentDialog({ open, onOpenChange, mode = "cashier", tot
                   checkoutDineInOrder,
                   releaseHolding,
                   customers,
+                  generateQR,
                 });
                 onOpenChange(false);
               }}

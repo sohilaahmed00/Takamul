@@ -440,7 +440,7 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
   const [search, setSearch] = useState("");
   const { data: quotations } = useGetAllQuotations();
   const { data: products } = useGetAllProducts({ page: 1, limit: 10000 });
-  const { setCart } = usePos();
+  const { setCart } = usePosStore();
 
   const found = search.trim() ? quotations?.find((q) => q.quotationNumber === search.trim()) : null;
 
@@ -588,7 +588,7 @@ export function QuotationDialog({ open, onOpenChange }: QuotationDialogProps) {
 
 export default function CartPanel2() {
   const { t } = useLanguage();
-  const { cart, setCart, discount, setDiscount, handleConfirmPayment, addToCart } = usePosStore();
+  const { cart, setCart, discount, setDiscount, handleConfirmPayment, addToCart, resetCart } = usePosStore();
   const [quotationOpen, setQuotationOpen] = useState(false);
   const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
   const { data: customers } = useGetAllCustomers();
@@ -983,7 +983,7 @@ export default function CartPanel2() {
             </div>
 
             <div className="flex items-center justify-center border-l border-gray-300 p-2">
-              <button onClick={() => setCart([])} className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded-md h-full w-full">
+              <button onClick={() => resetCart(customers)} className="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1 rounded-md h-full w-full">
                 حذف
               </button>
             </div>

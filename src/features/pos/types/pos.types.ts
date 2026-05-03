@@ -1,4 +1,4 @@
-import { CreateSalesOrder } from "@/features/sales/types/sales.types";
+import { CreateSalesOrder, SalesOrder } from "@/features/sales/types/sales.types";
 import type { ApiResponse, PaginationMeta } from "@/types";
 
 export interface POSDevice {
@@ -66,6 +66,7 @@ export type CreateTakeawayOrder = {
   payments: CreateSalesOrder["payments"];
   additionIds: number[];
 };
+export type TakeawayOrdeResponse = ApiResponse<SalesOrder>;
 
 export type CreateDeliveryOrder = CreateTakeawayOrder & {
   deliveryCompanyId: number;

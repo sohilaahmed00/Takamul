@@ -104,6 +104,7 @@ export default function AddUserModal({ isOpen, onClose, user }: AddEmployeeModal
           data: {
             email: data?.email,
             userName: data?.userName,
+            roleName: data?.roleName,
           },
         });
       } else {

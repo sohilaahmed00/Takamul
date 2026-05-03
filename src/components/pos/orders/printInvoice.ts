@@ -1,6 +1,7 @@
 import { Customer } from "@/features/customers/types/customers.types";
 import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
 import { Supplier } from "@/features/suppliers/types/suppliers.types";
+import QRCode from "qrcode";
 import { printInvoicePrinter } from "@/lib/qzService";
 
 export interface InvoiceItem {
@@ -25,7 +26,7 @@ export interface InvoiceData {
   taxAmount: number;
   grandTotal: number;
   notes?: string;
-  qrCodeUrl?: string;
+  qrCode: string;
   paidAmount: number;
 }
 
@@ -33,6 +34,7 @@ export async function printInvoice(data: InvoiceData): Promise<void> {
   const totalQty = data.items.reduce((s, i) => s + i.quantity, 0);
   const fmt = (n: number | undefined | null) => (typeof n === "number" && !isNaN(n) ? n.toFixed(2) : "0.00");
   const riyal = `ر.س`;
+  const qrImageSrc = data?.qrCode ? await QRCode.toDataURL(data?.qrCode) : null;
 
   const itemRows = data.items
     .map(
@@ -410,36 +412,10 @@ html, body {
 
   <!-- QR -->
   <div class="qr-wrap">
-    ${data.qrCodeUrl ? `<img src="${data.qrCodeUrl}" alt="QR"/>` : `<canvas id="qr" width="90" height="90"></canvas>`}
+      ${qrImageSrc && `<img src="${qrImageSrc}" alt="QR" width="90" height="90"/>`}
   </div>
 
 </div>
-<script>
-(function(){
-  var c=document.getElementById('qr'); if(!c)return;
-  var ctx=c.getContext('2d'),S=90,MOD=14,cell=S/MOD;
-  var pat=[
-    [1,1,1,1,1,1,1,0,1,0,1,0,1,1],
-    [1,0,0,0,0,0,1,0,0,1,0,1,0,1],
-    [1,0,1,1,1,0,1,0,1,0,1,0,1,0],
-    [1,0,1,1,1,0,1,0,0,1,0,1,0,1],
-    [1,0,0,0,0,0,1,0,1,0,1,0,1,0],
-    [1,1,1,1,1,1,1,0,0,1,0,1,0,1],
-    [0,0,0,0,0,0,0,0,1,0,1,0,1,0],
-    [1,1,0,1,0,1,1,1,0,1,0,1,0,1],
-    [0,0,0,0,0,0,0,0,1,0,1,0,1,0],
-    [1,1,1,1,1,1,1,0,0,1,0,1,0,1],
-    [1,0,0,0,0,0,1,0,1,0,1,0,1,0],
-    [1,0,1,1,1,0,1,0,0,1,0,1,0,1],
-    [1,0,0,0,0,0,1,0,1,0,1,0,1,0],
-    [1,1,1,1,1,1,1,0,0,1,0,1,0,1],
-  ];
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,S,S);
-  ctx.fillStyle='#000';
-  for(var r=0;r<MOD;r++) for(var cc=0;cc<MOD;cc++)
-    if(pat[r][cc]) ctx.fillRect(Math.round(cc*cell),Math.round(r*cell),Math.round(cell)-1,Math.round(cell)-1);
-})();
-</script>
 </body>
 </html>`;
 

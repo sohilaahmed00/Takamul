@@ -7,7 +7,6 @@ import { useSettingsStore } from "../store/settingsStore";
 
 export const useGetAllSettings = () => {
   const setSettings = useSettingsStore((s) => s.setSettings);
-
   const query = useQuery<SettingsResponse>({
     queryKey: settingsKeys.list(),
     queryFn: getAllSettings,

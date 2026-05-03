@@ -14,6 +14,7 @@ export type PrintOrderInvoiceParams = {
   orderNote: string;
   branch: BranchInfo | null;
   paidAmount: number;
+  qrCode: string;
 };
 
 export type PrintKitchenBonParams = {
@@ -22,7 +23,7 @@ export type PrintKitchenBonParams = {
   selectedCustomer: Customer | null;
 };
 
-export async function printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount }: PrintOrderInvoiceParams): Promise<void> {
+export async function printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount, qrCode }: PrintOrderInvoiceParams): Promise<void> {
   const hasItemDiscounts = cart.some((item) => item.itemDiscount && item.itemDiscount.value > 0);
   const totals = calcTotals(cart, hasItemDiscounts ? { type: "pct", value: 0 } : discount);
 
@@ -56,6 +57,7 @@ export async function printOrderInvoice({ cart, discount, selectedCustomer, orde
     grandTotal: totals.total,
     notes: orderNote,
     paidAmount: paidAmount,
+    qrCode: qrCode,
   });
 }
 

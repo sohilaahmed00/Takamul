@@ -1,5 +1,5 @@
 import { httpClient } from "@/api/httpClient";
-import { CheckoutDineInOrder, CreateDeliveryOrder, CreateDevicePOS, CreateDevicePOSResponse, CreateDineInOrder, CreateTakeawayOrder, DeleteDevicePOSResponse, GenereateSerialResponse, GetAllDeviceTypesResponse, GetAllPOSDevicesResponse, GetPOSDevicesResponse, UpdateDevicePOS, UpdateDineInOrder } from "../types/pos.types";
+import { CheckoutDineInOrder, CreateDeliveryOrder, CreateDevicePOS, CreateDevicePOSResponse, CreateDineInOrder, CreateTakeawayOrder, DeleteDevicePOSResponse, GenereateSerialResponse, GetAllDeviceTypesResponse, GetAllPOSDevicesResponse, GetPOSDevicesResponse, TakeawayOrdeResponse, UpdateDevicePOS, UpdateDineInOrder } from "../types/pos.types";
 import { GetAllTablesResponse } from "@/features/tables/types/tables.types";
 import { SalesOrder } from "@/features/sales/types/sales.types";
 
@@ -37,7 +37,7 @@ export const cancelOrder = (id: number) =>
     method: "PUT",
   });
 export const createTakwayOrder = (data: CreateTakeawayOrder) =>
-  httpClient<{ message: string }>("/sales-orders/pos/takeaway", {
+  httpClient<TakeawayOrdeResponse>("/sales-orders/pos/takeaway", {
     method: "POST",
     data,
   });

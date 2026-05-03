@@ -19,6 +19,7 @@ import formatDate from "@/lib/formatDate";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
+import { format } from "@/constants/data";
 
 export default function PosSales() {
   type Payment = SalesOrder["payments"][number];
@@ -95,7 +96,7 @@ export default function PosSales() {
             <Column header={t("customer_name")} sortable field="customerName" />
             <Column header={t("cashier")} sortable field="createdBy" />
             <Column header={t("invoice_status")} sortable body={(rawData) => statusBodyTemplate(rawData)} field="orderStatus" />
-            <Column header={t("total_amount")} sortable field="grandTotal" />
+            <Column header={t("total_amount")} sortable field="grandTotal" body={(row: SalesOrder) => format(row.grandTotal)} />
             <Column header={t("paid_amount")} sortable field="payments" body={(rowData) => rowData.payments?.reduce((sum: number, p: Payment) => sum + p.amount, 0) ?? 0} />
             {/* <Column header={t("remaining_amount")} sortable field="" /> */}
             <Column

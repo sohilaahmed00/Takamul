@@ -26,8 +26,13 @@ import Topbar2 from "./Topbar2";
 import { initQZ } from "@/lib/qzService";
 import { useGetAllWareHouses } from "@/features/wareHouse/hooks/useGetAllWareHouses";
 import CartPanel2 from "../cart/CartPanel2";
+import { useBranchStore } from "@/store/employeeStore";
 
 export default function AppLayout2() {
+  const { fetchBranch } = useBranchStore();
+  useEffect(() => {
+    fetchBranch();
+  }, []);
   useEffect(() => {
     const init = async () => {
       try {

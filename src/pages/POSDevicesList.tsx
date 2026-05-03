@@ -15,8 +15,6 @@ import { toast } from "sonner";
 // import { useGetPOSDeviceById } from "@/features/pos/hooks/useGetPOSDeviceById";
 // import AddPOSDeviceModal from "@/components/modals/AddPOSDeviceModal";
 
-// ─── Badge: البيئة ────────────────────────────────────────────────────────────
-
 function DeleteDeviceButton({ device, onDelete, setHiddenIds }: { device: POSDevice; onDelete: (id: number) => Promise<unknown>; setHiddenIds: React.Dispatch<React.SetStateAction<Set<number>>> }) {
   return (
     <AlertDialog>
@@ -25,25 +23,13 @@ function DeleteDeviceButton({ device, onDelete, setHiddenIds }: { device: POSDev
           <Trash2 size={16} />
         </button>
       </AlertDialogTrigger>
-
-      <AlertDialogContent className="font-[Cairo] border-[var(--border)] bg-[var(--bg-card)] text-[var(--text-main)] rounded-2xl shadow-xl p-0 overflow-hidden max-w-md" dir="rtl">
-        <div className="flex flex-col items-center gap-3 px-6 pt-8 pb-4">
-          <div className="w-14 h-14 rounded-full bg-red-50 dark:bg-red-950/40 flex items-center justify-center">
-            <Trash2 size={26} className="text-red-500" />
-          </div>
-          <AlertDialogTitle className="font-[Cairo] text-lg font-semibold text-[var(--text-main)] text-center">تأكيد الحذف</AlertDialogTitle>
-          <AlertDialogDescription className="font-[Cairo] text-sm text-[var(--text-muted)] text-center leading-relaxed">
-            هل أنت متأكد من حذف الجهاز <span className="font-semibold text-[var(--text-main)]">{device.deviceName}</span>؟
-          </AlertDialogDescription>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center gap-2 px-6 py-4">
-          <AlertDialogCancel size="2xl" className="font-[Cairo] flex-1 bg-transparent border border-[var(--border)] text-[var(--text-main)] hover:bg-[var(--table-row-hover)] rounded-xl py-2.5 text-sm font-medium transition-colors">
-            إلغاء
-          </AlertDialogCancel>
-          <AlertDialogAction size="2xl" className="font-[Cairo] flex-1 bg-red-500 hover:bg-red-600 text-white rounded-xl  text-sm font-medium transition-colors" onClick={() => handleDeleteWithUndo(device, onDelete, setHiddenIds)}>
-            نعم، احذف
+      <AlertDialogContent size="default" className="shadow-none">
+        <AlertDialogTitle className=" text-base font-bold text-red-500 text-right">حذف الجهاز {device.deviceName}</AlertDialogTitle>
+        <AlertDialogDescription className=" text-sm  text-right mt-1 mb-6">هل أنت متأكد من هذا؟</AlertDialogDescription>
+        <div className="flex items-center gap-2 justify-end">
+          <AlertDialogCancel className=" bg-transparent hover:bg-[var(--table-row-hover)]  px-5 py-5 text-sm font-medium transition-colors">إلغاء</AlertDialogCancel>
+          <AlertDialogAction variant="destructive" className="px-5 py-5 text-sm font-medium transition-colors" onClick={() => handleDeleteWithUndo(device, onDelete, setHiddenIds)}>
+            تأكيد الحذف
           </AlertDialogAction>
         </div>
       </AlertDialogContent>
@@ -62,7 +48,6 @@ function handleDeleteWithUndo(device: POSDevice, onDelete: (id: number) => Promi
       label: "استرجاع",
       onClick: () => {
         undone = true;
-        // رجّعه للجدول
         setHiddenIds((prev) => {
           const next = new Set(prev);
           next.delete(device.id);
@@ -100,7 +85,6 @@ function CertificateBadge({ certificateType, isCertificateExpired }: { certifica
     );
   }
 
-  // CCSID only
   return (
     <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-600 border border-red-200">
       <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
@@ -108,8 +92,6 @@ function CertificateBadge({ certificateType, isCertificateExpired }: { certifica
     </span>
   );
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatLastSent(dateStr: string) {
   if (!dateStr || dateStr === "—") return "—";
@@ -130,7 +112,6 @@ function formatLastSent(dateStr: string) {
   });
 }
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function POSDevicesList() {
   const { t, direction } = useLanguage();
@@ -145,7 +126,7 @@ export default function POSDevicesList() {
 
   const visibleDevices = useMemo(() => (devices?.data ?? []).filter((d) => !hiddenIds.has(d.id)), [devices?.data, hiddenIds]);
   const { mutateAsync: deleteDevice } = useDeleteDevicePOS();
-  //   const { data: deviceData } = useGetPOSDeviceById(selectedDeviceId);
+
 
   const onGlobalFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setGlobalFilterValue(e.target.value);
@@ -227,7 +208,6 @@ export default function POSDevicesList() {
 
             {/* <Column field="lastPIH" header={t("last_sent") ?? "آخر إرسال"} style={{ width: "13%" }} body={(row: POSDevice) => <span className="text-sm text-gray-600">{formatLastSent(row.lastPIH)}</span>} /> */}
 
-            {/* إعدادات / OTP */}
             <Column
               header="العمليات"
               style={{ width: "10%" }}
@@ -245,7 +225,6 @@ export default function POSDevicesList() {
                   </button>
 
                   {row?.id !== 1 && <DeleteDeviceButton device={row} onDelete={deleteDevice} setHiddenIds={setHiddenIds} />}
-                  {/* OTP */}
                   <button
                     onClick={() => {
                       setSelectedDevice(row);
