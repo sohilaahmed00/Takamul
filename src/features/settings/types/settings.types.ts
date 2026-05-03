@@ -16,6 +16,7 @@ export type SettingsResponse = {
     showItemCodeInSalesPrint: boolean;
     showItemCodeInQuotations: boolean;
     showItemCodeInPurchases: boolean;
+    postype: number | string;
   };
 
   items: {
@@ -32,6 +33,9 @@ export type SettingsResponse = {
     defaultSalesVault: number;
     defaultPurchasesVault: number;
     showOrderDeviceNumber: boolean;
+    isTekawuy: boolean;
+    isTables: boolean;
+    isDelivary: boolean;
   };
 
   barcodeScale: {

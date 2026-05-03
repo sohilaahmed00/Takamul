@@ -27,6 +27,7 @@ export default function SiteSettings() {
       showItemCodeInSalesPrint: systemSettings.site.showItemCodeInSales,
       showItemCodeInQuotations: systemSettings.site.showItemCodeInQuotes,
       showItemCodeInPurchases: systemSettings.site.showItemCodeInPurchases,
+      postype: systemSettings.site.defaultSalesScreen || "POS1",
       defaultPaymentCompany: Number(systemSettings.site.defaultPaymentCompany) || 0,
     },
   });
@@ -39,12 +40,17 @@ export default function SiteSettings() {
       showItemCodeInSalesPrint: systemSettings.site.showItemCodeInSales,
       showItemCodeInQuotations: systemSettings.site.showItemCodeInQuotes,
       showItemCodeInPurchases: systemSettings.site.showItemCodeInPurchases,
+      postype: systemSettings.site.defaultSalesScreen || "POS1",
       defaultPaymentCompany: Number(systemSettings.site.defaultPaymentCompany) || 0,
     });
   }, [systemSettings.site, reset]);
 
   const onSubmit = (data: any) => {
-    updateSite(data);
+    const payload = {
+      ...data,
+      postype: data.postype === "POS1" ? "Pos1" : "Pos2",
+    };
+    updateSite(payload);
   };
 
   const booleanToString = (val: boolean) => (val ? enableStr : disableStr);
@@ -171,6 +177,26 @@ export default function SiteSettings() {
                     <SelectContent>
                       <SelectItem value={enableStr}>{enableStr}</SelectItem>
                       <SelectItem value={disableStr}>{disableStr}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              )}
+            />
+
+            {/* postype */}
+            <Controller
+              name="postype"
+              control={control}
+              render={({ field }) => (
+                <Field>
+                  <FieldLabel>{t("default_sales_screen") || "شاشة البيع الافتراضية"} *</FieldLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="POS1">POS1</SelectItem>
+                      <SelectItem value="POS2">POS2</SelectItem>
                     </SelectContent>
                   </Select>
                 </Field>
