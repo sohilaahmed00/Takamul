@@ -8,6 +8,8 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUpdateSalesSettings } from "@/features/settings/hooks/useUpdateSettings";
 import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasurys";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 export default function SalesSettings() {
   const { t } = useLanguage();
@@ -31,6 +33,9 @@ export default function SalesSettings() {
       defaultSalesVault: Number(systemSettings.sales.defaultPaymentMethod) || 0,
       defaultPurchasesVault: Number(systemSettings.sales.defaultPurchasePaymentMethod) || 0,
       showOrderDeviceNumber: systemSettings.sales.showOrderDeviceNumber,
+      isTekawuy: systemSettings.sales.enableTakeaway,
+      isTables: systemSettings.sales.enableDineIn,
+      isDelivary: systemSettings.sales.enableDelivery,
     });
   };
 
@@ -149,6 +154,45 @@ export default function SalesSettings() {
                 </SelectContent>
               </Select>
             </Field>
+
+            {/* Order Types Checkboxes */}
+            <div className="col-span-full mt-6 flex flex-wrap items-center gap-10">
+              <div className="flex items-center gap-3 cursor-pointer group">
+                <Checkbox 
+                  id="enableTakeaway" 
+                  checked={systemSettings.sales.enableTakeaway} 
+                  onCheckedChange={(checked) => handleUpdate("enableTakeaway", !!checked)}
+                  className="w-5 h-5 border-gray-300 data-[state=checked]:bg-[var(--primary)] data-[state=checked]:border-[var(--primary)] transition-all"
+                />
+                <Label htmlFor="enableTakeaway" className="text-base font-medium text-gray-700 cursor-pointer group-hover:text-[var(--primary)] transition-colors">
+                  {t("takeaway_option") || "سفري"}
+                </Label>
+              </div>
+
+              <div className="flex items-center gap-3 cursor-pointer group">
+                <Checkbox 
+                  id="enableDineIn" 
+                  checked={systemSettings.sales.enableDineIn} 
+                  onCheckedChange={(checked) => handleUpdate("enableDineIn", !!checked)}
+                  className="w-5 h-5 border-gray-300 data-[state=checked]:bg-[var(--primary)] data-[state=checked]:border-[var(--primary)] transition-all"
+                />
+                <Label htmlFor="enableDineIn" className="text-base font-medium text-gray-700 cursor-pointer group-hover:text-[var(--primary)] transition-colors">
+                  {t("dine_in_option") || "محلي"}
+                </Label>
+              </div>
+
+              <div className="flex items-center gap-3 cursor-pointer group">
+                <Checkbox 
+                  id="enableDelivery" 
+                  checked={systemSettings.sales.enableDelivery} 
+                  onCheckedChange={(checked) => handleUpdate("enableDelivery", !!checked)}
+                  className="w-5 h-5 border-gray-300 data-[state=checked]:bg-[var(--primary)] data-[state=checked]:border-[var(--primary)] transition-all"
+                />
+                <Label htmlFor="enableDelivery" className="text-base font-medium text-gray-700 cursor-pointer group-hover:text-[var(--primary)] transition-colors">
+                  {t("delivery_option") || "توصيل"}
+                </Label>
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col-reverse lg:flex-row justify-between py-4 border px-3 gap-3 rounded border-gray-100 mt-8">

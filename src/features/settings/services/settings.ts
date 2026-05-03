@@ -31,6 +31,7 @@ export const updateSiteSettings = (data: {
   showItemCodeInSalesPrint: boolean;
   showItemCodeInQuotations: boolean;
   showItemCodeInPurchases: boolean;
+  postype: string;
 }) =>
   httpClient("/Settings/Site", {
     method: "PUT",
@@ -55,6 +56,9 @@ export const updateSalesSettings = (data: {
   defaultSalesVault: number;
   defaultPurchasesVault: number;
   showOrderDeviceNumber: boolean;
+  isTekawuy: boolean;
+  isTables: boolean;
+  isDelivary: boolean;
 }) =>
   httpClient("/Settings/sales", {
     method: "PUT",

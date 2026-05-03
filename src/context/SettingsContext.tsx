@@ -27,6 +27,7 @@ export interface SystemSettings {
     showItemCodeInSales: boolean;
     showItemCodeInQuotes: boolean;
     showItemCodeInPurchases: boolean;
+    defaultSalesScreen: string;
   };
   items: {
     itemTax: boolean;
@@ -61,6 +62,9 @@ export interface SystemSettings {
     enableCursorOnAddProduct: boolean;
     showServiceNumber: boolean;
     showOrderDeviceNumber: boolean;
+    enableTakeaway: boolean;
+    enableDineIn: boolean;
+    enableDelivery: boolean;
   };
   prefixes: {
     product: string;
@@ -223,6 +227,7 @@ const defaultSystemSettings: SystemSettings = {
     showItemCodeInSales: true,
     showItemCodeInQuotes: true,
     showItemCodeInPurchases: true,
+    defaultSalesScreen: "POS1",
   },
   items: {
     itemTax: true,
@@ -257,6 +262,9 @@ const defaultSystemSettings: SystemSettings = {
     enableCursorOnAddProduct: false,
     showServiceNumber: false,
     showOrderDeviceNumber: false,
+    enableTakeaway: true,
+    enableDineIn: true,
+    enableDelivery: true,
   },
   prefixes: {
     product: "",
@@ -409,6 +417,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           showItemCodeInQuotes: apiSettings.location?.showItemCodeInQuotations ?? prev.site.showItemCodeInQuotes,
           showItemCodeInPurchases: apiSettings.location?.showItemCodeInPurchases ?? prev.site.showItemCodeInPurchases,
           defaultPaymentCompany: String(apiSettings.location?.defaultPaymentCompany ?? prev.site.defaultPaymentCompany),
+          defaultSalesScreen: (apiSettings.location?.postype === 1 || apiSettings.location?.postype === "Pos1") ? "POS1" : (apiSettings.location?.postype === 2 || apiSettings.location?.postype === "Pos2") ? "POS2" : prev.site.defaultSalesScreen,
         },
         items: {
           ...prev.items,
@@ -424,6 +433,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           defaultPaymentMethod: String(apiSettings.sales?.defaultSalesVault ?? prev.sales.defaultPaymentMethod),
           defaultPurchasePaymentMethod: String(apiSettings.sales?.defaultPurchasesVault ?? prev.sales.defaultPurchasePaymentMethod),
           showOrderDeviceNumber: apiSettings.sales?.showOrderDeviceNumber ?? prev.sales.showOrderDeviceNumber,
+          enableTakeaway: apiSettings.sales?.isTekawuy ?? prev.sales.enableTakeaway,
+          enableDineIn: apiSettings.sales?.isTables ?? prev.sales.enableDineIn,
+          enableDelivery: apiSettings.sales?.isDelivary ?? prev.sales.enableDelivery,
         },
         tobacco: {
           tobaccoFees: apiSettings.tobaccoFees?.tobaccoFees ?? prev.tobacco.tobaccoFees,
