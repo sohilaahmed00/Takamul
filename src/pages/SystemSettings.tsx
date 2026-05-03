@@ -59,7 +59,7 @@ export default function SystemSettings() {
   const { systemSettings, updateSystemSettings, saveSettings } = useSettings();
   const { mutate: updateTobaccoFees } = useUpdateTobaccoFees();
   const { mutate: updateGeneral } = useUpdateGeneralSettings();
-  const [activeSection, setActiveSection] = React.useState("category_discounts");
+  const [activeSection, setActiveSection] = React.useState("points");
   const [headerImageFiles, setHeaderImageFiles] = React.useState<File[]>([]);
 
   const handleUpdate = (section: keyof SystemSettings, field: string, value: any) => {

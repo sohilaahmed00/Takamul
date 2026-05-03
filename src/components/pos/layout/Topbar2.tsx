@@ -22,6 +22,7 @@ import { useGetAllEmployees } from "@/features/employees/hooks/useGetAllEmployee
 import { usePosStore } from "@/features/pos/store/usePosStore";
 import ShiftReportModal from "../modals/ShiftReportModal";
 import { ShiftReportData } from "../orders/printShiftReport";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 export default function Topbar2() {
   const [deliveryDate, setDeliveryDate] = useState("");
@@ -37,6 +38,7 @@ export default function Topbar2() {
   const [input, setInput] = useState("");
   const { t } = useLanguage();
   const [shiftReportOpen, setShiftReportOpen] = useState(false);
+  const showActualBalance = useSettingsStore((s) => s.settings.location.showActualBalance);
 
 
   // Mock data for the shift report
@@ -182,10 +184,12 @@ export default function Topbar2() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-1">
-              <Label className="text-[10px] text-[#000052] dark:text-muted-foreground">رصيد العميل</Label>
-              <Input value={balanceSelectedCustomer} readOnly={true} className="text-center cursor-not-allowed text-[11px] bg-white border-[#000052] text-[#000052] dark:bg-background dark:border-border dark:text-foreground" />
-            </div>
+            {showActualBalance && (
+              <div className="flex flex-col gap-1">
+                <Label className="text-[10px] text-[#000052] dark:text-muted-foreground">رصيد العميل</Label>
+                <Input value={balanceSelectedCustomer} readOnly={true} className="text-center cursor-not-allowed text-[11px] bg-white border-[#000052] text-[#000052] dark:bg-background dark:border-border dark:text-foreground" />
+              </div>
+            )}
 
             <div className="flex flex-col gap-1">
               <Label className="text-[10px] text-[#000052] dark:text-muted-foreground">وقت وتاريخ الاستلام</Label>
