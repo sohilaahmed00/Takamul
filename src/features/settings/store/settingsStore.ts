@@ -55,6 +55,17 @@ interface BarcodeScaleSettings {
   barcodeDivideWeightBy: number;
 }
 
+interface MoneySettings {
+  decimals: number;
+  quantityDecimals: number;
+  southAsiaFormat: boolean;
+  decimalSeparator: string;
+  thousandSeparator: string;
+  showCurrencySymbol: boolean;
+  currencySymbol: string;
+  a4InvoiceDecimals: number;
+}
+
 export interface Settings {
   tobaccoFees: TobaccoFeesSettings;
   general: GeneralSettings;
@@ -62,6 +73,7 @@ export interface Settings {
   items: ItemsSettings;
   sales: SalesSettings;
   barcodeScale: BarcodeScaleSettings;
+  money: MoneySettings;
 }
 
 // ─── Default Values ───────────────────────────────────────────────────────────
@@ -114,6 +126,16 @@ const defaultSettings: Settings = {
     barcodeWeightCharactersCount: 5,
     barcodeDivideWeightBy: 1000,
   },
+  money: {
+    decimals: 2,
+    quantityDecimals: 2,
+    southAsiaFormat: false,
+    decimalSeparator: ".",
+    thousandSeparator: ",",
+    showCurrencySymbol: true,
+    currencySymbol: "ر.س",
+    a4InvoiceDecimals: 4,
+  },
 };
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -143,7 +165,15 @@ interface SettingsStore {
 export const useSettingsStore = create<SettingsStore>((set) => ({settings: defaultSettings,
 
   // ── Replace the whole settings object (e.g. after fetching from API) ────────
-  setSettings: (settings) => set({ settings }),
+  setSettings: (settings) =>
+    set((state) => ({
+      settings: {
+        ...state.settings,
+        ...settings,
+        // Ensure money is preserved if not in API response
+        money: settings.money || state.settings.money,
+      },
+    })),
 
   // ── Section-level setters ────────────────────────────────────────────────────
   setTobaccoFees: (data) =>

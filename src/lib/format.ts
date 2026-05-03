@@ -1,14 +1,18 @@
 import type { SystemSettings } from "@/context/SettingsContext";
+import type { Settings as StoreSettings } from "@/features/settings/store/settingsStore";
 
-export function formatCurrency(amount: number, settings: SystemSettings): string {
-  let { decimalSeparator, thousandSeparator, decimals } = settings.money;
+export function formatCurrency(amount: number, settings: StoreSettings | SystemSettings | any): string {
+  const money = settings?.money || {};
+  let decimalSeparator = money.decimalSeparator || '.';
+  let thousandSeparator = money.thousandSeparator || ',';
+  let decimals = money.decimals ?? 2;
   
   // Map descriptive separators to actual characters
   if (decimalSeparator.includes('Dot')) decimalSeparator = '.';
   if (thousandSeparator === 'فاصلة' || thousandSeparator === 'Comma') thousandSeparator = ',';
   
   // Fix to the specified number of decimals
-  let fixedAmount = amount.toFixed(decimals);
+  let fixedAmount = Number(amount || 0).toFixed(decimals);
   
   // Split into integer and decimal parts
   let [integerPart, decimalPart] = fixedAmount.split('.');
