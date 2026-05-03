@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { useSettings } from "./SettingsContext";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import arJson from "@/locales/ar.json";
 import enJson from "@/locales/en.json";
 import urJson from "@/locales/ur.json";
@@ -24,22 +24,22 @@ const translations: Record<Language, Record<string, string>> = {
 };
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const { systemSettings } = useSettings();
+  const systemSettings = useSettingsStore((s) => s.settings);
 
   const [language, setLanguageState] = useState<Language>(() => {
     const savedLang = localStorage.getItem("language");
     if (savedLang === "ar" || savedLang === "en" || savedLang === "ur") return savedLang as Language;
 
-    return systemSettings?.site?.language?.toLowerCase?.().includes("en") ? "en" : "ar";
+    return systemSettings?.general?.language?.toLowerCase?.().includes("en") ? "en" : "ar";
   });
 
   useEffect(() => {
-    const targetLang: Language = systemSettings?.site?.language?.toLowerCase?.().includes("en") ? "en" : "ar";
+    const targetLang: Language = systemSettings?.general?.language?.toLowerCase?.().includes("en") ? "en" : "ar";
 
     if (language !== targetLang) {
       setLanguageState(targetLang);
     }
-  }, [systemSettings?.site?.language]);
+  }, [systemSettings?.general?.language]);
 
   const direction: Direction = language === "ar" || language === "ur" ? "rtl" : "ltr";
 

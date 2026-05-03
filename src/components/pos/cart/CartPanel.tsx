@@ -35,6 +35,7 @@ import { DeliveryCompany } from "@/types";
 import { useGetAllDeliveryCompanies } from "@/features/delivery-companies/hooks/useGetAllDeliveryCompanies";
 import ShiftReportModal from "../modals/ShiftReportModal";
 import { ShiftReportData } from "../orders/printShiftReport";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 const TABS = ["add", "discount", "coupon", "note"] as const;
 
@@ -344,6 +345,23 @@ export default function CartPanel() {
 
   // ── Zustand store ──────────────────────────────────────────────────────────
   const { cart, setCart, setSelectedTable, selectedOrderId, selectedTable, selectedDelivery, setSelectedDelivery, setOrderType, discount, networkSpeed, setDiscount, handleConfirmPayment, setSelectedCustomer, selectedCustomer, orderType, handleCreateDineInOrder, dineInMode, handleAddItemsToExistingOrder, setOrderNote, orderNote } = usePosStore();
+  const salesSettings = useSettingsStore((s) => s.settings.sales);
+
+  // Auto-switch order type if current one becomes disabled
+  useEffect(() => {
+    if (!salesSettings) return;
+
+    const isCurrentValid =
+      (orderType === "TakeAway" && salesSettings.isTekawuy) ||
+      (orderType === "InDine" && salesSettings.isTables) ||
+      (orderType === "Delivery" && salesSettings.isDelivary);
+
+    if (!isCurrentValid) {
+      if (salesSettings.isTekawuy) setOrderType("TakeAway");
+      else if (salesSettings.isTables) setOrderType("InDine");
+      else if (salesSettings.isDelivary) setOrderType("Delivery");
+    }
+  }, [salesSettings, orderType, setOrderType]);
 
   // ── Async mutation hooks (passed into store actions) ───────────────────────
   const { mutateAsync: createTakwayOrder } = useCreateTakwayOrder();
@@ -560,9 +578,9 @@ export default function CartPanel() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="TakeAway">{t("order_takeaway")}</SelectItem>
-                  <SelectItem value="InDine">{t("order_dine_in")}</SelectItem>
-                  <SelectItem value="Delivery">{t("order_delivery")}</SelectItem>
+                  {salesSettings.isTekawuy && <SelectItem value="TakeAway">{t("order_takeaway")}</SelectItem>}
+                  {salesSettings.isTables && <SelectItem value="InDine">{t("order_dine_in")}</SelectItem>}
+                  {salesSettings.isDelivary && <SelectItem value="Delivery">{t("order_delivery")}</SelectItem>}
                 </SelectContent>
               </Select>
 

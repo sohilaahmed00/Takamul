@@ -20,6 +20,7 @@ import { Warehouse } from "@/features/Warehouses/types/Warehouses.types";
 import { WareHouse } from "@/features/wareHouse/types/wareHouse.types";
 import { useGetAllEmployees } from "@/features/employees/hooks/useGetAllEmployees";
 import { usePosStore } from "@/features/pos/store/usePosStore";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import ShiftReportModal from "../modals/ShiftReportModal";
 import { ShiftReportData } from "../orders/printShiftReport";
 
@@ -37,6 +38,24 @@ export default function Topbar2() {
   const [input, setInput] = useState("");
   const { t } = useLanguage();
   const [shiftReportOpen, setShiftReportOpen] = useState(false);
+  const { orderType, setOrderType, setSelectedTable, setSelectedDelivery } = usePosStore();
+  const salesSettings = useSettingsStore((s) => s.settings.sales);
+
+  // Auto-switch order type if current one becomes disabled
+  useEffect(() => {
+    if (!salesSettings) return;
+
+    const isCurrentValid =
+      (orderType === "TakeAway" && salesSettings.isTekawuy) ||
+      (orderType === "InDine" && salesSettings.isTables) ||
+      (orderType === "Delivery" && salesSettings.isDelivary);
+
+    if (!isCurrentValid) {
+      if (salesSettings.isTekawuy) setOrderType("TakeAway");
+      else if (salesSettings.isTables) setOrderType("InDine");
+      else if (salesSettings.isDelivary) setOrderType("Delivery");
+    }
+  }, [salesSettings, orderType, setOrderType]);
 
   // Mock data for the shift report
   const mockShiftData: ShiftReportData = {
@@ -112,6 +131,26 @@ export default function Topbar2() {
                 <Button onClick={toggleFullScreen} variant="outline" size="icon" className="w-7 h-7 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white dark:border-border dark:text-foreground dark:hover:bg-muted dark:hover:text-foreground transition-colors duration-200" title="ملء الشاشة">
                   <Maximize size={13} />
                 </Button>
+
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={orderType}
+                    onValueChange={(val: any) => {
+                      setOrderType(val);
+                      setSelectedTable(null);
+                      setSelectedDelivery(null);
+                    }}
+                  >
+                    <SelectTrigger className="w-32 h-7 text-[11px] border-[#000052] text-[#000052] dark:border-border dark:text-foreground rounded-full">
+                      <SelectValue placeholder={t("order_type")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {salesSettings.isTekawuy && <SelectItem value="TakeAway">{t("order_takeaway")}</SelectItem>}
+                      {salesSettings.isTables && <SelectItem value="InDine">{t("order_dine_in")}</SelectItem>}
+                      {salesSettings.isDelivary && <SelectItem value="Delivery">{t("order_delivery")}</SelectItem>}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="w-px h-5 bg-border" />
