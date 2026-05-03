@@ -122,6 +122,7 @@ import { useGetAllSettings } from "./features/settings/hooks/useGetAllSettings";
 import POSDevicesList from "./pages/POSDevicesList";
 
 function AppRoutes() {
+
   return (
     <>
       <div>

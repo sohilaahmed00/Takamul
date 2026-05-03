@@ -19,6 +19,7 @@ import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerByI
 import { useGetSupplierById } from "@/features/suppliers/hooks/useGetSupplierById";
 import { useBranchStore } from "@/store/employeeStore";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
+import { generateQR } from "@/features/zatcaInvoice/services/zatcha";
 
 interface OrdersDialogProps {
   open: boolean;
@@ -163,7 +164,9 @@ export function OrdersDialog({ open, onOpenChange }: OrdersDialogProps) {
                             const branch = useBranchStore.getState().branch;
                             setSelectCustomerId(order?.customerId);
                             const total = order?.payments.reduce((sum, p) => sum + p.amount, 0);
+                            const res = await generateQR({ invoiceId: order?.id });
                             const invoiceData: InvoiceData = {
+                              qrCode: res?.qrCode,
                               paidAmount: total,
                               customer: customer,
                               branch,

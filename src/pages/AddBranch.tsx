@@ -25,8 +25,10 @@ export const branchSchema = z.object({
   code: z.string().check(z.minLength(1, "كود الفرع مطلوب"), z.maxLength(20, "كود الفرع لا يتجاوز 20 حرف")),
 
   name: z.string().check(z.minLength(1, "اسم الفرع مطلوب"), z.maxLength(100, "اسم الفرع لا يتجاوز 100 حرف")),
-
-  businessName: z.string().check(z.maxLength(100, "اسم النشاط لا يتجاوز 100 حرف")).optional().default(""),
+  OrganizationName: z.string().check(z.maxLength(100, "اسم النشاط لا يتجاوز 100 حرف")).optional().default(""),
+  OrganizationUnitName: z.string().min(2, "اسم الوحدة يجب أن يكون حرفين على الأقل").max(100, "اسم الوحدة لا يتجاوز 100 حرف").optional().default(""),
+  LocationAddress: z.string().min(5, "العنوان يجب أن يكون 5 أحرف على الأقل").max(200, "العنوان لا يتجاوز 200 حرف").optional().default(""),
+  IndustryBusinessCategory: z.string().min(2, "الفئة يجب أن تكون حرفين على الأقل").max(100, "الفئة لا تتجاوز 100 حرف").optional().default(""),
 
   nameEn: z
     .string()
@@ -52,7 +54,6 @@ export const branchSchema = z.object({
 
   footerNote: z.string().check(z.maxLength(500, "الملاحظات لا تتجاوز 500 حرف")).optional().default(""),
 
-  // ── Image ───────────────────────────────────────────────────────────────────
   imageUrl: z.string().optional().default(""),
 
   imagePreview: z.string().nullable().optional().default(null),
@@ -142,7 +143,6 @@ export default function AddBranch() {
     defaultValues: {
       code: "",
       name: "",
-      businessName: "",
       nameEn: "",
       phone: "",
       taxNumber: "",
@@ -173,13 +173,10 @@ export default function AddBranch() {
   useEffect(() => {
     if (!branchDetail) return;
     const nameEnKey = Object.keys(branchDetail).find((k) => k.toLowerCase().replace(/_/g, "") === "nameen");
-     
-  console.log("branchDetail keys:", Object.keys(branchDetail));
-  console.log("branchDetail:", branchDetail);
     reset({
       code: branchDetail.code ?? "",
       name: branchDetail.name ?? "",
-      businessName: branchDetail.businessName ?? "",
+
       nameEn: nameEnKey ? ((branchDetail as any)[nameEnKey] ?? "") : "",
       phone: branchDetail.phone ?? "",
       taxNumber: branchDetail.taxNumber ?? "",
@@ -196,10 +193,13 @@ export default function AddBranch() {
       buildingNumber: branchDetail.buildingNumber ?? "",
       subNumber: branchDetail.subNumber ?? "",
       postalCode: branchDetail.postalCode ?? "",
+
+      OrganizationName: branchDetail.organizationName ?? "",
+      OrganizationUnitName: branchDetail.organizationUnitName ?? "",
+      LocationAddress: branchDetail.locationAddress ?? "",
+      IndustryBusinessCategory: branchDetail.industryBusinessCategory ?? "",
     });
   }, [branchDetail, reset]);
-
-  // ─── Image handling ─────────────────────────────────────────────────────────
 
   const handleImageFile = useCallback(
     (file: File) => {
@@ -230,13 +230,10 @@ export default function AddBranch() {
 
   const onSubmit = async (values: BranchFormValues) => {
     const formData = new FormData();
-
     const appendStr = (key: string, val?: string | null) => formData.append(key, val?.trim() ?? "");
-
     appendStr("Code", values.code);
     appendStr("Name", values.name);
     appendStr("NameEn", values.nameEn);
-    appendStr("BusinessName", values.businessName);
     appendStr("CommercialRegister", values.commercialRegister);
     appendStr("TaxNumber", values.taxNumber);
     appendStr("FooterNote", values.footerNote);
@@ -246,8 +243,12 @@ export default function AddBranch() {
     appendStr("SubNumber", values.subNumber);
     appendStr("PostalCode", values.postalCode);
     appendStr("District", values.district);
+    appendStr("OrganizationName", values.OrganizationName);
+    appendStr("OrganizationUnitName", values.OrganizationUnitName);
+    appendStr("LocationAddress", values.LocationAddress);
+    appendStr("IndustryBusinessCategory", values.IndustryBusinessCategory);
 
-    (["Email", "AdditionalNumber", "OrganizationName", "OrganizationUnitName", "LocationAddress", "IndustryBusinessCategory"] as const).forEach((key) => formData.append(key, ""));
+    (["Email", "AdditionalNumber"] as const).forEach((key) => formData.append(key, ""));
 
     formData.append("CountryId", String(values.countryId!));
     formData.append("CityId", String(values.cityId!));
@@ -263,21 +264,11 @@ export default function AddBranch() {
     try {
       if (isEditMode && branchId) {
         await updateBranch({ id: branchId, data: formData });
-        notifySuccess(t("branch_updated") || "تم تعديل الفرع بنجاح");
       } else {
         await createBranch(formData);
-        notifySuccess(t("branch_created") || "تم إضافة الفرع بنجاح");
       }
       navigate("/branches");
-    } catch (error: any) {
-      const errorMsg = error?.errors
-        ? `${t("error_occurred") || "حدث خطأ أثناء الحفظ"} (${Object.entries(error.errors)
-            .map(([f, msgs]) => `${f}: ${(msgs as string[]).join(", ")}`)
-            .join(" | ")})`
-        : (error?.message ?? t("error_occurred") ?? "حدث خطأ أثناء الحفظ");
-
-      notifyError(errorMsg);
-    }
+    } catch {}
   };
 
   // ─── UI ─────────────────────────────────────────────────────────────────────
@@ -561,9 +552,7 @@ export default function AddBranch() {
                       control={control}
                       render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
-                          <FieldLabel>
-                            {t("district") || "الحي"}
-                          </FieldLabel>
+                          <FieldLabel>{t("district") || "الحي"}</FieldLabel>
                           <Input {...field} placeholder={t("district_placeholder") || "الحي"} readOnly={isViewMode} />
                           {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
                         </Field>
@@ -628,6 +617,69 @@ export default function AddBranch() {
                       )}
                     />
                   </div>
+                </CardContent>
+              </Card>
+
+              {/* المعلومات الضريبية */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">{"المعلومات الضريبية"}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <Controller
+                      name="OrganizationName"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>
+                            اسم المنشأة
+                            <span className="text-red-500">*</span>
+                          </FieldLabel>
+                          <Input {...field} placeholder="أدخل اسم المنشأة" readOnly={isViewMode} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                    <Controller
+                      name="OrganizationUnitName"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>
+                            اسم الوحدة
+                            <span className="text-red-500">*</span>
+                          </FieldLabel>
+                          <Input {...field} placeholder="أدخل اسم الوحدة" readOnly={isViewMode} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                    <Controller
+                      name="IndustryBusinessCategory"
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                          <FieldLabel>
+                            القطاع / النشاط التجاري
+                            <span className="text-red-500">*</span>
+                          </FieldLabel>
+                          <Input {...field} placeholder="أدخل القطاع أو النشاط التجاري" readOnly={isViewMode} />
+                          {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                        </Field>
+                      )}
+                    />
+                  </div>
+                  <Controller
+                    name="LocationAddress"
+                    control={control}
+                    render={({ field, fieldState }) => (
+                      <Field data-invalid={fieldState.invalid}>
+                        <FieldLabel>العنوان</FieldLabel>
+                        <textarea {...field} placeholder="أدخل العنوان بالتفصيل..." rows={3} readOnly={isViewMode} className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-[#2ecc71] resize-none disabled:bg-gray-50" />
+                      </Field>
+                    )}
+                  />
                 </CardContent>
               </Card>
 
