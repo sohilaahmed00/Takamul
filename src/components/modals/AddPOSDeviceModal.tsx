@@ -26,6 +26,14 @@ import { useUpdatePOSDevice } from "@/features/pos/hooks/useUpdatePOSDevice";
 
 type DeviceStatus = "NotRegistered" | "PendingOTP" | "CCSIDRegistered" | "PCSIDRegistered";
 
+interface CSRResult {
+  token: string;
+  secret: string;
+  status?: string;
+  isExpired?: boolean;
+  issuedAt?: string;
+  expiresAt?: string;
+}
 interface CCSIDResult {
   token: string;
   secret: string;
@@ -74,7 +82,6 @@ const STEP_FIELDS: Record<number, (keyof FormValues)[]> = {
   1: ["deviceName", "serialNumber", "deviceTypeId", "branchId"],
 };
 
-// ─── Steps ────────────────────────────────────────────────────────────────────
 
 const STEPS = [
   { id: 1, label: "معلومات الجهاز", icon: Monitor },
@@ -250,7 +257,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
 
   const [clickedGeneratedCSR, setClickedGeneratedCSR] = useState<boolean>(false);
   const [createdDeviceId, setCreatedDeviceId] = useState<number | undefined>();
-  const [csrText, setCsrText] = useState<string | undefined>();
+  const [csr, setCsr] = useState<CSRResult | undefined>();
   const [privateKey, setPrivateKey] = useState<string | undefined>();
   const [ccsid, setCcsid] = useState<CCSIDResult | undefined>();
   const [pcsid, setPcsid] = useState<PCSIDResult | undefined>();
@@ -277,11 +284,10 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
     },
   });
 
-  // ── عند فتح الـ modal: إما reset أو استكمال من الـ status ──
   useEffect(() => {
     if (!isOpen) {
       setStep(1);
-      setCsrText(undefined);
+      setCsr(undefined);
       setPrivateKey(undefined);
       setCcsid(undefined);
       setPcsid(undefined);
@@ -361,7 +367,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
       const res = await registerCCSID({ deviceId: createdDeviceId, otp });
       const expiresAt = res?.data?.expiresAt;
       const isExpired = !expiresAt || new Date(expiresAt) <= new Date();
-      setCcsid({
+      setCsr({
         token: res?.data?.token,
         secret: res?.data?.secretKey,
         status: res?.data?.newStatus,
@@ -622,7 +628,7 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
                     <SecretBlock label="CCSID Secret" value={ccsid.secret} />
                     <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2.5">
                       <AlertCircle size={13} className="flex-shrink-0 mt-0.5" />
-                      احفظ الـ Token والـ Secret  - عشان مش هتشوفهم تاني
+                      احفظ الـ Token والـ Secret - عشان مش هتشوفهم تاني
                     </div>
                   </div>
                 )}
@@ -720,5 +726,3 @@ export default function AddPOSDeviceModal({ isOpen, onOpenChange, device }: Prop
     </Dialog>
   );
 }
-
-

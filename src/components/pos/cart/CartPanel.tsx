@@ -36,6 +36,7 @@ import { useGetAllDeliveryCompanies } from "@/features/delivery-companies/hooks/
 import ShiftReportModal from "../modals/ShiftReportModal";
 import { ShiftReportData } from "../orders/printShiftReport";
 import { useSettingsStore } from "@/features/settings/store/settingsStore";
+import { useGenerateQR } from "@/features/zatcaInvoice/hooks/useGenerateQR";
 
 const TABS = ["add", "discount", "coupon", "note"] as const;
 
@@ -385,6 +386,8 @@ export default function CartPanel() {
   const { sub, subAfterDiscount, tax: taxAfterDiscount, total, originalTax, itemDiscountsTotal, discountAmount } = useMemo(() => calcTotals(cart, discount), [cart, discount]);
   const { notifyError, notifySuccess } = useToast();
   const { data: freeTables } = useGetAllTables();
+  const { mutateAsync: generateQR } = useGenerateQR();
+
   const navigate = useNavigate();
   const [shiftReportOpen, setShiftReportOpen] = useState(false);
 
@@ -808,6 +811,7 @@ export default function CartPanel() {
                         checkoutDineInOrder,
                         releaseHolding,
                         customers,
+                        generateQR,
                       });
                     }}
                     size={"2xl"}

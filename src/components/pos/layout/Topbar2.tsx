@@ -285,7 +285,6 @@ export default function Topbar2() {
         onClose={() => setShiftReportOpen(false)} 
         data={mockShiftData}
         onConfirmCloseShift={() => {
-          // Here you would call the actual close shift API
           console.log("Shift Closed");
           setShiftReportOpen(false);
         }}

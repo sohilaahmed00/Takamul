@@ -15,6 +15,7 @@ import { Purchase } from "@/features/purchases/types/purchase.types";
 import { Customer } from "@/features/customers/types/customers.types";
 import { Supplier } from "@/features/suppliers/types/suppliers.types";
 import { Quotation } from "@/features/quotation/types/quotations.types";
+import { useGenerateQR } from "@/features/zatcaInvoice/hooks/useGenerateQR";
 
 const toNum = (v: any, fallback = 0): number => Number(v ?? fallback);
 
@@ -65,6 +66,7 @@ const PrintContext = createContext<PrintContextType | null>(null);
 export const PrintProvider = ({ children }: { children: ReactNode }) => {
   const { t } = useLanguage();
   const { data: branchInfo } = useBranch();
+  const { mutateAsync: generateQR } = useGenerateQR();
   const prepareExtendedData = useCallback(
     async (data: PrintableData): Promise<ExtendedData> => {
       const ext: ExtendedData = { ...(data as any), branchInfo: branchInfo! };
@@ -97,7 +99,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     [branchInfo],
   );
 
-  const buildThermalData = useCallback((ext: ExtendedData, branch: BranchInfo): InvoiceData => {
+  const buildThermalData = useCallback(async (ext: ExtendedData, branch: BranchInfo): Promise<InvoiceData> => {
     const rawItems: RawItem[] = ext.items ?? [];
     const cart: CartItem[] = rawItems.map((item) => {
       const pct = Number(item.discountPercentage);
@@ -119,7 +121,11 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     const discount = discVal > 0 ? { type: "flat" as const, value: discVal } : { type: "pct" as const, value: 0 };
     const totals = calcTotals(cart, discount);
     const total = ext?.payments.reduce((sum, p) => sum + p.amount, 0);
-
+    let qrCode: string | undefined;
+    try {
+      const res = await generateQR({ invoiceId: ext?.id });
+      qrCode = res?.qrCode;
+    } catch {}
     return {
       paidAmount: total,
       branch: branch,
@@ -144,7 +150,7 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
       taxAmount: Number((ext.taxAmount ?? totals.tax).toFixed(2)),
       grandTotal: Number((ext.grandTotal ?? totals.total).toFixed(2)),
       notes: ext.notes || ext.note || ext.description || "",
-      qrCodeUrl: `https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${encodeURIComponent(String(ext.orderNumber || ext.purchaseOrderNumber || ext.id || ""))}`,
+      qrCode: qrCode,
     };
   }, []);
 
@@ -152,7 +158,8 @@ export const PrintProvider = ({ children }: { children: ReactNode }) => {
     async (data: PrintableData) => {
       const ext = await prepareExtendedData(data);
       const branch = ext.branchInfo;
-      await thermalPrint(buildThermalData(ext, branch));
+      const res = await buildThermalData(ext, branch);
+      await thermalPrint(res);
     },
     [prepareExtendedData, buildThermalData],
   );

@@ -10,7 +10,8 @@ import { Product } from "@/features/products/types/products.types";
 import { useBranchStore } from "@/store/employeeStore";
 import { BranchInfo } from "@/features/EmployeeBranches/hooks/useBranch";
 import { PrintKitchenBon, printOrderInvoice } from "@/lib/posPrint";
-import { CreateDeliveryOrder } from "../types/pos.types";
+import { CreateDeliveryOrder, CreateTakeawayOrder, TakeawayOrdeResponse } from "../types/pos.types";
+import { GenereateQRRequest, GenereateQRResponse } from "@/features/zatcaInvoice/types/zarchaInvoices.types";
 
 export type DineInMode = "new-order" | "add-items" | "checkout" | null;
 
@@ -85,6 +86,7 @@ interface PosState {
     deps: {
       releaseHolding: (p: any) => Promise<any>;
       customers?: { items: Customer[] };
+      generateQR: (data: GenereateQRRequest) => GenereateQRResponse;
     },
   ) => Promise<void>;
 
@@ -92,7 +94,7 @@ interface PosState {
 
   handleAddItemsToExistingOrder: (deps: { addItemsToOrder: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
 
-  handleConfirmPayment: (params: { shouldPrintKitchenBon?: boolean; isHolding?: boolean; payments?: { amount: number; treasuryId: number; notes: string }[]; createTakwayOrder: (p: any) => Promise<any>; createDeliveryOrder: (p: any) => Promise<any>; checkoutDineInOrder: (p: any) => Promise<any>; releaseHolding: (p: any) => Promise<any>; customers?: { items: Customer[] } }) => Promise<void>;
+  handleConfirmPayment: (params: { shouldPrintKitchenBon?: boolean; isHolding?: boolean; payments?: { amount: number; treasuryId: number; notes: string }[]; createTakwayOrder: (p: CreateTakeawayOrder) => Promise<TakeawayOrdeResponse>; createDeliveryOrder: (p: any) => Promise<any>; checkoutDineInOrder: (p: any) => Promise<any>; releaseHolding: (p: any) => Promise<any>; customers?: { items: Customer[] }; generateQR: (data: GenereateQRRequest) => Promise<GenereateQRResponse> }) => Promise<void>;
 }
 
 export const usePosStore = create<PosState>((set, get) => ({
@@ -180,13 +182,18 @@ export const usePosStore = create<PosState>((set, get) => ({
     });
   },
 
-  handleReleaseHoldingOrder: async (payments, { releaseHolding, customers }) => {
+  handleReleaseHoldingOrder: async (payments, { releaseHolding, customers, generateQR }) => {
     const { holdingOrderId, resetCart, cart, selectedCustomer, discount, orderNote, paidAmount } = get();
     const branch = useBranchStore.getState().branch;
     if (!holdingOrderId) return;
 
     try {
-      await releaseHolding({ id: holdingOrderId, data: payments });
+      // res = await releaseHolding({ id: holdingOrderId, data: payments });
+      // let qrCode: string | undefined;
+      // if (invoiceId) {
+      //   const qrRes = await generateQR({ invoiceId: invoiceId });
+      //   qrCode = qrRes.qrCode;
+      // }
       await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount });
       resetCart(customers);
     } catch {}
@@ -242,7 +249,7 @@ export const usePosStore = create<PosState>((set, get) => ({
     } catch {}
   },
 
-  handleConfirmPayment: async ({ shouldPrintKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers }) => {
+  handleConfirmPayment: async ({ shouldPrintKitchenBon = true, isHolding = false, payments: externalPayments, createTakwayOrder, createDeliveryOrder, checkoutDineInOrder, releaseHolding, customers, generateQR }) => {
     const { cart, discount, selectedCustomer, selectedGiftCardId, selectedTable, selectedVaultId, paidAmount, orderType, holdingOrderId, orderNote, handleReleaseHoldingOrder, resetCart, originalItems, dineInMode, selectedDelivery } = get();
     const branch = useBranchStore.getState().branch;
 
@@ -286,31 +293,42 @@ export const usePosStore = create<PosState>((set, get) => ({
     };
 
     try {
+      let invoiceId: number | null = null;
+
       if (orderType === "TakeAway" || orderType === "Delivery") {
         if (holdingOrderId && !isHolding) {
-          await handleReleaseHoldingOrder(payments, { releaseHolding, customers });
+          await handleReleaseHoldingOrder(payments, { releaseHolding, customers, generateQR });
           return;
         }
         if (orderType === "TakeAway") {
-          await createTakwayOrder(basePayload);
+          const res = await createTakwayOrder(basePayload);
+          invoiceId = res?.data?.id ?? null;
         } else {
           const delvierypaLoad: CreateDeliveryOrder = { ...basePayload, deliveryCompanyId: Number(selectedDelivery) };
-          await createDeliveryOrder(delvierypaLoad);
+          const res = await createDeliveryOrder(delvierypaLoad);
+          invoiceId = res?.data?.id ?? null;
         }
       } else if (orderType === "InDine") {
-        await checkoutDineInOrder({
+        const res = await checkoutDineInOrder({
           tableId: Number(selectedTable),
           globalDiscountValue: discount.type === "flat" ? discount.value : 0,
           globalDiscountPercentage: discount.type === "pct" ? discount.value : 0,
           giftCardId: selectedGiftCardId,
           payments: isHolding ? [] : [{ amount: paidAmount, treasuryId: selectedVaultId!, notes: "" }],
         });
+        invoiceId = res?.data?.id ?? null;
         set({ dineInMode: null });
       }
 
       if (!isHolding) {
-        await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount });
-        console.log("print");
+        let qrCode: string | undefined;
+        if (invoiceId) {
+          const qrRes = await generateQR({ invoiceId: invoiceId });
+          qrCode = qrRes.qrCode;
+        }
+
+        await printOrderInvoice({ cart, discount, selectedCustomer, orderNote, branch, paidAmount, qrCode });
+
         if (dineInMode === "add-items") {
           await PrintKitchenBon({ cart, originalItems, selectedCustomer });
         }
@@ -319,6 +337,7 @@ export const usePosStore = create<PosState>((set, get) => ({
           await PrintKitchenBon({ cart, originalItems: [], selectedCustomer });
         }
       }
+
       resetCart(customers);
     } catch {}
   },
