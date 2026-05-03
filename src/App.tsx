@@ -60,8 +60,7 @@ import BarcodeSettings from "@/pages/settings/BarcodeSettings";
 import EmailSettings from "@/pages/settings/EmailSettings";
 import DeliveryCompanies from "@/pages/DeliveryCompanies";
 import Currencies from "@/pages/Currencies";
-import CustomerGroups from "@/pages/CustomerGroups";
-import PriceGroups from "@/pages/PriceGroups";
+import CategoryDiscount from "@/pages/CategoryDiscount";
 
 import Tables from "@/pages/Tables";
 
@@ -219,8 +218,7 @@ function AppRoutes() {
             <Route path="/settings/email" element={<EmailSettings />} />
             <Route path="/settings/delivery-companies" element={<DeliveryCompanies />} />
             <Route path="/settings/currencies" element={<Currencies />} />
-            <Route path="/settings/customer-groups" element={<CustomerGroups />} />
-            <Route path="/settings/price-groups" element={<PriceGroups />} />
+            <Route path="/settings/category-discounts" element={<CategoryDiscount />} />
             <Route path="/settings/tables" element={<Tables />} />
 
             <Route path="/reports/low-stock" element={<LowStockReport />} />

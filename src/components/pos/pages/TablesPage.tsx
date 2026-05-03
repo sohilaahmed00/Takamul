@@ -160,16 +160,7 @@ export default function TablesPage() {
 
                 {isOccupied ? (
                   <>
-                    <Button
-                      size="xl"
-                      variant="destructive"
-                      onClick={async () => {
-                        await cancelOrder(table?.currentOrderId);
-                        setSelectedTable2(null);
-                      }}
-                    >
-                      <Trash2 size={14} /> إلغاء الاوردر
-                    </Button>
+
                     {/* Add items */}
                     <Button
                       size="xl"
