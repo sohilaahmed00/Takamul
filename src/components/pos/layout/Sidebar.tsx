@@ -18,6 +18,7 @@ import { useGetAllSuppliers } from "@/features/suppliers/hooks/useGetAllSupplier
 import { useGetCustomerById } from "@/features/customers/hooks/useGetCustomerById";
 import { useGetSupplierById } from "@/features/suppliers/hooks/useGetSupplierById";
 import { useBranchStore } from "@/store/employeeStore";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { generateQR } from "@/features/zatcaInvoice/services/zatcha";
 
 interface OrdersDialogProps {
@@ -389,12 +390,26 @@ export default function Sidebar() {
   const [open, setOpen] = useState(false);
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const salesSettings = useSettingsStore((s) => s.settings.sales);
+
+  useEffect(() => {
+    if (!salesSettings.isTables && screen === "tables") {
+      setScreen("home");
+    }
+  }, [salesSettings.isTables, screen, setScreen]);
+
+  const filteredNavItems = NAV_ITEMS.filter((item) => {
+    if (item.id === "tables") {
+      return salesSettings.isTables;
+    }
+    return true;
+  });
 
   return (
     <>
       <div className="w-16 bg-sidebar flex flex-col items-center py-3 gap-0.5 shrink-0 [.light_&]:bg-[#000052] [.dark_&]:bg-[#000052]">
         <div className="flex-1" />
-        {NAV_ITEMS.map(({ id, icon: Icon, label, isNav }) => (
+        {filteredNavItems.map(({ id, icon: Icon, label, isNav }) => (
           <button
             key={id}
             onClick={() => {

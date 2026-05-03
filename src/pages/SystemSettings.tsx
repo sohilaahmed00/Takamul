@@ -1,7 +1,7 @@
 import React from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import { useSettings, type SystemSettings } from "@/context/SettingsContext";
-import { Settings, Star, Percent, FileText, Printer, Save, Truck, Coins, Users, DollarSign, Grid3x3, ArrowLeft } from "lucide-react";
+import { Settings, Star, Percent, FileText, Printer, Save, Truck, Coins, Users, DollarSign, Grid3x3, ArrowLeft, Tag } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,7 @@ import { FileUpload, FileUploadDropzone, FileUploadTrigger, FileUploadList, File
 
 import DeliveryCompanies from "./DeliveryCompanies";
 import Currencies from "./Currencies";
-import CustomerGroups from "./CustomerGroups";
-import PriceGroups from "./PriceGroups";
+import CategoryDiscount from "./CategoryDiscount";
 import TablesList from "./Tables";
 import TaxesList from "./TaxesList";
 import { useUpdateTobaccoFees } from "@/features/settings/hooks/useUpdateTobaccoFees";
@@ -60,7 +59,7 @@ export default function SystemSettings() {
   const { systemSettings, updateSystemSettings, saveSettings } = useSettings();
   const { mutate: updateTobaccoFees } = useUpdateTobaccoFees();
   const { mutate: updateGeneral } = useUpdateGeneralSettings();
-  const [activeSection, setActiveSection] = React.useState("points");
+  const [activeSection, setActiveSection] = React.useState("category_discounts");
   const [headerImageFiles, setHeaderImageFiles] = React.useState<File[]>([]);
 
   const handleUpdate = (section: keyof SystemSettings, field: string, value: any) => {
@@ -79,8 +78,7 @@ export default function SystemSettings() {
     { id: "print", title: t("print_settings", "إعدادات طباعة"), icon: Printer },
     { id: "delivery", title: t("delivery_companies", "شركات التوصيل"), icon: Truck },
     { id: "currencies", title: t("currencies", "العملات"), icon: Coins },
-    { id: "customer_groups", title: t("customer_groups", "مجموعة العملاء"), icon: Users },
-    { id: "price_groups", title: t("price_groups", "مجموعات التسعير"), icon: DollarSign },
+    { id: "category_discounts", title: t("category_discounts", "خصومات التصنيفات"), icon: Tag },
     { id: "taxes", title: t("tax_list", "قائمة الضرايب"), icon: Percent },
     { id: "tables", title: t("tables", "الطاولات"), icon: Grid3x3 },
   ];
@@ -289,15 +287,9 @@ export default function SystemSettings() {
               </div>
             )}
 
-            {activeSection === "customer_groups" && (
-              <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
-                <CustomerGroups />
-              </div>
-            )}
-
-            {activeSection === "price_groups" && (
-              <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] overflow-hidden">
-                <PriceGroups />
+            {activeSection === "category_discounts" && (
+              <div className="bg-[var(--bg-card)] rounded-xl shadow-sm border border-[var(--border)] p-6 overflow-hidden">
+                <CategoryDiscount />
               </div>
             )}
 
