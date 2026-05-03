@@ -8,12 +8,12 @@ import { Field, FieldLabel } from "@/components/ui/field";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { useUpdateSiteSettings } from "@/features/settings/hooks/useUpdateSettings";
-import { useSettings } from "@/context/SettingsContext";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 export default function SiteSettings() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { systemSettings } = useSettings();
+  const systemSettings = useSettingsStore((s) => s.settings);
   const { mutate: updateSite } = useUpdateSiteSettings();
 
   const enableStr = t("enable_option") || "تمكين";
@@ -21,29 +21,29 @@ export default function SiteSettings() {
 
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
-      rowsPerPage: systemSettings.site.rowsPerPage,
-      showActualBalance: systemSettings.site.showActualBalance,
-      showCostGreaterThanSalePriceMessage: systemSettings.site.showCostGreaterMsg,
-      showItemCodeInSalesPrint: systemSettings.site.showItemCodeInSales,
-      showItemCodeInQuotations: systemSettings.site.showItemCodeInQuotes,
-      showItemCodeInPurchases: systemSettings.site.showItemCodeInPurchases,
-      postype: systemSettings.site.defaultSalesScreen || "POS1",
-      defaultPaymentCompany: Number(systemSettings.site.defaultPaymentCompany) || 0,
+      rowsPerPage: systemSettings.location.rowsPerPage,
+      showActualBalance: systemSettings.location.showActualBalance,
+      showCostGreaterThanSalePriceMessage: systemSettings.location.showCostGreaterThanSalePriceMessage,
+      showItemCodeInSalesPrint: systemSettings.location.showItemCodeInSalesPrint,
+      showItemCodeInQuotations: systemSettings.location.showItemCodeInQuotations,
+      showItemCodeInPurchases: systemSettings.location.showItemCodeInPurchases,
+      postype: (systemSettings.location.postype === "Pos2" || String(systemSettings.location.postype) === "2") ? "POS2" : "POS1",
+      defaultPaymentCompany: Number(systemSettings.location.defaultPaymentCompany) || 0,
     },
   });
 
   React.useEffect(() => {
     reset({
-      rowsPerPage: systemSettings.site.rowsPerPage,
-      showActualBalance: systemSettings.site.showActualBalance,
-      showCostGreaterThanSalePriceMessage: systemSettings.site.showCostGreaterMsg,
-      showItemCodeInSalesPrint: systemSettings.site.showItemCodeInSales,
-      showItemCodeInQuotations: systemSettings.site.showItemCodeInQuotes,
-      showItemCodeInPurchases: systemSettings.site.showItemCodeInPurchases,
-      postype: systemSettings.site.defaultSalesScreen || "POS1",
-      defaultPaymentCompany: Number(systemSettings.site.defaultPaymentCompany) || 0,
+      rowsPerPage: systemSettings.location.rowsPerPage,
+      showActualBalance: systemSettings.location.showActualBalance,
+      showCostGreaterThanSalePriceMessage: systemSettings.location.showCostGreaterThanSalePriceMessage,
+      showItemCodeInSalesPrint: systemSettings.location.showItemCodeInSalesPrint,
+      showItemCodeInQuotations: systemSettings.location.showItemCodeInQuotations,
+      showItemCodeInPurchases: systemSettings.location.showItemCodeInPurchases,
+      postype: (systemSettings.location.postype === "Pos2" || String(systemSettings.location.postype) === "2") ? "POS2" : "POS1",
+      defaultPaymentCompany: Number(systemSettings.location.defaultPaymentCompany) || 0,
     });
-  }, [systemSettings.site, reset]);
+  }, [systemSettings.location, reset]);
 
   const onSubmit = (data: any) => {
     const payload = {

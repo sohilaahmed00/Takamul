@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useGetAllProducts } from "@/features/products/hooks/useGetAllProducts";
 import { useLanguage } from "@/context/LanguageContext";
@@ -6,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Product } from "@/features/products/types/products.types";
 import { usePos } from "@/context/PosContext";
 import { usePosStore } from "@/features/pos/store/usePosStore";
+import { Maximize } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Topbar() {
   const [search, setSearch] = useState("");
@@ -22,8 +25,18 @@ export default function Topbar() {
         })
       : [];
 
+
+  const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  };
+
+
   return (
-    <div className="bg-card border-b border-border px-3 md:px-5 py-3">
+    <div className="bg-card border-b border-border px-3 md:px-5 py-3 flex items-center gap-3">
       <Popover open={open && filteredProducts.length > 0} onOpenChange={setOpen}>
         <PopoverAnchor asChild>
           <div className="relative w-full">
@@ -96,6 +109,16 @@ export default function Topbar() {
           </div>
         </PopoverContent>
       </Popover>
+
+      <Button 
+        onClick={toggleFullScreen} 
+        variant="outline" 
+        size="icon" 
+        className="w-10 h-10 border-[#000052] text-[#000052] hover:bg-[#000052] hover:text-white dark:border-border dark:text-foreground dark:hover:bg-muted dark:hover:text-foreground transition-colors duration-200 shrink-0" 
+        title="ملء الشاشة"
+      >
+        <Maximize size={18} />
+      </Button>
     </div>
   );
 }

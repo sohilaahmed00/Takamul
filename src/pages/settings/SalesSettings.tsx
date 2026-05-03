@@ -1,6 +1,6 @@
 import React from "react";
 import { useLanguage } from "@/context/LanguageContext";
-import { useSettings } from "@/context/SettingsContext";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -14,28 +14,26 @@ import { Label } from "@/components/ui/label";
 export default function SalesSettings() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { systemSettings, updateSystemSettings } = useSettings();
+  const systemSettings = useSettingsStore((s) => s.settings);
+  const setSales = useSettingsStore((s) => s.setSales);
   const { mutate: updateSales } = useUpdateSalesSettings();
   const { data: treasuries } = useGetAllTreasurys();
 
   const handleUpdate = (field: string, value: any) => {
-    updateSystemSettings({
-      sales: {
-        ...(systemSettings.sales as any),
-        [field]: value,
-      },
+    setSales({
+      [field]: value,
     });
   };
 
   const onSave = () => {
     updateSales({
-      allowSaleWithZeroStock: systemSettings.sales.sellIfZero,
-      defaultSalesVault: Number(systemSettings.sales.defaultPaymentMethod) || 0,
-      defaultPurchasesVault: Number(systemSettings.sales.defaultPurchasePaymentMethod) || 0,
+      allowSaleWithZeroStock: systemSettings.sales.allowSaleWithZeroStock,
+      defaultSalesVault: Number(systemSettings.sales.defaultSalesVault) || 0,
+      defaultPurchasesVault: Number(systemSettings.sales.defaultPurchasesVault) || 0,
       showOrderDeviceNumber: systemSettings.sales.showOrderDeviceNumber,
-      isTekawuy: systemSettings.sales.enableTakeaway,
-      isTables: systemSettings.sales.enableDineIn,
-      isDelivary: systemSettings.sales.enableDelivery,
+      isTekawuy: systemSettings.sales.isTekawuy,
+      isTables: systemSettings.sales.isTables,
+      isDelivary: systemSettings.sales.isDelivary,
     });
   };
 
@@ -66,7 +64,7 @@ export default function SalesSettings() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-5">
             <Field>
               <FieldLabel className="gap-x-0">{t("sell_if_zero")} <span className="text-red-500">*</span></FieldLabel>
-              <Select value={systemSettings.sales.sellIfZero ? enableStr : disableStr} onValueChange={(val) => handleUpdate("sellIfZero", val === enableStr)}>
+              <Select value={systemSettings.sales.allowSaleWithZeroStock ? enableStr : disableStr} onValueChange={(val) => handleUpdate("allowSaleWithZeroStock", val === enableStr)}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
@@ -93,8 +91,8 @@ export default function SalesSettings() {
             <Field>
               <FieldLabel className="gap-x-0">{t("default_sales_payment_method")} <span className="text-red-500">*</span></FieldLabel>
               <Select 
-                value={systemSettings.sales.defaultPaymentMethod || ""} 
-                onValueChange={(val) => handleUpdate("defaultPaymentMethod", val)}
+                value={String(systemSettings.sales.defaultSalesVault) || ""} 
+                onValueChange={(val) => handleUpdate("defaultSalesVault", Number(val))}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder={!treasuries ? t("loading") : (t("select_treasury") || "اختر الخزينة")} />
@@ -112,8 +110,8 @@ export default function SalesSettings() {
             <Field>
               <FieldLabel className="gap-x-0">{t("default_purchase_payment_method")} <span className="text-red-500">*</span></FieldLabel>
               <Select 
-                value={systemSettings.sales.defaultPurchasePaymentMethod || ""} 
-                onValueChange={(val) => handleUpdate("defaultPurchasePaymentMethod", val)}
+                value={String(systemSettings.sales.defaultPurchasesVault) || ""} 
+                onValueChange={(val) => handleUpdate("defaultPurchasesVault", Number(val))}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder={!treasuries ? t("loading") : (t("select_treasury") || "اختر الخزينة")} />
@@ -159,36 +157,36 @@ export default function SalesSettings() {
             <div className="col-span-full mt-6 flex flex-wrap items-center gap-10">
               <div className="flex items-center gap-3 cursor-pointer group">
                 <Checkbox 
-                  id="enableTakeaway" 
-                  checked={systemSettings.sales.enableTakeaway} 
-                  onCheckedChange={(checked) => handleUpdate("enableTakeaway", !!checked)}
+                  id="isTekawuy" 
+                  checked={systemSettings.sales.isTekawuy} 
+                  onCheckedChange={(checked) => handleUpdate("isTekawuy", !!checked)}
                   className="w-5 h-5 border-gray-300 data-[state=checked]:bg-[var(--primary)] data-[state=checked]:border-[var(--primary)] transition-all"
                 />
-                <Label htmlFor="enableTakeaway" className="text-base font-medium text-gray-700 cursor-pointer group-hover:text-[var(--primary)] transition-colors">
+                <Label htmlFor="isTekawuy" className="text-base font-medium text-gray-700 cursor-pointer group-hover:text-[var(--primary)] transition-colors">
                   {t("takeaway_option") || "سفري"}
                 </Label>
               </div>
 
               <div className="flex items-center gap-3 cursor-pointer group">
                 <Checkbox 
-                  id="enableDineIn" 
-                  checked={systemSettings.sales.enableDineIn} 
-                  onCheckedChange={(checked) => handleUpdate("enableDineIn", !!checked)}
+                  id="isTables" 
+                  checked={systemSettings.sales.isTables} 
+                  onCheckedChange={(checked) => handleUpdate("isTables", !!checked)}
                   className="w-5 h-5 border-gray-300 data-[state=checked]:bg-[var(--primary)] data-[state=checked]:border-[var(--primary)] transition-all"
                 />
-                <Label htmlFor="enableDineIn" className="text-base font-medium text-gray-700 cursor-pointer group-hover:text-[var(--primary)] transition-colors">
+                <Label htmlFor="isTables" className="text-base font-medium text-gray-700 cursor-pointer group-hover:text-[var(--primary)] transition-colors">
                   {t("dine_in_option") || "محلي"}
                 </Label>
               </div>
 
               <div className="flex items-center gap-3 cursor-pointer group">
                 <Checkbox 
-                  id="enableDelivery" 
-                  checked={systemSettings.sales.enableDelivery} 
-                  onCheckedChange={(checked) => handleUpdate("enableDelivery", !!checked)}
+                  id="isDelivary" 
+                  checked={systemSettings.sales.isDelivary} 
+                  onCheckedChange={(checked) => handleUpdate("isDelivary", !!checked)}
                   className="w-5 h-5 border-gray-300 data-[state=checked]:bg-[var(--primary)] data-[state=checked]:border-[var(--primary)] transition-all"
                 />
-                <Label htmlFor="enableDelivery" className="text-base font-medium text-gray-700 cursor-pointer group-hover:text-[var(--primary)] transition-colors">
+                <Label htmlFor="isDelivary" className="text-base font-medium text-gray-700 cursor-pointer group-hover:text-[var(--primary)] transition-colors">
                   {t("delivery_option") || "توصيل"}
                 </Label>
               </div>

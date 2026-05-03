@@ -5,7 +5,7 @@ import RecentTransactions from "@/components/RecentTransactions";
 import { motion } from "framer-motion";
 import { useTheme } from "@/context/ThemeContext";
 import { useLanguage } from "@/context/LanguageContext";
-import { useSettings } from "@/context/SettingsContext";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 import { formatCurrency } from "@/lib/format";
 import { useAuthStore } from "@/store/authStore";
 import { Permissions } from "@/lib/permissions";
@@ -37,7 +37,7 @@ const StatCard = ({ title, value, icon: Icon, colorClass, bgClass, textColor = "
 
 export default function Dashboard() {
   const { t, direction } = useLanguage();
-  const { systemSettings } = useSettings();
+  const systemSettings = useSettingsStore((s) => s.settings);
   const navigate = useNavigate();
   const hasPermission = useAuthStore((s) => s.hasPermission);
   const hasAnyPermission = useAuthStore((s) => s.hasAnyPermission);

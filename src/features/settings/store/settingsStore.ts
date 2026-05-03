@@ -9,6 +9,7 @@ interface TobaccoFeesSettings {
 interface GeneralSettings {
   topDataStatus: boolean;
   image: string;
+  language: string;
 }
 
 interface LocationSettings {
@@ -19,6 +20,7 @@ interface LocationSettings {
   showItemCodeInSalesPrint: boolean;
   showItemCodeInQuotations: boolean;
   showItemCodeInPurchases: boolean;
+  postype: number | string;
 }
 
 interface ItemsSettings {
@@ -35,6 +37,11 @@ interface SalesSettings {
   defaultSalesVault: number;
   defaultPurchasesVault: number;
   showOrderDeviceNumber: boolean;
+  isTekawuy: boolean;
+  isTables: boolean;
+  isDelivary: boolean;
+  enableCursorOnAddProduct: boolean;
+  enableGlasses: boolean;
 }
 
 interface BarcodeScaleSettings {
@@ -66,6 +73,7 @@ const defaultSettings: Settings = {
   general: {
     topDataStatus: true,
     image: "",
+    language: "ar",
   },
   location: {
     rowsPerPage: 10,
@@ -75,6 +83,7 @@ const defaultSettings: Settings = {
     showItemCodeInSalesPrint: true,
     showItemCodeInQuotations: true,
     showItemCodeInPurchases: true,
+    postype: 1,
   },
   items: {
     itemTax: true,
@@ -89,6 +98,11 @@ const defaultSettings: Settings = {
     defaultSalesVault: 1,
     defaultPurchasesVault: 1,
     showOrderDeviceNumber: false,
+    isTekawuy: false,
+    isTables: false,
+    isDelivary: false,
+    enableCursorOnAddProduct: true,
+    enableGlasses: false,
   },
   barcodeScale: {
     barcodeType: 1,
