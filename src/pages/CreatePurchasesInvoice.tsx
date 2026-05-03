@@ -23,6 +23,7 @@ import { useGetAllTreasurys } from "@/features/treasurys/hooks/useGetAllTreasury
 import z from "zod/v3";
 import { calcVat } from "@/utils/calcVat";
 import { useUpdatePurchaseOrder } from "@/features/purchases/hooks/useUpdatePurchaseOrder";
+import { useSettingsStore } from "@/features/settings/store/settingsStore";
 
 const createPurchasesInvoiceSchema = (t: (key: string) => string) =>
   z.object({
@@ -59,6 +60,7 @@ type PurchaseInvoiceType = z.infer<ReturnType<typeof createPurchasesInvoiceSchem
 const CreatePurchaseInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
+  const showActualBalance = useSettingsStore((s) => s.settings.location.showActualBalance);
 
   const purchasesInvoiceSchema = useMemo(() => createPurchasesInvoiceSchema(t), [t]);
 
@@ -338,15 +340,17 @@ const CreatePurchaseInvoice: React.FC = () => {
                   );
                 }}
               />
-              <Field>
-                <FieldLabel>مديونية المورد</FieldLabel>
-                <div className="relative">
-                  <Input readOnly value={selectedSupplier?.balance?.toLocaleString("en-EG", { minimumFractionDigits: 2 }) ?? ""} placeholder="—" className={`cursor-default bg-muted/50 font-semibold pr-20 ${(selectedSupplier?.balance ?? 0) < 0 ? "text-red-500" : "text-emerald-500"}`} />
-                  <div className="absolute inset-y-0 right-0 flex items-center px-3 border-l border-border bg-muted/50 rounded-r-md">
-                    <span className="text-xs text-muted-foreground whitespace-nowrap">{(selectedSupplier?.balance ?? 0) < 0 ? t("debtor") : "دائن"}</span>
+              {showActualBalance && (
+                <Field>
+                  <FieldLabel>مديونية المورد</FieldLabel>
+                  <div className="relative">
+                    <Input readOnly value={selectedSupplier?.balance?.toLocaleString("en-EG", { minimumFractionDigits: 2 }) ?? ""} placeholder="—" className={`cursor-default bg-muted/50 font-semibold pr-20 ${(selectedSupplier?.balance ?? 0) < 0 ? "text-red-500" : "text-emerald-500"}`} />
+                    <div className="absolute inset-y-0 right-0 flex items-center px-3 border-l border-border bg-muted/50 rounded-r-md">
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">{(selectedSupplier?.balance ?? 0) < 0 ? t("debtor") : "دائن"}</span>
+                    </div>
                   </div>
-                </div>
-              </Field>
+                </Field>
+              )}
 
               <div className="lg:col-span-4 col-span-1">
                 <Controller

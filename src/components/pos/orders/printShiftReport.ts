@@ -66,6 +66,7 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 <title>تقرير الوردية</title>
 <style>
 * {
@@ -74,6 +75,7 @@ export async function printShiftReport(data: ShiftReportData): Promise<void> {
   box-sizing: border-box;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
+  font-family: 'Cairo', Tahoma, Arial, sans-serif;
 }
 
 html, body {
@@ -82,7 +84,6 @@ html, body {
   color: #000;
   direction: rtl;
   background: #fff;
-  font-family: Tahoma, Arial, sans-serif;
 }
 
 .page {
@@ -113,8 +114,8 @@ html, body {
 .top-col.r { align-items: flex-start; text-align: right; }
 .top-col.l { align-items: flex-end; text-align: left; }
 
-.lbl { font-size: 7pt; font-weight: 700; color: #777; }
-.val { font-size: 9.5pt; font-weight: 700; line-height: 1.2; }
+.lbl { font-size: 7pt; font-weight: 500; color: #777; }
+.val { font-size: 9.5pt; font-weight: 500; line-height: 1.2; }
 
 .date-row {
   text-align: center;
@@ -140,7 +141,7 @@ html, body {
   border: 2px solid #000;
   padding: 3px 20px;
   font-size: 8pt;
-  font-weight: 900;
+  font-weight: 700;
   background: #fff;
 }
 
@@ -154,7 +155,7 @@ html, body {
   width: 100%;
   border-collapse: collapse;
   font-size: 7pt;
-  font-weight: 700;
+  font-weight: 500;
   table-layout: fixed;
 }
 
@@ -164,7 +165,7 @@ html, body {
   padding: 3px 2px;
   text-align: center;
   font-size: 7pt;
-  font-weight: 900;
+  font-weight: 700;
 }
 .tbl th:last-child { border-left: none; }
 
@@ -174,14 +175,14 @@ html, body {
   padding: 3px 2px;
   text-align: center;
   font-size: 7pt;
-  font-weight: 700;
+  font-weight: 500;
   word-break: break-word;
 }
 .tbl td:last-child { border-left: none; }
 .tbl tr:last-child td { border-bottom: none; }
 
 .td-num { width: 10%; }
-.td-name { text-align: right !important; padding-right: 4px !important; width: 35%; }
+.td-name { text-align: center !important; width: 35%; }
 
 /* TOTALS BOX */
 .totals-box {
@@ -196,16 +197,16 @@ html, body {
   align-items: center;
   padding: 3px 0;
   font-size: 7.5pt;
-  font-weight: 700;
+  font-weight: 500;
 }
-.t-num { font-weight: 900; font-size: 8.5pt; }
+.t-num { font-weight: 700; font-size: 8.5pt; }
 
 .t-row.grand {
   border-top: 2px solid #000;
   margin-top: 3px;
   padding-top: 4px;
   font-size: 8.5pt;
-  font-weight: 900;
+  font-weight: 700;
 }
 
 /* PAYMENT TABLE */
@@ -213,7 +214,7 @@ html, body {
   width: 100%;
   border-collapse: collapse;
   font-size: 7.5pt;
-  font-weight: 700;
+  font-weight: 500;
   table-layout: fixed;
 }
 
@@ -223,7 +224,7 @@ html, body {
   padding: 4px 3px;
   text-align: center;
   font-size: 7.5pt;
-  font-weight: 900;
+  font-weight: 700;
 }
 .pay-tbl th:last-child { border-left: none; }
 
@@ -232,7 +233,7 @@ html, body {
   padding: 4px 3px;
   text-align: center;
   font-size: 8pt;
-  font-weight: 900;
+  font-weight: 700;
 }
 .pay-tbl td:last-child { border-left: none; }
 
@@ -241,7 +242,7 @@ html, body {
   width: 100%;
   border-collapse: collapse;
   font-size: 7.5pt;
-  font-weight: 700;
+  font-weight: 500;
   table-layout: fixed;
 }
 
@@ -251,7 +252,7 @@ html, body {
   padding: 4px 3px;
   text-align: center;
   font-size: 7.5pt;
-  font-weight: 900;
+  font-weight: 700;
 }
 .two-tbl th:last-child { border-left: none; }
 
@@ -260,7 +261,7 @@ html, body {
   padding: 4px 3px;
   text-align: center;
   font-size: 8pt;
-  font-weight: 900;
+  font-weight: 700;
 }
 .two-tbl td:last-child { border-left: none; }
 
@@ -269,7 +270,7 @@ html, body {
   width: 100%;
   border-collapse: collapse;
   font-size: 7.5pt;
-  font-weight: 700;
+  font-weight: 500;
   table-layout: fixed;
 }
 
@@ -278,9 +279,9 @@ html, body {
   border-left: 1px solid #000;
   padding: 4px 6px;
   font-size: 8pt;
-  font-weight: 900;
+  font-weight: 700;
 }
-.dlv-name { text-align: right; width: 50%; font-weight: 700; color: #444; border-left: 1px solid #000; }
+.dlv-name { text-align: center; width: 50%; font-weight: 500; color: #444; border-left: 1px solid #000; }
 .dlv-num { text-align: center; width: 50%; border-left: none !important; }
 .dlv-tbl tr:last-child td { border-bottom: none; }
 

@@ -60,6 +60,7 @@ type SalesInvoiceType = z.input<ReturnType<typeof SalesInvoiceSchema>>;
 const CreateSalesInvoice: React.FC = () => {
   const { t, direction } = useLanguage();
   const navigate = useNavigate();
+  const showActualBalance = useSettingsStore((s) => s.settings.location.showActualBalance);
   const { id } = useParams();
   // const isEditMode = Boolean(id);
   const [isAddCustomerModalOpen, setIsAddCustomerModalOpen] = useState(false);
@@ -358,15 +359,17 @@ const CreateSalesInvoice: React.FC = () => {
                   </div>
                 </div>
 
-                <Field>
-                  <FieldLabel>رصيد العميل</FieldLabel>
-                  <div className="relative">
-                    <Input readOnly value={selectedCustomer?.balance?.toLocaleString("en-EG", { minimumFractionDigits: 2 }) ?? ""} placeholder="—" className={`cursor-default bg-muted/50 font-semibold pr-20 ${(selectedCustomer?.balance ?? 0) < 0 ? "text-red-500" : "text-emerald-500"}`} />
-                    <div className="absolute inset-y-0 right-0 flex items-center px-3 border-l border-border bg-muted/50 rounded-r-md">
-                      <span className="text-xs text-muted-foreground whitespace-nowrap">{(selectedCustomer?.balance ?? 0) <= 0 ? "دائن" : t("debtor")}</span>
+                {showActualBalance && (
+                  <Field>
+                    <FieldLabel>رصيد العميل</FieldLabel>
+                    <div className="relative">
+                      <Input readOnly value={selectedCustomer?.balance?.toLocaleString("en-EG", { minimumFractionDigits: 2 }) ?? ""} placeholder="—" className={`cursor-default bg-muted/50 font-semibold pr-20 ${(selectedCustomer?.balance ?? 0) < 0 ? "text-red-500" : "text-emerald-500"}`} />
+                      <div className="absolute inset-y-0 right-0 flex items-center px-3 border-l border-border bg-muted/50 rounded-r-md">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">{(selectedCustomer?.balance ?? 0) <= 0 ? "دائن" : t("debtor")}</span>
+                      </div>
                     </div>
-                  </div>
-                </Field>
+                  </Field>
+                )}
                 <Controller
                   name="employeeId"
                   control={form.control}
